@@ -1,0 +1,539 @@
+# Architecture
+
+## Repository Boundary
+
+`apitools` owns a focused OpenAPI and provider API-source metadata boundary:
+
+- safe remote catalog lookup, download, and validation of OpenAPI/Swagger
+  documents and
+  metadata-safe handling of catalog Google Discovery, AWS Smithy JSON, AsyncAPI,
+  OpenRPC, GraphQL, gRPC/protobuf, and OData artifacts;
+- local project file scanning with symlink and size protections, including a
+  bounded family-aware discovery report over explicit file/directory roots;
+- import into deterministic local `openapi/` files;
+- operation inventories, indexes, summaries, selection ranking, and
+  provenance-aware lifecycle sibling ranking;
+- auth/security summaries derived from OpenAPI security metadata;
+- optional cache adapters;
+- provider catalog, spec protocol classification, security-overlay metadata,
+  and read-only overlay inspection views;
+- deterministic catalog protocol to UWS source type mapping for OpenAPI,
+  Google Discovery, AWS Smithy JSON, AsyncAPI, OpenRPC, GraphQL,
+  gRPC/protobuf, and OData artifacts;
+- Google Discovery native metadata parsing through the standalone
+  `github.com/OpenUdon/googlediscovery` module;
+- AWS Smithy JSON native model parsing;
+- offline catalog quality reports and CLI gates for catalog metadata
+  regressions.
+- read-only provider advisory reports that combine catalog metadata, security
+  status, overlay IDs, and existing artifact path registrations.
+- offline refresh review reports that inspect existing cache registrations and
+  saved artifacts without downloading documents or creating caches.
+- offline catalog stats reports that summarize provider protocol buckets,
+  artifact registry counts, and refresh validation buckets.
+- offline catalog security audits that classify provider auth/security
+  dispositions and inspect local OpenAPI/Swagger artifact security metadata.
+- offline provider artifact resolution, materialization, and workflow export
+  that copies existing local catalog artifacts and separate security-overlay
+  JSON metadata with provenance manifests.
+- pure helper packages and public helper descriptors for payload-shaping
+  functions that trusted runtimes may register, without making `apitools` a
+  workflow executor or credential resolver.
+
+Related repositories:
+
+| Path | Role |
+|---|---|
+| `../apitools` | OpenAPI tooling module and CLI. |
+| `../openudon` | Consumes API metadata for authoring, review, package evidence, and trusted-runner handoff. |
+| `../uws` | Public workflow semantics and model. |
+| `../udon` | Private UWS/OpenAPI compiler, runtime execution, credential resolution, and operator OAuth token exchange. |
+| `../tfconfig` | Static Terraform/OpenTofu parser only. |
+
+## Layout
+
+| Path | Role |
+|---|---|
+| `*.go` | Root `github.com/OpenUdon/apitools` package: client, discovery, validation, import, inventory, auth, and ranking APIs. |
+| `operationlifecycle/` | Conservative same-source lifecycle-role ranking over root `OperationSummary` records; it performs no source fetch or execution. |
+| `cmd/apitools/` | Thin CLI wrapper over reusable package behavior. |
+| `catalog/` | Metadata-only candidate inventory, durable provider entries, and official spec references. |
+| `catalog/data/catalog.json` | Canonical reviewed C01 catalog bundle for candidates, providers, security classifications, overlays, and provenance. |
+| `catalog/data/manifest.json` | Generated golden catalog version, SHA-256 digest, byte length, and record counts. |
+| `catalog/catalog_gen.go` | Deterministic checked-in indexes generated from the reviewed catalog bundle. |
+| `catalog/index.go` | Immutable reusable provider/spec/overlay/security lookup index used by resolution and advisory aggregation. |
+| `cmd/cataloggen/` | Offline validator/generator with write and stale-output check modes. |
+| `catalog_stats.go` | Package-owned offline catalog protocol, artifact-registry, and refresh-evidence aggregation policy. |
+| `catalog-openapi-cache/` | Mixed catalog curation area: ignored downloaded specs, Discovery documents, and SQLite cache copies; tracked generated advisory overlays and service-specific overlay builders. |
+| `googlediscovery/` | Deprecated compatibility wrapper over the standalone `github.com/OpenUdon/googlediscovery` native parser. |
+| `awssmithy/` | Deprecated compatibility wrapper over the standalone `github.com/OpenUdon/awssmithy` native parser. |
+| `openrpc/` | Metadata-only OpenRPC JSON parser and selector-summary API for JSON-RPC source documents. |
+| `graphql/` | Metadata-only GraphQL parser and selector-summary API for SDL, introspection JSON, and operation documents. |
+| `grpcproto/` | Metadata-only gRPC/protobuf parser and selector-summary API for `.proto`, JSON descriptor, and binary descriptor-set artifacts. |
+| `odata/` | Metadata-only OData parser and selector-summary API for CSDL XML, JSON CSDL, and exported service metadata. |
+| `openapidisco/` | Compatibility wrapper for local OpenAPI discovery and primary-candidate selection. |
+| `sqlitecache/` | Optional SQLite implementation of the cache interface. |
+| `helper/` | Pure payload-shaping helper contracts and implementations, such as Gmail raw-message rendering, intended for downstream authoring metadata and trusted runtime registration. |
+| `internal/` | Private implementation helpers when needed. |
+| `memory-bank/` | Private lane-aware harness project memory, symlinked from `../tofu/apitools`; `milestone.md` owns lane meanings and `status-<LANE><NN>.md` files own task state. |
+| `evolution/` | Private direction snapshots, symlinked from `../tofu/apitools`. |
+
+The harness keeps completed pre-lane work in the zero-padded `M` series. Future
+provider-catalog curation uses lane `C`, future source/discovery tooling uses
+lane `S`, and cross-cutting work remains in `M`. Lanes classify long-lived
+domains rather than phases. Independent milestones in different lanes may be
+active together only when `milestone.md` records non-overlapping ownership,
+resolved dependencies, and downstream impacts.
+
+C01 introduces `apitools.catalog.v1` as the strict reviewed catalog-data
+contract. Its decoder rejects unknown/trailing fields, invalid record shapes,
+unsorted top-level records, duplicate provider/spec security scopes, and
+provider, candidate, spec, or overlay cross-reference errors. The reviewed JSON
+is embedded as the built-in catalog; `cmd/cataloggen` canonicalizes it and emits
+a golden digest/count manifest plus deterministic provider, candidate,
+classification, and overlay indexes. Package initialization verifies the
+embedded bytes and every generated index against that manifest before exposing
+independent copies through the catalog API. `go run ./cmd/cataloggen -check`
+fails when any checked-in generated output is stale.
+
+Catalog security aggregation groups evidence by provider plus optional spec
+reference. A classification is baseline evidence; one or more overlays with a
+single agreed status explicitly supply the effective disposition for their
+scope. Differing overlay statuses inside one scope produce `conflict`, while
+different effective statuses across scopes produce provider-level `mixed`.
+This removes sorted last-wins behavior while retaining classification and
+overlay provenance separately. Resolver selection uses an exact spec scope,
+then provider-wide evidence. When a selected spec has neither, its resolved
+status stays unknown; the provider aggregate remains available in the separate
+report but is used as resolved evidence only when no spec was selected. The
+resolver never silently selects another spec's disposition. The generator
+rejects built-in same-scope conflicts, while library reports preserve explicit
+conflict output for caller-supplied catalogs and quality review.
+
+`CatalogIndex` validates and clones one catalog, then builds provider alias,
+spec-reference, overlay-by-provider, and security-report maps once. Provider
+advisory construction reuses that index and its precomputed security report for
+every row instead of revalidating and rescanning the full catalog per provider;
+all public accessors return independent copies. Catalog statistics policy lives
+in the root library as `BuildCatalogStatsReport`, including primary protocol
+selection, supported-family order, artifact-kind buckets, and refresh
+validation buckets. `cmd/apitools` retains only input handling and rendering.
+
+## Data Flow
+
+Remote search is an ordered candidate lookup rather than a trust decision:
+
+```text
+query
+  -> APIs.guru global directory
+  -> experimental LAP Registry targeted search when APIs.guru has no match
+  -> one RFC 9727 /.well-known/api-catalog lookup when a provider URL exists
+  -> legacy public-apis well-known-path probe
+  -> untrusted Result candidates
+  -> selected original source URL enters the existing bounded import validator
+```
+
+The LAP adapter parses `text/lap` search metadata and returns LAP's reported
+original `source_url`, not the transformed LAP document. RFC 9727 discovery
+requires `application/linkset+json`, reads OpenAPI-like `service-desc` links,
+deduplicates URLs, rejects unsafe targets, and fails rather than returning a
+partial result after the 100-link default. It fetches exactly one explicit
+publisher catalog and does not follow nested `api-catalog` relations. The
+result records mark both mechanisms experimental and unvalidated. A caller
+context supplies any tighter total network deadline.
+
+All default-safe remote fetches reject URL userinfo, non-HTTP(S) schemes,
+non-conventional ports, localhost, non-global addresses, carrier-grade NAT,
+documentation and benchmark ranges, NAT64, Teredo, and 6to4 addresses before
+the request. Redirects repeat the URL checks, and a dedicated proxy-free
+transport resolves and filters every dial-time address to resist DNS rebinding.
+`Client.AllowedPorts` adds reviewed ports without bypassing address checks.
+The client advertises gzip itself, then independently limits wire bytes and
+decoded bytes to `Client.MaxBytes`; unsupported content encodings fail closed.
+`AllowUnsafeHosts` is reserved for local fixtures and custom transports and
+does not permit URL userinfo or unbounded bodies.
+
+`DiscoverLocalSources` walks only caller-provided roots. It counts every
+visited entry, rejects symlinks and non-regular candidates, reads regular files
+through the 20 MiB bounded reader, detects source families from content, and
+validates them through their native parsers. Directory names are hints for
+reporting likely invalid candidates, never proof of a family. Accepted content
+is deduplicated by SHA-256 and returned with title, operation count, score,
+path, and provenance. JSON or XML without exactly one family signal is reported
+as ambiguous until the caller supplies an explicit kind. The 10,000-entry and
+100-candidate defaults fail visibly through truncation diagnostics so a
+downstream author cannot mistake a partial scan for complete evidence.
+Adjacent advisory security sidecars are excluded for every supported
+`source.ext.security.*`, `source.security.*`, and `source.security-overlay.*`
+JSON/YAML naming form so auth metadata cannot become an API-source ambiguity.
+
+All direct source-parser entry points enforce the shared 20 MiB source-byte,
+depth-100, and bounded structural/semantic-work contract before decoding.
+Deprecated Smithy and Google Discovery `ParseMap` wrappers apply the equivalent
+already-decoded value budget for nesting, retained strings, and traversal work.
+Prompt-facing operations then pass through one structural sanitizer: identifiers
+are capped at 256 runes, text at 2,048 runes, collections at 32 items, schemas at
+60 fields, authoring work at 10,000 operations, individual operations at 32 KiB,
+and ranked contexts at 512 KiB. Every sanitation or shortlist omission produces
+a diagnostic. Security/field compaction, unsafe selected references, work-limit
+violations, and selected contexts that cannot fit fail closed rather than
+silently changing the interpretation.
+
+`BuildOperationInventory` applies the default prompt budget once.
+`BuildAuthoringAPIDocuments` instead applies its caller-selected prompt budget
+during inventory construction, so a reviewed larger bound is not irreversibly
+truncated by the default before grouping.
+
+OpenAPI security requirements remain ordered OR alternatives whose members are
+AND requirements; an empty alternative explicitly permits anonymous access.
+Downstream Authoring v2 preserves the sets, OpenUdon selects one stable
+alternative before credential mapping, and Ramen refuses runnable output while
+an alternative remains unresolved.
+
+```text
+service hint / project text / URL / local openapi directory
+  -> Client.Search, Discoverer, LocalFiles, or Client.Import
+  -> safe download or bounded local read
+  -> OpenAPI/Swagger validation and metadata extraction
+  -> OperationInventory / OperationIndex / AuthoringAPIDocument
+  -> downstream OpenUdon authoring, review, and package evidence
+```
+
+Provider catalog flow:
+
+```text
+candidate service inventory + provider-owned source evidence
+  -> candidate validation and deterministic listing
+  -> reviewed service set for later catalog entries
+
+curated provider entry + official spec reference
+  -> deterministic catalog listing and provider lookup
+  -> source kind and protocol/model classification
+  -> downstream import, inventory, or review guidance
+
+curated provider entry + optional security overlay
+  -> catalog resolver
+  -> spec metadata and auth completeness report
+  -> downstream import, inventory, or review guidance
+
+curated provider entry + security classification + optional security overlay
+  -> overlay inspection view
+  -> provenance-labeled effective security metadata and advisory conflicts
+  -> downstream human review without writing overlay-applied OpenAPI files
+
+curated provider entry + candidates + classifications + overlays
+  -> offline catalog quality report
+  -> deterministic findings for missing provenance, stale local verification
+     dates, security coverage gaps, duplicate lookup keys, and invalid overlay
+     references
+  -> maintainer gate without network probes or provider API calls
+
+curated provider entry + classifications + overlays + optional existing cache
+artifact registrations
+  -> provider advisory report
+  -> deterministic metadata summary with spec references, auth status, overlay
+     IDs, local artifact paths, and manual follow-ups
+  -> downstream authoring/review guidance without fetching documents, applying
+     overlays, or creating caches
+
+built-in refreshable spec reference + optional existing cache artifact
+registration + saved catalog-openapi-cache file
+  -> optional provider-specific source-reviewed refresh correction for selected
+     official artifacts, evaluated in memory without replacing raw bytes
+  -> refresh review report
+  -> deterministic local evidence with registered path, saved path, bytes,
+     SHA-256, file status, raw validation evidence, separately labeled corrected
+     validation evidence, correction notes, verified date, and manual follow-ups
+  -> maintainer review without network access, cache creation, or metadata
+     promotion
+
+built-in provider catalog + optional existing cache registrations + refresh
+review report
+  -> catalog stats report
+  -> provider protocol counts, artifact registry counts, refresh validation
+     buckets, and local byte totals
+  -> maintainer overview without network access or provider API calls
+
+built-in provider catalog + security classifications + overlays + optional
+existing OpenAPI/Swagger cache artifact registrations
+  -> catalog security audit report
+  -> provider disposition buckets plus artifact security-scheme and
+     root/operation security requirement inspection
+  -> maintainer audit without network access, provider API calls, credential
+     lookup, or overlay-applied OpenAPI mutation
+
+built-in provider catalog + optional existing cache registrations
+  -> provider artifact resolution and materialization
+  -> provider-scoped artifact copies under source-aligned directories, separate security-overlay JSON metadata,
+     capability labels, and provenance manifests
+  -> downstream workflow-directory handoff without downloads, overlay-applied
+     OpenAPI mutation, Discovery/Smithy-to-OpenAPI lowering, provider API
+     calls, or credential lookup
+
+fnct helper flow:
+
+```text
+helper package implementation + FunctionSpec
+  -> OpenUdon authoring/review imports names, inputs, and output semantics
+  -> udon imports and registers the pure Go helper in its fnct runtime
+  -> trusted runtime executes the helper during an approved workflow
+```
+
+`apitools` owns only the helper code and descriptor. It does not register the
+helper into a runtime, execute workflows, call provider APIs, resolve
+credentials, or choose provider accounts.
+
+Google Discovery model flow:
+
+```text
+Google Discovery JSON bytes or decoded map
+  -> github.com/OpenUdon/googlediscovery.Parse / ParseMap
+  -> native Discovery model metadata with service URL, schemas, inherited
+     root/resource/method parameters, flattened methods, media upload hints,
+     and Google OAuth scopes
+  -> downstream protocol-aware generators such as udon native Discovery
+     lowering
+```
+
+Discovery-to-OpenAPI conversion has been removed. Downstream runtime planning
+must consume the native Discovery model instead of derived OpenAPI-shaped
+metadata. `apitools/googlediscovery` remains only as a deprecated wrapper over
+the standalone parser while consumers migrate. `apitools` does not execute
+Google API operations, resolve credentials, fetch tokens, sign requests, or
+choose Google accounts or projects.
+
+AWS Smithy model flow:
+
+```text
+AWS Smithy JSON bytes or decoded map
+  -> github.com/OpenUdon/awssmithy.Parse / ParseMap
+  -> native Smithy model metadata with service traits, AWS protocol,
+     operation bindings, greedy labels, prefix/query map bindings, static
+     protocol fields, shape graph, and AWS service/signing metadata
+  -> downstream protocol-aware generators such as udon native Smithy lowering
+```
+
+Smithy-to-OpenAPI conversion has been removed. Downstream runtime planning
+must consume the native Smithy model instead of derived OpenAPI-shaped
+metadata. `apitools/awssmithy` remains only as a deprecated compatibility
+wrapper over `github.com/OpenUdon/awssmithy`. `apitools` does not execute AWS
+API operations, resolve credentials, fetch tokens, sign requests, or choose
+AWS accounts or regions.
+
+OpenRPC model flow:
+
+```text
+OpenRPC JSON bytes
+  -> openrpc.Parse
+  -> native JSON-RPC metadata with document info, servers, methods, params,
+     results, errors, components, and stable method selectors
+  -> downstream source-aware authoring and review without OpenAPI lowering
+```
+
+OpenRPC support is metadata-only. `apitools` does not execute JSON-RPC
+methods, contact RPC servers, resolve credentials, create channels, or
+implement runtime transport behavior.
+
+GraphQL model flow:
+
+```text
+GraphQL SDL, introspection JSON, or operation document bytes
+  -> graphql.Parse
+  -> native GraphQL metadata with schema roots, types, fields, operations,
+     variables, selection names, and stable source operation refs
+  -> downstream source-aware authoring and review without OpenAPI lowering
+```
+
+GraphQL support is metadata-only. `apitools` does not execute GraphQL
+operations, perform live introspection, contact GraphQL endpoints, resolve
+variables, choose endpoints, resolve credentials, fetch tokens, or select
+accounts/workspaces.
+
+gRPC/protobuf model flow:
+
+```text
+.proto files, JSON descriptor artifacts, or binary FileDescriptorSet bytes
+  -> grpcproto.Parse
+  -> native protobuf metadata with packages, services, methods,
+     request/response messages, streaming shape, fields, and stable source refs
+  -> downstream source-aware authoring and review without OpenAPI lowering
+```
+
+gRPC/protobuf support is metadata-only. `apitools` does not execute RPCs, use
+server reflection, open channels, negotiate TLS, contact gRPC endpoints,
+resolve credentials, fetch tokens, or select accounts/projects.
+
+OData model flow:
+
+```text
+CSDL XML, JSON CSDL, or exported service metadata bytes
+  -> odata.Parse
+  -> native OData metadata with schemas, entity sets, singletons, navigation
+     properties, actions, functions, parameters, query options, and stable
+     source refs
+  -> downstream source-aware authoring and review without OpenAPI lowering
+```
+
+OData support is metadata-only. `apitools` does not call tenant `$metadata`
+endpoints, log in to ERP or SaaS tenants, resolve credentials, choose
+accounts/tenants, execute `$batch`, execute OData requests, or implement
+runtime transport behavior.
+
+Catalog curation artifact flow:
+
+```text
+service candidate
+  -> try official OpenAPI, Swagger, OpenAPI index, Smithy JSON, Google
+     Discovery, AsyncAPI, OpenRPC, GraphQL, gRPC/protobuf, OData, Dropbox
+     Stone, or other official machine-readable source
+  -> save downloaded review artifact under ignored catalog-openapi-cache/openapi/,
+     google-discovery/, aws-smithy/, asyncapi/, openrpc/, graphql/,
+     grpc-protobuf/, or odata/
+  -> register saved artifact path in catalog-openapi-cache/cache.sqlite
+  -> review existing registrations and saved files offline with catalog
+     refresh-report before rerunning downloads or promoting metadata
+  -> classify parseable OpenAPI/Swagger artifacts that fail strict semantic
+     validation as review artifacts, not import-ready provider truth
+  -> apply source-reviewed provider-specific validation corrections only for
+     explicitly supported official artifacts, while preserving raw downloaded
+     artifacts and surfacing correction notes for review
+  -> review OpenAPI/Swagger securitySchemes/securityDefinitions plus root and
+     operation security requirements for auth/security completeness
+  -> expose auth/security for strict-invalid but parseable official artifacts
+     through advisory overlays rather than relying on strict import parsing
+  -> add catalog security overlay metadata when upstream schemes or
+     requirements are missing, ambiguous, stale, internally inconsistent, or
+     incomplete for documented protected operations
+  -> if no official OpenAPI exists but official API docs or an official
+     non-OpenAPI machine spec expose usable endpoint instructions, generate a
+     tracked endpoint advisory overlay plus service-specific tracked builder
+     under catalog-openapi-cache/
+  -> keep endpoint advisory overlays in addition to catalog auth/security
+     overlay metadata, not as provider truth
+  -> register advisory overlay path in catalog-openapi-cache/cache.sqlite
+  -> promote only durable metadata into catalog/
+```
+
+All local artifact reads and writes share `internal/artifactio`. Reads require
+local relative paths beneath an explicit root, reject symlinked roots, parents,
+and files, bound bytes, and verify declared size and SHA-256. Single-file
+refresh writes use synchronized sibling staging and atomic rename. Provider
+materialization and workflow export build a complete sibling directory tree,
+reuse byte-identical targets, reject differing collisions by default, and use
+a backup/rename/rollback transaction only when force is explicit. Workflow
+artifact directories must be non-empty relative paths confined beneath the
+workflow root. A failed source, digest, overlay, provider, or manifest stage
+publishes no partial tree.
+
+`sqlitecache` schema v3 stores a nanosecond `accessed_at` value for deterministic
+LRU retention while preserving second-based `updated_at` timestamps for TTL
+behavior. `OpenWithOptions` applies nonzero defaults for query, result,
+document, catalog-artifact, report, metadata, and artifact-byte bounds; opening
+an existing cache migrates access columns and prunes it immediately. Stores
+prune in their transaction, and `Cache.Prune` exposes removal counts. Cached
+document and catalog paths are local relative paths under the database
+directory. Reads reject path escapes and symlinks and require valid SHA-256 and
+positive exact byte counts; inline document rows receive the same checks.
+
+No API operation execution is part of either flow.
+
+## Public Contracts
+
+- Go module path: `github.com/OpenUdon/apitools`.
+- Public root package APIs include `Client`, `Search`, `Import`,
+  `LocalFiles`, `BuildOperationInventory`, `LoadOperationIndex`,
+  `BuildAuthoringAPIDocuments`, auth summaries, and operation selection.
+- `Discoverer.ImportProjectURLs` and `ImportProjectURLsWithReport` retain their
+  historical signatures. `ImportProjectURLsReport` exposes bounded attempts,
+  diagnostics, and truncation state without breaking existing callers.
+- `Search` sources include `apis-guru`, experimental `lap-registry`,
+  provider-scoped experimental `rfc9727`, and legacy `public-apis`. `auto`
+  uses that order and consults RFC 9727 only when `SearchOptions.ProviderURL`
+  is non-empty. Search cache keys include the provider URL.
+- CLI entry point: `go run ./cmd/apitools`.
+- CLI parsing uses one non-terminating flag adapter. Genuine help exits 0 on
+  stdout, usage errors exit 2 on stderr, and runtime failures exit 1 on stderr;
+  the parser decides whether `--help` is a flag or a value instead of scanning
+  raw arguments.
+- Catalog metadata package:
+  `github.com/OpenUdon/apitools/catalog`.
+- Catalog inspection helpers expose provenance-labeled overlay views without
+  mutating or exporting OpenAPI documents.
+- Catalog security overlays preserve OpenAPI-style auth semantics for combined
+  requirements: schemes in the same requirement set are required together,
+  while multiple sets represent alternatives. Legacy singleton requirement
+  lists remain for compatibility.
+- Catalog quality helpers expose deterministic offline findings with severity,
+  provider/candidate/overlay/spec references, fields, and messages.
+- Catalog advisory helpers expose deterministic provider summaries with
+  spec references, user OpenAPI need, auth/security status, overlay IDs,
+  existing artifact paths, protocol/model classification, and manual
+  follow-ups.
+- Catalog materialization helpers expose provider name resolution, protocol
+  capability labels, `uws_source_type` labels, local artifact copy/export reports into
+  source-aligned directories, emitted security overlay JSON paths, and provenance manifests for
+  existing artifact registry rows. They normalize legacy Google Discovery and AWS Smithy artifact
+  paths out of `openapi/`. They are copy-only and do not download missing artifacts, lower
+  Discovery or Smithy to OpenAPI, or apply overlays into provider documents.
+- Catalog refresh review helpers expose offline saved-artifact reports with
+  registered paths, saved paths, byte/SHA-256 evidence, file status, raw
+  validation evidence, separately labeled corrected-validation evidence,
+  correction notes, protocol/model classification, and deterministic manual
+  follow-ups. Corrections validate an in-memory copy; saved bytes, digests, and
+  cached metadata remain raw provenance. Parseable-but-strict invalid
+  OpenAPI/Swagger artifacts are reported separately from malformed or
+  unsupported documents and remain review-only.
+- Catalog stats aggregation is reusable through `BuildCatalogStatsReport`.
+  The root package owns provider protocol classification order, artifact
+  registry kinds, and refresh validation buckets; `cmd/apitools` only parses
+  flags and renders the report without network probes.
+- Optional bounded cache package: `github.com/OpenUdon/apitools/sqlitecache`,
+  with schema-v3 migration, explicit `Options`, reported `Prune` behavior, and
+  refresh-result registration through `RegisterCatalogRefreshResults`.
+  Cache-relative path containment and refresh metadata mapping remain package
+  policy; `cmd/apitools` only selects the report to register.
+- Compatibility discovery package:
+  `github.com/OpenUdon/apitools/openapidisco`.
+- Google Discovery parser package:
+  `github.com/OpenUdon/googlediscovery`.
+- Deprecated Google Discovery compatibility wrapper:
+  `github.com/OpenUdon/apitools/googlediscovery`.
+- AWS Smithy parser package:
+  `github.com/OpenUdon/awssmithy`.
+- Deprecated AWS Smithy compatibility wrapper:
+  `github.com/OpenUdon/apitools/awssmithy`.
+
+## Safety Boundary
+
+- Reject non-HTTP(S) remote fetches.
+- Reject localhost, private, link-local, multicast, and unspecified hosts by
+  default.
+- Keep redirect limits, response-size limits, and request timeouts in place.
+- Require RFC 9727 catalogs to use `application/linkset+json`, cap inspected
+  `service-desc` links, reject unsafe description URLs, and do not recursively
+  fetch nested catalogs.
+- Treat LAP and RFC 9727 results as unvalidated metadata until the selected
+  original document passes normal download and OpenAPI/Swagger validation.
+- Reject symlinked local scan roots, symlinked document paths, directories,
+  special files, and files over the configured size limit.
+- Never cache secrets or workflow execution data.
+- Never execute API operations, resolve credentials, sign requests, or choose
+  runtime accounts.
+- Google Discovery parsing is metadata-only and must not perform Google API
+  execution, token fetching, request signing, or account selection.
+- AWS Smithy parsing is metadata-only and must not perform AWS API
+  execution, credential resolution, token fetching, request signing, or account
+  and region selection.
+- Catalog refresh corrections are explicit per-provider validation aids; they
+  must not perform network dereferencing, credential use, provider account
+  selection, or broad importer relaxation.
+
+## Risky Change Workflow
+
+For changes to download safety, local file safety, validation, auth summaries,
+operation ranking, or provider catalog security overlays:
+
+1. Add or update deterministic tests before broadening behavior.
+2. Confirm boundary text in README and memory bank remains accurate.
+3. Run `go test ./...`, `go vet ./...`, and `git diff --check`.
+4. For exported API changes, run available sibling consumer tests.
