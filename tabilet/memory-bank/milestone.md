@@ -19,7 +19,7 @@ dependency rules below explicitly make that safe.
 
 ## Status ID Pattern
 
-Status files are named `memory-bank/status-<LANE><NN>.md`. `<LANE>` is one
+Status files are named `tabilet/memory-bank/status-<LANE><NN>.md`. `<LANE>` is one
 uppercase domain letter and `<NN>` is a zero-padded number from `01` through
 `99` within that lane.
 
@@ -45,7 +45,7 @@ Rules:
 - Do not rename completed IDs merely to reclassify history. New catalog work
   starts at C01, new source-tooling work starts at S01, and cross-cutting work
   continues from M72.
-- Do not create an aggregate `memory-bank/status.md`.
+- Do not create an aggregate `tabilet/memory-bank/status.md`.
 
 ## Parallel Work And Priority
 
@@ -317,7 +317,7 @@ starting dependent work:
    stale docs, and missing tests.
 3. Reconcile `product.md`, `architecture.md`, and `tech-stack.md` if the work
    changed product scope, dependencies, commands, data flow, or contracts.
-4. Check `evolution/`. Record an explicit bump or no-bump decision. Add a new
+4. Check `tabilet/evolution/`. Record an explicit bump or no-bump decision. Add a new
    version only when product direction, architecture boundary, milestone
    target, or public/private contract direction materially changes.
 5. Revisit affected candidate directions. Promote none without fresh approval.
@@ -333,7 +333,7 @@ the harness files in the public repository.
 **Scope.**
 
 - Create canonical harness files under `../tofu/apitools`.
-- Symlink `AGENTS.md`, `memory-bank/`, and `evolution/` from `../apitools` to
+- Symlink `AGENTS.md`, `tabilet/memory-bank/`, and `tabilet/evolution/` from `../apitools` to
   the private harness snapshot.
 - Ignore harness paths in the public `../apitools` repository.
 - Preserve the existing public package behavior and verification commands.
@@ -2346,7 +2346,7 @@ for help flags, and the former OAuth entry point is documented under Udon.
 
 **Acceptance.** All migrated sibling consumers compile and pass their complete
 test suites; apitools has no stale compatibility surface or staticcheck
-findings; CLI contract tests pass; memory-bank/evolution records match the
+findings; CLI contract tests pass; tabilet/memory-bank/evolution records match the
 released behavior; full cross-repository verification and diff checks pass.
 
 ## M74 - Review Contract Corrections
