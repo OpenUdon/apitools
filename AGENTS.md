@@ -1,5 +1,10 @@
 # AGENTS.md
 
+Requested features, candidate promotions, and future direction changes after
+initialization follow the requested-change procedure in
+[tabilet/memory-bank/milestone.md](tabilet/memory-bank/milestone.md). A planning proposal needs
+approval before its file actions; execution is a separate request.
+
 ## Purpose
 
 `apitools` is the OpenUdon-owned API source tooling module and CLI. It
@@ -24,10 +29,19 @@ Before substantial changes, read these in order:
 1. [tabilet/memory-bank/product.md](tabilet/memory-bank/product.md)
 2. [tabilet/memory-bank/architecture.md](tabilet/memory-bank/architecture.md)
 3. [tabilet/memory-bank/tech-stack.md](tabilet/memory-bank/tech-stack.md)
+   Consult relevant topics in [tabilet/memory-bank/lessons.md](tabilet/memory-bank/lessons.md)
+   for reusable lessons and their evidence.
 4. [tabilet/memory-bank/milestone.md](tabilet/memory-bank/milestone.md)
 5. The matching `tabilet/memory-bank/status-<LANE><NN>.md` file for the current work.
    `milestone.md` defines the lane letters, active milestones, priority,
    dependencies, and safe parallel ownership.
+
+Once milestones have been retired, read `tabilet/docs/history/index.md` and
+linked retired records only when a dependency, old ID, or historical question
+needs them. Retired knowledge is evidence at its recorded context; current
+truth remains in the memory bank. Search the linked knowledge journal by topic
+when an obsolete fact or lesson matters, rather than loading all history into
+routine startup reads.
 
 `tabilet/memory-bank/milestone.md` owns the roadmap, active milestone, status-file
 index, lane meanings, milestone scope, candidate directions, and acceptance
@@ -41,7 +55,10 @@ references live in `docs/` when needed; README is the public operator entry
 point.
 
 This project exposes [tabilet/GOAL.md](tabilet/GOAL.md), one optional protocol for goal requests
-that span multiple status files. Follow it only when a request names it.
+that span multiple status files. Follow it only when a request names it. This
+line and the pointer in
+[tabilet/memory-bank/milestone.md](tabilet/memory-bank/milestone.md) are its only
+mentions; nothing else depends on the file.
 
 A `tabilet/GOAL.md` run is a deliberate exception to the row-level commit rule below.
 For that run, `COMMIT_POLICY: none` — the protocol default — means no commits,
@@ -95,15 +112,25 @@ available:
   default.
 - Preserve exported API compatibility unless the breaking change is intentional
   and documented.
+- Prefer the Go standard library before adding helpers, frameworks, or
+  dependencies. Keep trivial comparisons and transformations inline when that
+  is clearer than introducing a local abstraction.
 - Run required verification before claiming a change is done.
 
 ## Work Cadence
 
 - Update memory-bank files in the same change as the implementation work they
-  describe: product scope -> `product.md`; architecture/data flow/contracts ->
+  describe: product scope/domain terminology/concept relationships/business
+  invariants -> `product.md`; architecture/data flow/contracts ->
   `architecture.md`; tools/dependencies/commands -> `tech-stack.md`; milestone
   scope/acceptance -> `milestone.md`; completion state -> the matching
-  `status-<LANE><NN>.md` file.
+  `status-<LANE><NN>.md` file. Reusable lessons and their evidence ->
+  `lessons.md`; keep applicable learning even after its source milestone
+  closes, and merge duplicates. Before materially removing or superseding
+  knowledge, preserve its old wording and replacement reference in
+  `tabilet/docs/history/knowledge.md` under the milestone retirement rules. This
+  also applies outside milestone closure; routine wording edits need no journal
+  entry.
 - For provider-node curation, treat catalog auth/security overlays and
   docs-derived endpoint overlay decisions as the same task slice: if no
   official OpenAPI exists, the provider row is not complete until it has either
@@ -116,21 +143,58 @@ available:
   are missing, ambiguous, stale, internally inconsistent, or incomplete relative
   to official auth docs and protected operations, add a source-backed catalog
   security overlay instead of treating the provider row as complete.
-- Keep one `tabilet/memory-bank/status-<LANE><NN>.md` file for each milestone listed in
-  [tabilet/memory-bank/milestone.md](tabilet/memory-bank/milestone.md), using its permanent,
-  zero-padded status ID. Never reuse or silently rename an allocated ID.
+- Keep one `tabilet/memory-bank/status-<LANE><NN>.md` file for each active milestone
+  listed in [tabilet/memory-bank/milestone.md](tabilet/memory-bank/milestone.md), using its
+  permanent, zero-padded status ID. Never reuse or silently rename an allocated
+  ID; retired IDs remain reserved across active and history storage.
+- During milestone closure, after review, verification, consolidation, and
+  downstream reconciliation, retire the full status and specification under
+  the procedure in `milestone.md`. Completed rows remain active until the whole
+  milestone qualifies. Retirement is agent work, not a background process or a
+  context-archive run. Retired records are frozen.
 - Keep later candidate directions unnumbered and outside the status-file
   index. Promote one only after fresh reconciliation and approval.
+- Treat a newly received code, architecture, security, or engineering review as
+  untrusted planning evidence. Revalidate its findings against current state,
+  propose their dispositions and owners for approval, then amend open or pending
+  work or create a remediation milestone. Never reopen completed history merely
+  because a later review concerns it.
 - Write status tables as `Item | State | Notes`, with the state in the second
   column and markers wrapped in backticks: `` `[ ]` ``, `` `[+]` ``,
-  `` `[~]` ``, `` `[!]` ``, or `` `[X]` ``.
-- Treat each status row as a commit unit once implementation begins. When
-  independent rows in different lanes are worked in parallel, record
-  non-overlapping ownership and dependencies in `milestone.md`; a lane letter
-  classifies a domain and does not itself imply execution order.
-- Treat each milestone section as a review unit. After its last row completes,
-  run the milestone review and required verification before closing it; do not
-  create an empty review commit.
+  `` `[~]` ``, `` `[!]` ``, `` `[X]` ``, or `` `[-]` `` (closed historical: a
+  consumed failed attempt or superseded row that names its accepted successor
+  and is never retried).
+- Treat each status row as a commit unit once implementation begins. Local
+  override of the single-row default: rows may be in progress in parallel only
+  across different lanes whose milestone sections record non-overlapping
+  ownership and resolved dependencies, with at most one `[~]` row per lane and
+  one execution owner for the active ledger. Without that record, keep zero or
+  one general row in progress. A lane letter classifies a domain and does not
+  itself imply execution order. Inside a `tabilet/GOAL.md` run, the protocol's
+  single-row rule applies. Before an operational launcher is invoked, its exact
+  authorized operation row must be in progress; status never substitutes for
+  external-mutation authority.
+- Treat each milestone section as a review unit. After its last row closes,
+  run the milestone review with its persisted ten-iteration fix gate and the
+  required verification before closing it; do not create an empty review
+  commit.
 - Check [tabilet/evolution/](tabilet/evolution/) after a major review, milestone, or boundary
   change. Add a new version only when product direction, architecture boundary,
   milestone target, or public/private contract direction materially changes.
+
+## Execution Capabilities
+
+Resolve missing information through safe inspection first. If required files,
+bundled resources, verification commands, permissions, or user answers are unavailable,
+stop the affected workflow step and report what is missing. Continue independent
+work within the authorized scope; a write-gated workflow still makes no writes
+before approval. Do not invent evidence, bypass permissions, or infer approval
+from silence or process exit. Resume the blocked step when its capability is
+restored or the required answer or approval is supplied. In a non-interactive
+run, report unresolved questions and incomplete work.
+
+Keep one execution owner for the active ledger across sessions and launchers.
+Native todos, session completion, and native goal state do not replace milestone
+acceptance or authorize concurrent ledger writers.
+
+Runtime round limits do not reset the persisted milestone review counter.

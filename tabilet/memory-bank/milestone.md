@@ -10,12 +10,18 @@ milestone, such as [`status-M01.md`](status-M01.md). Individual status files
 are the detailed task ledgers for their milestone; do not copy their task rows
 into this roadmap.
 
-Each milestone section is a review unit: after all of its matching
-status-file rows are `[+]`, run a deep code review and a milestone review
-against the milestone acceptance criteria before closing it. Review-driven
-fixes should be verified and committed before dependent work starts. An
-independent milestone in another lane may proceed when the ownership and
-dependency rules below explicitly make that safe.
+Each milestone section is a review unit: after no `[ ]`, `[~]`, or `[!]` rows
+remain in its matching status file, run a deep code review and a milestone
+review against the milestone acceptance criteria before closing it. Completed
+`[+]`, cancelled `[X]`, and closed-historical `[-]` rows are non-actionable;
+every `[-]` row must name its accepted successor. Review-driven fixes should be
+verified and committed before dependent work starts. An independent milestone
+in another lane may proceed when the ownership and dependency rules below
+explicitly make that safe.
+
+The review procedure below covers one milestone. To run several in order, with
+dependency and downstream reconciliation between them, [../GOAL.md](../GOAL.md)
+is one optional protocol for that; any equivalent works just as well.
 
 ## Status ID Pattern
 
@@ -36,8 +42,16 @@ Rules:
 
 - Always use the two-digit form (`S01`, not `S1`). When a lane reaches `99`,
   open a new domain letter instead of adding a third digit.
-- Do not reuse an ID after its status file exists. Cancelled work keeps its
-  file and uses `[X]`.
+- Do not reuse an ID after its status file exists, including after retirement.
+  Search both active files and the history index before allocating an ID.
+  Context archive IDs use an independent namespace; a matching archive ID is
+  not a status collision and does not justify renaming a status ID. Cancelled
+  work keeps its record and uses `[X]`.
+- Retain a consumed failed attempt or superseded row as `[-]` closed historical
+  evidence, record its accepted successor, and never retry it.
+- Never rename a status ID after its file exists. Resolve a lane collision by
+  allocating an unused lane/ID to new work and recording lineage; preserve the
+  original record and its reserved ID.
 - M1-M9 were legacy identifiers from the pre-lane harness. This M71 migration
   explicitly normalizes only their filenames and headings to M01-M09; the
   historical milestone identity is unchanged, and evolution snapshots are not
@@ -57,22 +71,46 @@ downstream impacts. Work that changes a shared public contract stays in `M` or
 names the affected cross-lane dependency explicitly. Within one lane, prefer
 one active implementation milestone at a time.
 
+This is a deliberate local override of the single in-progress-row default:
+at most one `[~]` row per lane, and parallel `[~]` rows only across lanes whose
+milestone sections record that non-overlapping ownership. Without that record,
+keep zero or one general row in progress across the active ledger. Parallel
+rows still have one execution owner for the ledger; they do not authorize
+concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule.
+
 ## Current Dashboard
 
 Active milestone: none. Latest completed milestone: M75 - Operation Lifecycle
 Ranking Ownership. Apitools and Authoring are published, and OpenUdon/Ramen pin
 both revisions with passing standalone test/vet.
 
-`apitools` is a public OpenAPI tooling module and CLI. The active private
-harness is installed under `../tofu/apitools` and symlinked into the local
-`../apitools` checkout so planning state can be tracked outside the public
-repository.
+`apitools` is a public OpenAPI tooling module and CLI. Its planning harness
+(`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
+`tabilet/evolution/`) is tracked in this repository; the earlier private
+`../tofu/apitools` symlinked harness is no longer used.
 
 ## Status Files
 
 Each linked `status-<LANE><NN>.md` file records task rows, task notes, boundary
-checks, and the review state for that milestone. Completed files remain
-permanent historical records.
+checks, and the review state for that milestone. Completed files stay here
+until they are retired under
+[Long-term memory and retirement](#long-term-memory-and-retirement).
+
+Status markers, always written in backticks in the second column:
+
+| Symbol | Status | Interpretation |
+|---|---|---|
+| `[ ]` | Pending | Item is actionable when its dependencies pass. |
+| `[+]` | Completed | Item finished or done. |
+| `[~]` | In Progress | Item is currently being worked, under the ownership rules above. |
+| `[!]` | Blocked | A current unresolved blocker still prevents progress. |
+| `[X]` | Cancelled | Item is no longer needed. |
+| `[-]` | Closed Historical | A consumed failed attempt or superseded row retained for audit; it is never retried and does not block its accepted successor. |
+
+Every active row below must link its existing status file. Retired IDs and
+specifications belong in `tabilet/docs/history/index.md`, not in this table.
+When history exists, add one link to that index here; do not accumulate one
+retired row per milestone.
 
 | Milestone | Status File | State |
 |---|---|---|
@@ -154,6 +192,27 @@ permanent historical records.
 | M74 - Review Contract Corrections | [status-M74.md](status-M74.md) | Complete |
 | M75 - Operation Lifecycle Ranking Ownership | [status-M75.md](status-M75.md) | Complete |
 
+## Requested Changes After Initialization
+
+For a requested feature, candidate promotion, or change to future direction,
+inspect the current plan and implementation first. Record user intent separately
+from observed facts and unresolved assumptions. If a pending milestone already
+owns a small change, propose the smallest row and acceptance update that fits.
+Otherwise propose a dependency-closed milestone with an unused permanent ID.
+A candidate's trigger prompts a new decision and approval; promotion is never
+automatic. Schedule by approved priority and dependencies, not review finding
+severity. Reconcile affected downstream acceptance and optional launch input.
+
+Present one complete proposal with intended outcome, owner rows, acceptance,
+verification, dependencies, downstream effects, and exact file actions. Write
+planning changes only after approval and a fresh check of affected files,
+worktree changes, and active and retired IDs. Preserve non-pending outcomes,
+review counters, local policy, and frozen history. Record target behavior here
+and in pending status rows until implemented; current architecture describes
+only what the repository establishes as fact. Planning does not implement or
+accept the requested behavior. Use `memory-bank-propose` where installed, or
+follow this procedure directly with another agent.
+
 ## Candidate Directions
 
 Candidate directions are outside the active execution horizon. They have no
@@ -167,10 +226,67 @@ the work automatically.
 | Production adoption of experimental LAP/RFC 9727 discovery | The adapters are intentionally experimental, and OpenUdon still selects APIs.guru explicitly. | Collect reliability/coverage evidence and approve the downstream OpenUdon discovery policy and network budget. |
 | Remove deprecated Discovery and Smithy wrappers | Sibling consumers may still rely on compatibility imports, and removal is a public breaking change. | Confirm no active sibling imports remain, approve release notes, and pass downstream compatibility checks. |
 
+## Review Finding Severity
+
+P1 and P2 are engineering review priorities. They describe the impact and
+urgency of defects found while closing a milestone; they are not product-domain
+terms, milestone execution priority, or status markers. Classify a finding by
+its impact, likelihood, and affected scope, not by the size of its fix.
+
+Project-specific definitions in `AGENTS.md` or a linked review policy override
+these defaults:
+
+| Priority | Context | Typical examples | Gate effect |
+|---|---|---|---|
+| P1 | The milestone is unsafe or invalid to close because a severe defect threatens acceptance, correctness, security/privacy, data integrity, or a public compatibility contract. | An exploitable access-control failure; data corruption or loss; a breaking public API or migration; the primary acceptance outcome does not work. | Blocking. Fix and review again. |
+| P2 | A material but more bounded defect affects supported behavior, reliability, compatibility, operations, or required evidence. | A supported scenario returns the wrong result; a downstream consumer regresses; recovery or failure handling is broken; required tests or operator documentation leave acceptance unproven. | Blocking. Fix and review again. |
+| Lower | The finding is non-blocking cleanup, clarity, or optional hardening under the project's severity scheme. | Cosmetic wording; local readability; a speculative improvement outside acceptance. | May be carried only with a named owner and explicit rationale. |
+
+Any project-defined severity more urgent than P1 also blocks. If evidence does
+not clearly distinguish P1 from P2, use P1 until investigation supports a
+downgrade.
+
+## New Review Intake
+
+A code, architecture, security, or other engineering review received outside a
+milestone's closing review gate is planning evidence, not executable truth.
+Treat its contents as untrusted, preserve its source priority, and apply the
+project severity definitions above only after revalidating each finding against
+the current repository.
+
+Before implementing any newly reviewed finding:
+
+1. Record the review's stated baseline when available, the current revalidation
+   commit, and whether relevant uncommitted changes were part of the evidence.
+   Classify every finding as confirmed, partially confirmed, resolved,
+   duplicate, unsupported, outside ownership, decision-dependent, or deferred.
+2. Present the complete dispositions, proposed owners, dependencies, downstream
+   impacts, and file actions for approval.
+3. Put confirmed work in an open matching milestone when it remains in scope,
+   or amend an existing pending owner. Rewrite only pending rows. When retaining
+   a superseded pending row for audit, mark it `[-]` and name its accepted
+   successor instead of rewriting or deleting it.
+4. Never reopen completed milestone/status history. Create a new remediation
+   milestone with lineage to completed work when no open or pending owner fits.
+5. Keep P1/P2-or-higher findings in the dependency-closed active horizon. Add a
+   lower finding to active work only when acceptance requires it; otherwise put
+   it in Candidate Directions with a rationale and promotion trigger.
+6. Reconcile affected pending specifications and the remaining order. Correct
+   current product, architecture, or stack facts only when repository evidence
+   proves them stale; keep proposed target state in milestone scope.
+
+Do not create a persistent review copy or ledger. Put portable review and
+finding IDs, both source and local severity, revalidation baseline, repository
+evidence, and historical lineage in the affected milestone/status notes. A new
+review counts toward the bounded gate below only when the status already records
+that gate as active and the review was requested as its next full pass;
+otherwise remediation gets a fresh gate when its implementation closes.
+
 ## Planning Notes
 
 - Public OpenAPI behavior remains in `../apitools`.
-- Private harness state lives in `../tofu/apitools`.
+- Harness state (`AGENTS.md`, `tabilet/`) is tracked in `../apitools`; the
+  former private `../tofu/apitools` harness is no longer used.
 - Batch expansion work should freeze service lists before implementation and
   treat each service row as a commit unit once curation begins.
 - Do not promote non-OpenAPI converter work until most provider-node catalog
@@ -308,22 +424,206 @@ the work automatically.
 
 ## Milestone Review Procedure
 
-When the last open `status-<LANE><NN>.md` item for a milestone is flipped to `[+]`
-during an agent session, perform the review before ending the turn and before
-starting dependent work:
+When the last open row in a milestone's status file closes as `[+]`, `[X]`, or
+`[-]` during an agent session, perform the review before ending the turn and
+before moving to the next milestone. A `[-]` row counts as closed only when its
+notes identify the consumed attempt or supersession and its accepted successor:
 
-1. Re-read the milestone scope and acceptance criteria here.
-2. Review the milestone diff and changed files for regressions, boundary drift,
-   stale docs, and missing tests.
-3. Reconcile `product.md`, `architecture.md`, and `tech-stack.md` if the work
-   changed product scope, dependencies, commands, data flow, or contracts.
-4. Check `tabilet/evolution/`. Record an explicit bump or no-bump decision. Add a new
-   version only when product direction, architecture boundary, milestone
-   target, or public/private contract direction materially changes.
-5. Revisit affected candidate directions. Promote none without fresh approval.
-6. Run required verification, then make a git commit for the milestone changes.
-7. Report what was verified, which memory-bank files changed, the milestone
-   commit, and whether an evolution bump was made.
+1. Re-read the milestone scope and acceptance criteria here. Confirm the code or
+   docs meet the acceptance line; do not rely on the status file alone.
+2. Run the required verification before review, including proportionate checks
+   for affected consumers and any applicable compatibility, migration,
+   rollback, security, concurrency, or failure paths.
+3. Run a bounded deep-review and fix gate using the review finding severity
+   context above.
+   - The initial deep-review pass is iteration 1. Read the persisted count and
+     findings first. Record the iteration as started before review; resume an
+     interrupted pass at that same number. Runtime round limits are separate.
+     Read the `git log` range and
+     review the full milestone diff for correctness, regressions, failure
+     semantics, boundary drift, stale docs, and missing tests.
+   - Record the iteration number and findings in the current status notes so a
+     continuation cannot reset the counter. If the pass finds no P1, P2, or
+     higher-severity issue, the gate passes. Otherwise, when the current
+     iteration is below 10, fix every such finding in the current milestone,
+     rerun affected verification, and review the whole milestone again,
+     including the fixes.
+   - Run at most 10 iterations; a session or reviewer change does not reset the
+     counter. If iteration 10 still finds a blocking issue, add `[!]` review
+     rows recording the remaining findings and iteration-limit blocker. Do not
+     start another automatic fix-review cycle or move downstream; stop and ask
+     for user direction.
+   - Carry a lower-severity finding forward only with a named pending owner and
+     explicit rationale.
+4. Reconcile the memory bank. Update `product.md` if the milestone changed
+   product scope, domain terminology, concept relationships, or business
+   invariants. Update `architecture.md` or `tech-stack.md` if it changed
+   boundaries, dependencies, commands, data flow, or runtime assumptions.
+5. Check `tabilet/evolution/`. Record an explicit bump or no-bump decision. Add
+   the next `prompt-vN.md` and `result-vN.md` only when product direction,
+   architecture boundary, milestone target, or public/private contract direction
+   materially changes.
+6. Revisit candidate directions affected by the milestone. Update their reason
+   or trigger; when a trigger is now true, propose a reconciled milestone and
+   obtain approval before allocating its permanent ID and status file.
+7. After the gate passes, reconcile affected active downstream dependencies and
+   acceptance against the delivered outcome. Then consolidate and retire under
+   the procedure below. During an ordered goal, the goal protocol finishes its
+   downstream reconciliation before performing this retirement step.
+8. Run required verification again, including the retirement links and record,
+   then commit substantive closure changes under the governing commit policy.
+   Do not create an extra milestone commit when the review changes nothing.
+9. Report a short review summary: what was verified, the review-fix iteration
+   count, what memory-bank files changed, any review commit, and whether an
+   evolution bump was made. Include the retired record and durable lessons.
+
+## Long-term Memory And Retirement
+
+This project retires a milestone automatically after closure. “Automatically”
+means the agent performs this procedure during the milestone review workflow
+above, including when using `memory-bank-next` or `memory-bank-goal`. There is
+no background process or separate archive invocation. Individual completed,
+cancelled, or closed-historical rows remain in their active status file until
+the whole milestone qualifies; unresolved work or missing closure evidence
+keeps it active. Terminal rows alone do not prove acceptance.
+
+Existing projects adopt this contract explicitly, with a compatible API runner
+if used; upgrading installed skills alone does not merge project instructions
+or move files. An explicit cleanup request may retire older closed milestones
+only when their closure evidence is available.
+
+### Consolidate Before Retiring
+
+Keep current facts in product, architecture, and stack documents. Maintain
+[lessons.md](lessons.md) for applicable lessons and decision rationale with
+evidence links; merge duplicates and avoid a chronological session log. Maintain
+relevant lessons during ordinary work, not only at closure, and keep them active
+while applicable even after their supporting milestone retires. This removes
+accumulated history from active context, not a fixed number of tokens or files;
+genuinely active work and useful knowledge can still grow.
+
+Before materially superseding or removing knowledge from those documents,
+append the old wording to `tabilet/docs/history/knowledge.md`. Use a unique, descriptive
+dated heading, the original document and heading, retirement reason, supporting
+evidence, and a link to its replacement (or an explicit reason there is none).
+Preserve the old excerpt in a fenced markdown block. This applies outside
+milestones too. Create this journal only when needed, link it from the history
+index, and append corrections rather than rewriting old entries. Routine edits
+need no journal entry; Git, when present, holds intermediate revisions.
+
+Consolidation is ordinary project maintenance. A separate context snapshot is
+optional and never a prerequisite for retirement; the archive skill's clean
+baseline rule must not force commits or interrupt a no-commit goal.
+
+### Retire A Closed Milestone
+
+1. Require a passed review within the persisted 10-iteration limit, recorded
+   verification, consolidated knowledge, and reconciled downstream work. No
+   `[ ]`, `[~]`, or `[!]` row may remain. Every `[-]` row names its accepted
+   successor. A cancelled or superseded milestone also needs an authorized
+   disposition; it must not be described as delivered acceptance.
+2. Create `tabilet/docs/history/status-<LANE><NN>.md` using the envelope below. Keep the
+   full final specification and status document in separate literal markdown
+   fences, including all task text, notes, acceptance, and review evidence.
+   Choose fences longer than any fence in the source. Original relative paths
+   inside these literal documents retain their source-document meaning.
+3. Add one history index row using `Milestone | Outcome | Retired | Record |
+   Summary`; the ID, outcome, date, and record link must match the envelope.
+   Outcomes are `completed`, `cancelled`, or `superseded`. The record link is
+   relative to the index, for example `[M01](status-M01.md)`.
+4. Remove the active status file, specification section, and active index row.
+   Before removal, validate every envelope field and compare both retained
+   documents with their complete active sources. For Git evidence, use the
+   literal full output of `git rev-parse --verify HEAD`, never an abbreviated
+   hash from a log display. Stop with the active sources intact if validation
+   fails; a malformed retired record is not completed closure.
+   Keep one link from this file to `../docs/history/index.md`. Repair maintained
+   incoming links and remaining dependencies. Never rewrite frozen snapshots;
+   resolve their old paths through the record's original-path metadata.
+5. Refresh an existing disposable goal suggestion to contain only remaining
+   active work, or remove it when empty. Do not create one without a compatible
+   goal protocol. The resolved goal in the conversation remains authoritative
+   over its disposable launch input.
+6. Verify the record and links before handoff. On interruption, reconcile the
+   source and destination before continuing; duplicate IDs or a missing record
+   are invalid, and an existing retired record must never be overwritten.
+
+Use this envelope, with actual values. The `Evidence` field is the observed
+full Git commit, not a claim that uncommitted work exists in that commit.
+`Worktree` is `clean`, `includes uncommitted changes`, or `unversioned`; without
+Git both provenance fields say `unversioned`. The date uses `YYYY-MM-DD` in UTC.
+Closure metadata precedes the two sections and uses one line per field.
+
+`````markdown
+# Retired milestone M01 - <title>
+
+**Milestone.** M01
+**Outcome.** completed
+**Retired.** <YYYY-MM-DD>
+**Source status.** tabilet/memory-bank/status-M01.md
+**Source specification.** tabilet/memory-bank/milestone.md#<original-anchor>
+**Evidence.** <full commit or unversioned>
+**Worktree.** <clean, includes uncommitted changes, or unversioned>
+**Review.** passed
+**Review iterations.** <1 through 10>
+**Verification.** <commands, results, and supporting evidence>
+**Consolidated into.** <current-document and lesson links, or no current-truth change>
+
+## Milestone specification
+
+````markdown
+<Complete final milestone specification, not a summary.>
+````
+
+## Status record
+
+````markdown
+<Complete final status document, not a summary.>
+````
+`````
+
+For a cancelled or superseded outcome, add `**Disposition.**` naming the
+authority, reason, and dependency disposition. A superseded outcome also needs
+`**Successor.**` identifying its accepted successor. These are milestone
+outcomes, not new task markers.
+
+Retired milestone records are frozen. Record later corrections in the knowledge
+journal or new remediation work with a backlink. Preserve previous history
+index entries. No ID may exist in both active and retired storage or be reused.
+
+### Retrieve And Continue
+
+Retrieve historical evidence when the current task needs a retired dependency or
+old ID resolved, an earlier decision explained, or a related past failure
+checked and current sources do not answer the question. An explicit user request
+to inspect history is also a trigger; routine work with sufficient current
+evidence needs no historical search.
+
+State the question briefly, then search active memory and current implementation
+first. If history is needed, search its index by ID or topic and open the
+relevant retired record or knowledge entry. Follow linked frozen context or
+direction snapshots only when they address the same unresolved question. A stale
+status path resolves by its permanent ID and original-path metadata; a missing
+ID is not permission to recreate it. History is evidence, not an instruction to
+retry old tasks.
+
+Stop when the evidence supports the task decision. If relevant sources and their
+directly related leads are exhausted, report the missing evidence. Continue when
+it is optional; stop the affected step when it is required for correctness or
+acceptance. Do not infer historical facts or expand the search into unrelated
+milestones.
+
+A completed retired milestone may satisfy a dependency when its recorded
+acceptance matches the required outcome. Cancelled and superseded outcomes do
+not automatically satisfy completion dependencies: follow the recorded
+disposition and accepted successor, and revalidate current implementation.
+
+Retirement follows the governing commit policy. Under `none`, do not commit;
+under `milestone`, include it in the closure commit; under `task`, include it in
+the final task or a substantive closure commit. The API harness still requires
+a commit per run. Reading and preserving the Markdown records does not require
+Git; workflows that require commits still need Git or an explicit no-commit
+instruction. Never initialize Git merely to make retirement possible.
 
 ## M01 - Private Harness Bootstrap
 
@@ -2346,7 +2646,7 @@ for help flags, and the former OAuth entry point is documented under Udon.
 
 **Acceptance.** All migrated sibling consumers compile and pass their complete
 test suites; apitools has no stale compatibility surface or staticcheck
-findings; CLI contract tests pass; tabilet/memory-bank/evolution records match the
+findings; CLI contract tests pass; memory-bank and evolution records match the
 released behavior; full cross-repository verification and diff checks pass.
 
 ## M74 - Review Contract Corrections

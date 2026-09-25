@@ -75,8 +75,8 @@ Related repositories:
 | `sqlitecache/` | Optional SQLite implementation of the cache interface. |
 | `helper/` | Pure payload-shaping helper contracts and implementations, such as Gmail raw-message rendering, intended for downstream authoring metadata and trusted runtime registration. |
 | `internal/` | Private implementation helpers when needed. |
-| `tabilet/memory-bank/` | Private lane-aware harness project memory, symlinked from `../tofu/apitools`; `milestone.md` owns lane meanings and `status-<LANE><NN>.md` files own task state. |
-| `tabilet/evolution/` | Private direction snapshots, symlinked from `../tofu/apitools`. |
+| `tabilet/memory-bank/` | Tracked lane-aware harness project memory; `milestone.md` owns lane meanings and `status-<LANE><NN>.md` files own task state. `lessons.md` keeps reusable lessons. |
+| `tabilet/evolution/` | Tracked direction snapshots. |
 
 The harness keeps completed pre-lane work in the zero-padded `M` series. Future
 provider-catalog curation uses lane `C`, future source/discovery tooling uses

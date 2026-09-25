@@ -151,8 +151,8 @@ advisory assets, and code:
 - tests that validate catalog entries and overlays;
 - README or docs updates for public behavior.
 
-The private harness repository should track memory-bank milestone/status
-updates when the catalog process changes.
+Update the tracked `tabilet/memory-bank/` milestone/status files when the
+catalog process changes.
 
 The public repository should not track downloaded provider specs, Google
 Discovery documents, AWS Smithy JSON documents, or SQLite caches. Those review

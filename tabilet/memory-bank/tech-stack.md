@@ -183,8 +183,8 @@ available:
 ## CI And Tooling
 
 - Public repo guidance lives in README.
-- Private planning and milestone state lives in `tabilet/memory-bank/` through the
-  `../tofu/apitools` symlinked harness.
+- Planning and milestone state lives in tracked `tabilet/memory-bank/` files in
+  this repository.
 - Status files use `status-<LANE><NN>.md`; task tables put a supported
   backticked state in the second column so the account-level runner can count
   actionable and blocked rows deterministically.
