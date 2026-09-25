@@ -80,8 +80,9 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestone: none. Latest completed milestone: M75 - Operation Lifecycle
-Ranking Ownership. Apitools and Authoring are published, and OpenUdon/Ramen pin
+Active milestones: S02, C02, and S03 (pending review-remediation work;
+S02 before C02, S03 independent). Latest completed milestone: M75 - Operation
+Lifecycle Ranking Ownership. Apitools and Authoring are published, and OpenUdon/Ramen pin
 both revisions with passing standalone test/vet.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
@@ -191,6 +192,9 @@ retired row per milestone.
 | M73 - CLI And Coordinated Release Cleanup | [status-M73.md](status-M73.md) | Complete |
 | M74 - Review Contract Corrections | [status-M74.md](status-M74.md) | Complete |
 | M75 - Operation Lifecycle Ranking Ownership | [status-M75.md](status-M75.md) | Complete |
+| S02 - Local, Offline, And Discovery Safety Remediation | [status-S02.md](status-S02.md) | Pending |
+| C02 - Catalog Refresh Manifest Integrity | [status-C02.md](status-C02.md) | Pending |
+| S03 - Operation Lifecycle Ranking Correctness | [status-S03.md](status-S03.md) | Pending |
 
 ## Requested Changes After Initialization
 
@@ -225,6 +229,8 @@ the work automatically.
 | Next provider-catalog expansion | No provider batch or user-verifiable outcome has been approved after the completed historical catalog batches. | Approve a bounded provider-owned source batch, its source/auth review rules, and acceptance evidence. |
 | Production adoption of experimental LAP/RFC 9727 discovery | The adapters are intentionally experimental, and OpenUdon still selects APIs.guru explicitly. | Collect reliability/coverage evidence and approve the downstream OpenUdon discovery policy and network budget. |
 | Remove deprecated Discovery and Smithy wrappers | Sibling consumers may still rely on compatibility imports, and removal is a public breaking change. | Confirm no active sibling imports remain, approve release notes, and pass downstream compatibility checks. |
+| Network and local-scan hardening batch | Review "apitools Code Review" Pass 1 (baseline `a5699e5`) findings #7 (LAP registry validates every entry by DNS before scoring/limit and fails the whole search on one bad `source_url`, `remote_discovery.go`), #9 (unsafe-IP list omits `240.0.0.0/4`, IPv4-compatible `::/96`, and `fec0::/10`, `download.go`), #11 (OpenAPI metadata paths skip the `sourceguard.CheckJSON`/`CheckYAML` preflight, `validation.go`, `local.go`, `local_source_discovery.go`), #12 (`.bin` is always treated as a protobuf descriptor, `local_source_discovery.go`), #13 (regular-file-to-FIFO swap between `Lstat` and `Open` can block, `local_read.go`, `internal/artifactio`), and #14 (`Discoverer` exposes no port/transport options, `discovery.go`). All were revalidated at `a5699e570fb5d6288fdd255c71d229fb062b50b3` as Lower severity; no supported scenario fails and no private-host or root-escape path was found. | Approve a hardening batch after S02, or promote any item earlier if it becomes reachable in a supported deployment or a downstream consumer depends on it. |
+| Egress proxy support for guarded downloads | Review "apitools Code Review" Pass 1 finding #8: the guarded transport has `Proxy: nil`, and the only alternative, `AllowUnsafeHosts`, drops all host checks (`download.go`). Supporting a proxy trades dial-time IP filtering for proxy trust, which is a product/security decision. | An operator needs mandatory-proxy egress, and an approved policy defines target pre-validation, proxy trust, and the documented DNS-rebinding limitation. |
 
 ## Review Finding Severity
 
@@ -2706,3 +2712,133 @@ Authoring revision and pass standalone checks.
 provenance regressions prove generic `/upload` paths are untouched; Authoring
 contains no lifecycle-ranking package or apitools dependency; after publication
 both consumers pin the new revisions and pass `GOWORK=off` test/vet.
+
+## S02 - Local, Offline, And Discovery Safety Remediation
+
+**Goal.** Make local scanning, offline cache use, and project-URL discovery fail
+safely and predictably without weakening the untrusted-source guards.
+
+**Scope.**
+
+- Anchor symlink rejection at the caller-chosen root: resolve a root's own
+  ancestors once, then reject symlinks only beneath it, in local reads,
+  `internal/artifactio` roots, and `sqlitecache.Open`.
+- Make `CacheModeOffline` perform no DNS or network access (syntax-only URL
+  validation of cache keys) and serve any integrity-checked cached copy
+  regardless of cache TTL, reporting its stored age. Read-write mode keeps TTL.
+- Rebuild `LocalFiles` on the bounded local walker: per-file rejections instead
+  of whole-scan failure, visit/byte bounds, digest deduplication, and walk
+  errors on one entry recorded as rejections in both local scanners.
+- Make project-URL import idempotent by reusing identical content or a stable
+  name, and deduplicate discovery candidates by digest.
+- Keep the 16-URL network bound but never fail discovery on URL count: import
+  the first 16 unique URLs in order and record a truncation diagnostic;
+  `ImportProjectURLsWithReport` exposes truncation through its attempts.
+- Do not relax private-host rejection, add proxy support, or change public
+  function signatures.
+
+**Review provenance.** "apitools Code Review" Pass 1 (#1, #2, #4, #5, #6,
+#10) and Pass 0 (F09, F10), stated baseline `a5699e5`, revalidated at
+`a5699e570fb5d6288fdd255c71d229fb062b50b3`; relevant uncommitted changes at
+revalidation were harness documentation only. Lineage: M69, M70, M72, S01
+(completed; not reopened).
+
+**Dependencies.** None.
+
+**Parallel ownership.** `local.go`, `local_read.go`,
+`local_source_discovery.go`, `download.go`, `import.go`, `discovery.go`,
+`internal/artifactio/`, and the `sqlitecache` open path, plus their tests and
+docs. Does not own `operationlifecycle/` or catalog refresh behavior.
+
+**Downstream impacts.** C02 builds on the root-anchoring semantics in
+`internal/artifactio`. OpenUdon `internal/synthesize` stops accumulating
+duplicate imports and no longer fails discovery on long briefs; its suite must
+pass against the workspace checkout. Publishing and re-pinning consumers need
+separate authorization.
+
+**Acceptance.** Regression tests cover a symlinked temp-parent root, offline
+import of a non-resolvable cached hostname and of an entry older than the TTL,
+an oversized file and a symlink beside a valid spec, repeated discovery
+producing one file and one candidate per document, and more than 16 project
+URLs with local candidates present. `go test ./...`, `go vet ./...`,
+`git diff --check`, and `(cd ../openudon && go test ./...)` pass, and README and
+`architecture.md` describe the delivered behavior.
+
+## C02 - Catalog Refresh Manifest Integrity
+
+**Goal.** Keep catalog refresh artifacts on disk consistent with the
+`cache.sqlite` integrity manifest when a batch fails partway.
+
+**Scope.**
+
+- Stage refreshed artifacts and promote them only after the whole batch
+  validates and registers, or register completed rows before reporting a
+  failure; never leave an overwritten registered artifact whose SHA-256 and
+  byte count disagree with the cache database.
+- Surface partial results and the failing reference in the CLI report.
+- Do not change download safety, validation rules, or artifact path policy.
+
+**Review provenance.** "apitools Code Review" Pass 1 finding #3, stated
+baseline `a5699e5`, revalidated at
+`a5699e570fb5d6288fdd255c71d229fb062b50b3` by code trace of
+`catalog_refresh.go` and the `catalog refresh` CLI flow. Lineage: M11, M16
+(completed; not reopened).
+
+**Dependencies.** S02 row "Anchor symlink checks at caller-chosen roots",
+because both touch `internal/artifactio` root handling.
+
+**Parallel ownership.** `catalog_refresh.go`, `sqlitecache/catalog_refresh.go`,
+the `catalog refresh` command in `cmd/apitools`, and their tests/docs.
+
+**Downstream impacts.** `catalog materialize` and `catalog export` keep passing
+integrity checks after a failed refresh. No consumer API change.
+
+**Acceptance.** A two-reference refresh whose second reference fails leaves the
+first artifact either unchanged or registered with its new digest, and
+materialization of that provider succeeds. `go test ./...`, `go vet ./...`,
+`go run ./cmd/cataloggen -check`, `go run ./cmd/apitools catalog check`, and
+`git diff --check` pass.
+
+## S03 - Operation Lifecycle Ranking Correctness
+
+**Goal.** Make lifecycle sibling ranking pick the true item-level
+read/update/delete siblings with honest confidence, so destructive or unrelated
+operations are not proposed as lifecycle siblings.
+
+**Scope.**
+
+- Treat a path as an item sibling only when it equals the seed's collection
+  path plus a trailing parameter segment; resolve Google Discovery
+  `{+name}`/`{+parent}` paths from method resource identity; remove the
+  `list`/`collection` token exclusions and the dead path-match clause.
+- Derive roles from operation semantics by reusing
+  `apitools.ClassifyOperationPurpose`, so POST updates and actions are not
+  labelled create, and score or diagnose only non-seed roles.
+- Build family tokens from operation IDs and paths without free-text
+  stop-words, and match goal intent on word boundaries.
+- Resolve a seed identified only by operation ID, and prefer absolute document
+  path or URL over relative path for source identity.
+- Keep the package metadata-only; do not add workflow semantics, fetches,
+  credentials, or execution.
+
+**Review provenance.** "apitools Code Review" Pass 0 findings F01, F02, F03,
+F04, F05, F06, F07, F08, F12, and F14 (source priority not supplied), stated
+baseline `a5699e5`, revalidated at
+`a5699e570fb5d6288fdd255c71d229fb062b50b3` with a probe of `Expand`; F04 is
+partially confirmed by code evidence only. F13 was unsupported (not
+reproduced). Lineage: M75 (completed; not reopened).
+
+**Dependencies.** None; independent of S02 and C02.
+
+**Parallel ownership.** `operationlifecycle/` only, plus its tests and docs.
+
+**Downstream impacts.** OpenUdon and Ramen consume lifecycle roles for draft
+ranking; their workspace suites must pass. Publishing and re-pinning consumers
+need separate authorization.
+
+**Acceptance.** Regression tests cover scoped collection versus item siblings,
+Discovery `{+name}` resources, POST update seeds, resources named
+`list`/`collection`, stop-word-only family overlap, goals containing
+`dispatch` or other embedded verbs, operation-ID-only seeds, and same relative
+paths from different documents. `go test ./...`, `go vet ./...`,
+`git diff --check`, and the OpenUdon and Ramen workspace suites pass.
