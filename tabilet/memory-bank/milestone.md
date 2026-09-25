@@ -80,8 +80,9 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestones: S02, C02, and S03 (pending review-remediation work;
-S02 before C02, S03 independent). Latest completed milestone: M75 - Operation
+Active milestones: S04, S02, C02, S03, C03, and M76 (pending
+review-remediation work; S04 first as the only P1, S02 before C02, C03 before
+M76, S03 independent). Latest completed milestone: M75 - Operation
 Lifecycle Ranking Ownership. Apitools and Authoring are published, and OpenUdon/Ramen pin
 both revisions with passing standalone test/vet.
 
@@ -195,6 +196,9 @@ retired row per milestone.
 | S02 - Local, Offline, And Discovery Safety Remediation | [status-S02.md](status-S02.md) | Pending |
 | C02 - Catalog Refresh Manifest Integrity | [status-C02.md](status-C02.md) | Pending |
 | S03 - Operation Lifecycle Ranking Correctness | [status-S03.md](status-S03.md) | Pending |
+| S04 - Prompt Sanitizer Invisible-Unicode Hardening | [status-S04.md](status-S04.md) | Pending |
+| C03 - Catalog Resolution And Security Audit Accuracy | [status-C03.md](status-C03.md) | Pending |
+| M76 - CLI Usage Exit Contract | [status-M76.md](status-M76.md) | Pending |
 
 ## Requested Changes After Initialization
 
@@ -231,6 +235,7 @@ the work automatically.
 | Remove deprecated Discovery and Smithy wrappers | Sibling consumers may still rely on compatibility imports, and removal is a public breaking change. | Confirm no active sibling imports remain, approve release notes, and pass downstream compatibility checks. |
 | Network and local-scan hardening batch | Review "apitools Code Review" Pass 1 (baseline `a5699e5`) findings #7 (LAP registry validates every entry by DNS before scoring/limit and fails the whole search on one bad `source_url`, `remote_discovery.go`), #9 (unsafe-IP list omits `240.0.0.0/4`, IPv4-compatible `::/96`, and `fec0::/10`, `download.go`), #11 (OpenAPI metadata paths skip the `sourceguard.CheckJSON`/`CheckYAML` preflight, `validation.go`, `local.go`, `local_source_discovery.go`), #12 (`.bin` is always treated as a protobuf descriptor, `local_source_discovery.go`), #13 (regular-file-to-FIFO swap between `Lstat` and `Open` can block, `local_read.go`, `internal/artifactio`), and #14 (`Discoverer` exposes no port/transport options, `discovery.go`). All were revalidated at `a5699e570fb5d6288fdd255c71d229fb062b50b3` as Lower severity; no supported scenario fails and no private-host or root-escape path was found. | Approve a hardening batch after S02, or promote any item earlier if it becomes reachable in a supported deployment or a downstream consumer depends on it. |
 | Egress proxy support for guarded downloads | Review "apitools Code Review" Pass 1 finding #8: the guarded transport has `Proxy: nil`, and the only alternative, `AllowUnsafeHosts`, drops all host checks (`download.go`). Supporting a proxy trades dial-time IP filtering for proxy trust, which is a product/security decision. | An operator needs mandatory-proxy egress, and an approved policy defines target pre-validation, proxy trust, and the documented DNS-rebinding limitation. |
+| Catalog and tooling hardening batch | Review "apitools Code Review" Passes 2 and 4 (revalidated at `e015231`), all Lower severity: C3 `ResolveProviders(query)` splits multi-word display names on whitespace (`catalog/materialize.go`; CLI and OpenUdon pass explicit keys); C4 `FindSpecReference` trims the provider ID for identity but not for the spec lookup (`catalog/index.go`); C5 `preferredSpecReference` ignores `asyncapi`, `openrpc`, `graphql`, `grpc-protobuf`, and `odata` kinds (no built-in provider affected); X2 `Import` creates the target directory before validating or downloading (`import.go`); X3 the installed `staticcheck` predates the module's Go version and no `govulncheck` gate runs (`tech-stack.md`). | Approve a hardening batch, or promote an item when a consumer depends on the query API, a provider relies on a newer-kind-only source, or a static/vulnerability gate is required for release. |
 
 ## Review Finding Severity
 
@@ -2842,3 +2847,112 @@ Discovery `{+name}` resources, POST update seeds, resources named
 `dispatch` or other embedded verbs, operation-ID-only seeds, and same relative
 paths from different documents. `go test ./...`, `go vet ./...`,
 `git diff --check`, and the OpenUdon and Ramen workspace suites pass.
+
+## S04 - Prompt Sanitizer Invisible-Unicode Hardening
+
+**Goal.** Keep prompt-safe summaries free of invisible or direction-changing
+Unicode that could hide instructions from human reviewers while remaining
+visible to authoring models.
+
+**Scope.**
+
+- Extend the prompt sanitizer to remove or visibly escape Unicode format
+  characters (general category Cf, including bidi embeddings/overrides/isolates
+  and zero-width characters), the Unicode tag block (U+E0000-U+E007F), and
+  variation selectors, and report a diagnostic when it does so.
+- Apply the same rule to every sanitized field (identifiers, text,
+  collections, maps, request fields, security summaries).
+- Do not change budgets, truncation, or JSON shapes beyond the added
+  diagnostic.
+
+**Review provenance.** "apitools Code Review" Pass 3 finding P1, source High,
+local P1 (exploitable hidden-instruction path into authoring prompts);
+revalidated at `e015231ef651bb92ee1aab9a4e8fc870d94ad020` with a clean
+worktree by probing `SanitizeOperationSummaries` (bidi, zero-width, and tag
+characters survive unchanged; ANSI/BEL are stripped). Lineage: S01
+(completed; not reopened).
+
+**Dependencies.** None. Ordered first as the only P1 finding.
+
+**Parallel ownership.** `prompt_safety.go` and its tests.
+
+**Downstream impacts.** OpenUdon drafting prompts receive sanitized summaries;
+its suite must pass against the workspace checkout. Publishing and re-pinning
+consumers need separate authorization.
+
+**Acceptance.** Regression tests prove bidi overrides, zero-width characters,
+tag characters, and variation selectors are removed or escaped with a
+diagnostic in operation and inventory summaries, while ordinary non-ASCII
+text is preserved. `go test ./...`, `go vet ./...`, `git diff --check`, and
+`(cd ../openudon && go test ./...)` pass.
+
+## C03 - Catalog Resolution And Security Audit Accuracy
+
+**Goal.** Make catalog resolution and security-audit reports state what kind of
+source they resolved and whether operation security coverage is partial.
+
+**Scope.**
+
+- Add source kind and protocol to `ResolvedReference` (additive, backward
+  compatible JSON) and label resolve/advisory CLI output by protocol instead of
+  "Resolved OpenAPI" for non-OpenAPI references.
+- Add a partial-operation-security audit status when root `security` is empty
+  and fewer operations declare security than exist, with a follow-up to confirm
+  the remaining operations are intentionally anonymous.
+- Do not change catalog data, preference order, or security classifications.
+
+**Review provenance.** "apitools Code Review" Pass 2 findings C1 (source
+Medium, local P2; 209 of 316 providers resolve the `openapi` reference to
+human-docs, Smithy, Discovery, Stone, or index sources) and C2 (source Medium,
+local P2; `catalog_security_audit.go` reports has-security-metadata for partial
+coverage); revalidated at `e015231ef651bb92ee1aab9a4e8fc870d94ad020` with a
+clean worktree. Lineage: M05, M14, M58, C01 (completed; not reopened).
+
+**Dependencies.** None.
+
+**Parallel ownership.** `catalog/resolve.go`, `catalog/advisory.go`,
+`catalog_security_audit.go`, and the resolve/advisory/security-audit output
+functions in `cmd/apitools/main.go`. M76 edits other functions in the same CLI
+file, so it runs after C03.
+
+**Downstream impacts.** OpenUdon `cmd/openudon/catalog.go` and
+`internal/icot/elicitor/catalog.go` read resolved references; they must keep
+compiling and may display the new kind. Publishing and re-pinning need
+separate authorization.
+
+**Acceptance.** Tests show a human-docs, Smithy, and Discovery provider each
+resolve with the correct kind/protocol, JSON remains backward compatible, and a
+fixture with partial operation security gets the new audit status. `go test
+./...`, `go vet ./...`, `go run ./cmd/apitools catalog check`, `git diff
+--check`, and `(cd ../openudon && go test ./...)` pass.
+
+## M76 - CLI Usage Exit Contract
+
+**Goal.** Restore the documented CLI contract that usage failures exit 2 on
+stderr for `search` and `import`.
+
+**Scope.**
+
+- Validate required flags (`--query`, `--url`, `--dir`), minimum query
+  length, and URL syntax/scheme in the CLI layer before calling the library,
+  returning exit 2 with usage on stderr.
+- Keep runtime failures (network, validation of downloaded content, cache
+  errors) at exit 1, and leave library error behavior unchanged.
+
+**Review provenance.** "apitools Code Review" Pass 4 finding X1, source Medium,
+local P2 (regression of the M73 0/1/2 contract); revalidated at
+`e015231ef651bb92ee1aab9a4e8fc870d94ad020` with a clean worktree by running
+the built CLI (all listed usage errors exit 1). Lineage: M73 (completed; not
+reopened).
+
+**Dependencies.** C03, because both edit `cmd/apitools/main.go`.
+
+**Parallel ownership.** The `search` and `import` command handlers in
+`cmd/apitools/main.go` and CLI contract tests.
+
+**Downstream impacts.** Scripts that treated exit 1 as "any failure" still see
+a non-zero exit; no consumer API changes.
+
+**Acceptance.** CLI contract tests cover every listed usage error returning 2
+with usage on stderr and runtime failures returning 1. `go test ./...`,
+`go vet ./...`, `git diff --check`, and the documented CLI smoke checks pass.
