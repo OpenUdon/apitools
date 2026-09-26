@@ -208,6 +208,12 @@ func seedPrimaryPurpose(seed apitools.OperationSummary, desiredState bool) strin
 }
 
 func lifecyclePurpose(operation apitools.OperationSummary) string {
+	if strings.EqualFold(operation.Method, "HEAD") {
+		// ClassifyOperationPurpose does not classify HEAD (it returns ""),
+		// but a HEAD request is conventionally a read/existence check, exactly
+		// like methodRole and verbMatchesRole already treat it.
+		return "read"
+	}
 	purpose := apitools.ClassifyOperationPurpose(operation, apitools.OperationSelectionHints{})
 	if !strings.EqualFold(operation.Method, "POST") || purpose != "create" {
 		return purpose
@@ -683,7 +689,12 @@ func confidence(score int) string {
 
 func goalWantsUpdate(goal string) bool {
 	tokens := wordTokenSet(goal)
-	for _, word := range []string{"update", "updates", "updated", "patch", "patches", "modify", "modifies", "modifying", "replace", "replaces", "replacing"} {
+	for _, word := range []string{
+		"update", "updates", "updated", "updating",
+		"patch", "patches", "patched", "patching",
+		"modify", "modifies", "modified", "modifying",
+		"replace", "replaces", "replaced", "replacing",
+	} {
 		if tokens[word] {
 			return true
 		}

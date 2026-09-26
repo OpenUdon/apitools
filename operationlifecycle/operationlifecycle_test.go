@@ -150,12 +150,18 @@ func TestSameFamilyRejectsStopWordOnlyOverlap(t *testing.T) {
 }
 
 func TestGoalWantsUpdateUsesWordBoundaries(t *testing.T) {
-	for _, goal := range []string{"dispatch a thing", "the updater flow", "no patching required"} {
+	for _, goal := range []string{"dispatch a thing", "the updater flow"} {
 		if goalWantsUpdate(goal) {
 			t.Errorf("goal %q unexpectedly requests update", goal)
 		}
 	}
-	for _, goal := range []string{"update a thing", "please patch this resource", "modify-or-replace the item"} {
+	for _, goal := range []string{
+		"update a thing", "please patch this resource", "modify-or-replace the item",
+		// Inflected forms (U7): word-boundary matching must cover these
+		// explicitly, since tokenizing "patching" does not also produce
+		// "patch" the way substring matching once did incidentally.
+		"patching the widget", "widget gets patched", "replaced nightly",
+	} {
 		if !goalWantsUpdate(goal) {
 			t.Errorf("goal %q should request update", goal)
 		}
@@ -423,6 +429,21 @@ func TestExpandHyphenAndCreateOrUpdateFamilies(t *testing.T) {
 	}
 	if got := roleIDs(Expand(azure, azure[0], Options{DesiredState: true})); !slices.Equal(got, []string{"create:Databases_CreateOrUpdate", "read:Databases_Get", "delete:Databases_Delete"}) {
 		t.Fatalf("Azure roles = %#v", got)
+	}
+}
+
+// TestHeadOperationCanBeReadSibling proves that a HEAD operation is treated as
+// a read purpose, matching how verbMatchesRole and methodRole already treat
+// it, instead of being excluded from sibling matching because
+// ClassifyOperationPurpose does not classify HEAD on its own.
+func TestHeadOperationCanBeReadSibling(t *testing.T) {
+	operations := []apitools.OperationSummary{
+		op("widgets", "createWidget", "POST", "/widgets"),
+		op("widgets", "headWidget", "HEAD", "/widgets/{id}"),
+	}
+	expanded := Expand(operations, operations[0], Options{DesiredState: true})
+	if got, want := roleIDs(expanded), []string{"create:createWidget", "read:headWidget"}; !slices.Equal(got, want) {
+		t.Fatalf("roles = %#v, want %#v; diagnostics = %#v", got, want, expanded.Diagnostics)
 	}
 }
 
