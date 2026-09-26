@@ -80,10 +80,9 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestones: S04 and M76 (both closure-ready: every task row is
-complete, and each awaits its own required whole-milestone review pass before
-retirement).
-Latest completed milestone: S02 - Local, Offline, And Discovery Safety Remediation.
+Active milestones: M76 (closure-ready: every task row is complete, and it
+awaits its own required whole-milestone review pass before retirement).
+Latest completed milestone: S04 - Prompt Sanitizer Invisible-Unicode Hardening.
 Apitools and Authoring are published, and OpenUdon/Ramen pin both revisions
 with passing standalone test/vet.
 
@@ -119,7 +118,6 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | Milestone | Status File | State |
 |---|---|---|
-| S04 - Prompt Sanitizer Invisible-Unicode Hardening | [status-S04.md](status-S04.md) | Active: closure-ready |
 | M76 - CLI Usage Exit Contract | [status-M76.md](status-M76.md) | Active: closure-ready |
 
 ## Requested Changes After Initialization
@@ -571,44 +569,6 @@ the final task or a substantive closure commit. The API harness still requires
 a commit per run. Reading and preserving the Markdown records does not require
 Git; workflows that require commits still need Git or an explicit no-commit
 instruction. Never initialize Git merely to make retirement possible.
-
-## S04 - Prompt Sanitizer Invisible-Unicode Hardening
-
-**Goal.** Keep prompt-safe summaries free of invisible or direction-changing
-Unicode that could hide instructions from human reviewers while remaining
-visible to authoring models.
-
-**Scope.**
-
-- Extend the prompt sanitizer to remove or visibly escape Unicode format
-  characters (general category Cf, including bidi embeddings/overrides/isolates
-  and zero-width characters), the Unicode tag block (U+E0000-U+E007F), and
-  variation selectors, and report a diagnostic when it does so.
-- Apply the same rule to every sanitized field (identifiers, text,
-  collections, maps, request fields, security summaries).
-- Do not change budgets, truncation, or JSON shapes beyond the added
-  diagnostic.
-
-**Review provenance.** "apitools Code Review" Pass 3 finding P1, source High,
-local P1 (exploitable hidden-instruction path into authoring prompts);
-revalidated at `e015231ef651bb92ee1aab9a4e8fc870d94ad020` with a clean
-worktree by probing `SanitizeOperationSummaries` (bidi, zero-width, and tag
-characters survive unchanged; ANSI/BEL are stripped). Lineage: S01
-(completed; not reopened).
-
-**Dependencies.** None. Ordered first as the only P1 finding.
-
-**Parallel ownership.** `prompt_safety.go` and its tests.
-
-**Downstream impacts.** OpenUdon drafting prompts receive sanitized summaries;
-its suite must pass against the workspace checkout. Publishing and re-pinning
-consumers need separate authorization.
-
-**Acceptance.** Regression tests prove bidi overrides, zero-width characters,
-tag characters, and variation selectors are removed or escaped with a
-diagnostic in operation and inventory summaries, while ordinary non-ASCII
-text is preserved. `go test ./...`, `go vet ./...`, `git diff --check`, and
-`(cd ../openudon && go test ./...)` pass.
 
 ## M76 - CLI Usage Exit Contract
 

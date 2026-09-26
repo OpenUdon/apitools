@@ -1,3 +1,62 @@
+# Retired milestone S04 - Prompt Sanitizer Invisible-Unicode Hardening
+
+**Milestone.** S04
+**Outcome.** completed
+**Retired.** 2026-09-26
+**Source status.** tabilet/memory-bank/status-S04.md
+**Source specification.** tabilet/memory-bank/milestone.md#s04---prompt-sanitizer-invisible-unicode-hardening
+**Evidence.** 07d7ac4d2171600dc793ec6478808e26b0c9025f
+**Worktree.** clean
+**Review.** passed
+**Review iterations.** 3
+**Verification.** go build ./..., go vet ./..., go test ./... (apitools, all 17 packages, including focused sanitizer tests); git diff --check; OpenUdon full go test ./.... All passed at the evidence commit.
+**Consolidated into.** no current-truth change; current facts already live in architecture.md (prompt sanitizer's Unicode guarantees).
+
+## Milestone specification
+
+````markdown
+## S04 - Prompt Sanitizer Invisible-Unicode Hardening
+
+**Goal.** Keep prompt-safe summaries free of invisible or direction-changing
+Unicode that could hide instructions from human reviewers while remaining
+visible to authoring models.
+
+**Scope.**
+
+- Extend the prompt sanitizer to remove or visibly escape Unicode format
+  characters (general category Cf, including bidi embeddings/overrides/isolates
+  and zero-width characters), the Unicode tag block (U+E0000-U+E007F), and
+  variation selectors, and report a diagnostic when it does so.
+- Apply the same rule to every sanitized field (identifiers, text,
+  collections, maps, request fields, security summaries).
+- Do not change budgets, truncation, or JSON shapes beyond the added
+  diagnostic.
+
+**Review provenance.** "apitools Code Review" Pass 3 finding P1, source High,
+local P1 (exploitable hidden-instruction path into authoring prompts);
+revalidated at `e015231ef651bb92ee1aab9a4e8fc870d94ad020` with a clean
+worktree by probing `SanitizeOperationSummaries` (bidi, zero-width, and tag
+characters survive unchanged; ANSI/BEL are stripped). Lineage: S01
+(completed; not reopened).
+
+**Dependencies.** None. Ordered first as the only P1 finding.
+
+**Parallel ownership.** `prompt_safety.go` and its tests.
+
+**Downstream impacts.** OpenUdon drafting prompts receive sanitized summaries;
+its suite must pass against the workspace checkout. Publishing and re-pinning
+consumers need separate authorization.
+
+**Acceptance.** Regression tests prove bidi overrides, zero-width characters,
+tag characters, and variation selectors are removed or escaped with a
+diagnostic in operation and inventory summaries, while ordinary non-ASCII
+text is preserved. `go test ./...`, `go vet ./...`, `git diff --check`, and
+`(cd ../openudon && go test ./...)` pass.
+````
+
+## Status record
+
+````markdown
 # Status S04 - Prompt Sanitizer Invisible-Unicode Hardening
 
 State of each S04 milestone item. Update as items complete. See
@@ -53,3 +112,4 @@ Updated `architecture.md` to record the prompt sanitizer's Unicode guarantees.
 Product scope and tools did not change; no lesson addition or evolution bump is
 warranted. OpenUdon's required consumer suite passes after its approved test-only
 fixture correction; no additional pending downstream work was found.
+````
