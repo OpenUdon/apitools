@@ -80,9 +80,10 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestones: M76 (closure-ready: every task row is complete, and it
-awaits its own required whole-milestone review pass before retirement).
-Latest completed milestone: S04 - Prompt Sanitizer Invisible-Unicode Hardening.
+Active milestones: none. All milestones through M76 are completed and
+retired; see the history index below. The next milestone is allocated from a
+candidate direction after approval.
+Latest completed milestone: M76 - CLI Usage Exit Contract.
 Apitools and Authoring are published, and OpenUdon/Ramen pin both revisions
 with passing standalone test/vet.
 
@@ -118,7 +119,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | Milestone | Status File | State |
 |---|---|---|
-| M76 - CLI Usage Exit Contract | [status-M76.md](status-M76.md) | Active: closure-ready |
+| _(none)_ | | No milestone is currently active; all milestones through M76 are retired. |
 
 ## Requested Changes After Initialization
 
@@ -569,34 +570,3 @@ the final task or a substantive closure commit. The API harness still requires
 a commit per run. Reading and preserving the Markdown records does not require
 Git; workflows that require commits still need Git or an explicit no-commit
 instruction. Never initialize Git merely to make retirement possible.
-
-## M76 - CLI Usage Exit Contract
-
-**Goal.** Restore the documented CLI contract that usage failures exit 2 on
-stderr for `search` and `import`.
-
-**Scope.**
-
-- Validate required flags (`--query`, `--url`, `--dir`), minimum query
-  length, and URL syntax/scheme in the CLI layer before calling the library,
-  returning exit 2 with usage on stderr.
-- Keep runtime failures (network, validation of downloaded content, cache
-  errors) at exit 1, and leave library error behavior unchanged.
-
-**Review provenance.** "apitools Code Review" Pass 4 finding X1, source Medium,
-local P2 (regression of the M73 0/1/2 contract); revalidated at
-`e015231ef651bb92ee1aab9a4e8fc870d94ad020` with a clean worktree by running
-the built CLI (all listed usage errors exit 1). Lineage: M73 (completed; not
-reopened).
-
-**Dependencies.** C03 is completed (retired; see the [retired C03 record](../docs/history/status-C03.md)). M76 edits distinct handlers in `cmd/apitools/main.go`; the dependency only kept shared-file ownership sequential and is now satisfied.
-
-**Parallel ownership.** The `search` and `import` command handlers in
-`cmd/apitools/main.go` and CLI contract tests.
-
-**Downstream impacts.** Scripts that treated exit 1 as "any failure" still see
-a non-zero exit; no consumer API changes.
-
-**Acceptance.** CLI contract tests cover every listed usage error returning 2
-with usage on stderr and runtime failures returning 1. `go test ./...`,
-`go vet ./...`, `git diff --check`, and the documented CLI smoke checks pass.
