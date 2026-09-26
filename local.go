@@ -54,7 +54,7 @@ func localFilesWithDigests(ctx context.Context, opts LocalOptions) ([]LocalResul
 	if dir == "" {
 		return nil, nil, fmt.Errorf("local OpenAPI directory is required")
 	}
-	dir, _, err := resolveLocalScanRoot(dir)
+	dir, err := resolveLocalScanRoot(dir)
 	if err != nil {
 		return nil, nil, err
 	}

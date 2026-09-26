@@ -23,22 +23,22 @@ func validateInlineSpecContent(content []byte, maxBytes int64, label string) err
 	return nil
 }
 
-func resolveLocalScanRoot(path string) (string, os.FileInfo, error) {
+func resolveLocalScanRoot(path string) (string, error) {
 	resolved, err := resolveLocalPath(path)
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
 	info, err := os.Lstat(resolved)
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
 	if info.Mode()&os.ModeSymlink != 0 {
-		return "", nil, fmt.Errorf("local OpenAPI path %q is a symlink", path)
+		return "", fmt.Errorf("local OpenAPI path %q is a symlink", path)
 	}
 	if !info.IsDir() {
-		return "", nil, fmt.Errorf("local OpenAPI directory %q is not a directory", path)
+		return "", fmt.Errorf("local OpenAPI directory %q is not a directory", path)
 	}
-	return resolved, info, nil
+	return resolved, nil
 }
 
 func readLocalSpecFile(path string, maxBytes int64) ([]byte, error) {

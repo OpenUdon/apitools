@@ -110,10 +110,14 @@ func (d *Discoverer) DiscoverWithReport(ctx context.Context, exampleDir, project
 	}
 	candidates = append(candidates, urlReport.Candidates...)
 	candidateDigests = append(candidateDigests, urlDigests...)
-	candidates, candidateDigests = dedupeDiscoveryCandidatesByDigest(candidates, candidateDigests)
+	// Nothing after this point needs the per-candidate digests: the APIs.guru
+	// fallback below only runs when candidates is still empty (so there is
+	// nothing left to deduplicate against), and the final list is returned
+	// as-is.
+	candidates, _ = dedupeDiscoveryCandidatesByDigest(candidates, candidateDigests)
 
 	if len(candidates) == 0 {
-		fromGuru, digest, err := d.importBestAPIsGuruMatchWithDigest(ctx, openAPIDir, exampleDir, projectText)
+		fromGuru, _, err := d.importBestAPIsGuruMatchWithDigest(ctx, openAPIDir, exampleDir, projectText)
 		if err != nil {
 			report.Attempts = append(report.Attempts, DiscoveryAttempt{Kind: "apis.guru", Status: "fail", Detail: err.Error()})
 			return nil, report, err
@@ -121,7 +125,6 @@ func (d *Discoverer) DiscoverWithReport(ctx context.Context, exampleDir, project
 		if fromGuru.Path != "" {
 			report.Attempts = append(report.Attempts, DiscoveryAttempt{Kind: "apis.guru", Source: fromGuru.Source, Status: "pass", Detail: fromGuru.RelativePath})
 			candidates = append(candidates, fromGuru)
-			candidateDigests = append(candidateDigests, digest)
 		}
 	}
 
