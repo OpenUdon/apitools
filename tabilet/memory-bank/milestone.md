@@ -80,12 +80,12 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestones: S02, C02, S04, and M76 (S02 and C02 have open review-fix
-rows; S04 and M76 are closure-ready, and M76's C03 dependency is now
-satisfied).
-Latest completed milestone: C03 - Catalog Resolution And Security Audit
-Accuracy. Apitools and Authoring are published, and OpenUdon/Ramen pin both
-revisions with passing standalone test/vet.
+Active milestones: S02, S04, and M76 (all closure-ready: every task row is
+complete, and each awaits its own required whole-milestone review pass before
+retirement).
+Latest completed milestone: C02 - Catalog Refresh Manifest Integrity.
+Apitools and Authoring are published, and OpenUdon/Ramen pin both revisions
+with passing standalone test/vet.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
 (`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
@@ -119,8 +119,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | Milestone | Status File | State |
 |---|---|---|
-| S02 - Local, Offline, And Discovery Safety Remediation | [status-S02.md](status-S02.md) | Active: review fixes |
-| C02 - Catalog Refresh Manifest Integrity | [status-C02.md](status-C02.md) | Active: review fixes |
+| S02 - Local, Offline, And Discovery Safety Remediation | [status-S02.md](status-S02.md) | Active: closure-ready |
 | S04 - Prompt Sanitizer Invisible-Unicode Hardening | [status-S04.md](status-S04.md) | Active: closure-ready |
 | M76 - CLI Usage Exit Contract | [status-M76.md](status-M76.md) | Active: closure-ready |
 
@@ -615,8 +614,9 @@ revalidation were harness documentation only. Lineage: M69, M70, M72, S01
 `internal/artifactio/`, and the `sqlitecache` open path, plus their tests and
 docs. Does not own `operationlifecycle/` or catalog refresh behavior.
 
-**Downstream impacts.** C02 builds on the root-anchoring semantics in
-`internal/artifactio`. OpenUdon `internal/synthesize` stops accumulating
+**Downstream impacts.** C02 (completed; retired, see the [retired C02
+record](../docs/history/status-C02.md)) built on the root-anchoring semantics
+in `internal/artifactio`. OpenUdon `internal/synthesize` stops accumulating
 duplicate imports and no longer fails discovery on long briefs; its suite must
 pass against the workspace checkout. Publishing and re-pinning consumers need
 separate authorization.
@@ -633,49 +633,6 @@ rather than an empty result, and offline imports of `localhost` or private IP
 literals are rejected by default. `go test ./...`, `go vet ./...`,
 `git diff --check`, and `(cd ../openudon && go test ./...)` pass, and README and
 `architecture.md` describe the delivered behavior.
-
-## C02 - Catalog Refresh Manifest Integrity
-
-**Goal.** Keep catalog refresh artifacts on disk consistent with the
-`cache.sqlite` integrity manifest when a batch fails partway.
-
-**Scope.**
-
-- Stage refreshed artifacts and promote them only after the whole batch
-  validates and registers, or register completed rows before reporting a
-  failure; never leave an overwritten registered artifact whose SHA-256 and
-  byte count disagree with the cache database.
-- Surface partial results and the failing reference in the CLI report.
-- Protect registered artifacts without whole-file in-memory snapshots: a
-  refresh must not be blocked by, or re-read, a large or unreadable registered
-  artifact, and an artifact written for an unregistered spec is also restored
-  when registration fails.
-- Do not change download safety, validation rules, or artifact path policy.
-
-**Review provenance.** "apitools Code Review" Pass 1 finding #3, stated
-baseline `a5699e5`, revalidated at
-`a5699e570fb5d6288fdd255c71d229fb062b50b3` by code trace of
-`catalog_refresh.go` and the `catalog refresh` CLI flow. Lineage: M11, M16
-(completed; not reopened).
-
-**Dependencies.** S02 row "Anchor symlink checks at caller-chosen roots",
-because both touch `internal/artifactio` root handling.
-
-**Parallel ownership.** `catalog_refresh.go`, `sqlitecache/catalog_refresh.go`,
-the `catalog refresh` command in `cmd/apitools`, and their tests/docs.
-
-**Downstream impacts.** `catalog materialize` and `catalog export` keep passing
-integrity checks after a failed refresh. No consumer API change.
-
-**Acceptance.** A two-reference refresh whose second reference fails leaves the
-first artifact either unchanged or registered with its new digest, and
-materialization of that provider succeeds. A registered artifact larger than
-128 MiB refreshes under a matching `--max-bytes`, an unreadable registered
-artifact does not block its own replacement, failure errors name the
-provider/spec once, and refresh registration shares the spec/artifact upsert
-code with `StoreSpec`/`StoreCatalogArtifact`. `go test ./...`,
-`go vet ./...`, `go run ./cmd/cataloggen -check`,
-`go run ./cmd/apitools catalog check`, and `git diff --check` pass.
 
 ## S04 - Prompt Sanitizer Invisible-Unicode Hardening
 

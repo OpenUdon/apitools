@@ -5,6 +5,7 @@ Frozen retired records. IDs stay reserved; see [milestone.md](../../memory-bank/
 | Milestone | Outcome | Retired | Record | Summary |
 |---|---|---|---|---|
 | C01 | completed | 2026-09-25 | [C01](status-C01.md) | Generated Catalog And Security Aggregation |
+| C02 | completed | 2026-09-26 | [C02](status-C02.md) | Catalog Refresh Manifest Integrity |
 | C03 | completed | 2026-09-26 | [C03](status-C03.md) | Catalog Resolution And Security Audit Accuracy |
 | M01 | completed | 2026-09-25 | [M01](status-M01.md) | Private Harness Bootstrap |
 | M02 | completed | 2026-09-25 | [M02](status-M02.md) | Candidate Service Inventory |

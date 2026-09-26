@@ -5,16 +5,15 @@
 Using tabilet/GOAL.md, execute this loop.
 
 STATUS_ORDER:
-S02 -> C02 -> S04 -> M76
+S02 -> S04 -> M76
 
 STATUS_FILE_MAP:
 S02 = tabilet/memory-bank/status-S02.md
-C02 = tabilet/memory-bank/status-C02.md
 S04 = tabilet/memory-bank/status-S04.md
 M76 = tabilet/memory-bank/status-M76.md
 
 DOWNSTREAM_IMPACTS:
-S02 -> C02
+none
 
 COMMIT_POLICY: task
 EXTERNAL_MUTATIONS: none
