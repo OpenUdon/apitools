@@ -80,10 +80,10 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestones: S02, S04, and M76 (all closure-ready: every task row is
+Active milestones: S04 and M76 (both closure-ready: every task row is
 complete, and each awaits its own required whole-milestone review pass before
 retirement).
-Latest completed milestone: C02 - Catalog Refresh Manifest Integrity.
+Latest completed milestone: S02 - Local, Offline, And Discovery Safety Remediation.
 Apitools and Authoring are published, and OpenUdon/Ramen pin both revisions
 with passing standalone test/vet.
 
@@ -119,7 +119,6 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | Milestone | Status File | State |
 |---|---|---|
-| S02 - Local, Offline, And Discovery Safety Remediation | [status-S02.md](status-S02.md) | Active: closure-ready |
 | S04 - Prompt Sanitizer Invisible-Unicode Hardening | [status-S04.md](status-S04.md) | Active: closure-ready |
 | M76 - CLI Usage Exit Contract | [status-M76.md](status-M76.md) | Active: closure-ready |
 
@@ -572,67 +571,6 @@ the final task or a substantive closure commit. The API harness still requires
 a commit per run. Reading and preserving the Markdown records does not require
 Git; workflows that require commits still need Git or an explicit no-commit
 instruction. Never initialize Git merely to make retirement possible.
-
-## S02 - Local, Offline, And Discovery Safety Remediation
-
-**Goal.** Make local scanning, offline cache use, and project-URL discovery fail
-safely and predictably without weakening the untrusted-source guards.
-
-**Scope.**
-
-- Anchor symlink rejection at the caller-chosen root: resolve a root's own
-  ancestors once, then reject symlinks only beneath it, in local reads,
-  `internal/artifactio` roots, and `sqlitecache.Open`.
-- Make `CacheModeOffline` perform no DNS or network access (URL syntax plus
-  the DNS-free unsafe-host checks: `localhost`, scoped hosts, and private or
-  reserved IP literals stay rejected unless `AllowUnsafeHosts` is set) and serve
-  any integrity-checked cached copy regardless of cache TTL, reporting its
-  stored age. Read-write mode keeps TTL.
-- Rebuild `LocalFiles` on the bounded local walker: per-file rejections instead
-  of whole-scan failure, visit/byte bounds, digest deduplication, and walk
-  errors on one entry recorded as rejections in both local scanners.
-- Make project-URL import idempotent by reusing identical content or a stable
-  name, and deduplicate discovery candidates by digest.
-- Keep the 16-URL network bound but never fail discovery on URL count: import
-  the first 16 unique URLs in source order, record truncation in the additive
-  `ImportProjectURLsReport`, and preserve local and partial URL candidates.
-  Keep the legacy `ImportProjectURLs` and `ImportProjectURLsWithReport`
-  signatures unchanged.
-- Do not relax private-host rejection, add proxy support, or change public
-  function signatures.
-
-**Review provenance.** "apitools Code Review" Pass 1 (#1, #2, #4, #5, #6,
-#10) and Pass 0 (F09, F10), stated baseline `a5699e5`, revalidated at
-`a5699e570fb5d6288fdd255c71d229fb062b50b3`; relevant uncommitted changes at
-revalidation were harness documentation only. Lineage: M69, M70, M72, S01
-(completed; not reopened).
-
-**Dependencies.** None.
-
-**Parallel ownership.** `local.go`, `local_read.go`,
-`local_source_discovery.go`, `download.go`, `import.go`, `discovery.go`,
-`internal/artifactio/`, and the `sqlitecache` open path, plus their tests and
-docs. Does not own `operationlifecycle/` or catalog refresh behavior.
-
-**Downstream impacts.** C02 (completed; retired, see the [retired C02
-record](../docs/history/status-C02.md)) built on the root-anchoring semantics
-in `internal/artifactio`. OpenUdon `internal/synthesize` stops accumulating
-duplicate imports and no longer fails discovery on long briefs; its suite must
-pass against the workspace checkout. Publishing and re-pinning consumers need
-separate authorization.
-
-**Acceptance.** Regression tests cover a symlinked temp-parent root, offline
-import of a non-resolvable cached hostname and of an entry older than the TTL,
-an oversized file and a symlink beside a valid spec, repeated discovery
-producing one file and one candidate per document, and more than 16 project
-URLs with local candidates present. Review-iteration-4 regressions (U8-U10,
-U13) also hold: exactly 100 unique specs are not reported as truncated,
-discovery keeps partial local candidates and still attempts URL/APIs.guru
-imports when the local limit is reached, an unreadable scan root is an error
-rather than an empty result, and offline imports of `localhost` or private IP
-literals are rejected by default. `go test ./...`, `go vet ./...`,
-`git diff --check`, and `(cd ../openudon && go test ./...)` pass, and README and
-`architecture.md` describe the delivered behavior.
 
 ## S04 - Prompt Sanitizer Invisible-Unicode Hardening
 

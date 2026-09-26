@@ -83,4 +83,5 @@ Frozen retired records. IDs stay reserved; see [milestone.md](../../memory-bank/
 | M74 | completed | 2026-09-25 | [M74](status-M74.md) | Review Contract Corrections |
 | M75 | completed | 2026-09-25 | [M75](status-M75.md) | Operation Lifecycle Ranking Ownership |
 | S01 | completed | 2026-09-25 | [S01](status-S01.md) | Untrusted Source And Prompt Contract Hardening |
+| S02 | completed | 2026-09-26 | [S02](status-S02.md) | Local, Offline, And Discovery Safety Remediation |
 | S03 | completed | 2026-09-26 | [S03](status-S03.md) | Operation Lifecycle Ranking Correctness |
