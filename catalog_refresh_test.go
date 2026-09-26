@@ -396,6 +396,12 @@ func TestRefreshCatalogSpecReferencesRejectsUnparseableOpenAPI(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "does not validate as OpenAPI or Swagger") {
 		t.Fatalf("err = %v, want OpenAPI validation error", err)
 	}
+	// U14: the failing reference's provider/spec identity must be prefixed
+	// exactly once, not doubled by an outer wrap around an already-prefixed
+	// inner error.
+	if got, want := strings.Count(err.Error(), "test/test-invalid"), 1; got != want {
+		t.Fatalf("err = %q, want the provider/spec prefix exactly once, got %d", err.Error(), got)
+	}
 }
 
 func TestRefreshCatalogSpecReferencesRejectsUnsafeHost(t *testing.T) {

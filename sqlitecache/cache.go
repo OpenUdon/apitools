@@ -401,21 +401,7 @@ func (c *Cache) StoreSpec(ctx context.Context, spec apitools.CachedSpec) error {
 		}
 	}()
 	for _, urlValue := range uniqueStrings(originalURL, finalURL) {
-		if _, err := tx.ExecContext(ctx, `
-INSERT INTO spec_documents (
-  url, original_url, final_url, sha256, bytes, metadata_json, content_path, content, first_seen_at, updated_at, accessed_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-ON CONFLICT(url) DO UPDATE SET
-  original_url = excluded.original_url,
-  final_url = excluded.final_url,
-  sha256 = excluded.sha256,
-  bytes = excluded.bytes,
-  metadata_json = excluded.metadata_json,
-  content_path = excluded.content_path,
-  content = excluded.content,
-	updated_at = excluded.updated_at,
-	accessed_at = excluded.accessed_at`,
-			urlValue, originalURL, finalURL, spec.SHA256, spec.Bytes, string(metadataJSON), nullableString(contentPath), nullableContent(contentPath, content), now, now, accessed); err != nil {
+		if err := storeSpecDocumentTx(ctx, tx, urlValue, originalURL, finalURL, spec.SHA256, spec.Bytes, string(metadataJSON), contentPath, content, now, accessed); err != nil {
 			return err
 		}
 	}
@@ -494,36 +480,7 @@ func (c *Cache) StoreCatalogArtifact(ctx context.Context, artifact CatalogArtifa
 			_ = tx.Rollback()
 		}
 	}()
-	_, err = tx.ExecContext(ctx, `
-INSERT INTO catalog_artifacts (
-  provider_id, artifact_id, kind, path, source_url, overlay_path, builder_path,
-  sha256, bytes, metadata_json, first_seen_at, updated_at, accessed_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-ON CONFLICT(provider_id, artifact_id) DO UPDATE SET
-  kind = excluded.kind,
-  path = excluded.path,
-  source_url = excluded.source_url,
-  overlay_path = excluded.overlay_path,
-  builder_path = excluded.builder_path,
-  sha256 = excluded.sha256,
-  bytes = excluded.bytes,
-  metadata_json = excluded.metadata_json,
-	updated_at = excluded.updated_at,
-	accessed_at = excluded.accessed_at`,
-		providerID,
-		artifactID,
-		kind,
-		path,
-		strings.TrimSpace(artifact.SourceURL),
-		overlayPath,
-		builderPath,
-		file.SHA256,
-		file.Bytes,
-		string(metadataJSON),
-		now,
-		now,
-		accessed,
-	)
+	err = storeCatalogArtifactTx(ctx, tx, providerID, artifactID, kind, path, strings.TrimSpace(artifact.SourceURL), overlayPath, builderPath, file.SHA256, file.Bytes, string(metadataJSON), now, accessed)
 	if err != nil {
 		return err
 	}
@@ -946,6 +903,52 @@ func (c *Cache) readArtifact(path, sha256Value string, bytes int64) (artifactio.
 		SHA256:   sha256Value,
 		Bytes:    bytes,
 	})
+}
+
+// storeSpecDocumentTx upserts one spec_documents row for a single URL alias.
+// StoreSpec and the catalog refresh registration path share this exact SQL so
+// their upsert and conflict-resolution behavior cannot silently diverge.
+func storeSpecDocumentTx(ctx context.Context, tx *sql.Tx, urlValue, originalURL, finalURL, sha256Value string, bytesValue int64, metadataJSON, contentPath string, content []byte, now, accessed int64) error {
+	_, err := tx.ExecContext(ctx, `
+INSERT INTO spec_documents (
+  url, original_url, final_url, sha256, bytes, metadata_json, content_path, content, first_seen_at, updated_at, accessed_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(url) DO UPDATE SET
+  original_url = excluded.original_url,
+  final_url = excluded.final_url,
+  sha256 = excluded.sha256,
+  bytes = excluded.bytes,
+  metadata_json = excluded.metadata_json,
+  content_path = excluded.content_path,
+  content = excluded.content,
+	updated_at = excluded.updated_at,
+	accessed_at = excluded.accessed_at`,
+		urlValue, originalURL, finalURL, sha256Value, bytesValue, metadataJSON, nullableString(contentPath), nullableContent(contentPath, content), now, now, accessed)
+	return err
+}
+
+// storeCatalogArtifactTx upserts one catalog_artifacts row. StoreCatalogArtifact
+// and the catalog refresh registration path share this exact SQL so their
+// upsert and conflict-resolution behavior cannot silently diverge.
+func storeCatalogArtifactTx(ctx context.Context, tx *sql.Tx, providerID, artifactID, kind, path, sourceURL, overlayPath, builderPath, sha256Value string, bytesValue int64, metadataJSON string, now, accessed int64) error {
+	_, err := tx.ExecContext(ctx, `
+INSERT INTO catalog_artifacts (
+  provider_id, artifact_id, kind, path, source_url, overlay_path, builder_path,
+  sha256, bytes, metadata_json, first_seen_at, updated_at, accessed_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(provider_id, artifact_id) DO UPDATE SET
+  kind = excluded.kind,
+  path = excluded.path,
+  source_url = excluded.source_url,
+  overlay_path = excluded.overlay_path,
+  builder_path = excluded.builder_path,
+  sha256 = excluded.sha256,
+  bytes = excluded.bytes,
+  metadata_json = excluded.metadata_json,
+	updated_at = excluded.updated_at,
+	accessed_at = excluded.accessed_at`,
+		providerID, artifactID, kind, path, sourceURL, overlayPath, builderPath, sha256Value, bytesValue, metadataJSON, now, now, accessed)
+	return err
 }
 
 func nullableString(value string) sql.NullString {

@@ -82,6 +82,11 @@ func (c *Client) RefreshCatalogSpecReferences(ctx context.Context, refs []catalo
 	for _, ref := range refs {
 		result, err := c.refreshCatalogSpecReference(ctx, ref, cacheDir)
 		if err != nil {
+			// This is the only place a failing reference's provider/spec is
+			// prefixed onto its error text: refreshCatalogSpecReference and
+			// its callees return unprefixed messages so the identity is
+			// stated exactly once, here, rather than doubled for the
+			// validation-failure paths that already carry ref in scope.
 			return report, fmt.Errorf("%s/%s: %w", ref.ProviderID, ref.SpecRefID, err)
 		}
 		report.Results = append(report.Results, result)
@@ -99,7 +104,7 @@ func (c *Client) refreshCatalogSpecReference(ctx context.Context, ref catalog.Re
 		if validation.RawError != nil {
 			return CatalogSpecRefreshResult{}, validation.RawError
 		}
-		return CatalogSpecRefreshResult{}, fmt.Errorf("%s/%s: downloaded artifact failed validation", ref.ProviderID, ref.SpecRefID)
+		return CatalogSpecRefreshResult{}, fmt.Errorf("downloaded artifact failed validation")
 	}
 	artifactPath, err := catalogRefreshArtifactPath(ref, content)
 	if err != nil {
@@ -203,9 +208,9 @@ func validateCatalogRefreshContentRaw(ctx context.Context, ref catalog.Refreshab
 		if !ok {
 			status, metadata, parseable := parseableInvalidCatalogOpenAPIMetadata(ctx, content)
 			if parseable {
-				return status, metadata, fmt.Errorf("%s/%s: downloaded document is parseable as OpenAPI or Swagger but fails strict semantic validation", ref.ProviderID, ref.SpecRefID)
+				return status, metadata, fmt.Errorf("downloaded document is parseable as OpenAPI or Swagger but fails strict semantic validation")
 			}
-			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("%s/%s: downloaded document does not validate as OpenAPI or Swagger", ref.ProviderID, ref.SpecRefID)
+			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("downloaded document does not validate as OpenAPI or Swagger")
 		}
 		if metadata.Swagger != "" {
 			return CatalogRefreshValidSwagger, metadata, nil
@@ -213,40 +218,40 @@ func validateCatalogRefreshContentRaw(ctx context.Context, ref catalog.Refreshab
 		return CatalogRefreshValidOpenAPI, metadata, nil
 	case catalog.SpecKindGoogleDiscovery, catalog.SpecKindOpenAPIIndex, catalog.SpecKindSmithyJSON, catalog.SpecKindAsyncAPI:
 		if !validStructuredCatalogArtifact(content) {
-			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("%s/%s: downloaded document is not structured JSON or YAML", ref.ProviderID, ref.SpecRefID)
+			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("downloaded document is not structured JSON or YAML")
 		}
 		return CatalogRefreshValidStructured, structuredMetadata(content), nil
 	case catalog.SpecKindOpenRPC:
 		metadata, err := openRPCMetadata(content)
 		if err != nil {
-			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("%s/%s: downloaded document does not validate as OpenRPC: %w", ref.ProviderID, ref.SpecRefID, err)
+			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("downloaded document does not validate as OpenRPC: %w", err)
 		}
 		return CatalogRefreshValidStructured, metadata, nil
 	case catalog.SpecKindGraphQL:
 		metadata, err := graphQLMetadata(content)
 		if err != nil {
-			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("%s/%s: downloaded document does not validate as GraphQL source metadata: %w", ref.ProviderID, ref.SpecRefID, err)
+			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("downloaded document does not validate as GraphQL source metadata: %w", err)
 		}
 		return CatalogRefreshValidStructured, metadata, nil
 	case catalog.SpecKindGRPCProtobuf:
 		metadata, err := grpcProtobufMetadata(content)
 		if err != nil {
-			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("%s/%s: downloaded document does not validate as gRPC/protobuf source metadata: %w", ref.ProviderID, ref.SpecRefID, err)
+			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("downloaded document does not validate as gRPC/protobuf source metadata: %w", err)
 		}
 		return CatalogRefreshValidStructured, metadata, nil
 	case catalog.SpecKindOData:
 		metadata, err := odataMetadata(content)
 		if err != nil {
-			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("%s/%s: downloaded document does not validate as OData source metadata: %w", ref.ProviderID, ref.SpecRefID, err)
+			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("downloaded document does not validate as OData source metadata: %w", err)
 		}
 		return CatalogRefreshValidStructured, metadata, nil
 	case catalog.SpecKindDropboxStone:
 		if len(bytes.TrimSpace(content)) == 0 {
-			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("%s/%s: downloaded artifact is empty", ref.ProviderID, ref.SpecRefID)
+			return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("downloaded artifact is empty")
 		}
 		return CatalogRefreshSkippedValidation, SpecMetadata{}, nil
 	default:
-		return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("%s/%s: unsupported refresh spec kind %q", ref.ProviderID, ref.SpecRefID, ref.Kind)
+		return CatalogRefreshInvalid, SpecMetadata{}, fmt.Errorf("unsupported refresh spec kind %q", ref.Kind)
 	}
 }
 

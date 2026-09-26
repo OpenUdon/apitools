@@ -149,26 +149,15 @@ func prepareCatalogRefreshRegistration(cache *Cache, cacheDir string, result api
 	}, nil
 }
 
+// insertRefreshSpec and insertRefreshCatalogArtifact share their INSERT SQL
+// (storeSpecDocumentTx, storeCatalogArtifactTx in cache.go) with StoreSpec and
+// StoreCatalogArtifact, so a future migration or column change to either
+// cannot silently diverge between the two registration paths.
 func insertRefreshSpec(ctx context.Context, tx *sql.Tx, registration catalogRefreshRegistration) error {
 	now := time.Now().UTC().Unix()
 	accessed := time.Now().UTC().UnixNano()
 	for _, urlValue := range uniqueStrings(registration.originalURL, registration.finalURL) {
-		if _, err := tx.ExecContext(ctx, `
-INSERT INTO spec_documents (
-  url, original_url, final_url, sha256, bytes, metadata_json, content_path, content, first_seen_at, updated_at, accessed_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-ON CONFLICT(url) DO UPDATE SET
-  original_url = excluded.original_url,
-  final_url = excluded.final_url,
-  sha256 = excluded.sha256,
-  bytes = excluded.bytes,
-  metadata_json = excluded.metadata_json,
-  content_path = excluded.content_path,
-  content = excluded.content,
-	updated_at = excluded.updated_at,
-	accessed_at = excluded.accessed_at`,
-			urlValue, registration.originalURL, registration.finalURL, registration.sha256, registration.bytes,
-			registration.specMetadataJSON, nullableString(registration.contentPath), nullableContent(registration.contentPath, nil), now, now, accessed); err != nil {
+		if err := storeSpecDocumentTx(ctx, tx, urlValue, registration.originalURL, registration.finalURL, registration.sha256, registration.bytes, registration.specMetadataJSON, registration.contentPath, nil, now, accessed); err != nil {
 			return err
 		}
 	}
@@ -178,37 +167,7 @@ ON CONFLICT(url) DO UPDATE SET
 func insertRefreshCatalogArtifact(ctx context.Context, tx *sql.Tx, registration catalogRefreshRegistration) error {
 	now := time.Now().UTC().Unix()
 	accessed := time.Now().UTC().UnixNano()
-	_, err := tx.ExecContext(ctx, `
-INSERT INTO catalog_artifacts (
-  provider_id, artifact_id, kind, path, source_url, overlay_path, builder_path,
-  sha256, bytes, metadata_json, first_seen_at, updated_at, accessed_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-ON CONFLICT(provider_id, artifact_id) DO UPDATE SET
-  kind = excluded.kind,
-  path = excluded.path,
-  source_url = excluded.source_url,
-  overlay_path = excluded.overlay_path,
-  builder_path = excluded.builder_path,
-  sha256 = excluded.sha256,
-  bytes = excluded.bytes,
-  metadata_json = excluded.metadata_json,
-	updated_at = excluded.updated_at,
-	accessed_at = excluded.accessed_at`,
-		registration.providerID,
-		registration.artifactID,
-		registration.kind,
-		registration.contentPath,
-		registration.sourceURL,
-		"",
-		"",
-		registration.sha256,
-		registration.bytes,
-		registration.catalogArtifactMetadataJSON,
-		now,
-		now,
-		accessed,
-	)
-	return err
+	return storeCatalogArtifactTx(ctx, tx, registration.providerID, registration.artifactID, registration.kind, registration.contentPath, registration.sourceURL, "", "", registration.sha256, registration.bytes, registration.catalogArtifactMetadataJSON, now, accessed)
 }
 
 func (c *Cache) catalogRefreshContentPath(cacheDir string, result apitools.CatalogSpecRefreshResult) (string, error) {
