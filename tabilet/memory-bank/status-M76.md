@@ -32,8 +32,8 @@ Review provenance: "apitools Code Review", Passes 2-4, revalidated at
 Iteration 2 review provenance: Review "apitools uncommitted-diff review" (2026-09-26; source priority not supplied), baseline `6ee935b` plus the uncommitted implementation diff; revalidated at `6ee935b328234287cc8dfa097884a67fdebccfbd` including those uncommitted changes. Finding IDs U1-U15 follow the review's order.
 
 **Review.** passed
-**Review iterations.** 2 (passed; iteration 1 passed as recorded in the restored retirement record)
-**Review findings.** Iteration 2: the external uncommitted-diff review, counted as a confirming full pass at the user's direction, found no P1/P2 or higher-severity issue in M76's scope; no finding concerns the search/import exit-code handlers. Closure-ready: retire after final verification together with the shared commit plan.
+**Review iterations.** 3 (passed; iteration 1 passed as recorded in the restored retirement record)
+**Review findings.** Iteration 2: the external uncommitted-diff review, counted as a confirming full pass at the user's direction, found no P1/P2 or higher-severity issue in M76's scope; no finding concerns the search/import exit-code handlers. Iteration 3: closing whole-milestone review re-traced `runSearchWithClient`/`runImportWithClient`/`validateImportURL`/`parseCommandFlags` against the acceptance criteria: query/URL/dir/scheme/hostname validation runs and returns `exitUsage` (2) with usage on stderr before any client is created, `-h`/`-help` returns `exitSuccess` (0), and only runtime failures (client creation, private-host policy, unknown source) return `exitRuntime` (1). No P1/P2 or higher-severity issue found. `go build`, `go vet`, and `go test ./...` pass across all 17 packages, and the documented CLI smoke checks (help exits 0; missing/short-query, missing/malformed-URL/scheme, and missing-dir usage exit 2; private-host runtime failure exits 1) pass against the built binary. Gate closes at iteration 3; retiring alongside this pass.
 
 | Item | State | Notes |
 |---|---|---|
