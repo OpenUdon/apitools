@@ -220,3 +220,108 @@ func TestDirTransactionCollisionForceAndRollback(t *testing.T) {
 		t.Fatalf("rollback mutated target: %v", err)
 	}
 }
+
+func TestMoveAsideRestoreDiscardAndRemoveArtifact(t *testing.T) {
+	root := t.TempDir()
+	relative := "openapi/spec.json"
+	full := filepath.Join(root, filepath.FromSlash(relative))
+	if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	original := []byte("original content")
+	if err := os.WriteFile(full, original, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Moving aside a missing file is a no-op, not an error.
+	backup, err := MoveAside(root, "openapi/missing.json")
+	if err != nil || backup != "" {
+		t.Fatalf("MoveAside(missing) = (%q, %v), want (\"\", nil)", backup, err)
+	}
+
+	backup, err = MoveAside(root, relative)
+	if err != nil {
+		t.Fatalf("MoveAside: %v", err)
+	}
+	if backup == "" {
+		t.Fatal("MoveAside returned no backup path for an existing file")
+	}
+	if _, err := os.Stat(full); !os.IsNotExist(err) {
+		t.Fatalf("original path still exists after MoveAside, stat err = %v", err)
+	}
+
+	// Simulate a refresh writing new content at the same path.
+	newContent := []byte("new content")
+	if _, err := WriteFile(root, relative, newContent, WriteOptions{}); err != nil {
+		t.Fatal(err)
+	}
+
+	// RestoreAside discards the new content and brings the original back.
+	if err := RestoreAside(root, relative, backup); err != nil {
+		t.Fatalf("RestoreAside: %v", err)
+	}
+	got, err := os.ReadFile(full)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != string(original) {
+		t.Fatalf("restored content = %q, want %q", got, original)
+	}
+	if _, err := os.Stat(filepath.Join(root, filepath.FromSlash(backup))); !os.IsNotExist(err) {
+		t.Fatalf("backup still exists after RestoreAside, stat err = %v", err)
+	}
+
+	// Move aside again and discard: original content is gone for good, and the
+	// path written after it (simulating a committed refresh) is untouched.
+	backup, err = MoveAside(root, relative)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := WriteFile(root, relative, newContent, WriteOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	if err := DiscardAside(root, backup); err != nil {
+		t.Fatalf("DiscardAside: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, filepath.FromSlash(backup))); !os.IsNotExist(err) {
+		t.Fatalf("backup still exists after DiscardAside, stat err = %v", err)
+	}
+	// Discarding an already-removed backup is not an error.
+	if err := DiscardAside(root, backup); err != nil {
+		t.Fatalf("DiscardAside on missing backup: %v", err)
+	}
+	got, err = os.ReadFile(full)
+	if err != nil || string(got) != string(newContent) {
+		t.Fatalf("content after discard = %q, %v, want %q", got, err, newContent)
+	}
+
+	// RemoveArtifact deletes a file that was never registered anywhere else.
+	if err := RemoveArtifact(root, relative); err != nil {
+		t.Fatalf("RemoveArtifact: %v", err)
+	}
+	if _, err := os.Stat(full); !os.IsNotExist(err) {
+		t.Fatalf("artifact still exists after RemoveArtifact, stat err = %v", err)
+	}
+	// Removing an already-missing artifact is not an error.
+	if err := RemoveArtifact(root, relative); err != nil {
+		t.Fatalf("RemoveArtifact on missing file: %v", err)
+	}
+}
+
+func TestMoveAsideRejectsSymlinkAndConfinement(t *testing.T) {
+	root := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "target.json")
+	if err := os.WriteFile(outside, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "link.json")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Skipf("symlinks unavailable: %v", err)
+	}
+	if _, err := MoveAside(root, "link.json"); err == nil || !strings.Contains(err.Error(), "symlink") {
+		t.Fatalf("MoveAside on symlink = %v, want a symlink rejection", err)
+	}
+	if _, err := MoveAside(root, "../outside.json"); err == nil || !strings.Contains(err.Error(), "local relative") {
+		t.Fatalf("MoveAside outside root = %v, want a confinement rejection", err)
+	}
+}

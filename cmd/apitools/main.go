@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"sort"
 	"strings"
 	"syscall"
@@ -669,11 +668,7 @@ func runCatalogRefreshWithClient(args []string, out, errOut io.Writer, refresher
 		fmt.Fprintln(errOut, err)
 		return exitUsage
 	}
-	backups, err := snapshotCatalogRefreshArtifacts(*cacheDir, rows)
-	if err != nil {
-		fmt.Fprintln(errOut, err)
-		return exitRuntime
-	}
+	backups := snapshotCatalogRefreshArtifacts(*cacheDir, rows)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	client := &apitools.Client{
@@ -685,10 +680,19 @@ func runCatalogRefreshWithClient(args []string, out, errOut io.Writer, refresher
 	var registrationErr error
 	if len(report.Results) > 0 {
 		registrationErr = sqlitecache.RegisterCatalogRefreshResults(ctx, *cachePath, *cacheDir, report)
+	}
+	// Commit (discard backups) exactly the rows registration actually covered
+	// and succeeded for: refreshErr alone (a later selected reference failed)
+	// does not roll back earlier rows that report.Results already recorded
+	// and RegisterCatalogRefreshResults already committed to the manifest.
+	// Any row registration did not reach, or that registration itself
+	// failed for, is restored or removed so the cache ends up exactly as it
+	// was before this command ran.
+	if finalizeErr := finalizeCatalogRefreshArtifacts(*cacheDir, rows, report, backups, registrationErr); finalizeErr != nil {
 		if registrationErr != nil {
-			if restoreErr := restoreCatalogRefreshArtifacts(*cacheDir, report, backups); restoreErr != nil {
-				registrationErr = fmt.Errorf("%v; restoring prior artifacts: %w", registrationErr, restoreErr)
-			}
+			registrationErr = fmt.Errorf("%v; %w", registrationErr, finalizeErr)
+		} else {
+			registrationErr = finalizeErr
 		}
 	}
 	if refreshErr != nil || registrationErr != nil {
@@ -736,43 +740,94 @@ func runCatalogRefreshWithClient(args []string, out, errOut io.Writer, refresher
 	return exitSuccess
 }
 
+// catalogRefreshArtifactBackup records how one refreshed spec's prior state
+// was preserved. BackupPath is empty when the spec had no prior registered
+// artifact on disk (a brand-new artifact) or moving it aside failed; either
+// way, finalizeCatalogRefreshArtifacts then removes rather than restores.
 type catalogRefreshArtifactBackup struct {
-	Path string
-	Data []byte
+	BackupPath string
 }
 
-func snapshotCatalogRefreshArtifacts(cacheDir string, rows []catalogpkg.RefreshableSpecReference) (map[string]catalogRefreshArtifactBackup, error) {
-	backups := make(map[string]catalogRefreshArtifactBackup)
+// snapshotCatalogRefreshArtifacts moves each row's currently registered
+// artifact aside by renaming it, without reading its content, so a large or
+// unreadable registered artifact neither blocks refreshing other specs nor is
+// bounded by a fixed backup size limit distinct from the refresh's own
+// --max-bytes. A row whose own move-aside fails is simply left out of the
+// returned map: its refresh still proceeds, just without a rollback safety
+// net if registration later fails.
+func snapshotCatalogRefreshArtifacts(cacheDir string, rows []catalogpkg.RefreshableSpecReference) map[string]catalogRefreshArtifactBackup {
+	backups := make(map[string]catalogRefreshArtifactBackup, len(rows))
 	for _, row := range rows {
+		key := row.ProviderID + "/" + row.SpecRefID
 		path := strings.TrimSpace(row.RegisteredArtifactPath)
 		if path == "" {
+			backups[key] = catalogRefreshArtifactBackup{}
 			continue
 		}
-		file, err := artifactio.ReadFile(cacheDir, path, artifactio.ReadOptions{MaxBytes: artifactio.DefaultMaxBytes})
-		if os.IsNotExist(err) {
-			continue
-		}
+		backupPath, err := artifactio.MoveAside(cacheDir, path)
 		if err != nil {
-			return nil, fmt.Errorf("cannot preserve registered artifact %s/%s: %w", row.ProviderID, row.SpecRefID, err)
+			continue
 		}
-		backups[row.ProviderID+"/"+row.SpecRefID] = catalogRefreshArtifactBackup{Path: filepath.ToSlash(path), Data: file.Data}
+		backups[key] = catalogRefreshArtifactBackup{BackupPath: backupPath}
 	}
-	return backups, nil
+	return backups
 }
 
-func restoreCatalogRefreshArtifacts(cacheDir string, report apitools.CatalogSpecRefreshReport, backups map[string]catalogRefreshArtifactBackup) error {
-	var failures []string
+// finalizeCatalogRefreshArtifacts commits or rolls back every row snapshotted
+// by snapshotCatalogRefreshArtifacts. On commit, backups are discarded and the
+// newly refreshed content stands. Otherwise, a row with a backup is restored
+// to its exact prior path regardless of whether the refresh reached or wrote
+// it, and a row with no prior artifact has any newly written, now-orphaned
+// artifact removed, so a failure at any point leaves the cache exactly as it
+// was before the command ran. A row missing from backups (its own
+// snapshot step failed) is left untouched either way.
+// finalizeCatalogRefreshArtifacts commits or rolls back every row
+// snapshotCatalogRefreshArtifacts moved aside. A row is committed (its backup
+// discarded, the newly refreshed content kept) only when it has a result in
+// report.Results and registrationErr is nil: refreshErr alone, reported when a
+// later selected reference fails, does not roll back an earlier row that
+// RegisterCatalogRefreshResults already committed to the manifest. Every
+// other row is rolled back: one with a backup is restored to its exact prior
+// path, and one with no prior artifact has any newly written, now-orphaned
+// artifact removed. A row missing from backups (its own snapshot step
+// failed) is left untouched either way.
+func finalizeCatalogRefreshArtifacts(cacheDir string, rows []catalogpkg.RefreshableSpecReference, report apitools.CatalogSpecRefreshReport, backups map[string]catalogRefreshArtifactBackup, registrationErr error) error {
+	newPathByKey := make(map[string]string, len(report.Results))
+	hasResult := make(map[string]bool, len(report.Results))
 	for _, result := range report.Results {
-		backup, ok := backups[result.ProviderID+"/"+result.SpecRefID]
-		if !ok || filepath.ToSlash(filepath.Clean(filepath.FromSlash(result.ArtifactPath))) != filepath.ToSlash(filepath.Clean(filepath.FromSlash(backup.Path))) {
+		key := result.ProviderID + "/" + result.SpecRefID
+		newPathByKey[key] = strings.TrimSpace(result.ArtifactPath)
+		hasResult[key] = true
+	}
+	var failures []string
+	for _, row := range rows {
+		key := row.ProviderID + "/" + row.SpecRefID
+		backup, ok := backups[key]
+		if !ok {
 			continue
 		}
-		if _, err := artifactio.WriteFile(cacheDir, backup.Path, backup.Data, artifactio.WriteOptions{Mode: 0o644, Force: true}); err != nil {
-			failures = append(failures, fmt.Sprintf("%s/%s: %v", result.ProviderID, result.SpecRefID, err))
+		if hasResult[key] && registrationErr == nil {
+			if backup.BackupPath != "" {
+				if err := artifactio.DiscardAside(cacheDir, backup.BackupPath); err != nil {
+					failures = append(failures, fmt.Sprintf("%s: discard backup: %v", key, err))
+				}
+			}
+			continue
+		}
+		if backup.BackupPath != "" {
+			if err := artifactio.RestoreAside(cacheDir, strings.TrimSpace(row.RegisteredArtifactPath), backup.BackupPath); err != nil {
+				failures = append(failures, fmt.Sprintf("%s: %v", key, err))
+			}
+			continue
+		}
+		if newPath := newPathByKey[key]; newPath != "" {
+			if err := artifactio.RemoveArtifact(cacheDir, newPath); err != nil {
+				failures = append(failures, fmt.Sprintf("%s: remove new artifact: %v", key, err))
+			}
 		}
 	}
 	if len(failures) > 0 {
-		return fmt.Errorf("restore prior artifacts: %s", strings.Join(failures, "; "))
+		return fmt.Errorf("finalize catalog refresh artifacts: %s", strings.Join(failures, "; "))
 	}
 	return nil
 }

@@ -233,6 +233,127 @@ func WriteFile(root, relative string, data []byte, opts WriteOptions) (WriteResu
 	return result, nil
 }
 
+// MoveAside renames a confined relative path under root to an unused sibling
+// backup path in the same directory, without reading its content. It is meant
+// for callers that need to protect an existing artifact across a multi-step
+// operation (for example a download followed by a separate registration
+// step) without the size limit or memory cost of reading the artifact into a
+// byte slice first. It returns the backup's path relative to root, or ("",
+// nil) if no file exists at relative yet. Restore the original with
+// RestoreAside, or release the backup with DiscardAside once it is no longer
+// needed.
+func MoveAside(root, relative string) (string, error) {
+	rootAbs, err := existingDirectory(root)
+	if err != nil {
+		return "", err
+	}
+	relative, err = cleanRelative(relative)
+	if err != nil {
+		return "", err
+	}
+	path := filepath.Join(rootAbs, relative)
+	if err := verifyExistingParents(rootAbs, filepath.Dir(path)); err != nil {
+		return "", err
+	}
+	info, err := os.Lstat(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return "", fmt.Errorf("artifact path %q is a symlink and not a regular file", path)
+	}
+	if !info.Mode().IsRegular() {
+		return "", fmt.Errorf("artifact path %q is not a regular file", path)
+	}
+	backup, err := unusedSiblingPath(path, "backup")
+	if err != nil {
+		return "", err
+	}
+	if err := os.Rename(path, backup); err != nil {
+		return "", err
+	}
+	backupRelative, err := filepath.Rel(rootAbs, backup)
+	if err != nil {
+		return "", err
+	}
+	return filepath.ToSlash(backupRelative), nil
+}
+
+// RestoreAside renames a backup that MoveAside created back to its original
+// relative path, discarding whatever is currently there. Use it to undo a
+// change once a later step (such as a manifest registration) fails.
+func RestoreAside(root, relative, backupRelative string) error {
+	rootAbs, err := existingDirectory(root)
+	if err != nil {
+		return err
+	}
+	relative, err = cleanRelative(relative)
+	if err != nil {
+		return err
+	}
+	backupRelative, err = cleanRelative(backupRelative)
+	if err != nil {
+		return err
+	}
+	backupPath := filepath.Join(rootAbs, backupRelative)
+	if _, err := os.Lstat(backupPath); err != nil {
+		return err
+	}
+	path := filepath.Join(rootAbs, relative)
+	if err := rejectSymlinkTarget(path); err != nil {
+		return err
+	}
+	if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return err
+	}
+	return os.Rename(backupPath, path)
+}
+
+// DiscardAside removes a backup that MoveAside created, once it is no longer
+// needed (for example after the operation it was guarding succeeded).
+func DiscardAside(root, backupRelative string) error {
+	rootAbs, err := existingDirectory(root)
+	if err != nil {
+		return err
+	}
+	backupRelative, err = cleanRelative(backupRelative)
+	if err != nil {
+		return err
+	}
+	err = os.Remove(filepath.Join(rootAbs, backupRelative))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	return err
+}
+
+// RemoveArtifact removes a confined relative path under root, if it exists.
+// Use it to roll back a file this process wrote for a spec that had no prior
+// registered artifact (so there is nothing to restore) when a later step
+// fails.
+func RemoveArtifact(root, relative string) error {
+	rootAbs, err := existingDirectory(root)
+	if err != nil {
+		return err
+	}
+	relative, err = cleanRelative(relative)
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(rootAbs, relative)
+	if err := rejectSymlinkTarget(path); err != nil {
+		return err
+	}
+	err = os.Remove(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	return err
+}
+
 func replaceFileWithRollback(tempPath, path string) error {
 	info, err := os.Lstat(path)
 	if errors.Is(err, fs.ErrNotExist) {

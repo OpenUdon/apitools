@@ -820,6 +820,70 @@ func TestCatalogRefreshCommandRegistersAndMaterializesPartialResults(t *testing.
 	}
 }
 
+// TestCatalogRefreshRemovesNewArtifactWhenRegistrationFailsForUnregisteredSpec
+// proves U12's unregistered-spec case: when a spec has no prior registered
+// artifact, a brand-new artifact the refresh writes for it must be removed,
+// not left behind as an orphaned, unregistered file, if registration then
+// fails.
+func TestCatalogRefreshRemovesNewArtifactWhenRegistrationFailsForUnregisteredSpec(t *testing.T) {
+	dir := t.TempDir()
+	cacheDir := filepath.Join(dir, "catalog-openapi-cache")
+	cachePath := filepath.Join(cacheDir, "cache.sqlite")
+	artifactPath := "openapi/slack-web-openapi-v2.json"
+	var writtenPath string
+	refresh := func(_ context.Context, rows []catalog.RefreshableSpecReference, opts apitools.CatalogSpecRefreshOptions) (apitools.CatalogSpecRefreshReport, error) {
+		if rows[0].RegisteredArtifactPath != "" {
+			t.Fatalf("expected no prior registered artifact, got %q", rows[0].RegisteredArtifactPath)
+		}
+		writtenPath = filepath.Join(opts.CacheDir, filepath.FromSlash(artifactPath))
+		if err := os.MkdirAll(filepath.Dir(writtenPath), 0o755); err != nil {
+			return apitools.CatalogSpecRefreshReport{}, err
+		}
+		content := []byte(`{"openapi":"3.0.0","info":{"title":"Slack","version":"1.0.0"},"paths":{}}`)
+		if err := os.WriteFile(writtenPath, content, 0o644); err != nil {
+			return apitools.CatalogSpecRefreshReport{}, err
+		}
+		return apitools.CatalogSpecRefreshReport{Results: []apitools.CatalogSpecRefreshResult{{
+			ProviderID:          rows[0].ProviderID,
+			SpecRefID:           rows[0].SpecRefID,
+			Kind:                rows[0].Kind,
+			URL:                 rows[0].URL,
+			FinalURL:            rows[0].URL,
+			RawValidationStatus: apitools.CatalogRefreshValidOpenAPI,
+			ArtifactPath:        artifactPath,
+			SavedPath:           writtenPath,
+			SHA256:              "invalid-digest",
+			Bytes:               int64(len(content)),
+		}}}, nil
+	}
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	code := runCatalogRefreshWithClient([]string{
+		"--provider", "slack", "--spec", "slack-web-openapi-v2", "--cache-dir", cacheDir, "--cache", cachePath,
+	}, &out, &errOut, func(*apitools.Client) catalogRefreshFunc { return refresh })
+	if code != exitRuntime || !strings.Contains(out.String(), "Partial results were not fully registered") {
+		t.Fatalf("code = %d\nstdout:\n%s\nstderr:\n%s", code, out.String(), errOut.String())
+	}
+	if writtenPath == "" {
+		t.Fatal("refresh was not invoked")
+	}
+	if _, err := os.Stat(writtenPath); !os.IsNotExist(err) {
+		t.Fatalf("expected the unregistered artifact to be removed, stat err = %v", err)
+	}
+	cache, err := sqlitecache.Open(cachePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	artifacts, err := cache.ListCatalogArtifacts(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(artifacts) != 0 {
+		t.Fatalf("artifacts = %#v, want none registered", artifacts)
+	}
+}
+
 func TestCatalogRefreshRejectsProviderWithoutRefreshableSpecs(t *testing.T) {
 	wd, err := os.Getwd()
 	if err != nil {
