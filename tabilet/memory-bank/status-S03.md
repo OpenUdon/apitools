@@ -32,9 +32,9 @@ changes at revalidation were harness documentation only.
 
 Iteration 3 review provenance: Review "apitools uncommitted-diff review" (2026-09-26; source priority not supplied), baseline `6ee935b` plus the uncommitted implementation diff; revalidated at `6ee935b328234287cc8dfa097884a67fdebccfbd` including those uncommitted changes. Finding IDs U1-U15 follow the review's order.
 
-**Review.** open
-**Review iterations.** 3 (open; iterations 1-2 passed as recorded in the restored retirement record)
-**Review findings.** Iteration 3: the external uncommitted-diff review, counted as the next full pass at the user's direction, found P2 regressions U2, U3, U4, U5, U6, U7, and U11 (fix rows below).
+**Review.** passed
+**Review iterations.** 4 (passed; iterations 1-2 passed as recorded in the restored retirement record)
+**Review findings.** Iteration 3: the external uncommitted-diff review, counted as the next full pass at the user's direction, found P2 regressions U2, U3, U4, U5, U6, U7, and U11 (fix rows below). Iteration 4: after all seven findings were fixed (commits `6ae8b0f`, `a878780`, `937bd72`), a fresh whole-milestone review of the full `operationlifecycle/operationlifecycle.go` implementation found no P1/P2 or higher-severity issue: source-identity comparison correctly falls back per-kind without reopening the same-relative-path-different-document collision (F12/`TestSameRelativePathDifferentAbsoluteDocumentsAreNotSiblings`), the create-or-update PUT/HEAD/inflected-verb fixes agree with `primaryRole` and `verbMatchesRole`, and `narrowSeedMatchesByMethodAndPath` only narrows when method+path are both present. `architecture.md`'s `operationlifecycle/` row updated to describe the corrected behavior. Full apitools `go test ./...`/`go vet ./...`, OpenUdon full `go test ./...`, and Ramen full `go test ./...` (including `tests`, 333s) all pass. The gate is closed within the persisted iteration count.
 
 | Item | State | Notes |
 |---|---|---|
