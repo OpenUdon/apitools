@@ -31,9 +31,9 @@ Review provenance: "apitools Code Review", Passes 2-4, revalidated at
 
 Iteration 4 review provenance: Review "apitools uncommitted-diff review" (2026-09-26; source priority not supplied), baseline `6ee935b` plus the uncommitted implementation diff; revalidated at `6ee935b328234287cc8dfa097884a67fdebccfbd` including those uncommitted changes. Finding IDs U1-U15 follow the review's order.
 
-**Review.** open
-**Review iterations.** 4 (open; iterations 1-3 passed as recorded in the restored retirement record)
-**Review findings.** Iteration 4: the external uncommitted-diff review, counted as the next full pass at the user's direction, found P2 regression U1 (fix row below) and a Lower duplicate of `isPartialOperationSecurity` inlined in `cmd/apitools/main.go`.
+**Review.** passed
+**Review iterations.** 5 (passed; iterations 1-3 passed as recorded in the restored retirement record)
+**Review findings.** Iteration 4: the external uncommitted-diff review, counted as the next full pass at the user's direction, found P2 regression U1 (fix row below) and a Lower duplicate of `isPartialOperationSecurity` inlined in `cmd/apitools/main.go`. Iteration 5: after fixing U1 (commit `223109d`), a fresh whole-milestone review of the full resolver/advisory/security-audit implementation found no P1/P2 or higher-severity issue. One degenerate edge case was noted and left as is: a zero-path OpenAPI document now falls through to `has-security-metadata` rather than `missing-security-requirements`, since there is nothing to secure and no real catalog artifact has zero paths; this is outside U1's scope and not a realistic provider-impacting gap. Full apitools `go test ./...`/`go vet ./...`, `catalog check` (0/0) and `security-audit` CLI smoke, and OpenUdon's full `go build ./...`/`go test ./...` all pass. The gate is closed within the persisted iteration count.
 
 | Item | State | Notes |
 |---|---|---|
