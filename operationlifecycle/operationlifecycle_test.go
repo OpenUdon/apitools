@@ -244,6 +244,59 @@ func TestAbsoluteDocumentPathAndURLOutrankRelativePath(t *testing.T) {
 	}
 }
 
+// TestUnderSpecifiedSeedResolvesAgainstFullyDescribedOperation proves that a
+// seed supplied with only a relative path (no absolute document path) still
+// resolves against a fully described operation from the same document,
+// instead of being declared a source mismatch merely because the seed lacks
+// the higher-priority absolute-path identifier the pool operation carries.
+func TestUnderSpecifiedSeedResolvesAgainstFullyDescribedOperation(t *testing.T) {
+	full := apitools.OperationSummary{
+		ID: "createWidget", OperationID: "createWidget", Method: "POST", Path: "/widgets",
+		DocumentPath: "/abs/openapi/w.yaml", DocumentRelativePath: "openapi/w.yaml",
+	}
+	sibling := apitools.OperationSummary{
+		ID: "getWidget", OperationID: "getWidget", Method: "GET", Path: "/widgets/{id}",
+		DocumentPath: "/abs/openapi/w.yaml", DocumentRelativePath: "openapi/w.yaml",
+	}
+	seed := apitools.OperationSummary{OperationID: "createWidget", DocumentRelativePath: "openapi/w.yaml"}
+	expanded := Expand([]apitools.OperationSummary{full, sibling}, seed, Options{DesiredState: true})
+	if got, want := roleIDs(expanded), []string{"create:createWidget", "read:getWidget"}; !slices.Equal(got, want) {
+		t.Fatalf("roles = %#v, want %#v; diagnostics = %#v", got, want, expanded.Diagnostics)
+	}
+}
+
+// TestFullySpecifiedSeedResolvesDuplicateOperationIDByMethodAndPath proves
+// that a seed built from a real operation (carrying its own method and path)
+// resolves to its exact match among several operations that share its
+// operation ID in the same document, instead of being declared ambiguous.
+func TestFullySpecifiedSeedResolvesDuplicateOperationIDByMethodAndPath(t *testing.T) {
+	create := apitools.OperationSummary{
+		ID: "createWidget", OperationID: "createWidget", Method: "POST", Path: "/widgets",
+		DocumentPath: "/abs/openapi/w.yaml",
+	}
+	copyAction := apitools.OperationSummary{
+		ID: "createWidget", OperationID: "createWidget", Method: "POST", Path: "/widgets/{id}/copy",
+		DocumentPath: "/abs/openapi/w.yaml",
+	}
+	getWidget := apitools.OperationSummary{
+		ID: "getWidget", OperationID: "getWidget", Method: "GET", Path: "/widgets/{id}",
+		DocumentPath: "/abs/openapi/w.yaml",
+	}
+	operations := []apitools.OperationSummary{create, copyAction, getWidget}
+	expanded := Expand(operations, create, Options{DesiredState: true})
+	if got, want := roleIDs(expanded), []string{"create:createWidget", "read:getWidget"}; !slices.Equal(got, want) {
+		t.Fatalf("roles = %#v, want %#v; diagnostics = %#v", got, want, expanded.Diagnostics)
+	}
+
+	// A bare operation-ID-only seed (no method/path to disambiguate) for the
+	// same duplicated ID must still be reported as ambiguous.
+	bareSeed := apitools.OperationSummary{OperationID: "createWidget", DocumentPath: "/abs/openapi/w.yaml"}
+	ambiguous := Expand(operations, bareSeed, Options{DesiredState: true})
+	if len(ambiguous.Roles) != 0 || len(ambiguous.Diagnostics) != 1 || ambiguous.Diagnostics[0].Code != "operation_lifecycle.seed_ambiguous" {
+		t.Fatalf("expansion = %#v, want an ambiguity diagnostic with no selected role", ambiguous)
+	}
+}
+
 func TestExpandCollectionItemLifecycle(t *testing.T) {
 	operations := []apitools.OperationSummary{
 		op("k8s", "createCoreV1NamespacedConfigMap", "POST", "/api/v1/namespaces/{namespace}/configmaps"),

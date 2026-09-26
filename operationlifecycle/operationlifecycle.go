@@ -130,13 +130,14 @@ func normalizeSeed(operations []apitools.OperationSummary, seed apitools.Operati
 			matches = append(matches, operation)
 		}
 	}
-	if seedSource := sourceID(seed); seedSource != "" {
+	if hasSourceIdentity(seed) {
 		var sourceMatches []apitools.OperationSummary
 		for _, operation := range matches {
-			if sourceID(operation) == seedSource {
+			if sameSource(operation, seed) {
 				sourceMatches = append(sourceMatches, operation)
 			}
 		}
+		sourceMatches = narrowSeedMatchesByMethodAndPath(sourceMatches, seed)
 		if len(sourceMatches) == 1 {
 			return sourceMatches[0], Diagnostic{}
 		}
@@ -147,6 +148,7 @@ func normalizeSeed(operations []apitools.OperationSummary, seed apitools.Operati
 			return seed, Diagnostic{Code: "operation_lifecycle.seed_source_mismatch", Severity: "warning", Message: "the seed operation ID was found only in different document sources"}
 		}
 	}
+	matches = narrowSeedMatchesByMethodAndPath(matches, seed)
 	if len(matches) == 1 {
 		return matches[0], Diagnostic{}
 	}
@@ -157,6 +159,30 @@ func normalizeSeed(operations []apitools.OperationSummary, seed apitools.Operati
 		return seed, Diagnostic{Code: "operation_lifecycle.seed_not_found", Severity: "warning", Message: "an operation-ID-only seed did not match a supplied operation"}
 	}
 	return seed, Diagnostic{}
+}
+
+// narrowSeedMatchesByMethodAndPath disambiguates same-ID, same-source
+// candidates using the seed's own method and path when it carries them. A
+// seed built from a real operation (rather than bare metadata) resolves to
+// its exact match instead of being declared ambiguous merely because its
+// operation ID recurs in the same document (for example, one route action
+// among several sharing a base resource name).
+func narrowSeedMatchesByMethodAndPath(candidates []apitools.OperationSummary, seed apitools.OperationSummary) []apitools.OperationSummary {
+	method := strings.TrimSpace(seed.Method)
+	seedPath := strings.TrimSpace(seed.Path)
+	if method == "" || seedPath == "" || len(candidates) <= 1 {
+		return candidates
+	}
+	var exact []apitools.OperationSummary
+	for _, candidate := range candidates {
+		if strings.EqualFold(strings.TrimSpace(candidate.Method), method) && strings.TrimSpace(candidate.Path) == seedPath {
+			exact = append(exact, candidate)
+		}
+	}
+	if len(exact) > 0 {
+		return exact
+	}
+	return candidates
 }
 
 func primaryRole(seed apitools.OperationSummary, opts Options, expanded bool) string {
@@ -331,22 +357,69 @@ func operationHasAny(op apitools.OperationSummary, terms ...string) bool {
 	return false
 }
 
-func sameSource(a, b apitools.OperationSummary) bool {
-	aSource, bSource := sourceID(a), sourceID(b)
-	return aSource != "" && aSource == bSource
+// sourceIdentity holds every document-identity signal an operation summary
+// may carry, in priority order (absolute path, then URL, then relative path
+// or name-like fallback). A field is empty when the operation does not carry
+// that signal at all, which is distinct from two operations disagreeing on it.
+type sourceIdentity struct {
+	absPath string
+	url     string
+	relPath string
 }
 
-func sourceID(op apitools.OperationSummary) string {
+func sourceIdentityOf(op apitools.OperationSummary) sourceIdentity {
+	var id sourceIdentity
 	if documentPath := strings.TrimSpace(op.DocumentPath); filepath.IsAbs(documentPath) {
-		return "path:" + filepath.Clean(documentPath)
+		id.absPath = filepath.Clean(documentPath)
 	}
 	if documentURL := absoluteURLIdentity(op.DocumentURL); documentURL != "" {
-		return "url:" + documentURL
+		id.url = documentURL
+	} else if documentURL := absoluteURLIdentity(op.DocumentPath); documentURL != "" {
+		id.url = documentURL
 	}
-	if documentURL := absoluteURLIdentity(op.DocumentPath); documentURL != "" {
-		return "url:" + documentURL
+	nonAbsPath := ""
+	if documentPath := strings.TrimSpace(op.DocumentPath); documentPath != "" && !filepath.IsAbs(documentPath) {
+		nonAbsPath = documentPath
 	}
-	return firstNonEmpty(op.DocumentRelativePath, op.DocumentPath, op.DocumentName)
+	id.relPath = firstNonEmpty(op.DocumentRelativePath, nonAbsPath, op.DocumentName)
+	return id
+}
+
+func (id sourceIdentity) isEmpty() bool {
+	return id.absPath == "" && id.url == "" && id.relPath == ""
+}
+
+// sameSourceIdentity reports whether a and b identify the same document
+// source. It compares the highest-priority identity kind that both sides have
+// populated; a disagreement at that kind is decisive even when a
+// lower-priority kind happens to agree, which is what keeps two different
+// documents that share a relative path or name from being treated as one
+// source. When one side lacks a higher-priority kind entirely, comparison
+// falls through to the next kind, so an under-specified seed (for example,
+// one supplied with only a relative path) can still resolve against a fully
+// described operation from the same document.
+func sameSourceIdentity(a, b sourceIdentity) bool {
+	if a.isEmpty() || b.isEmpty() {
+		return false
+	}
+	if a.absPath != "" && b.absPath != "" {
+		return a.absPath == b.absPath
+	}
+	if a.url != "" && b.url != "" {
+		return a.url == b.url
+	}
+	if a.relPath != "" && b.relPath != "" {
+		return a.relPath == b.relPath
+	}
+	return false
+}
+
+func hasSourceIdentity(op apitools.OperationSummary) bool {
+	return !sourceIdentityOf(op).isEmpty()
+}
+
+func sameSource(a, b apitools.OperationSummary) bool {
+	return sameSourceIdentity(sourceIdentityOf(a), sourceIdentityOf(b))
 }
 
 func absoluteURLIdentity(value string) string {
@@ -359,8 +432,7 @@ func absoluteURLIdentity(value string) string {
 
 func sameOperation(a, b apitools.OperationSummary) bool {
 	aID, bID := operationID(a), operationID(b)
-	aSource, bSource := sourceID(a), sourceID(b)
-	return aID != "" && aID == bID && aSource != "" && aSource == bSource
+	return aID != "" && aID == bID && sameSource(a, b)
 }
 
 func operationID(op apitools.OperationSummary) string {
