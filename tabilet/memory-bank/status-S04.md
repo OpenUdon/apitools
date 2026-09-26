@@ -32,8 +32,8 @@ Review provenance: "apitools Code Review", Passes 2-4, revalidated at
 Iteration 2 review provenance: Review "apitools uncommitted-diff review" (2026-09-26; source priority not supplied), baseline `6ee935b` plus the uncommitted implementation diff; revalidated at `6ee935b328234287cc8dfa097884a67fdebccfbd` including those uncommitted changes. Finding IDs U1-U15 follow the review's order.
 
 **Review.** passed
-**Review iterations.** 2 (passed; iteration 1 passed as recorded in the restored retirement record)
-**Review findings.** Iteration 2: the external uncommitted-diff review, counted as a confirming full pass at the user's direction, found no P1/P2 or higher-severity issue in S04's scope; the only related note is a Lower cosmetic item routed to Candidate Directions. Closure-ready: retire after final verification together with the shared commit plan.
+**Review iterations.** 3 (passed; iteration 1 passed as recorded in the restored retirement record)
+**Review findings.** Iteration 2: the external uncommitted-diff review, counted as a confirming full pass at the user's direction, found no P1/P2 or higher-severity issue in S04's scope; the only related note is a Lower cosmetic item routed to Candidate Directions. Iteration 3: closing whole-milestone review re-traced `sanitizeOperationSummary`/`sanitizeOperationFields`/`sanitizePromptString` end to end against the acceptance criteria (bidi embeddings/overrides/isolates and zero-width characters via the Cf category, both variation-selector ranges, and the U+E0000-U+E007F tag block are stripped with a diagnostic; ordinary non-ASCII text such as "café"/"漢字" is preserved) and found no P1/P2 or higher-severity issue. Focused sanitizer tests and full `go test ./...`, `go vet ./...` pass. Gate closes at iteration 3; retiring alongside this pass.
 
 | Item | State | Notes |
 |---|---|---|
