@@ -32,7 +32,17 @@
 - offline catalog stats reports that summarize provider protocol buckets,
   artifact registry counts, and refresh validation buckets.
 - offline catalog security audits that classify provider auth/security
-  dispositions and inspect local OpenAPI/Swagger artifact security metadata.
+  dispositions and inspect local OpenAPI/Swagger artifact security metadata;
+  when root security is undeclared and scheme-bearing requirements exist on
+  only a subset of operations, coverage is reported as partial-operation-
+  security, with a follow-up to confirm the other operations are intentionally
+  anonymous. Root declaration presence is recorded separately from its
+  alternative count, so explicit anonymous root policies (`security: []` or
+  `security: [{}]`) are not mistaken for absent root policy. Operation security
+  declarations are counted separately from scheme-bearing operations, and
+  explicit anonymous `security` arrays are declarations. More specific scheme
+  diagnostics may take precedence while the partial-coverage follow-up remains
+  visible.
 - offline provider artifact resolution, materialization, and workflow export
   that copies existing local catalog artifacts and separate security-overlay
   JSON metadata with provenance manifests.
@@ -55,7 +65,7 @@ Related repositories:
 | Path | Role |
 |---|---|
 | `*.go` | Root `github.com/OpenUdon/apitools` package: client, discovery, validation, import, inventory, auth, and ranking APIs. |
-| `operationlifecycle/` | Conservative same-source lifecycle-role ranking over root `OperationSummary` records; it performs no source fetch or execution. |
+| `operationlifecycle/` | Conservative same-source item-lifecycle ranking over root `OperationSummary` records; candidate roles require a trailing item parameter, with Discovery `{+name}` matched by method resource identity. Shared purpose classification keeps POST updates/actions out of create; unclassified POSTs on parameterized resource paths remain generic POSTs unless create semantics are explicit. Family keys use operation IDs/paths, and update intent uses whole tokens. A unique operation ID can resolve an incomplete seed; absolute paths/URLs outrank relative source names. No fetch or execution. |
 | `cmd/apitools/` | Thin CLI wrapper over reusable package behavior. |
 | `catalog/` | Metadata-only candidate inventory, durable provider entries, and official spec references. |
 | `catalog/data/catalog.json` | Canonical reviewed C01 catalog bundle for candidates, providers, security classifications, overlays, and provenance. |
@@ -153,10 +163,11 @@ decoded bytes to `Client.MaxBytes`; unsupported content encodings fail closed.
 `AllowUnsafeHosts` is reserved for local fixtures and custom transports and
 does not permit URL userinfo or unbounded bodies.
 
-`DiscoverLocalSources` walks only caller-provided roots. It counts every
-visited entry, rejects symlinks and non-regular candidates, reads regular files
-through the 20 MiB bounded reader, detects source families from content, and
-validates them through their native parsers. Directory names are hints for
+`DiscoverLocalSources` walks only caller-provided roots. It resolves symlinked
+ancestors of each selected root once, then rejects a symlink at that root or
+beneath it. It counts every visited entry, rejects non-regular candidates,
+reads regular files through the 20 MiB bounded reader, detects source families
+from content, and validates them through their native parsers. Directory names are hints for
 reporting likely invalid candidates, never proof of a family. Accepted content
 is deduplicated by SHA-256 and returned with title, operation count, score,
 path, and provenance. JSON or XML without exactly one family signal is reported
@@ -167,6 +178,17 @@ Adjacent advisory security sidecars are excluded for every supported
 `source.ext.security.*`, `source.security.*`, and `source.security-overlay.*`
 JSON/YAML naming form so auth metadata cannot become an API-source ambiguity.
 
+The legacy `LocalFiles` API uses the same bounded walker in OpenAPI-only mode,
+preserving draft-friendly metadata and score ordering. Invalid or unreadable
+entries are skipped while valid siblings remain available; count-limit
+truncation returns partial results together with an error. Project-text URL
+imports process the first 16 unique URLs in source order, set a warning and
+`Truncated` when more are present, and preserve successful partial results.
+Same-name imports reuse byte-identical regular files, differing content uses a
+collision-safe suffix, and discovery candidate reports deduplicate by
+SHA-256. The historical project-URL methods retain their signatures; the
+additive report method exposes truncation and diagnostics.
+
 All direct source-parser entry points enforce the shared 20 MiB source-byte,
 depth-100, and bounded structural/semantic-work contract before decoding.
 Deprecated Smithy and Google Discovery `ParseMap` wrappers apply the equivalent
@@ -175,7 +197,11 @@ Prompt-facing operations then pass through one structural sanitizer: identifiers
 are capped at 256 runes, text at 2,048 runes, collections at 32 items, schemas at
 60 fields, authoring work at 10,000 operations, individual operations at 32 KiB,
 and ranked contexts at 512 KiB. Every sanitation or shortlist omission produces
-a diagnostic. Security/field compaction, unsafe selected references, work-limit
+a diagnostic. In every sanitized string, Cc controls, Unicode format
+characters (Cf), tag characters (U+E0000-U+E007F), variation selectors
+(U+FE00-U+FE0F and U+E0100-U+E01EF), and ANSI control sequences are replaced
+with spaces before whitespace normalization; ordinary Unicode text is
+preserved. Security/field compaction, unsafe selected references, work-limit
 violations, and selected contexts that cannot fit fail closed rather than
 silently changing the interpretation.
 
@@ -247,6 +273,16 @@ registration + saved catalog-openapi-cache file
   -> maintainer review without network access, cache creation, or metadata
      promotion
 
+Selected catalog refreshes persist each successfully validated artifact and
+retain those successful report rows if a later reference fails. The CLI
+registers completed rows before returning a nonzero partial-failure result, so
+an overwritten artifact's SHA-256 and byte count match its cache manifest.
+Refresh-result metadata commits as one SQLite transaction. If registration
+fails, the CLI restores previously registered artifact files where it captured
+a safe backup. Text and JSON failure output include the partial report and
+identify the failed provider/spec reference; catalog metadata promotion remains
+a separate review action.
+
 built-in provider catalog + optional existing cache registrations + refresh
 review report
   -> catalog stats report
@@ -258,7 +294,8 @@ built-in provider catalog + security classifications + overlays + optional
 existing OpenAPI/Swagger cache artifact registrations
   -> catalog security audit report
   -> provider disposition buckets plus artifact security-scheme and
-     root/operation security requirement inspection
+     root/operation security requirement inspection, including partial
+     operation coverage diagnostics when root security is absent
   -> maintainer audit without network access, provider API calls, credential
      lookup, or overlay-applied OpenAPI mutation
 
@@ -415,8 +452,9 @@ service candidate
 ```
 
 All local artifact reads and writes share `internal/artifactio`. Reads require
-local relative paths beneath an explicit root, reject symlinked roots, parents,
-and files, bound bytes, and verify declared size and SHA-256. Single-file
+local relative paths beneath an explicit root, resolve symlinked ancestors of
+the selected root once, then reject a symlink at that root and beneath it,
+bound bytes, and verify declared size and SHA-256. Single-file
 refresh writes use synchronized sibling staging and atomic rename. Provider
 materialization and workflow export build a complete sibling directory tree,
 reuse byte-identical targets, reject differing collisions by default, and use
@@ -435,14 +473,25 @@ document and catalog paths are local relative paths under the database
 directory. Reads reject path escapes and symlinks and require valid SHA-256 and
 positive exact byte counts; inline document rows receive the same checks.
 
+Offline document imports validate URL syntax without DNS or network access,
+read integrity-checked cached documents without applying the freshness TTL, and
+report the stored timestamp and computed age through the additive
+`Client.ImportWithReport` API and CLI output. The existing `Client.Import`
+signature and `ImportedSpec` JSON/data shape remain unchanged. Read-write and
+refresh modes keep unsafe-host checks before cache use or any network fetch.
+
 No API operation execution is part of either flow.
 
 ## Public Contracts
 
 - Go module path: `github.com/OpenUdon/apitools`.
 - Public root package APIs include `Client`, `Search`, `Import`,
-  `LocalFiles`, `BuildOperationInventory`, `LoadOperationIndex`,
+  additive `ImportWithReport`, `LocalFiles`, `BuildOperationInventory`, `LoadOperationIndex`,
   `BuildAuthoringAPIDocuments`, auth summaries, and operation selection.
+- The historical exported struct field shapes for `ImportedSpec`, `LocalOptions`,
+  `LocalResult`, and `DiscoveryCandidate` are preserved. `LocalFiles` uses the
+  shared 10,000-entry and 100-candidate defaults, while the existing
+  `LocalOptions.MaxBytes` remains configurable.
 - `Discoverer.ImportProjectURLs` and `ImportProjectURLsWithReport` retain their
   historical signatures. `ImportProjectURLsReport` exposes bounded attempts,
   diagnostics, and truncation state without breaking existing callers.
@@ -457,6 +506,12 @@ No API operation execution is part of either flow.
   raw arguments.
 - Catalog metadata package:
   `github.com/OpenUdon/apitools/catalog`.
+- `catalog.ResolvedReference` additively reports selected catalog `SpecKind`
+  and protocol. Built-in classifications come from the selected reference;
+  explicit `--openapi` inputs are classified by that caller-declared contract,
+  without parsing or fetching the document. Text inspect/advisory labels use
+  the selected non-OpenAPI protocol rather than implying every source is
+  OpenAPI.
 - Catalog inspection helpers expose provenance-labeled overlay views without
   mutating or exporting OpenAPI documents.
 - Catalog security overlays preserve OpenAPI-style auth semantics for combined
@@ -514,7 +569,8 @@ No API operation execution is part of either flow.
   fetch nested catalogs.
 - Treat LAP and RFC 9727 results as unvalidated metadata until the selected
   original document passes normal download and OpenAPI/Swagger validation.
-- Reject symlinked local scan roots, symlinked document paths, directories,
+- Resolve symlinked ancestors of an explicitly selected local scan root, then
+  reject a symlink at the selected root or beneath it, along with directories,
   special files, and files over the configured size limit.
 - Never cache secrets or workflow execution data.
 - Never execute API operations, resolve credentials, sign requests, or choose

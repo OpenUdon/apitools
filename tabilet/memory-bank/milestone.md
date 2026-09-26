@@ -80,11 +80,11 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestones: S04, S02, C02, S03, C03, and M76 (pending
-review-remediation work; S04 first as the only P1, S02 before C02, C03 before
-M76, S03 independent). Latest completed milestone: M75 - Operation
-Lifecycle Ranking Ownership. Apitools and Authoring are published, and OpenUdon/Ramen pin
-both revisions with passing standalone test/vet.
+Active milestones: S02, S03, C03, C02, S04, and M76 (restored from an
+uncommitted retirement; S02, S03, C03, and C02 have open review-fix rows, and
+S04 and M76 are closure-ready).
+Latest completed milestone: M75 - Operation Lifecycle Ranking Ownership. Apitools and Authoring are published, and OpenUdon/Ramen pin both
+revisions with passing standalone test/vet.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
 (`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
@@ -118,12 +118,12 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | Milestone | Status File | State |
 |---|---|---|
-| S02 - Local, Offline, And Discovery Safety Remediation | [status-S02.md](status-S02.md) | Pending |
-| C02 - Catalog Refresh Manifest Integrity | [status-C02.md](status-C02.md) | Pending |
-| S03 - Operation Lifecycle Ranking Correctness | [status-S03.md](status-S03.md) | Pending |
-| S04 - Prompt Sanitizer Invisible-Unicode Hardening | [status-S04.md](status-S04.md) | Pending |
-| C03 - Catalog Resolution And Security Audit Accuracy | [status-C03.md](status-C03.md) | Pending |
-| M76 - CLI Usage Exit Contract | [status-M76.md](status-M76.md) | Pending |
+| S02 - Local, Offline, And Discovery Safety Remediation | [status-S02.md](status-S02.md) | Active: review fixes |
+| C02 - Catalog Refresh Manifest Integrity | [status-C02.md](status-C02.md) | Active: review fixes |
+| S03 - Operation Lifecycle Ranking Correctness | [status-S03.md](status-S03.md) | Active: review fixes |
+| S04 - Prompt Sanitizer Invisible-Unicode Hardening | [status-S04.md](status-S04.md) | Active: closure-ready |
+| C03 - Catalog Resolution And Security Audit Accuracy | [status-C03.md](status-C03.md) | Active: review fixes |
+| M76 - CLI Usage Exit Contract | [status-M76.md](status-M76.md) | Active: closure-ready |
 
 ## Requested Changes After Initialization
 
@@ -160,6 +160,7 @@ the work automatically.
 | Remove deprecated Discovery and Smithy wrappers | Sibling consumers may still rely on compatibility imports, and removal is a public breaking change. | Confirm no active sibling imports remain, approve release notes, and pass downstream compatibility checks. |
 | Network and local-scan hardening batch | Review "apitools Code Review" Pass 1 (baseline `a5699e5`) findings #7 (LAP registry validates every entry by DNS before scoring/limit and fails the whole search on one bad `source_url`, `remote_discovery.go`), #9 (unsafe-IP list omits `240.0.0.0/4`, IPv4-compatible `::/96`, and `fec0::/10`, `download.go`), #11 (OpenAPI metadata paths skip the `sourceguard.CheckJSON`/`CheckYAML` preflight, `validation.go`, `local.go`, `local_source_discovery.go`), #12 (`.bin` is always treated as a protobuf descriptor, `local_source_discovery.go`), #13 (regular-file-to-FIFO swap between `Lstat` and `Open` can block, `local_read.go`, `internal/artifactio`), and #14 (`Discoverer` exposes no port/transport options, `discovery.go`). All were revalidated at `a5699e570fb5d6288fdd255c71d229fb062b50b3` as Lower severity; no supported scenario fails and no private-host or root-escape path was found. | Approve a hardening batch after S02, or promote any item earlier if it becomes reachable in a supported deployment or a downstream consumer depends on it. |
 | Egress proxy support for guarded downloads | Review "apitools Code Review" Pass 1 finding #8: the guarded transport has `Proxy: nil`, and the only alternative, `AllowUnsafeHosts`, drops all host checks (`download.go`). Supporting a proxy trades dial-time IP filtering for proxy trust, which is a product/security decision. | An operator needs mandatory-proxy egress, and an approved policy defines target pre-validation, proxy trust, and the documented DNS-rebinding limitation. |
+| Lifecycle and scan cleanup follow-ups | Uncommitted-diff review (2026-09-26) Lower items not required by S02, S03, or S04 acceptance: `operationlifecycle` recomputes tokens and purpose for every operation on each role (performance only); offline `search` still applies the cache TTL while offline `import` ignores it (consistency decision); `isUnicodeTagCharacter` largely repeats the Cf category check in `prompt_safety.go` (cosmetic). | Promote when lifecycle ranking becomes a measured hotspot, an operator needs offline search of expired entries, or `prompt_safety.go` is next edited. |
 | Catalog and tooling hardening batch | Review "apitools Code Review" Passes 2 and 4 (revalidated at `e015231`), all Lower severity: C3 `ResolveProviders(query)` splits multi-word display names on whitespace (`catalog/materialize.go`; CLI and OpenUdon pass explicit keys); C4 `FindSpecReference` trims the provider ID for identity but not for the spec lookup (`catalog/index.go`); C5 `preferredSpecReference` ignores `asyncapi`, `openrpc`, `graphql`, `grpc-protobuf`, and `odata` kinds (no built-in provider affected); X2 `Import` creates the target directory before validating or downloading (`import.go`); X3 the installed `staticcheck` predates the module's Go version and no `govulncheck` gate runs (`tech-stack.md`). | Approve a hardening batch, or promote an item when a consumer depends on the query API, a provider relies on a newer-kind-only source, or a static/vulnerability gate is required for release. |
 
 ## Review Finding Severity
@@ -584,17 +585,21 @@ safely and predictably without weakening the untrusted-source guards.
 - Anchor symlink rejection at the caller-chosen root: resolve a root's own
   ancestors once, then reject symlinks only beneath it, in local reads,
   `internal/artifactio` roots, and `sqlitecache.Open`.
-- Make `CacheModeOffline` perform no DNS or network access (syntax-only URL
-  validation of cache keys) and serve any integrity-checked cached copy
-  regardless of cache TTL, reporting its stored age. Read-write mode keeps TTL.
+- Make `CacheModeOffline` perform no DNS or network access (URL syntax plus
+  the DNS-free unsafe-host checks: `localhost`, scoped hosts, and private or
+  reserved IP literals stay rejected unless `AllowUnsafeHosts` is set) and serve
+  any integrity-checked cached copy regardless of cache TTL, reporting its
+  stored age. Read-write mode keeps TTL.
 - Rebuild `LocalFiles` on the bounded local walker: per-file rejections instead
   of whole-scan failure, visit/byte bounds, digest deduplication, and walk
   errors on one entry recorded as rejections in both local scanners.
 - Make project-URL import idempotent by reusing identical content or a stable
   name, and deduplicate discovery candidates by digest.
 - Keep the 16-URL network bound but never fail discovery on URL count: import
-  the first 16 unique URLs in order and record a truncation diagnostic;
-  `ImportProjectURLsWithReport` exposes truncation through its attempts.
+  the first 16 unique URLs in source order, record truncation in the additive
+  `ImportProjectURLsReport`, and preserve local and partial URL candidates.
+  Keep the legacy `ImportProjectURLs` and `ImportProjectURLsWithReport`
+  signatures unchanged.
 - Do not relax private-host rejection, add proxy support, or change public
   function signatures.
 
@@ -621,7 +626,12 @@ separate authorization.
 import of a non-resolvable cached hostname and of an entry older than the TTL,
 an oversized file and a symlink beside a valid spec, repeated discovery
 producing one file and one candidate per document, and more than 16 project
-URLs with local candidates present. `go test ./...`, `go vet ./...`,
+URLs with local candidates present. Review-iteration-4 regressions (U8-U10,
+U13) also hold: exactly 100 unique specs are not reported as truncated,
+discovery keeps partial local candidates and still attempts URL/APIs.guru
+imports when the local limit is reached, an unreadable scan root is an error
+rather than an empty result, and offline imports of `localhost` or private IP
+literals are rejected by default. `go test ./...`, `go vet ./...`,
 `git diff --check`, and `(cd ../openudon && go test ./...)` pass, and README and
 `architecture.md` describe the delivered behavior.
 
@@ -637,6 +647,10 @@ URLs with local candidates present. `go test ./...`, `go vet ./...`,
   failure; never leave an overwritten registered artifact whose SHA-256 and
   byte count disagree with the cache database.
 - Surface partial results and the failing reference in the CLI report.
+- Protect registered artifacts without whole-file in-memory snapshots: a
+  refresh must not be blocked by, or re-read, a large or unreadable registered
+  artifact, and an artifact written for an unregistered spec is also restored
+  when registration fails.
 - Do not change download safety, validation rules, or artifact path policy.
 
 **Review provenance.** "apitools Code Review" Pass 1 finding #3, stated
@@ -656,9 +670,13 @@ integrity checks after a failed refresh. No consumer API change.
 
 **Acceptance.** A two-reference refresh whose second reference fails leaves the
 first artifact either unchanged or registered with its new digest, and
-materialization of that provider succeeds. `go test ./...`, `go vet ./...`,
-`go run ./cmd/cataloggen -check`, `go run ./cmd/apitools catalog check`, and
-`git diff --check` pass.
+materialization of that provider succeeds. A registered artifact larger than
+128 MiB refreshes under a matching `--max-bytes`, an unreadable registered
+artifact does not block its own replacement, failure errors name the
+provider/spec once, and refresh registration shares the spec/artifact upsert
+code with `StoreSpec`/`StoreCatalogArtifact`. `go test ./...`,
+`go vet ./...`, `go run ./cmd/cataloggen -check`,
+`go run ./cmd/apitools catalog check`, and `git diff --check` pass.
 
 ## S03 - Operation Lifecycle Ranking Correctness
 
@@ -701,7 +719,14 @@ need separate authorization.
 Discovery `{+name}` resources, POST update seeds, resources named
 `list`/`collection`, stop-word-only family overlap, goals containing
 `dispatch` or other embedded verbs, operation-ID-only seeds, and same relative
-paths from different documents. `go test ./...`, `go vet ./...`,
+paths from different documents. Review-iteration-3 regressions (U2-U7, U11)
+also hold: a seed identified by relative path, URL, or name resolves against
+inventory operations; a fully specified seed with a duplicated operation ID
+resolves by method and path; a create-or-update PUT keeps its update sibling
+when the goal asks for updates; nested-collection POST creates stay create;
+HEAD operations can be read siblings; an explicit create/update operation ID
+outranks summary or tag wording; and inflected goal verbs (`patching`,
+`patched`, `replaced`) request updates. `go test ./...`, `go vet ./...`,
 `git diff --check`, and the OpenUdon and Ramen workspace suites pass.
 
 ## S04 - Prompt Sanitizer Invisible-Unicode Hardening
@@ -752,9 +777,13 @@ source they resolved and whether operation security coverage is partial.
 - Add source kind and protocol to `ResolvedReference` (additive, backward
   compatible JSON) and label resolve/advisory CLI output by protocol instead of
   "Resolved OpenAPI" for non-OpenAPI references.
-- Add a partial-operation-security audit status when root `security` is empty
-  and fewer operations declare security than exist, with a follow-up to confirm
-  the remaining operations are intentionally anonymous.
+- Add a partial-operation-security audit status when root security is
+  undeclared, scheme-bearing requirements exist on only some operations, and
+  some other operations lack an explicit declaration; include a follow-up to
+  confirm those operations are intentionally anonymous. Distinguish explicit
+  anonymous root and operation declarations (`security: []` or
+  `security: [{}]`) from absent policy and from scheme-bearing operation
+  requirements.
 - Do not change catalog data, preference order, or security classifications.
 
 **Review provenance.** "apitools Code Review" Pass 2 findings C1 (source
@@ -778,9 +807,14 @@ separate authorization.
 
 **Acceptance.** Tests show a human-docs, Smithy, and Discovery provider each
 resolve with the correct kind/protocol, JSON remains backward compatible, and a
-fixture with partial operation security gets the new audit status. `go test
-./...`, `go vet ./...`, `go run ./cmd/apitools catalog check`, `git diff
---check`, and `(cd ../openudon && go test ./...)` pass.
+fixture with partial operation security gets the new audit status while
+anonymous root/operation declarations do not cause false partial or missing-
+scheme findings. Explicit anonymous operation declarations never satisfy the
+requirement checks on their own (U1): with no root security and no
+scheme-bearing requirement anywhere, the audit reports missing requirements
+(or missing metadata when no schemes exist). `go test ./...`, `go vet ./...`,
+`go run ./cmd/apitools catalog check`, `git diff --check`, and
+`(cd ../openudon && go test ./...)` pass.
 
 ## M76 - CLI Usage Exit Contract
 
@@ -801,7 +835,7 @@ local P2 (regression of the M73 0/1/2 contract); revalidated at
 the built CLI (all listed usage errors exit 1). Lineage: M73 (completed; not
 reopened).
 
-**Dependencies.** C03, because both edit `cmd/apitools/main.go`.
+**Dependencies.** C03. M76 edits distinct handlers in `cmd/apitools/main.go` and follows C03 to keep the shared-file ownership sequential.
 
 **Parallel ownership.** The `search` and `import` command handlers in
 `cmd/apitools/main.go` and CLI contract tests.

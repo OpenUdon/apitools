@@ -29,7 +29,27 @@ retired record.
 Review provenance: "apitools Code Review", Passes 2-4, revalidated at
 `e015231ef651bb92ee1aab9a4e8fc870d94ad020` with a clean worktree.
 
+Iteration 2 review provenance: Review "apitools uncommitted-diff review" (2026-09-26; source priority not supplied), baseline `6ee935b` plus the uncommitted implementation diff; revalidated at `6ee935b328234287cc8dfa097884a67fdebccfbd` including those uncommitted changes. Finding IDs U1-U15 follow the review's order.
+
+**Review.** passed
+**Review iterations.** 2 (passed; iteration 1 passed as recorded in the restored retirement record)
+**Review findings.** Iteration 2: the external uncommitted-diff review, counted as a confirming full pass at the user's direction, found no P1/P2 or higher-severity issue in S04's scope; the only related note is a Lower cosmetic item routed to Candidate Directions. Closure-ready: retire after final verification together with the shared commit plan.
+
 | Item | State | Notes |
 |---|---|---|
-| Strip or escape invisible and direction-changing Unicode | `[ ]` | Pass 3 P1, source High, local P1. `sanitizePromptString` (`prompt_safety.go`) removes only Cc controls and ANSI; probe shows U+202E, U+200B, and U+E0000-block tag characters survive `SanitizeOperationSummaries`. Remove/escape Cf, tag block, and variation selectors in every sanitized field and emit a diagnostic. Lineage: S01. |
-| Regression tests and consumer verification | `[ ]` | Tests for each character class through operation and inventory summaries, preserving ordinary non-ASCII text; run `go test ./...`, `go vet ./...`, `git diff --check`, and `(cd ../openudon && go test ./...)`. |
+| Strip or escape invisible and direction-changing Unicode | `[+]` | Pass 3 P1, source High, local P1. `sanitizePromptString` now replaces Unicode format controls, tag characters, and variation selectors with spaces. Operation and inventory summary tests confirm U+202E, U+200B, tag characters, and both variation-selector ranges are removed, natural non-ASCII text is preserved, and sanitization emits diagnostics. Lineage: S01. |
+| Regression tests and consumer verification | `[+]` | Focused Unicode operation/inventory tests, apitools `go test ./...`, `go vet ./...`, and `git diff --check` pass. With user approval, OpenUdon's test-only registration fixture now anchors its synthetic observation at current UTC minus two minutes; its focused test, full `go test ./...`, and `git diff --check` pass. No OpenUdon product code changed. This goal run has `COMMIT_POLICY: none`. |
+
+## Bounded Review Gate
+
+Iteration 1 passed after review of the complete S04 diff, sanitizer call paths,
+diagnostics, test behavior, downstream fixture correction, and acceptance.
+Resolved the original P1; no new P1, P2, or higher-severity findings. No lower
+findings carried.
+
+## Reconciliation
+
+Updated `architecture.md` to record the prompt sanitizer's Unicode guarantees.
+Product scope and tools did not change; no lesson addition or evolution bump is
+warranted. OpenUdon's required consumer suite passes after its approved test-only
+fixture correction; no additional pending downstream work was found.

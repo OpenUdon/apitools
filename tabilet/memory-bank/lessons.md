@@ -23,4 +23,9 @@ applying it to current work. Knowledge preservation is triggered by material
 supersession or removal, even outside milestone closure; routine wording edits
 need no journal entry or separate archive run.
 
-No durable lessons have been recorded yet.
+## Keep inferred POST actions out of resource creation
+
+- **Applies when:** Ranking lifecycle roles from API documents whose operation IDs and paths may use provider-specific naming.
+- **Lesson:** HTTP method alone is not enough to label a POST as create. Respect explicit update/create semantics and known action routes; on parameterized item/action paths, keep otherwise ambiguous POSTs generic rather than treating a finite action-name list as exhaustive.
+- **Why it matters:** Custom verbs such as `renew` or `reprocess` can mutate an existing resource without creating it. A false create classification can distort a generated lifecycle proposal.
+- **Evidence:** [S03 - Operation Lifecycle Ranking Correctness](status-S03.md), especially review iteration 1 and the `renewInvoice` regression.
