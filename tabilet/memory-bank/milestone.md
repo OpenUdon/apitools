@@ -80,9 +80,11 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestones: S02, C03, C02, S04, and M76 (S02, C03, and C02 have open
-review-fix rows; S04 and M76 are closure-ready).
-Latest completed milestone: S03 - Operation Lifecycle Ranking Correctness. Apitools and Authoring are published, and OpenUdon/Ramen pin both
+Active milestones: S02, C02, S04, and M76 (S02 and C02 have open review-fix
+rows; S04 and M76 are closure-ready, and M76's C03 dependency is now
+satisfied).
+Latest completed milestone: C03 - Catalog Resolution And Security Audit
+Accuracy. Apitools and Authoring are published, and OpenUdon/Ramen pin both
 revisions with passing standalone test/vet.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
@@ -120,7 +122,6 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 | S02 - Local, Offline, And Discovery Safety Remediation | [status-S02.md](status-S02.md) | Active: review fixes |
 | C02 - Catalog Refresh Manifest Integrity | [status-C02.md](status-C02.md) | Active: review fixes |
 | S04 - Prompt Sanitizer Invisible-Unicode Hardening | [status-S04.md](status-S04.md) | Active: closure-ready |
-| C03 - Catalog Resolution And Security Audit Accuracy | [status-C03.md](status-C03.md) | Active: review fixes |
 | M76 - CLI Usage Exit Contract | [status-M76.md](status-M76.md) | Active: closure-ready |
 
 ## Requested Changes After Initialization
@@ -714,55 +715,6 @@ diagnostic in operation and inventory summaries, while ordinary non-ASCII
 text is preserved. `go test ./...`, `go vet ./...`, `git diff --check`, and
 `(cd ../openudon && go test ./...)` pass.
 
-## C03 - Catalog Resolution And Security Audit Accuracy
-
-**Goal.** Make catalog resolution and security-audit reports state what kind of
-source they resolved and whether operation security coverage is partial.
-
-**Scope.**
-
-- Add source kind and protocol to `ResolvedReference` (additive, backward
-  compatible JSON) and label resolve/advisory CLI output by protocol instead of
-  "Resolved OpenAPI" for non-OpenAPI references.
-- Add a partial-operation-security audit status when root security is
-  undeclared, scheme-bearing requirements exist on only some operations, and
-  some other operations lack an explicit declaration; include a follow-up to
-  confirm those operations are intentionally anonymous. Distinguish explicit
-  anonymous root and operation declarations (`security: []` or
-  `security: [{}]`) from absent policy and from scheme-bearing operation
-  requirements.
-- Do not change catalog data, preference order, or security classifications.
-
-**Review provenance.** "apitools Code Review" Pass 2 findings C1 (source
-Medium, local P2; 209 of 316 providers resolve the `openapi` reference to
-human-docs, Smithy, Discovery, Stone, or index sources) and C2 (source Medium,
-local P2; `catalog_security_audit.go` reports has-security-metadata for partial
-coverage); revalidated at `e015231ef651bb92ee1aab9a4e8fc870d94ad020` with a
-clean worktree. Lineage: M05, M14, M58, C01 (completed; not reopened).
-
-**Dependencies.** None.
-
-**Parallel ownership.** `catalog/resolve.go`, `catalog/advisory.go`,
-`catalog_security_audit.go`, and the resolve/advisory/security-audit output
-functions in `cmd/apitools/main.go`. M76 edits other functions in the same CLI
-file, so it runs after C03.
-
-**Downstream impacts.** OpenUdon `cmd/openudon/catalog.go` and
-`internal/icot/elicitor/catalog.go` read resolved references; they must keep
-compiling and may display the new kind. Publishing and re-pinning need
-separate authorization.
-
-**Acceptance.** Tests show a human-docs, Smithy, and Discovery provider each
-resolve with the correct kind/protocol, JSON remains backward compatible, and a
-fixture with partial operation security gets the new audit status while
-anonymous root/operation declarations do not cause false partial or missing-
-scheme findings. Explicit anonymous operation declarations never satisfy the
-requirement checks on their own (U1): with no root security and no
-scheme-bearing requirement anywhere, the audit reports missing requirements
-(or missing metadata when no schemes exist). `go test ./...`, `go vet ./...`,
-`go run ./cmd/apitools catalog check`, `git diff --check`, and
-`(cd ../openudon && go test ./...)` pass.
-
 ## M76 - CLI Usage Exit Contract
 
 **Goal.** Restore the documented CLI contract that usage failures exit 2 on
@@ -782,7 +734,7 @@ local P2 (regression of the M73 0/1/2 contract); revalidated at
 the built CLI (all listed usage errors exit 1). Lineage: M73 (completed; not
 reopened).
 
-**Dependencies.** C03. M76 edits distinct handlers in `cmd/apitools/main.go` and follows C03 to keep the shared-file ownership sequential.
+**Dependencies.** C03 is completed (retired; see the [retired C03 record](../docs/history/status-C03.md)). M76 edits distinct handlers in `cmd/apitools/main.go`; the dependency only kept shared-file ownership sequential and is now satisfied.
 
 **Parallel ownership.** The `search` and `import` command handlers in
 `cmd/apitools/main.go` and CLI contract tests.

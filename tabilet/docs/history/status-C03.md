@@ -1,3 +1,73 @@
+# Retired milestone C03 - Catalog Resolution And Security Audit Accuracy
+
+**Milestone.** C03
+**Outcome.** completed
+**Retired.** 2026-09-26
+**Source status.** tabilet/memory-bank/status-C03.md
+**Source specification.** tabilet/memory-bank/milestone.md#c03---catalog-resolution-and-security-audit-accuracy
+**Evidence.** b42793aed101a36e52779d8641d65ef90b92efd8
+**Worktree.** clean
+**Review.** passed
+**Review iterations.** 5
+**Verification.** go build ./..., go vet ./..., go test ./... (apitools, all packages); go run ./cmd/apitools catalog check (0 errors/warnings) and security-audit CLI smoke; OpenUdon full go build ./... and go test ./.... All passed at the evidence commit.
+**Consolidated into.** no current-truth change; current facts already live in product.md, architecture.md, and tech-stack.md.
+
+## Milestone specification
+
+````markdown
+## C03 - Catalog Resolution And Security Audit Accuracy
+
+**Goal.** Make catalog resolution and security-audit reports state what kind of
+source they resolved and whether operation security coverage is partial.
+
+**Scope.**
+
+- Add source kind and protocol to `ResolvedReference` (additive, backward
+  compatible JSON) and label resolve/advisory CLI output by protocol instead of
+  "Resolved OpenAPI" for non-OpenAPI references.
+- Add a partial-operation-security audit status when root security is
+  undeclared, scheme-bearing requirements exist on only some operations, and
+  some other operations lack an explicit declaration; include a follow-up to
+  confirm those operations are intentionally anonymous. Distinguish explicit
+  anonymous root and operation declarations (`security: []` or
+  `security: [{}]`) from absent policy and from scheme-bearing operation
+  requirements.
+- Do not change catalog data, preference order, or security classifications.
+
+**Review provenance.** "apitools Code Review" Pass 2 findings C1 (source
+Medium, local P2; 209 of 316 providers resolve the `openapi` reference to
+human-docs, Smithy, Discovery, Stone, or index sources) and C2 (source Medium,
+local P2; `catalog_security_audit.go` reports has-security-metadata for partial
+coverage); revalidated at `e015231ef651bb92ee1aab9a4e8fc870d94ad020` with a
+clean worktree. Lineage: M05, M14, M58, C01 (completed; not reopened).
+
+**Dependencies.** None.
+
+**Parallel ownership.** `catalog/resolve.go`, `catalog/advisory.go`,
+`catalog_security_audit.go`, and the resolve/advisory/security-audit output
+functions in `cmd/apitools/main.go`. M76 edits other functions in the same CLI
+file, so it runs after C03.
+
+**Downstream impacts.** OpenUdon `cmd/openudon/catalog.go` and
+`internal/icot/elicitor/catalog.go` read resolved references; they must keep
+compiling and may display the new kind. Publishing and re-pinning need
+separate authorization.
+
+**Acceptance.** Tests show a human-docs, Smithy, and Discovery provider each
+resolve with the correct kind/protocol, JSON remains backward compatible, and a
+fixture with partial operation security gets the new audit status while
+anonymous root/operation declarations do not cause false partial or missing-
+scheme findings. Explicit anonymous operation declarations never satisfy the
+requirement checks on their own (U1): with no root security and no
+scheme-bearing requirement anywhere, the audit reports missing requirements
+(or missing metadata when no schemes exist). `go test ./...`, `go vet ./...`,
+`go run ./cmd/apitools catalog check`, `git diff --check`, and
+`(cd ../openudon && go test ./...)` pass.
+````
+
+## Status record
+
+````markdown
 # Status C03 - Catalog Resolution And Security Audit Accuracy
 
 State of each C03 milestone item. Update as items complete. See
@@ -51,3 +121,4 @@ Iteration 4 review provenance: Review "apitools uncommitted-diff review" (2026-0
 - Iteration 3 of 10 started: 2026-09-26 00:10 UTC. Review scope: complete C03 implementation and diff, including the iteration 2 anonymous-policy/count correction, report JSON, CLI rendering, tests, and docs.
 - Iteration 3 review completed: no P1/P2-or-higher findings. The bounded review-fix gate passes at iteration 3; full acceptance verification passed afterward on 2026-09-26 (see the verification row above).
 | Anonymous declarations do not satisfy requirement checks | `[+]` | U1, local P2, fixed, plus Lower cleanup. The missing-metadata/missing-requirements cases in `auditOpenAPISecurityArtifact` now require both `OperationSecurityCount == 0` (scheme-bearing only, not `OperationSecurityDeclarationCount`, which also counts explicit `security: []`/`[{}]`) *and* `OperationSecurityDeclarationCount < OperationCount` (at least one operation with no declaration of any kind). This closes the reported gap (a lone anonymous `/health` among undeclared siblings still reports missing) while preserving the existing, deliberate case where every operation explicitly declares anonymous coverage (a complete statement, not a gap): the pre-existing `TestCatalogSecurityAuditCountsAnonymousOperationRequirement` needed no change. Regression: `TestCatalogSecurityAuditAnonymousOperationDoesNotExcuseUndeclaredSiblings` (with and without a declared scheme). Exported `isPartialOperationSecurity` as `IsPartialOperationSecurity` and repointed the CLI's inline duplicate (`cmd/apitools/main.go`) at it. `go test . -run SecurityAudit`, full apitools `go test ./...`/`go vet ./...`, `go run ./cmd/apitools catalog check` (0/0) and `security-audit`, and OpenUdon full `go build ./...`/`go test ./...` all pass. This closes C03's last pending fix row. |
+````
