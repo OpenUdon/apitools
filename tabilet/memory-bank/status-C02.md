@@ -32,9 +32,9 @@ changes at revalidation were harness documentation only.
 
 Iteration 3 review provenance: Review "apitools uncommitted-diff review" (2026-09-26; source priority not supplied), baseline `6ee935b` plus the uncommitted implementation diff; revalidated at `6ee935b328234287cc8dfa097884a67fdebccfbd` including those uncommitted changes. Finding IDs U1-U15 follow the review's order.
 
-**Review.** open
-**Review iterations.** 3 (open; iterations 1-2 passed as recorded)
-**Review findings.** Iteration 3: the external uncommitted-diff review, counted as the next full pass at the user's direction, found P2 U12 and Lower U14 and U15 (fix rows below).
+**Review.** passed
+**Review iterations.** 4 (passed; iterations 1-2 passed as recorded)
+**Review findings.** Iteration 3: the external uncommitted-diff review, counted as the next full pass at the user's direction, found P2 U12 and Lower U14 and U15 (fix rows below). Iteration 4: after fixing U12 (commit `8db527a`) and U14/U15 (commit `0f004d5`), a fresh whole-milestone review of the full refresh CLI flow (`runCatalogRefreshWithClient`, `snapshotCatalogRefreshArtifacts`, `finalizeCatalogRefreshArtifacts`), `internal/artifactio`'s new move-aside helpers, `catalog_refresh.go`'s error paths, and the shared SQLite registration helpers found no P1/P2 or higher-severity issue. Confirmed the per-row commit decision correctly distinguishes "committed rows registration already covered" from "rows to roll back" across all four combinations of refresh/registration success and failure, including the zero-results case. `go test ./...`, `go vet ./...`, `go run ./cmd/cataloggen -check`, `go run ./cmd/apitools catalog check` (0/0), `git diff --check`, and OpenUdon's full `go build ./...` all pass. The gate is closed within the persisted iteration count.
 Earlier iterations: Iteration 1 found a P2: a cache-registration failure after an artifact overwrite could leave the old SQLite manifest inconsistent, and per-result registration could partially commit a batch. Fixed by prevalidating refresh registrations and committing their spec/artifact rows in one SQLite transaction; the CLI snapshots existing registered files and restores them if registration fails. Added a rollback regression. Iteration 2 whole-milestone review found no P1/P2 or higher-severity issue. Full verification passed: `go test ./...`, `go vet ./...`, standalone `GOWORK=off go test ./...`, catalog generator check, catalog quality check, and `git diff --check`.
 
 | Item | State | Notes |
