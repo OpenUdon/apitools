@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sort"
 	"strings"
 	"syscall"
@@ -14,6 +16,7 @@ import (
 
 	"github.com/OpenUdon/apitools"
 	catalogpkg "github.com/OpenUdon/apitools/catalog"
+	"github.com/OpenUdon/apitools/internal/artifactio"
 	"github.com/OpenUdon/apitools/sqlitecache"
 )
 
@@ -666,6 +669,11 @@ func runCatalogRefreshWithClient(args []string, out, errOut io.Writer, refresher
 		fmt.Fprintln(errOut, err)
 		return exitUsage
 	}
+	backups, err := snapshotCatalogRefreshArtifacts(*cacheDir, rows)
+	if err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	client := &apitools.Client{
@@ -673,13 +681,48 @@ func runCatalogRefreshWithClient(args []string, out, errOut io.Writer, refresher
 		MaxBytes:         *maxBytes,
 		AllowUnsafeHosts: *allowUnsafeHosts,
 	}
-	report, err := refresherFor(client)(ctx, rows, apitools.CatalogSpecRefreshOptions{CacheDir: *cacheDir})
-	if err != nil {
-		fmt.Fprintln(errOut, err)
-		return exitRuntime
+	report, refreshErr := refresherFor(client)(ctx, rows, apitools.CatalogSpecRefreshOptions{CacheDir: *cacheDir})
+	var registrationErr error
+	if len(report.Results) > 0 {
+		registrationErr = sqlitecache.RegisterCatalogRefreshResults(ctx, *cachePath, *cacheDir, report)
+		if registrationErr != nil {
+			if restoreErr := restoreCatalogRefreshArtifacts(*cacheDir, report, backups); restoreErr != nil {
+				registrationErr = fmt.Errorf("%v; restoring prior artifacts: %w", registrationErr, restoreErr)
+			}
+		}
 	}
-	if err := sqlitecache.RegisterCatalogRefreshResults(ctx, *cachePath, *cacheDir, report); err != nil {
-		fmt.Fprintln(errOut, err)
+	if refreshErr != nil || registrationErr != nil {
+		if *jsonOut {
+			value := struct {
+				Results           []apitools.CatalogSpecRefreshResult `json:"results,omitempty"`
+				Error             string                              `json:"error,omitempty"`
+				RegistrationError string                              `json:"registration_error,omitempty"`
+			}{Results: report.Results}
+			if refreshErr != nil {
+				value.Error = refreshErr.Error()
+			}
+			if registrationErr != nil {
+				value.RegistrationError = registrationErr.Error()
+			}
+			if err := writeJSON(out, value); err != nil {
+				fmt.Fprintln(errOut, err)
+				return exitRuntime
+			}
+		} else {
+			writeCatalogRefreshReport(out, report)
+			if refreshErr != nil {
+				fmt.Fprintf(out, "Refresh failed: %s\n", refreshErr)
+			}
+			if registrationErr != nil {
+				fmt.Fprintf(out, "Partial results were not fully registered: %s\n", registrationErr)
+			}
+		}
+		if refreshErr != nil {
+			fmt.Fprintln(errOut, refreshErr)
+		}
+		if registrationErr != nil {
+			fmt.Fprintf(errOut, "registering catalog refresh results: %v\n", registrationErr)
+		}
 		return exitRuntime
 	}
 	if *jsonOut {
@@ -691,6 +734,47 @@ func runCatalogRefreshWithClient(args []string, out, errOut io.Writer, refresher
 	}
 	writeCatalogRefreshReport(out, report)
 	return exitSuccess
+}
+
+type catalogRefreshArtifactBackup struct {
+	Path string
+	Data []byte
+}
+
+func snapshotCatalogRefreshArtifacts(cacheDir string, rows []catalogpkg.RefreshableSpecReference) (map[string]catalogRefreshArtifactBackup, error) {
+	backups := make(map[string]catalogRefreshArtifactBackup)
+	for _, row := range rows {
+		path := strings.TrimSpace(row.RegisteredArtifactPath)
+		if path == "" {
+			continue
+		}
+		file, err := artifactio.ReadFile(cacheDir, path, artifactio.ReadOptions{MaxBytes: artifactio.DefaultMaxBytes})
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("cannot preserve registered artifact %s/%s: %w", row.ProviderID, row.SpecRefID, err)
+		}
+		backups[row.ProviderID+"/"+row.SpecRefID] = catalogRefreshArtifactBackup{Path: filepath.ToSlash(path), Data: file.Data}
+	}
+	return backups, nil
+}
+
+func restoreCatalogRefreshArtifacts(cacheDir string, report apitools.CatalogSpecRefreshReport, backups map[string]catalogRefreshArtifactBackup) error {
+	var failures []string
+	for _, result := range report.Results {
+		backup, ok := backups[result.ProviderID+"/"+result.SpecRefID]
+		if !ok || filepath.ToSlash(filepath.Clean(filepath.FromSlash(result.ArtifactPath))) != filepath.ToSlash(filepath.Clean(filepath.FromSlash(backup.Path))) {
+			continue
+		}
+		if _, err := artifactio.WriteFile(cacheDir, backup.Path, backup.Data, artifactio.WriteOptions{Mode: 0o644, Force: true}); err != nil {
+			failures = append(failures, fmt.Sprintf("%s/%s: %v", result.ProviderID, result.SpecRefID, err))
+		}
+	}
+	if len(failures) > 0 {
+		return fmt.Errorf("restore prior artifacts: %s", strings.Join(failures, "; "))
+	}
+	return nil
 }
 
 func selectRefreshableSpecRows(providerKey, specRefID string, artifacts []catalogpkg.CatalogSpecArtifact) ([]catalogpkg.RefreshableSpecReference, error) {
@@ -980,6 +1064,27 @@ func writeCatalogSecurityAuditReport(out io.Writer, report apitools.CatalogSecur
 			fmt.Fprintf(out, "%-36s %-7d %s\n", bucket.Status, bucket.Count, strings.Join(bucket.SpecRefIDs, ", "))
 		}
 	}
+	var partialOperationSecurity []string
+	for _, provider := range report.Providers {
+		for _, artifact := range provider.ArtifactSecurity {
+			partial := artifact.Status == apitools.SecurityAuditArtifactPartialOperationSecurity ||
+				(!artifact.RootSecurityDeclared && artifact.OperationSecurityCount > 0 &&
+					artifact.OperationSecurityDeclarationCount < artifact.OperationCount)
+			if !partial {
+				continue
+			}
+			followUp := strings.Join(artifact.ManualFollowUps, " ")
+			partialOperationSecurity = append(partialOperationSecurity, fmt.Sprintf("- %s (%s), spec %s: %s", provider.DisplayName, provider.ProviderID, artifact.SpecRefID, followUp))
+		}
+	}
+	if len(partialOperationSecurity) > 0 {
+		sort.Strings(partialOperationSecurity)
+		fmt.Fprintln(out)
+		fmt.Fprintln(out, "Partial operation security:")
+		for _, followUp := range partialOperationSecurity {
+			fmt.Fprintln(out, followUp)
+		}
+	}
 	var queued []apitools.CatalogSecurityAuditRow
 	for _, row := range report.Providers {
 		if row.Disposition == apitools.SecurityAuditDispositionQueuedSourceReReview {
@@ -1022,7 +1127,7 @@ func writeCatalogAdvisoryReport(out io.Writer, report catalogpkg.ProviderAdvisor
 		fmt.Fprintf(out, "Machine spec availability: %s\n", provider.MachineSpecAvailability)
 		fmt.Fprintf(out, "User OpenAPI need: %s\n", provider.UserOpenAPINeed)
 		fmt.Fprintf(out, "Auth status: %s\n", provider.AuthStatus)
-		fmt.Fprintf(out, "Resolved OpenAPI: %s", provider.ResolvedOpenAPI.Source)
+		fmt.Fprintf(out, "%s: %s", resolvedReferenceLabel(provider.ResolvedOpenAPI, "Resolved OpenAPI"), provider.ResolvedOpenAPI.Source)
 		writeResolvedReferenceDetails(out, provider.ResolvedOpenAPI)
 		fmt.Fprintf(out, "Resolved security: %s", provider.ResolvedSecurity.Source)
 		writeResolvedReferenceDetails(out, provider.ResolvedSecurity)
@@ -1147,7 +1252,7 @@ func writeCatalogInspect(out io.Writer, resolved catalogpkg.ResolvedProvider) {
 	fmt.Fprintf(out, "OpenAPI availability: %s\n", provider.OfficialOpenAPIAvailability)
 	fmt.Fprintf(out, "Machine spec availability: %s\n", provider.OfficialMachineSpecAvailability)
 	fmt.Fprintf(out, "User OpenAPI need: %s\n", provider.UserOpenAPINeed)
-	fmt.Fprintf(out, "Resolved OpenAPI: %s", resolved.OpenAPI.Source)
+	fmt.Fprintf(out, "%s: %s", resolvedReferenceLabel(resolved.OpenAPI, "Resolved OpenAPI"), resolved.OpenAPI.Source)
 	writeResolvedReferenceDetails(out, resolved.OpenAPI)
 	fmt.Fprintf(out, "Resolved security: %s", resolved.Security.Source)
 	writeResolvedReferenceDetails(out, resolved.Security)
@@ -1373,12 +1478,47 @@ func writeResolvedReferenceDetails(out io.Writer, ref catalogpkg.ResolvedReferen
 	if ref.OverlayID != "" {
 		details = append(details, "overlay="+ref.OverlayID)
 	}
+	if ref.Kind != "" {
+		details = append(details, "kind="+string(ref.Kind))
+	}
+	if ref.Protocol != "" {
+		details = append(details, "protocol="+string(ref.Protocol))
+	}
 	if len(details) > 0 {
 		fmt.Fprintf(out, " (%s)", strings.Join(details, ", "))
 	}
 	fmt.Fprintln(out)
 	if ref.SourceNote != "" {
 		fmt.Fprintf(out, "  note: %s\n", ref.SourceNote)
+	}
+}
+
+func resolvedReferenceLabel(ref catalogpkg.ResolvedReference, fallback string) string {
+	switch ref.Protocol {
+	case "", catalogpkg.SpecProtocolOpenAPI, catalogpkg.SpecProtocolSwagger:
+		return fallback
+	case catalogpkg.SpecProtocolSmithy:
+		return "Resolved Smithy"
+	case catalogpkg.SpecProtocolGoogleDiscovery:
+		return "Resolved Google Discovery"
+	case catalogpkg.SpecProtocolDropboxStone:
+		return "Resolved Dropbox Stone"
+	case catalogpkg.SpecProtocolOpenAPIIndex:
+		return "Resolved OpenAPI index"
+	case catalogpkg.SpecProtocolHumanDocs:
+		return "Resolved human docs"
+	case catalogpkg.SpecProtocolAsyncAPI:
+		return "Resolved AsyncAPI"
+	case catalogpkg.SpecProtocolOpenRPC:
+		return "Resolved OpenRPC"
+	case catalogpkg.SpecProtocolGraphQL:
+		return "Resolved GraphQL"
+	case catalogpkg.SpecProtocolGRPCProtobuf:
+		return "Resolved gRPC/Protobuf"
+	case catalogpkg.SpecProtocolOData:
+		return "Resolved OData"
+	default:
+		return "Resolved " + string(ref.Protocol)
 	}
 }
 
@@ -1407,6 +1547,17 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 	}
 	if code, done := parseCommandFlags(fs, args, out, errOut); done {
 		return code
+	}
+	trimmedQuery := strings.TrimSpace(*query)
+	if trimmedQuery == "" {
+		fmt.Fprintln(errOut, "--query is required")
+		fs.Usage()
+		return exitUsage
+	}
+	if len(trimmedQuery) < 2 {
+		fmt.Fprintln(errOut, "--query must be at least two characters")
+		fs.Usage()
+		return exitUsage
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -1471,6 +1622,10 @@ func durationOrDefault(value, fallback time.Duration) time.Duration {
 }
 
 func runImport(args []string, out, errOut io.Writer) int {
+	return runImportWithClient(args, out, errOut, clientForCache)
+}
+
+func runImportWithClient(args []string, out, errOut io.Writer, newClient func(string) (*apitools.Client, func(), error)) int {
 	fs := newCommandFlagSet("apitools import")
 	rawURL := fs.String("url", "", "OpenAPI document URL")
 	dir := fs.String("dir", "", "Directory to write the imported OpenAPI document")
@@ -1488,9 +1643,25 @@ func runImport(args []string, out, errOut io.Writer) int {
 	if code, done := parseCommandFlags(fs, args, out, errOut); done {
 		return code
 	}
+	trimmedURL := strings.TrimSpace(*rawURL)
+	if trimmedURL == "" {
+		fmt.Fprintln(errOut, "--url is required")
+		fs.Usage()
+		return exitUsage
+	}
+	if err := validateImportURL(trimmedURL); err != nil {
+		fmt.Fprintln(errOut, err)
+		fs.Usage()
+		return exitUsage
+	}
+	if strings.TrimSpace(*dir) == "" {
+		fmt.Fprintln(errOut, "--dir is required")
+		fs.Usage()
+		return exitUsage
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	client, closeCache, err := clientForCache(*cachePath)
+	client, closeCache, err := newClient(*cachePath)
 	if err != nil {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
@@ -1500,7 +1671,7 @@ func runImport(args []string, out, errOut io.Writer) int {
 	if *offline {
 		mode = apitools.CacheModeOffline
 	}
-	imported, err := client.Import(ctx, apitools.ImportOptions{
+	importReport, err := client.ImportWithReport(ctx, apitools.ImportOptions{
 		URL:         *rawURL,
 		Dir:         *dir,
 		Name:        *name,
@@ -1511,8 +1682,18 @@ func runImport(args []string, out, errOut io.Writer) int {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
 	}
+	imported := importReport.Imported
 	if *jsonOut {
-		if err := writeJSON(out, imported); err != nil {
+		value := struct {
+			apitools.ImportedSpec
+			CacheStoredAt *time.Time `json:"cache_stored_at,omitempty"`
+			CacheAge      string     `json:"cache_age,omitempty"`
+		}{
+			ImportedSpec:  imported,
+			CacheStoredAt: importReport.CacheStoredAt,
+			CacheAge:      importReport.CacheAge,
+		}
+		if err := writeJSON(out, value); err != nil {
 			fmt.Fprintln(errOut, err)
 			return exitRuntime
 		}
@@ -1522,8 +1703,25 @@ func runImport(args []string, out, errOut io.Writer) int {
 	if imported.Title != "" {
 		fmt.Fprintf(out, "title: %s\n", imported.Title)
 	}
+	if importReport.CacheAge != "" {
+		fmt.Fprintf(out, "cache age: %s\n", importReport.CacheAge)
+	}
 	fmt.Fprintf(out, "sha256: %s\n", imported.SHA256)
 	return exitSuccess
+}
+
+func validateImportURL(rawURL string) error {
+	parsed, err := url.Parse(strings.TrimSpace(rawURL))
+	if err != nil {
+		return fmt.Errorf("--url must be a valid absolute HTTP(S) URL")
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return fmt.Errorf("--url scheme must be http or https")
+	}
+	if parsed.Hostname() == "" {
+		return fmt.Errorf("--url must include a hostname")
+	}
+	return nil
 }
 
 func writeJSON(out io.Writer, value any) error {

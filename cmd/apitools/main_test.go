@@ -5,6 +5,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -201,6 +203,25 @@ func TestCatalogAdvisoryOutputAndJSON(t *testing.T) {
 	for _, expected := range []string{`"provider_id": "grafana"`, `"auth_status": "complete"`, `"spec_ref_id": "grafana-http-api-openapi-v3"`} {
 		if !strings.Contains(out.String(), expected) {
 			t.Fatalf("catalog advisory json missing %q:\n%s", expected, out.String())
+		}
+	}
+}
+
+func TestCatalogAdvisoryLabelsResolvedNonOpenAPIProtocol(t *testing.T) {
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	code := run([]string{"catalog", "advisory", "aws-acm"}, &out, &errOut)
+	if code != 0 {
+		t.Fatalf("code = %d\nstdout:\n%s\nstderr:\n%s", code, out.String(), errOut.String())
+	}
+	for _, expected := range []string{
+		"Resolved Smithy: built-in-spec-reference",
+		"spec=aws-acm-smithy-model",
+		"kind=smithy-json",
+		"protocol=smithy",
+	} {
+		if !strings.Contains(out.String(), expected) {
+			t.Fatalf("catalog advisory output missing %q:\n%s", expected, out.String())
 		}
 	}
 }
@@ -632,6 +653,173 @@ func TestCatalogRefreshCommandRegistersSelectedSpec(t *testing.T) {
 	}
 }
 
+func TestCatalogRefreshCommandRegistersAndMaterializesPartialResults(t *testing.T) {
+	dir := t.TempDir()
+	cacheDir := filepath.Join(dir, "catalog-openapi-cache")
+	cachePath := filepath.Join(cacheDir, "cache.sqlite")
+	artifactPath := "openapi/registered-slack.json"
+	fullPath := filepath.Join(cacheDir, filepath.FromSlash(artifactPath))
+	if err := os.MkdirAll(filepath.Dir(fullPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	oldContent := []byte(`{"openapi":"3.0.0","info":{"title":"Old Slack","version":"1.0.0"},"paths":{}}`)
+	if err := os.WriteFile(fullPath, oldContent, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cache, err := sqlitecache.Open(cachePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := cache.StoreCatalogArtifact(context.Background(), sqlitecache.CatalogArtifact{
+		ProviderID: "slack",
+		ArtifactID: "slack-web-openapi-v2",
+		Kind:       "openapi",
+		Path:       artifactPath,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := cache.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	newContent := []byte(`{"openapi":"3.0.0","info":{"title":"Refreshed Slack","version":"1.0.0"},"paths":{}}`)
+	refresh := func(_ context.Context, rows []catalog.RefreshableSpecReference, opts apitools.CatalogSpecRefreshOptions) (apitools.CatalogSpecRefreshReport, error) {
+		if len(rows) != 1 || rows[0].RegisteredArtifactPath != artifactPath {
+			t.Fatalf("refresh rows = %#v", rows)
+		}
+		writtenPath := filepath.Join(opts.CacheDir, filepath.FromSlash(rows[0].RegisteredArtifactPath))
+		if err := os.WriteFile(writtenPath, newContent, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		digest := sha256.Sum256(newContent)
+		return apitools.CatalogSpecRefreshReport{Results: []apitools.CatalogSpecRefreshResult{{
+			ProviderID:          rows[0].ProviderID,
+			SpecRefID:           rows[0].SpecRefID,
+			Kind:                rows[0].Kind,
+			Protocol:            catalog.SpecProtocolOpenAPI,
+			ProtocolVersion:     "3.0.0",
+			URL:                 rows[0].URL,
+			FinalURL:            rows[0].URL,
+			DownloadStatus:      apitools.CatalogRefreshDownloaded,
+			RawValidationStatus: apitools.CatalogRefreshValidOpenAPI,
+			ArtifactPath:        artifactPath,
+			SavedPath:           writtenPath,
+			SHA256:              hex.EncodeToString(digest[:]),
+			Bytes:               int64(len(newContent)),
+			RawMetadata:         apitools.SpecMetadata{Title: "Refreshed Slack", OpenAPI: "3.0.0"},
+		}}}, errors.New("slack/slack-web-openapi-v2: a later selected reference failed")
+	}
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	code := runCatalogRefreshWithClient([]string{
+		"--provider", "slack", "--spec", "slack-web-openapi-v2", "--cache-dir", cacheDir, "--cache", cachePath,
+	}, &out, &errOut, func(*apitools.Client) catalogRefreshFunc { return refresh })
+	if code != exitRuntime {
+		t.Fatalf("code = %d, want %d\nstdout:\n%s\nstderr:\n%s", code, exitRuntime, out.String(), errOut.String())
+	}
+	for _, expected := range []string{"slack-web-openapi-v2", "Refresh failed:", "later selected reference failed"} {
+		if !strings.Contains(out.String(), expected) {
+			t.Fatalf("partial refresh output missing %q:\n%s", expected, out.String())
+		}
+	}
+	if !strings.Contains(errOut.String(), "slack/slack-web-openapi-v2") {
+		t.Fatalf("stderr omitted failing reference:\n%s", errOut.String())
+	}
+	var jsonOut bytes.Buffer
+	var jsonErr bytes.Buffer
+	code = runCatalogRefreshWithClient([]string{
+		"--provider", "slack", "--spec", "slack-web-openapi-v2", "--cache-dir", cacheDir, "--cache", cachePath, "--json",
+	}, &jsonOut, &jsonErr, func(*apitools.Client) catalogRefreshFunc { return refresh })
+	if code != exitRuntime {
+		t.Fatalf("JSON refresh code = %d, want %d\nstdout:\n%s\nstderr:\n%s", code, exitRuntime, jsonOut.String(), jsonErr.String())
+	}
+	var jsonReport struct {
+		Results []apitools.CatalogSpecRefreshResult `json:"results"`
+		Error   string                              `json:"error"`
+	}
+	if err := json.Unmarshal(jsonOut.Bytes(), &jsonReport); err != nil {
+		t.Fatalf("decode partial JSON report: %v\n%s", err, jsonOut.String())
+	}
+	if len(jsonReport.Results) != 1 || !strings.Contains(jsonReport.Error, "slack/slack-web-openapi-v2") {
+		t.Fatalf("JSON partial report = %#v", jsonReport)
+	}
+
+	cache, err = sqlitecache.Open(cachePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	artifacts, err := cache.ListCatalogArtifacts(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	newDigest := sha256.Sum256(newContent)
+	if len(artifacts) != 1 || artifacts[0].SHA256 != hex.EncodeToString(newDigest[:]) || artifacts[0].Bytes != int64(len(newContent)) {
+		t.Fatalf("registered partial artifacts = %#v", artifacts)
+	}
+	if err := cache.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	var materializeOut bytes.Buffer
+	var materializeErr bytes.Buffer
+	code = runCatalogMaterialize([]string{
+		"slack", "--out", filepath.Join(dir, "materialized"), "--cache-dir", cacheDir, "--cache", cachePath, "--no-security-overlays",
+	}, &materializeOut, &materializeErr)
+	if code != exitSuccess {
+		t.Fatalf("materialize code = %d\nstdout:\n%s\nstderr:\n%s", code, materializeOut.String(), materializeErr.String())
+	}
+
+	invalidContent := []byte(`{"openapi":"3.0.0","info":{"title":"Unregistered Slack","version":"1.0.0"},"paths":{}}`)
+	invalidRefresh := func(_ context.Context, rows []catalog.RefreshableSpecReference, opts apitools.CatalogSpecRefreshOptions) (apitools.CatalogSpecRefreshReport, error) {
+		writtenPath := filepath.Join(opts.CacheDir, filepath.FromSlash(rows[0].RegisteredArtifactPath))
+		if err := os.WriteFile(writtenPath, invalidContent, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return apitools.CatalogSpecRefreshReport{Results: []apitools.CatalogSpecRefreshResult{{
+			ProviderID:          rows[0].ProviderID,
+			SpecRefID:           rows[0].SpecRefID,
+			Kind:                rows[0].Kind,
+			URL:                 rows[0].URL,
+			FinalURL:            rows[0].URL,
+			RawValidationStatus: apitools.CatalogRefreshValidOpenAPI,
+			ArtifactPath:        artifactPath,
+			SavedPath:           writtenPath,
+			SHA256:              "invalid-digest",
+			Bytes:               int64(len(invalidContent)),
+		}}}, nil
+	}
+	var rollbackOut bytes.Buffer
+	var rollbackErr bytes.Buffer
+	code = runCatalogRefreshWithClient([]string{
+		"--provider", "slack", "--spec", "slack-web-openapi-v2", "--cache-dir", cacheDir, "--cache", cachePath,
+	}, &rollbackOut, &rollbackErr, func(*apitools.Client) catalogRefreshFunc { return invalidRefresh })
+	if code != exitRuntime || !strings.Contains(rollbackOut.String(), "Partial results were not fully registered") {
+		t.Fatalf("invalid registration code = %d\nstdout:\n%s\nstderr:\n%s", code, rollbackOut.String(), rollbackErr.String())
+	}
+	restored, err := os.ReadFile(fullPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(restored, newContent) {
+		t.Fatalf("registered artifact after failed registration = %q, want prior registered bytes %q", restored, newContent)
+	}
+	cache, err = sqlitecache.Open(cachePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	artifacts, err = cache.ListCatalogArtifacts(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	newDigest = sha256.Sum256(newContent)
+	if len(artifacts) != 1 || artifacts[0].SHA256 != hex.EncodeToString(newDigest[:]) || artifacts[0].Bytes != int64(len(newContent)) {
+		t.Fatalf("registry changed after rejected update: %#v", artifacts)
+	}
+	if err := cache.Close(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestCatalogRefreshRejectsProviderWithoutRefreshableSpecs(t *testing.T) {
 	wd, err := os.Getwd()
 	if err != nil {
@@ -841,6 +1029,37 @@ func TestCatalogInspectShowsResolutionAndNotes(t *testing.T) {
 	}
 }
 
+func TestCatalogInspectLabelsResolvedDiscoveryProtocol(t *testing.T) {
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	code := run([]string{"catalog", "inspect", "gmail"}, &out, &errOut)
+	if code != 0 {
+		t.Fatalf("code = %d\nstdout:\n%s\nstderr:\n%s", code, out.String(), errOut.String())
+	}
+	for _, expected := range []string{
+		"Resolved Google Discovery: built-in-spec-reference",
+		"spec=gmail-discovery-v1",
+		"kind=google-discovery",
+		"protocol=google-discovery",
+	} {
+		if !strings.Contains(out.String(), expected) {
+			t.Fatalf("catalog inspect output missing %q:\n%s", expected, out.String())
+		}
+	}
+
+	out.Reset()
+	errOut.Reset()
+	code = run([]string{"catalog", "inspect", "--json", "gmail"}, &out, &errOut)
+	if code != 0 {
+		t.Fatalf("json code = %d\nstdout:\n%s\nstderr:\n%s", code, out.String(), errOut.String())
+	}
+	for _, expected := range []string{`"kind": "google-discovery"`, `"protocol": "google-discovery"`} {
+		if !strings.Contains(out.String(), expected) {
+			t.Fatalf("catalog inspect json missing %q:\n%s", expected, out.String())
+		}
+	}
+}
+
 func TestCatalogInspectUserOpenAPIOverridesBuiltInSecurity(t *testing.T) {
 	var out bytes.Buffer
 	var errOut bytes.Buffer
@@ -924,6 +1143,39 @@ func TestCatalogSecurityAuditOutputAndJSON(t *testing.T) {
 	}
 }
 
+func TestCatalogSecurityAuditPrintsPartialOperationSecurityFollowUp(t *testing.T) {
+	const followUp = "Confirm operations without a declared security requirement are intentionally anonymous, or add reviewed operation security requirements."
+	report := apitools.CatalogSecurityAuditReport{
+		Summary: apitools.CatalogSecurityAuditSummary{
+			ProviderCount: 1,
+			Artifacts: []apitools.CatalogSecurityArtifactCount{{
+				Status:     apitools.SecurityAuditArtifactPartialOperationSecurity,
+				Count:      1,
+				SpecRefIDs: []string{"example-openapi"},
+			}},
+		},
+		Providers: []apitools.CatalogSecurityAuditRow{{
+			ProviderID:  "example",
+			DisplayName: "Example",
+			ArtifactSecurity: []apitools.CatalogSecurityArtifactAuditRow{{
+				SpecRefID:                         "example-openapi",
+				Status:                            apitools.SecurityAuditArtifactPartialOperationSecurity,
+				OperationCount:                    2,
+				OperationSecurityCount:            1,
+				OperationSecurityDeclarationCount: 1,
+				ManualFollowUps:                   []string{followUp},
+			}},
+		}},
+	}
+	var out bytes.Buffer
+	writeCatalogSecurityAuditReport(&out, report)
+	for _, expected := range []string{"Partial operation security:", "Example (example), spec example-openapi", followUp} {
+		if !strings.Contains(out.String(), expected) {
+			t.Fatalf("security-audit output missing %q:\n%s", expected, out.String())
+		}
+	}
+}
+
 func TestCatalogOverlayViewShowsProvenanceAndConflicts(t *testing.T) {
 	var out bytes.Buffer
 	var errOut bytes.Buffer
@@ -988,6 +1240,97 @@ func TestSearchParseErrorsUseStderr(t *testing.T) {
 	}
 	if !strings.Contains(errOut.String(), "invalid value") {
 		t.Fatalf("expected parse error on stderr, got:\n%s", errOut.String())
+	}
+}
+
+func TestSearchRequiredAndShortQueriesAreUsageErrors(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{name: "missing", want: "--query is required"},
+		{name: "blank", args: []string{"--query", "  "}, want: "--query is required"},
+		{name: "too short", args: []string{"--query", "x"}, want: "--query must be at least two characters"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var out bytes.Buffer
+			var errOut bytes.Buffer
+			clientCreated := false
+			code := runSearchWithClient(test.args, &out, &errOut, func(string) (*apitools.Client, func(), error) {
+				clientCreated = true
+				return &apitools.Client{}, func() {}, nil
+			})
+			if code != exitUsage {
+				t.Fatalf("code = %d, want %d\nstdout:\n%s\nstderr:\n%s", code, exitUsage, out.String(), errOut.String())
+			}
+			if out.Len() != 0 || !strings.Contains(errOut.String(), test.want) || !strings.Contains(errOut.String(), "Usage: apitools search") {
+				t.Fatalf("usage error streams missing expected content\nstdout:\n%s\nstderr:\n%s", out.String(), errOut.String())
+			}
+			if clientCreated {
+				t.Fatal("search client was created for invalid query")
+			}
+		})
+	}
+}
+
+func TestImportRequiredAndInvalidURLsAreUsageErrors(t *testing.T) {
+	tests := []struct {
+		name string
+		args func(string) []string
+		want string
+	}{
+		{name: "missing URL", args: func(dir string) []string { return []string{"--dir", dir} }, want: "--url is required"},
+		{name: "blank URL", args: func(dir string) []string { return []string{"--url", "  ", "--dir", dir} }, want: "--url is required"},
+		{name: "missing directory", args: func(string) []string { return []string{"--url", "https://example.com/openapi.yaml"} }, want: "--dir is required"},
+		{name: "blank directory", args: func(string) []string { return []string{"--url", "https://example.com/openapi.yaml", "--dir", "  "} }, want: "--dir is required"},
+		{name: "malformed URL", args: func(dir string) []string { return []string{"--url", "http://[invalid", "--dir", dir} }, want: "--url must be a valid absolute HTTP(S) URL"},
+		{name: "missing hostname", args: func(dir string) []string { return []string{"--url", "https://", "--dir", dir} }, want: "--url must include a hostname"},
+		{name: "unsupported scheme", args: func(dir string) []string { return []string{"--url", "ftp://example.com/openapi.yaml", "--dir", dir} }, want: "--url scheme must be http or https"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var out bytes.Buffer
+			var errOut bytes.Buffer
+			clientCreated := false
+			dir := filepath.Join(t.TempDir(), "output")
+			code := runImportWithClient(test.args(dir), &out, &errOut, func(string) (*apitools.Client, func(), error) {
+				clientCreated = true
+				return &apitools.Client{AllowUnsafeHosts: true}, func() {}, nil
+			})
+			if code != exitUsage {
+				t.Fatalf("code = %d, want %d\nstdout:\n%s\nstderr:\n%s", code, exitUsage, out.String(), errOut.String())
+			}
+			if out.Len() != 0 || !strings.Contains(errOut.String(), test.want) || !strings.Contains(errOut.String(), "Usage: apitools import") {
+				t.Fatalf("usage error streams missing expected content\nstdout:\n%s\nstderr:\n%s", out.String(), errOut.String())
+			}
+			if clientCreated {
+				t.Fatal("import client was created for invalid arguments")
+			}
+		})
+	}
+}
+
+func TestImportRuntimeURLPolicyErrorsRemainRuntimeFailures(t *testing.T) {
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	clientCreated := false
+	code := runImportWithClient([]string{
+		"--url", "http://127.0.0.1:8080/openapi.yaml",
+		"--dir", filepath.Join(t.TempDir(), "output"),
+	}, &out, &errOut, func(string) (*apitools.Client, func(), error) {
+		clientCreated = true
+		return &apitools.Client{}, func() {}, nil
+	})
+	if code != exitRuntime {
+		t.Fatalf("code = %d, want %d\nstdout:\n%s\nstderr:\n%s", code, exitRuntime, out.String(), errOut.String())
+	}
+	if out.Len() != 0 || !strings.Contains(errOut.String(), "refusing private URL host") {
+		t.Fatalf("runtime URL policy error streams = stdout %q stderr %q", out.String(), errOut.String())
+	}
+	if !clientCreated {
+		t.Fatal("valid URL did not reach runtime client validation")
 	}
 }
 
@@ -1183,5 +1526,24 @@ func TestImportOfflineUsesCachedSpec(t *testing.T) {
 	}
 	if !strings.Contains(string(content), "title: Mail") {
 		t.Fatalf("unexpected imported content:\n%s", content)
+	}
+	if !strings.Contains(out.String(), "cache age:") {
+		t.Fatalf("offline import output omitted stored cache age:\n%s", out.String())
+	}
+
+	var jsonOut bytes.Buffer
+	code = run([]string{"import", "--url", rawURL, "--dir", t.TempDir(), "--cache", cachePath, "--offline", "--json"}, &jsonOut, &errOut)
+	if code != 0 {
+		t.Fatalf("JSON import code = %d\nstdout:\n%s\nstderr:\n%s", code, jsonOut.String(), errOut.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(jsonOut.Bytes(), &payload); err != nil {
+		t.Fatalf("decode import JSON: %v\n%s", err, jsonOut.String())
+	}
+	if _, ok := payload["name"]; !ok || payload["cache_age"] == nil || payload["cache_stored_at"] == nil {
+		t.Fatalf("JSON import missing flattened document/cache fields: %#v", payload)
+	}
+	if _, nested := payload["imported"]; nested {
+		t.Fatalf("JSON import unexpectedly nested legacy fields: %#v", payload)
 	}
 }

@@ -69,7 +69,9 @@ type CatalogSpecRefreshResult struct {
 // RefreshCatalogSpecReferences downloads selected catalog spec references into
 // an ignored curation cache directory using the same safe HTTP(S) download path
 // as imports. OpenAPI/Swagger roots are validated; non-OpenAPI machine specs
-// are saved as review artifacts without pretending they are OpenAPI.
+// are saved as review artifacts without pretending they are OpenAPI. If a
+// later reference fails, the report retains earlier completed results and the
+// returned error identifies the failing provider/spec reference.
 func (c *Client) RefreshCatalogSpecReferences(ctx context.Context, refs []catalog.RefreshableSpecReference, opts CatalogSpecRefreshOptions) (CatalogSpecRefreshReport, error) {
 	c = c.effective()
 	cacheDir := strings.TrimSpace(opts.CacheDir)
@@ -80,7 +82,7 @@ func (c *Client) RefreshCatalogSpecReferences(ctx context.Context, refs []catalo
 	for _, ref := range refs {
 		result, err := c.refreshCatalogSpecReference(ctx, ref, cacheDir)
 		if err != nil {
-			return CatalogSpecRefreshReport{}, err
+			return report, fmt.Errorf("%s/%s: %w", ref.ProviderID, ref.SpecRefID, err)
 		}
 		report.Results = append(report.Results, result)
 	}

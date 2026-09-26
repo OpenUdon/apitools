@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -32,6 +33,27 @@ func TestSanitizeOperationSummaryRemovesControlsAndCapsShape(t *testing.T) {
 	}
 	if len(operation.Tags) != DefaultPromptCollectionItems || promptJSONSize(operation) > DefaultPromptOperationBytes {
 		t.Fatalf("sanitized shape = tags %d bytes %d", len(operation.Tags), promptJSONSize(operation))
+	}
+}
+
+func TestSanitizeOperationSummaryRemovesInvisibleUnicodeAndPreservesNaturalText(t *testing.T) {
+	const unsafe = "café\u202ehidden\u202c\u200b漢字\ufe0f\U000e0100\U000e0001tag\U000e007f"
+	report, err := SanitizeOperationSummaries([]OperationSummary{{
+		ID: "unicode", OperationID: "unicode", Method: "GET", Path: "/unicode", Description: unsafe,
+	}}, PromptBudget{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(report.Diagnostics) != 1 || report.Diagnostics[0].Code != "prompt.operation_sanitized" {
+		t.Fatalf("diagnostics = %#v", report.Diagnostics)
+	}
+	if got, want := report.Operations[0].Description, "café hidden 漢字 tag"; got != want {
+		t.Fatalf("sanitized description = %q, want %q", got, want)
+	}
+	for _, r := range report.Operations[0].Description {
+		if unicode.Is(unicode.Cf, r) || isVariationSelector(r) || isUnicodeTagCharacter(r) {
+			t.Fatalf("unsafe rune U+%04X survived in %q", r, report.Operations[0].Description)
+		}
 	}
 }
 

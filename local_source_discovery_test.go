@@ -187,6 +187,22 @@ func TestDiscoverLocalSourcesReportsBoundsAndOversizedFiles(t *testing.T) {
 	}
 }
 
+func TestDiscoverLocalSourcesRecordsWalkErrorsAndContinues(t *testing.T) {
+	state := &localDiscoveryState{
+		ctx:  context.Background(),
+		opts: LocalSourceDiscoveryOptions{MaxVisitedEntries: 2},
+		report: LocalSourceDiscoveryReport{
+			Version: LocalSourceDiscoveryVersion,
+		},
+	}
+	if err := state.visit("unreadable", nil, errors.New("permission denied")); err != nil {
+		t.Fatalf("visit returned error: %v", err)
+	}
+	if state.report.VisitedEntries != 1 || len(state.report.Rejected) != 1 || state.report.Rejected[0].Code != "path.walk" {
+		t.Fatalf("walk error was not recorded as one rejection: %#v", state.report)
+	}
+}
+
 func TestDiscoverLocalSourcesRejectsSymlinkRootsAndHonorsCancellation(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("symlink privileges vary on Windows")
@@ -206,6 +222,25 @@ func TestDiscoverLocalSourcesRejectsSymlinkRootsAndHonorsCancellation(t *testing
 	_, err := DiscoverLocalSources(ctx, LocalSourceDiscoveryOptions{Roots: []string{dir}})
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("cancellation error = %v", err)
+	}
+}
+
+func TestDiscoverLocalSourcesResolvesSymlinkedAncestorsOfRoot(t *testing.T) {
+	realBase := t.TempDir()
+	root := filepath.Join(realBase, "apis")
+	if err := os.Mkdir(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeLocalDiscoveryFile(t, root, "openapi.json", `{"openapi":"3.0.3","info":{"title":"Rooted API","version":"1"},"paths":{"/items":{"get":{"operationId":"listItems"}}}}`)
+	aliasParent := filepath.Join(t.TempDir(), "workspace")
+	symlinkOrSkip(t, realBase, aliasParent)
+
+	report, err := DiscoverLocalSources(context.Background(), LocalSourceDiscoveryOptions{Roots: []string{filepath.Join(aliasParent, "apis")}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(report.Candidates) != 1 || report.Candidates[0].Path != filepath.Join(root, "openapi.json") {
+		t.Fatalf("local source report = %#v", report)
 	}
 }
 

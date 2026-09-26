@@ -23,13 +23,13 @@ const (
 
 var ErrCollision = errors.New("artifact destination collision")
 
-// EnsureRoot creates a local artifact root without following symlinked path
-// components and returns its absolute path.
+// EnsureRoot creates a local artifact root, resolving symlinked ancestors but
+// rejecting a symlink at the selected root, and returns its absolute path.
 func EnsureRoot(root string, mode fs.FileMode) (string, error) {
 	if mode.Perm() == 0 {
 		mode = 0o755
 	}
-	return ensureDirectory(root, mode.Perm())
+	return ensureRootDirectory(root, mode.Perm())
 }
 
 // CollisionError reports that an existing destination differs from the
@@ -148,7 +148,7 @@ type WriteResult struct {
 // WriteFile atomically writes relative under root. Existing identical content
 // is reused; differing content requires Force.
 func WriteFile(root, relative string, data []byte, opts WriteOptions) (WriteResult, error) {
-	rootAbs, err := ensureDirectory(root, 0o755)
+	rootAbs, err := ensureRootDirectory(root, 0o755)
 	if err != nil {
 		return WriteResult{}, err
 	}
@@ -350,10 +350,11 @@ func BeginDir(target string, force bool) (*DirTransaction, error) {
 	if isFilesystemRoot(targetAbs) {
 		return nil, fmt.Errorf("artifact transaction target must not be a filesystem root")
 	}
-	parent, err := ensureDirectory(filepath.Dir(targetAbs), 0o755)
+	parent, err := ensureDirectoryAncestors(filepath.Dir(targetAbs), 0o755)
 	if err != nil {
 		return nil, err
 	}
+	targetAbs = filepath.Join(parent, filepath.Base(targetAbs))
 	if err := rejectSymlinkTarget(targetAbs); err != nil {
 		return nil, err
 	}
@@ -569,10 +570,100 @@ func existingDirectory(path string) (string, error) {
 	if isFilesystemRoot(abs) {
 		return "", fmt.Errorf("artifact root must not be a filesystem root")
 	}
-	if err := verifyDirectoryChain(abs); err != nil {
+	parent, err := filepath.EvalSymlinks(filepath.Dir(abs))
+	if err != nil {
 		return "", err
 	}
-	return abs, nil
+	root := filepath.Join(parent, filepath.Base(abs))
+	info, err := os.Lstat(root)
+	if err != nil {
+		return "", err
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return "", fmt.Errorf("artifact directory component %q is not a regular directory", root)
+	}
+	return root, nil
+}
+
+func ensureRootDirectory(path string, mode fs.FileMode) (string, error) {
+	abs, err := filepath.Abs(strings.TrimSpace(path))
+	if err != nil {
+		return "", err
+	}
+	abs = filepath.Clean(abs)
+	if isFilesystemRoot(abs) {
+		return "", fmt.Errorf("artifact root must not be a filesystem root")
+	}
+	parent, err := ensureDirectoryAncestors(filepath.Dir(abs), mode)
+	if err != nil {
+		return "", err
+	}
+	root := filepath.Join(parent, filepath.Base(abs))
+	info, err := os.Lstat(root)
+	if errors.Is(err, fs.ErrNotExist) {
+		if err := os.Mkdir(root, mode.Perm()); err != nil {
+			return "", err
+		}
+		info, err = os.Lstat(root)
+	}
+	if err != nil {
+		return "", err
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return "", fmt.Errorf("artifact directory component %q is not a regular directory", root)
+	}
+	return root, nil
+}
+
+func ensureDirectoryAncestors(path string, mode fs.FileMode) (string, error) {
+	abs, err := filepath.Abs(strings.TrimSpace(path))
+	if err != nil {
+		return "", err
+	}
+	current := filepath.Clean(abs)
+	var missing []string
+	for {
+		_, err := os.Lstat(current)
+		if errors.Is(err, fs.ErrNotExist) {
+			parent := filepath.Dir(current)
+			if parent == current {
+				return "", err
+			}
+			missing = append(missing, filepath.Base(current))
+			current = parent
+			continue
+		}
+		if err != nil {
+			return "", err
+		}
+		resolved, err := filepath.EvalSymlinks(current)
+		if err != nil {
+			return "", err
+		}
+		info, err := os.Stat(resolved)
+		if err != nil {
+			return "", err
+		}
+		if !info.IsDir() {
+			return "", fmt.Errorf("artifact directory component %q is not a regular directory", current)
+		}
+		current = filepath.Clean(resolved)
+		break
+	}
+	for i := len(missing) - 1; i >= 0; i-- {
+		current = filepath.Join(current, missing[i])
+		if err := os.Mkdir(current, mode.Perm()); err != nil && !errors.Is(err, fs.ErrExist) {
+			return "", err
+		}
+		info, err := os.Lstat(current)
+		if err != nil {
+			return "", err
+		}
+		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+			return "", fmt.Errorf("artifact directory component %q is not a regular directory", current)
+		}
+	}
+	return current, nil
 }
 
 func ensureDirectory(path string, mode fs.FileMode) (string, error) {
@@ -607,26 +698,6 @@ func ensureDirectory(path string, mode fs.FileMode) (string, error) {
 		}
 	}
 	return abs, nil
-}
-
-func verifyDirectoryChain(path string) error {
-	volume := filepath.VolumeName(path)
-	current := volume + string(filepath.Separator)
-	remainder := strings.TrimPrefix(path, current)
-	for _, part := range strings.Split(remainder, string(filepath.Separator)) {
-		if part == "" {
-			continue
-		}
-		current = filepath.Join(current, part)
-		info, err := os.Lstat(current)
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-			return fmt.Errorf("artifact directory component %q is not a regular directory", current)
-		}
-	}
-	return nil
 }
 
 func verifyExistingParents(root, path string) error {

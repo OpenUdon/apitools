@@ -148,6 +148,14 @@ type ImportedSpec struct {
 	Metadata    SpecMetadata `json:"metadata"`
 }
 
+// ImportReport adds cache provenance to an imported document without changing
+// the historical ImportedSpec data shape.
+type ImportReport struct {
+	Imported      ImportedSpec `json:"imported"`
+	CacheStoredAt *time.Time   `json:"cache_stored_at,omitempty"`
+	CacheAge      string       `json:"cache_age,omitempty"`
+}
+
 type SpecMetadata struct {
 	Title          string `json:"title,omitempty"`
 	Description    string `json:"description,omitempty"`
@@ -294,7 +302,7 @@ func (c *Client) Search(ctx context.Context, opts SearchOptions) (SearchReport, 
 
 func (c *Client) ValidateURL(ctx context.Context, rawURL string) (SpecMetadata, error) {
 	c = c.effective()
-	_, _, metadata, err := c.downloadSpecWithCache(ctx, rawURL, CacheModeReadWrite, DefaultCacheMaxAge)
+	_, _, metadata, _, err := c.downloadSpecWithCache(ctx, rawURL, CacheModeReadWrite, DefaultCacheMaxAge)
 	return metadata, err
 }
 

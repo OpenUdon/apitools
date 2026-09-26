@@ -39,42 +39,52 @@ func (c *Client) downloadSpec(ctx context.Context, rawURL string) ([]byte, *url.
 	return content, finalURL, metadata, nil
 }
 
-func (c *Client) downloadSpecWithCache(ctx context.Context, rawURL string, mode CacheMode, maxAge time.Duration) ([]byte, *url.URL, SpecMetadata, error) {
+func (c *Client) downloadSpecWithCache(ctx context.Context, rawURL string, mode CacheMode, maxAge time.Duration) ([]byte, *url.URL, SpecMetadata, time.Time, error) {
 	c = c.effective()
 	mode, err := normalizeCacheMode(mode)
 	if err != nil {
-		return nil, nil, SpecMetadata{}, err
+		return nil, nil, SpecMetadata{}, time.Time{}, err
 	}
-	if _, err := c.validateCacheURL(ctx, rawURL); err != nil {
-		return nil, nil, SpecMetadata{}, err
+	if mode == CacheModeOffline {
+		if _, err := c.validateCacheURL(rawURL); err != nil {
+			return nil, nil, SpecMetadata{}, time.Time{}, err
+		}
+	} else if _, err := c.validateHTTPURL(ctx, rawURL); err != nil {
+		return nil, nil, SpecMetadata{}, time.Time{}, err
 	}
 	if c.Cache != nil && mode != CacheModeRefresh && mode != CacheModeBypass {
-		spec, ok, err := c.Cache.LoadSpec(ctx, rawURL, maxAge)
+		cacheMaxAge := maxAge
+		if mode == CacheModeOffline {
+			// MaxInt64 avoids changing the public Cache contract while making
+			// offline cache reads independent of freshness TTLs.
+			cacheMaxAge = time.Duration(1<<63 - 1)
+		}
+		spec, ok, err := c.Cache.LoadSpec(ctx, rawURL, cacheMaxAge)
 		if err != nil {
 			if mode == CacheModeOffline || !errors.Is(err, ErrCachedSpecIntegrity) {
-				return nil, nil, SpecMetadata{}, err
+				return nil, nil, SpecMetadata{}, time.Time{}, err
 			}
 			ok = false
 		}
 		if ok {
 			content, finalURL, metadata, err := cachedSpecContent(ctx, rawURL, spec)
 			if err == nil {
-				return content, finalURL, metadata, nil
+				return content, finalURL, metadata, spec.StoredAt, nil
 			}
 			if mode == CacheModeOffline {
-				return nil, nil, SpecMetadata{}, err
+				return nil, nil, SpecMetadata{}, time.Time{}, err
 			}
 		}
 	}
 	if mode == CacheModeOffline {
 		if c.Cache == nil {
-			return nil, nil, SpecMetadata{}, fmt.Errorf("cache is required for offline import")
+			return nil, nil, SpecMetadata{}, time.Time{}, fmt.Errorf("cache is required for offline import")
 		}
-		return nil, nil, SpecMetadata{}, fmt.Errorf("OpenAPI document %q is not cached", rawURL)
+		return nil, nil, SpecMetadata{}, time.Time{}, fmt.Errorf("OpenAPI document %q is not cached", rawURL)
 	}
 	content, finalURL, metadata, err := c.downloadSpec(ctx, rawURL)
 	if err != nil {
-		return nil, nil, SpecMetadata{}, err
+		return nil, nil, SpecMetadata{}, time.Time{}, err
 	}
 	if c.Cache != nil && mode != CacheModeBypass {
 		digest := sha256.Sum256(content)
@@ -87,10 +97,10 @@ func (c *Client) downloadSpecWithCache(ctx context.Context, rawURL string, mode 
 			Metadata:    metadata,
 		})
 		if err != nil {
-			return nil, nil, SpecMetadata{}, err
+			return nil, nil, SpecMetadata{}, time.Time{}, err
 		}
 	}
-	return content, finalURL, metadata, nil
+	return content, finalURL, metadata, time.Time{}, nil
 }
 
 func cachedSpecContent(ctx context.Context, rawURL string, spec CachedSpec) ([]byte, *url.URL, SpecMetadata, error) {
@@ -350,7 +360,7 @@ func (c *Client) validateHTTPURL(ctx context.Context, rawURL string) (*url.URL, 
 	return parsed, nil
 }
 
-func (c *Client) validateCacheURL(ctx context.Context, rawURL string) (*url.URL, error) {
+func (c *Client) validateCacheURL(rawURL string) (*url.URL, error) {
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || parsed.Scheme == "" {
 		return nil, fmt.Errorf("valid URL is required")
@@ -358,23 +368,14 @@ func (c *Client) validateCacheURL(ctx context.Context, rawURL string) (*url.URL,
 	if parsed.Host == "" {
 		return nil, fmt.Errorf("valid URL is required")
 	}
+	if strings.TrimSpace(parsed.Hostname()) == "" {
+		return nil, fmt.Errorf("valid URL is required")
+	}
 	if parsed.Scheme != "http" && parsed.Scheme != "https" {
 		return nil, fmt.Errorf("URL scheme must be http or https")
 	}
 	if parsed.User != nil {
 		return nil, fmt.Errorf("URL userinfo is not allowed")
-	}
-	if c != nil && c.AllowUnsafeHosts {
-		if err := c.validateURLPort(parsed); err != nil {
-			return nil, err
-		}
-		return parsed, nil
-	}
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	if err := c.rejectHost(ctx, parsed.Hostname()); err != nil {
-		return nil, err
 	}
 	if err := c.validateURLPort(parsed); err != nil {
 		return nil, err

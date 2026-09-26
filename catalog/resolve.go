@@ -34,6 +34,8 @@ type ResolvedReference struct {
 	Source     ResolutionSource `json:"source"`
 	Value      string           `json:"value,omitempty"`
 	SpecRefID  string           `json:"spec_ref_id,omitempty"`
+	Kind       SpecKind         `json:"kind,omitempty"`
+	Protocol   SpecProtocol     `json:"protocol,omitempty"`
 	OverlayID  string           `json:"overlay_id,omitempty"`
 	SourceNote string           `json:"source_note,omitempty"`
 }
@@ -102,7 +104,12 @@ func resolveProviderWithIndex(index *CatalogIndex, options ResolveProviderOption
 	}
 
 	if ref := strings.TrimSpace(options.UserOpenAPI); ref != "" {
-		resolved.OpenAPI = ResolvedReference{Source: ResolutionSourceUserOpenAPI, Value: ref}
+		resolved.OpenAPI = ResolvedReference{
+			Source:   ResolutionSourceUserOpenAPI,
+			Value:    ref,
+			Kind:     SpecKindOpenAPI,
+			Protocol: SpecProtocolOpenAPI,
+		}
 		resolved.SecurityStatus = AuthStatusUnknown
 		if overlay := strings.TrimSpace(options.UserSecurityOverlay); overlay != "" {
 			resolved.Security = ResolvedReference{Source: ResolutionSourceUserSecurityOverlay, Value: overlay}
@@ -114,7 +121,12 @@ func resolveProviderWithIndex(index *CatalogIndex, options ResolveProviderOption
 		resolved.SecurityStatus = AuthStatusUnknown
 	}
 	if ref := strings.TrimSpace(options.ProjectLocalOpenAPI); ref != "" {
-		resolved.OpenAPI = ResolvedReference{Source: ResolutionSourceProjectLocalOpenAPI, Value: ref}
+		resolved.OpenAPI = ResolvedReference{
+			Source:   ResolutionSourceProjectLocalOpenAPI,
+			Value:    ref,
+			Kind:     SpecKindOpenAPI,
+			Protocol: SpecProtocolOpenAPI,
+		}
 		if resolved.Security.Source == ResolutionSourceNone {
 			resolved.SecurityStatus = AuthStatusUnknown
 		}
@@ -126,6 +138,8 @@ func resolveProviderWithIndex(index *CatalogIndex, options ResolveProviderOption
 			Source:     ResolutionSourceBuiltInSpecReference,
 			Value:      spec.URL,
 			SpecRefID:  spec.ID,
+			Kind:       spec.Kind,
+			Protocol:   spec.ProtocolClassification().Protocol,
 			SourceNote: spec.SourceNote,
 		}
 	}
@@ -155,6 +169,10 @@ func resolveProviderWithIndex(index *CatalogIndex, options ResolveProviderOption
 				Source:     ResolutionSourceSecurityClassification,
 				SpecRefID:  firstString(selectedSecurity.SpecRefIDs),
 				SourceNote: firstString(selectedSecurity.SourceNotes),
+			}
+			if spec, ok := findSpecReference(provider.SpecReferences, resolved.Security.SpecRefID); ok {
+				resolved.Security.Kind = spec.Kind
+				resolved.Security.Protocol = spec.ProtocolClassification().Protocol
 			}
 		}
 	}
@@ -189,6 +207,18 @@ func preferredSpecReference(provider Provider) (SpecReference, bool) {
 			if ref.Kind == kind {
 				return ref, true
 			}
+		}
+	}
+	return SpecReference{}, false
+}
+
+func findSpecReference(references []SpecReference, id string) (SpecReference, bool) {
+	if id == "" {
+		return SpecReference{}, false
+	}
+	for _, reference := range references {
+		if reference.ID == id {
+			return reference, true
 		}
 	}
 	return SpecReference{}, false

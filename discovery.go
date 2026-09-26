@@ -72,8 +72,9 @@ func (d *Discoverer) DiscoverWithReport(ctx context.Context, exampleDir, project
 	}
 
 	var candidates []DiscoveryCandidate
+	var candidateDigests []string
 	var report DiscoveryReport
-	local, err := DiscoverOpenAPI(ctx, openAPIDir, exampleDir, projectText)
+	local, localDigests, err := discoverOpenAPIWithDigests(ctx, openAPIDir, exampleDir, projectText)
 	if err != nil {
 		return nil, report, err
 	}
@@ -84,8 +85,9 @@ func (d *Discoverer) DiscoverWithReport(ctx context.Context, exampleDir, project
 		Detail: fmt.Sprintf("%d local OpenAPI document(s)", len(local)),
 	})
 	candidates = append(candidates, local...)
+	candidateDigests = append(candidateDigests, localDigests...)
 
-	urlReport, err := d.ImportProjectURLsReport(ctx, openAPIDir, exampleDir, projectText)
+	urlReport, urlDigests, err := d.importProjectURLsReportWithDigests(ctx, openAPIDir, exampleDir, projectText)
 	report.Attempts = append(report.Attempts, urlReport.Attempts...)
 	report.Diagnostics = append(report.Diagnostics, urlReport.Diagnostics...)
 	report.Truncated = urlReport.Truncated
@@ -93,9 +95,11 @@ func (d *Discoverer) DiscoverWithReport(ctx context.Context, exampleDir, project
 		return candidates, report, err
 	}
 	candidates = append(candidates, urlReport.Candidates...)
+	candidateDigests = append(candidateDigests, urlDigests...)
+	candidates, candidateDigests = dedupeDiscoveryCandidatesByDigest(candidates, candidateDigests)
 
 	if len(candidates) == 0 {
-		fromGuru, err := d.ImportBestAPIsGuruMatch(ctx, openAPIDir, exampleDir, projectText)
+		fromGuru, digest, err := d.importBestAPIsGuruMatchWithDigest(ctx, openAPIDir, exampleDir, projectText)
 		if err != nil {
 			report.Attempts = append(report.Attempts, DiscoveryAttempt{Kind: "apis.guru", Status: "fail", Detail: err.Error()})
 			return nil, report, err
@@ -103,6 +107,7 @@ func (d *Discoverer) DiscoverWithReport(ctx context.Context, exampleDir, project
 		if fromGuru.Path != "" {
 			report.Attempts = append(report.Attempts, DiscoveryAttempt{Kind: "apis.guru", Source: fromGuru.Source, Status: "pass", Detail: fromGuru.RelativePath})
 			candidates = append(candidates, fromGuru)
+			candidateDigests = append(candidateDigests, digest)
 		}
 	}
 
@@ -128,10 +133,16 @@ func (d *Discoverer) ImportProjectURLsWithReport(ctx context.Context, openAPIDir
 
 // ImportProjectURLsReport imports project URLs with bounded diagnostics.
 func (d *Discoverer) ImportProjectURLsReport(ctx context.Context, openAPIDir, baseDir, projectText string) (ProjectURLImportReport, error) {
+	report, _, err := d.importProjectURLsReportWithDigests(ctx, openAPIDir, baseDir, projectText)
+	return report, err
+}
+
+func (d *Discoverer) importProjectURLsReportWithDigests(ctx context.Context, openAPIDir, baseDir, projectText string) (ProjectURLImportReport, []string, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	var report ProjectURLImportReport
+	var digests []string
 	seen := map[string]bool{}
 	var urls []string
 	for _, rawURL := range ExtractURLs(projectText) {
@@ -144,19 +155,19 @@ func (d *Discoverer) ImportProjectURLsReport(ctx context.Context, openAPIDir, ba
 	if len(urls) > DefaultMaxProjectURLs {
 		report.Truncated = true
 		diagnostic := Diagnostic{
-			Severity:    "error",
+			Severity:    "warning",
 			Code:        "discovery.limit.project_urls",
-			Message:     fmt.Sprintf("project text contains %d unique URLs, exceeding the %d-URL import limit", len(urls), DefaultMaxProjectURLs),
-			Remediation: "Narrow the project text to explicit API source URLs before importing.",
+			Message:     fmt.Sprintf("project text contains %d unique URLs; importing the first %d in source order", len(urls), DefaultMaxProjectURLs),
+			Remediation: "Narrow the project text to the most relevant API source URLs or call ImportProjectURLsReport with a smaller brief.",
 		}
 		report.Diagnostics = append(report.Diagnostics, diagnostic)
-		return report, DiagnosticError{Diagnostics: report.Diagnostics}
+		urls = urls[:DefaultMaxProjectURLs]
 	}
 	for _, rawURL := range urls {
 		if err := ctx.Err(); err != nil {
-			return report, err
+			return report, digests, err
 		}
-		candidate, err := d.ImportURL(ctx, openAPIDir, baseDir, rawURL, "")
+		candidate, digest, err := d.importURLWithDigest(ctx, openAPIDir, baseDir, rawURL, "")
 		if err != nil {
 			report.Attempts = append(report.Attempts, DiscoveryAttempt{Kind: "url", Source: rawURL, Status: "fail", Detail: err.Error()})
 			report.Diagnostics = append(report.Diagnostics, Diagnostic{Severity: "warning", Code: "discovery.url.import", Message: err.Error(), Path: rawURL, Remediation: "Confirm that the URL points directly to a public OpenAPI or Swagger document."})
@@ -166,19 +177,26 @@ func (d *Discoverer) ImportProjectURLsReport(ctx context.Context, openAPIDir, ba
 		candidate.Score = ScoreText(projectText, candidate.Title+" "+candidate.Description+" "+candidate.RelativePath)
 		report.Attempts = append(report.Attempts, DiscoveryAttempt{Kind: "url", Source: rawURL, Status: "pass", Detail: candidate.RelativePath})
 		report.Candidates = append(report.Candidates, candidate)
+		digests = append(digests, digest)
 	}
-	return report, nil
+	report.Candidates, digests = dedupeDiscoveryCandidatesByDigest(report.Candidates, digests)
+	return report, digests, nil
 }
 
 // DiscoverOpenAPI returns local OpenAPI document candidates under openAPIDir.
 func DiscoverOpenAPI(ctx context.Context, openAPIDir, baseDir, projectText string) ([]DiscoveryCandidate, error) {
-	results, err := LocalFiles(ctx, LocalOptions{
+	candidates, _, err := discoverOpenAPIWithDigests(ctx, openAPIDir, baseDir, projectText)
+	return candidates, err
+}
+
+func discoverOpenAPIWithDigests(ctx context.Context, openAPIDir, baseDir, projectText string) ([]DiscoveryCandidate, []string, error) {
+	results, digests, err := localFilesWithDigests(ctx, LocalOptions{
 		Dir:     openAPIDir,
 		BaseDir: baseDir,
 		Query:   projectText,
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	candidates := make([]DiscoveryCandidate, 0, len(results))
 	for _, result := range results {
@@ -191,51 +209,61 @@ func DiscoverOpenAPI(ctx context.Context, openAPIDir, baseDir, projectText strin
 			Score:        result.Score,
 		})
 	}
-	return candidates, nil
+	return candidates, digests, nil
 }
 
 func (d *Discoverer) ImportBestAPIsGuruMatch(ctx context.Context, openAPIDir, baseDir, projectText string) (DiscoveryCandidate, error) {
+	candidate, _, err := d.importBestAPIsGuruMatchWithDigest(ctx, openAPIDir, baseDir, projectText)
+	return candidate, err
+}
+
+func (d *Discoverer) importBestAPIsGuruMatchWithDigest(ctx context.Context, openAPIDir, baseDir, projectText string) (DiscoveryCandidate, string, error) {
 	report, err := d.searchClient().Search(ctx, SearchOptions{
 		Query:  projectText,
 		Limit:  1,
 		Source: SourceAPIsGuru,
 	})
 	if err != nil {
-		return DiscoveryCandidate{}, err
+		return DiscoveryCandidate{}, "", err
 	}
 	if len(report.Results) == 0 {
-		return DiscoveryCandidate{}, fmt.Errorf("no APIs.guru match found for project brief")
+		return DiscoveryCandidate{}, "", fmt.Errorf("no APIs.guru match found for project brief")
 	}
 
 	best := report.Results[0]
-	candidate, err := d.ImportURL(ctx, openAPIDir, baseDir, best.SpecURL, best.Provider)
+	candidate, digest, err := d.importURLWithDigest(ctx, openAPIDir, baseDir, best.SpecURL, best.Provider)
 	if err != nil {
-		return DiscoveryCandidate{}, err
+		return DiscoveryCandidate{}, "", err
 	}
 	candidate.Source = "apis.guru:" + best.Provider
 	candidate.Score = best.Score
-	return candidate, nil
+	return candidate, digest, nil
 }
 
 func (d *Discoverer) ImportURL(ctx context.Context, openAPIDir, baseDir, rawURL, suggestedName string) (DiscoveryCandidate, error) {
+	candidate, _, err := d.importURLWithDigest(ctx, openAPIDir, baseDir, rawURL, suggestedName)
+	return candidate, err
+}
+
+func (d *Discoverer) importURLWithDigest(ctx context.Context, openAPIDir, baseDir, rawURL, suggestedName string) (DiscoveryCandidate, string, error) {
 	imported, err := d.searchClient().Import(ctx, ImportOptions{
 		URL:  rawURL,
 		Dir:  openAPIDir,
 		Name: suggestedName,
 	})
 	if err != nil {
-		return DiscoveryCandidate{}, err
+		return DiscoveryCandidate{}, "", err
 	}
 	rel, err := filepath.Rel(baseDir, imported.Path)
 	if err != nil {
-		return DiscoveryCandidate{}, err
+		return DiscoveryCandidate{}, "", err
 	}
 	return DiscoveryCandidate{
 		Path:         imported.Path,
 		RelativePath: filepath.ToSlash(rel),
 		Title:        imported.Title,
 		Description:  imported.Description,
-	}, nil
+	}, imported.SHA256, nil
 }
 
 func (d *Discoverer) searchClient() *Client {
@@ -265,6 +293,27 @@ func sortDiscoveryCandidates(candidates []DiscoveryCandidate) {
 		}
 		return candidates[i].RelativePath < candidates[j].RelativePath
 	})
+}
+
+func dedupeDiscoveryCandidatesByDigest(candidates []DiscoveryCandidate, digests []string) ([]DiscoveryCandidate, []string) {
+	seen := make(map[string]bool, len(candidates))
+	unique := make([]DiscoveryCandidate, 0, len(candidates))
+	uniqueDigests := make([]string, 0, len(candidates))
+	for i, candidate := range candidates {
+		var digest string
+		if i < len(digests) {
+			digest = strings.ToLower(strings.TrimSpace(digests[i]))
+		}
+		if digest != "" && seen[digest] {
+			continue
+		}
+		if digest != "" {
+			seen[digest] = true
+		}
+		unique = append(unique, candidate)
+		uniqueDigests = append(uniqueDigests, digest)
+	}
+	return unique, uniqueDigests
 }
 
 var discoveryURLPattern = regexp.MustCompile(`https?://[^\s<>"')]+`)

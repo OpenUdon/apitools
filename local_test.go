@@ -50,6 +50,28 @@ paths:
 	}
 }
 
+func TestLocalFilesResolvesSymlinkedAncestorsOfScanRoot(t *testing.T) {
+	realBase := t.TempDir()
+	dir := filepath.Join(realBase, "openapi")
+	if err := os.Mkdir(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeLocalFile(t, filepath.Join(dir, "support.yaml"), validLocalSpec("Support API", "Support"))
+	aliasParent := filepath.Join(t.TempDir(), "workspace")
+	symlinkOrSkip(t, realBase, aliasParent)
+
+	got, err := LocalFiles(context.Background(), LocalOptions{
+		Dir:     filepath.Join(aliasParent, "openapi"),
+		BaseDir: aliasParent,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || got[0].RelativePath != "openapi/support.yaml" || got[0].Path != filepath.Join(dir, "support.yaml") {
+		t.Fatalf("local results = %#v", got)
+	}
+}
+
 func TestLocalFilesFindsDraftOpenAPIDocuments(t *testing.T) {
 	base := t.TempDir()
 	dir := filepath.Join(base, "openapi")
@@ -118,7 +140,7 @@ func TestLocalFilesRejectsSymlinkedRoot(t *testing.T) {
 	}
 }
 
-func TestLocalFilesRejectsSymlinkedCandidates(t *testing.T) {
+func TestLocalFilesSkipsSymlinkedCandidatesAndKeepsScanning(t *testing.T) {
 	base := t.TempDir()
 	dir := filepath.Join(base, "openapi")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -128,13 +150,16 @@ func TestLocalFilesRejectsSymlinkedCandidates(t *testing.T) {
 	writeLocalFile(t, target, validLocalSpec("Target API", "Target"))
 	symlinkOrSkip(t, target, filepath.Join(dir, "support.yaml"))
 
-	_, err := LocalFiles(context.Background(), LocalOptions{Dir: dir, BaseDir: base})
-	if err == nil || !strings.Contains(err.Error(), "symlink") {
-		t.Fatalf("expected symlink error, got %v", err)
+	got, err := LocalFiles(context.Background(), LocalOptions{Dir: dir, BaseDir: base})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 0 {
+		t.Fatalf("symlink candidate was included: %#v", got)
 	}
 }
 
-func TestLocalFilesRejectsSymlinkedCandidateInsideRoot(t *testing.T) {
+func TestLocalFilesKeepsRegularCandidateBesideSymlink(t *testing.T) {
 	base := t.TempDir()
 	dir := filepath.Join(base, "openapi")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -144,23 +169,72 @@ func TestLocalFilesRejectsSymlinkedCandidateInsideRoot(t *testing.T) {
 	writeLocalFile(t, target, validLocalSpec("Target API", "Target"))
 	symlinkOrSkip(t, target, filepath.Join(dir, "support.yaml"))
 
-	_, err := LocalFiles(context.Background(), LocalOptions{Dir: dir, BaseDir: base})
-	if err == nil || !strings.Contains(err.Error(), "symlink") {
-		t.Fatalf("expected symlink error, got %v", err)
+	got, err := LocalFiles(context.Background(), LocalOptions{Dir: dir, BaseDir: base})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || got[0].Path != target {
+		t.Fatalf("results = %#v, want the regular target only", got)
 	}
 }
 
-func TestLocalFilesRejectsOversizedCandidates(t *testing.T) {
+func TestLocalFilesSkipsOversizedCandidatesAndKeepsValid(t *testing.T) {
 	base := t.TempDir()
 	dir := filepath.Join(base, "openapi")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	writeLocalFile(t, filepath.Join(dir, "support.yaml"), validLocalSpec("Support API", "Support"))
+	valid := validLocalSpec("Support API", "Support")
+	writeLocalFile(t, filepath.Join(dir, "support.yaml"), valid)
+	maxBytes := int64(len(valid) + 1)
+	writeLocalFile(t, filepath.Join(dir, "oversized.yaml"), strings.Repeat("x", int(maxBytes)+10))
 
-	_, err := LocalFiles(context.Background(), LocalOptions{Dir: dir, BaseDir: base, MaxBytes: 8})
-	if err == nil || !strings.Contains(err.Error(), "larger than 8 bytes") {
-		t.Fatalf("expected size error, got %v", err)
+	got, err := LocalFiles(context.Background(), LocalOptions{Dir: dir, BaseDir: base, MaxBytes: maxBytes})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || got[0].Path != filepath.Join(dir, "support.yaml") {
+		t.Fatalf("results = %#v, want the valid candidate only", got)
+	}
+}
+
+func TestLocalFilesDeduplicatesAndEnforcesTraversalBounds(t *testing.T) {
+	base := t.TempDir()
+	dir := filepath.Join(base, "openapi")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	content := validLocalSpec("Support API", "Support")
+	writeLocalFile(t, filepath.Join(dir, "a.yaml"), content)
+	writeLocalFile(t, filepath.Join(dir, "b.yaml"), content)
+	got, err := LocalFiles(context.Background(), LocalOptions{Dir: dir, BaseDir: base})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || got[0].RelativePath != "openapi/a.yaml" {
+		t.Fatalf("deduplicated results = %#v", got)
+	}
+
+	writeLocalFile(t, filepath.Join(dir, "c.yaml"), validLocalSpec("Mail API", "Mail"))
+	visitBound, err := discoverLocalSources(context.Background(), LocalSourceDiscoveryOptions{
+		Roots:             []string{dir},
+		MaxVisitedEntries: 2,
+	}, true, base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !visitBound.report.Truncated || len(visitBound.localResults) > 1 || len(visitBound.report.Diagnostics) == 0 || !strings.Contains(visitBound.report.Diagnostics[0].Message, "visit limit") {
+		t.Fatalf("bounded traversal = %#v, results %#v", visitBound.report, visitBound.localResults)
+	}
+	candidateBound, err := discoverLocalSources(context.Background(), LocalSourceDiscoveryOptions{
+		Roots:         []string{dir},
+		MaxCandidates: 1,
+	}, true, base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !candidateBound.report.Truncated || len(candidateBound.localResults) != 1 || len(candidateBound.report.Diagnostics) == 0 || !strings.Contains(candidateBound.report.Diagnostics[0].Message, "candidate acceptance limit") {
+		t.Fatalf("bounded candidates = %#v, results %#v", candidateBound.report, candidateBound.localResults)
 	}
 }
 

@@ -126,7 +126,7 @@ func sanitizeInventory(inventory *OperationInventory, budget PromptBudget) {
 		if sanitizeDocumentSummary(&inventory.Documents[i], budget) {
 			inventory.Diagnostics = append(inventory.Diagnostics, Diagnostic{
 				Severity: "warning", Code: "prompt.document_sanitized",
-				Message:     "document metadata contained controls or values beyond the prompt-safety budget and was sanitized",
+				Message:     "document metadata contained unsafe controls, invisible Unicode, or values beyond the prompt-safety budget and was sanitized",
 				Path:        inventory.Documents[i].Path,
 				Remediation: "Review the source metadata if the removed or shortened text is required.",
 			})
@@ -193,7 +193,7 @@ func sanitizeOperationSummary(operation *OperationSummary, budget PromptBudget) 
 	}
 	severity := "warning"
 	code := "prompt.operation_sanitized"
-	message := "operation metadata contained controls or values beyond the prompt-safety budget and was sanitized"
+	message := "operation metadata contained unsafe controls, invisible Unicode, or values beyond the prompt-safety budget and was sanitized"
 	remediation := "Review the source metadata if the removed or shortened text is required."
 	if compacted {
 		severity = "error"
@@ -436,7 +436,7 @@ func sanitizePromptString(value string, maxRunes int) (string, bool) {
 	var builder strings.Builder
 	removedControl := value != original
 	for _, r := range value {
-		if unicode.IsControl(r) {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || isVariationSelector(r) || isUnicodeTagCharacter(r) {
 			builder.WriteByte(' ')
 			removedControl = true
 			continue
@@ -454,6 +454,14 @@ func sanitizePromptString(value string, maxRunes int) (string, bool) {
 		}
 	}
 	return value, removedControl || truncated
+}
+
+func isVariationSelector(r rune) bool {
+	return r >= 0xFE00 && r <= 0xFE0F || r >= 0xE0100 && r <= 0xE01EF
+}
+
+func isUnicodeTagCharacter(r rune) bool {
+	return r >= 0xE0000 && r <= 0xE007F
 }
 
 func compactOperationDetails(operation *OperationSummary) {

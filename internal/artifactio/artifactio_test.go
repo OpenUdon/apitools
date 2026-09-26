@@ -77,8 +77,51 @@ func TestArtifactRootsAndParentsRejectSymlinks(t *testing.T) {
 	if _, err := ReadFile(root, "linked-parent/source", ReadOptions{}); err == nil || !strings.Contains(err.Error(), "directory component") {
 		t.Fatalf("expected symlink parent rejection, got %v", err)
 	}
-	if _, err := BeginDir(filepath.Join(root, "linked-parent", "output"), true); err == nil || !strings.Contains(err.Error(), "directory component") {
-		t.Fatalf("expected transaction parent rejection, got %v", err)
+	tx, err := BeginDir(filepath.Join(root, "linked-parent", "output"), true)
+	if err != nil {
+		t.Fatalf("expected transaction target to resolve its symlinked ancestor, got %v", err)
+	}
+	if want := filepath.Join(outsideDir, "output"); tx.target != want {
+		t.Fatalf("transaction target = %q, want canonical path %q", tx.target, want)
+	}
+	if err := tx.Rollback(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestArtifactRootsResolveSymlinkedAncestors(t *testing.T) {
+	realParent := t.TempDir()
+	aliasParent := filepath.Join(t.TempDir(), "workspace")
+	if err := os.Symlink(realParent, aliasParent); err != nil {
+		t.Skipf("symlinks unavailable: %v", err)
+	}
+
+	rootAlias := filepath.Join(aliasParent, "new", "artifacts")
+	root, err := EnsureRoot(rootAlias, 0o700)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantRoot := filepath.Join(realParent, "new", "artifacts")
+	if root != wantRoot {
+		t.Fatalf("EnsureRoot() = %q, want canonical root %q", root, wantRoot)
+	}
+	if _, err := WriteFile(rootAlias, "source.json", []byte("source"), WriteOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	file, err := ReadFile(rootAlias, "source.json", ReadOptions{})
+	if err != nil || string(file.Data) != "source" {
+		t.Fatalf("ReadFile() = %#v, %v", file, err)
+	}
+
+	tx, err := BeginDir(filepath.Join(aliasParent, "new", "transaction"), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tx.Stage("result.txt", []byte("result"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tx.Commit(); err != nil {
+		t.Fatal(err)
 	}
 }
 

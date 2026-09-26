@@ -584,21 +584,76 @@ func TestCachedSpecRevalidatedBeforeImport(t *testing.T) {
 	}
 }
 
-func TestOfflineCachedPrivateURLRejectedByDefault(t *testing.T) {
+func TestOfflineCachedPrivateURLUsesCacheWithoutHostResolution(t *testing.T) {
 	rawURL := "http://127.0.0.1/openapi.yaml"
-	cache := fakeCache{
-		loadSpec: func(context.Context, string, time.Duration) (CachedSpec, bool, error) {
-			t.Fatalf("LoadSpec should not be called for unsafe URL")
-			return CachedSpec{}, false, nil
-		},
-	}
-	_, err := (&Client{Cache: cache}).Import(context.Background(), ImportOptions{
+	_, err := (&Client{Cache: validSpecCache(rawURL)}).Import(context.Background(), ImportOptions{
 		URL:       rawURL,
 		Dir:       t.TempDir(),
 		CacheMode: CacheModeOffline,
 	})
+	if err != nil {
+		t.Fatalf("expected offline cached private URL import without network validation, got %v", err)
+	}
+}
+
+func TestOfflineCacheURLRejectsEmptyHostname(t *testing.T) {
+	if _, err := (&Client{}).validateCacheURL("http://:80/openapi.yaml"); err == nil || !strings.Contains(err.Error(), "valid URL") {
+		t.Fatalf("expected empty-host URL rejection, got %v", err)
+	}
+}
+
+func TestReadWriteCachedPrivateURLStillRejectsHostBeforeCache(t *testing.T) {
+	rawURL := "http://127.0.0.1/openapi.yaml"
+	cache := fakeCache{
+		loadSpec: func(context.Context, string, time.Duration) (CachedSpec, bool, error) {
+			t.Fatal("LoadSpec should not be called for an unsafe fetch URL")
+			return CachedSpec{}, false, nil
+		},
+	}
+	_, err := (&Client{Cache: cache}).ValidateURL(context.Background(), rawURL)
 	if err == nil || !strings.Contains(err.Error(), "refusing private") {
-		t.Fatalf("expected private URL rejection, got %v", err)
+		t.Fatalf("expected private host rejection before cache access, got %v", err)
+	}
+}
+
+func TestOfflineCachedSpecSkipsDNSAndTTLAndReportsAge(t *testing.T) {
+	rawURL := "https://not-resolvable.invalid/openapi.yaml"
+	storedAt := time.Now().UTC().Add(-48 * time.Hour).Truncate(time.Second)
+	content := validOpenAPI3YAML()
+	digest := sha256.Sum256(content)
+	var requestedMaxAge time.Duration
+	cache := fakeCache{loadSpec: func(_ context.Context, url string, maxAge time.Duration) (CachedSpec, bool, error) {
+		if url != rawURL {
+			t.Fatalf("LoadSpec URL = %q, want %q", url, rawURL)
+		}
+		requestedMaxAge = maxAge
+		return CachedSpec{
+			OriginalURL: rawURL,
+			FinalURL:    rawURL,
+			Content:     content,
+			SHA256:      hex.EncodeToString(digest[:]),
+			Bytes:       int64(len(content)),
+			StoredAt:    storedAt,
+		}, true, nil
+	}}
+	importReport, err := (&Client{Cache: cache}).ImportWithReport(context.Background(), ImportOptions{
+		URL:         rawURL,
+		Dir:         t.TempDir(),
+		CacheMode:   CacheModeOffline,
+		CacheMaxAge: time.Hour,
+	})
+	if err != nil {
+		t.Fatalf("offline import failed: %v", err)
+	}
+	if requestedMaxAge != time.Duration(1<<63-1) {
+		t.Fatalf("LoadSpec maxAge = %s, want TTL-independent sentinel", requestedMaxAge)
+	}
+	if importReport.CacheStoredAt == nil || !importReport.CacheStoredAt.Equal(storedAt) {
+		t.Fatalf("CacheStoredAt = %v, want %s", importReport.CacheStoredAt, storedAt)
+	}
+	age, err := time.ParseDuration(importReport.CacheAge)
+	if err != nil || age < 47*time.Hour {
+		t.Fatalf("CacheAge = %q (%v), want age near 48 hours", importReport.CacheAge, err)
 	}
 }
 
@@ -611,6 +666,16 @@ func TestOfflineCachedPrivateURLAllowedWhenUnsafeHostsAllowed(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("expected cached private URL import with AllowUnsafeHosts, got %v", err)
+	}
+}
+
+func TestImportReportOmitsCacheAgeWhenNoCacheEntryWasUsed(t *testing.T) {
+	encoded, err := json.Marshal(ImportReport{Imported: ImportedSpec{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), "cache_stored_at") || strings.Contains(string(encoded), "cache_age") {
+		t.Fatalf("uncached import JSON contains cache metadata: %s", encoded)
 	}
 }
 

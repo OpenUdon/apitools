@@ -21,12 +21,15 @@ const (
 	SecurityAuditArtifactMissingFile                 = "missing-file"
 	SecurityAuditArtifactNotOpenAPI                  = "not-openapi-or-swagger"
 	SecurityAuditArtifactHasSecurityMetadata         = "has-security-metadata"
+	SecurityAuditArtifactPartialOperationSecurity    = "partial-operation-security"
 	SecurityAuditArtifactMissingSecurityMetadata     = "missing-security-metadata"
 	SecurityAuditArtifactMissingSecuritySchemes      = "missing-security-schemes"
 	SecurityAuditArtifactMissingSecurityRequirements = "missing-security-requirements"
 	SecurityAuditArtifactUndeclaredSecuritySchemes   = "undeclared-security-schemes"
 	SecurityAuditArtifactUnparseable                 = "unparseable"
 )
+
+const partialOperationSecurityFollowUp = "Confirm operations without a declared security requirement are intentionally anonymous, or add reviewed operation security requirements."
 
 // CatalogSecurityAuditOptions controls offline audit of built-in provider
 // security metadata. The audit never fetches remote documents, resolves
@@ -88,21 +91,23 @@ type CatalogSecurityAuditRow struct {
 // CatalogSecurityArtifactAuditRow records security metadata found in one local
 // OpenAPI or Swagger artifact.
 type CatalogSecurityArtifactAuditRow struct {
-	ProviderID                    string   `json:"provider_id"`
-	SpecRefID                     string   `json:"spec_ref_id"`
-	Kind                          string   `json:"kind,omitempty"`
-	Path                          string   `json:"path,omitempty"`
-	Status                        string   `json:"status"`
-	Exists                        bool     `json:"exists,omitempty"`
-	SecuritySchemeCount           int      `json:"security_scheme_count,omitempty"`
-	RootSecurityRequirementCount  int      `json:"root_security_requirement_count,omitempty"`
-	OperationCount                int      `json:"operation_count,omitempty"`
-	OperationSecurityCount        int      `json:"operation_security_count,omitempty"`
-	UndeclaredSecuritySchemes     []string `json:"undeclared_security_schemes,omitempty"`
-	ParseError                    string   `json:"parse_error,omitempty"`
-	SecurityDefinitionsInspected  bool     `json:"security_definitions_inspected,omitempty"`
-	SecurityRequirementsInspected bool     `json:"security_requirements_inspected,omitempty"`
-	ManualFollowUps               []string `json:"manual_follow_ups,omitempty"`
+	ProviderID                        string   `json:"provider_id"`
+	SpecRefID                         string   `json:"spec_ref_id"`
+	Kind                              string   `json:"kind,omitempty"`
+	Path                              string   `json:"path,omitempty"`
+	Status                            string   `json:"status"`
+	Exists                            bool     `json:"exists,omitempty"`
+	SecuritySchemeCount               int      `json:"security_scheme_count,omitempty"`
+	RootSecurityDeclared              bool     `json:"root_security_declared,omitempty"`
+	RootSecurityRequirementCount      int      `json:"root_security_requirement_count,omitempty"`
+	OperationCount                    int      `json:"operation_count,omitempty"`
+	OperationSecurityCount            int      `json:"operation_security_count,omitempty"`
+	OperationSecurityDeclarationCount int      `json:"operation_security_declaration_count,omitempty"`
+	UndeclaredSecuritySchemes         []string `json:"undeclared_security_schemes,omitempty"`
+	ParseError                        string   `json:"parse_error,omitempty"`
+	SecurityDefinitionsInspected      bool     `json:"security_definitions_inspected,omitempty"`
+	SecurityRequirementsInspected     bool     `json:"security_requirements_inspected,omitempty"`
+	ManualFollowUps                   []string `json:"manual_follow_ups,omitempty"`
 }
 
 // BuiltInCatalogSecurityAuditReport audits the built-in provider catalog.
@@ -316,15 +321,21 @@ func auditOpenAPISecurityArtifact(providerID, specRefID string, artifact catalog
 	}
 	schemes := securitySchemes(root)
 	row.SecuritySchemeCount = len(schemes)
+	_, row.RootSecurityDeclared = root["security"].([]any)
 	rootNames := securityRequirementNames(root["security"])
-	row.RootSecurityRequirementCount = len(rootNames)
+	row.RootSecurityRequirementCount = len(sliceValue(root["security"]))
 	row.SecurityDefinitionsInspected = true
 	row.SecurityRequirementsInspected = true
-	opCount, opSecCount, undeclared := operationSecurityAuditCounts(root, schemes)
+	opCount, opSecCount, opDeclarationCount, undeclared := operationSecurityAuditCounts(root, schemes)
 	row.OperationCount = opCount
 	row.OperationSecurityCount = opSecCount
+	row.OperationSecurityDeclarationCount = opDeclarationCount
 	undeclared = append(undeclared, undeclaredSecurityRequirementNames(rootNames, schemes)...)
 	row.UndeclaredSecuritySchemes = sortedUniqueStrings(undeclared)
+	partialCoverage := isPartialOperationSecurity(row)
+	if partialCoverage {
+		row.ManualFollowUps = append(row.ManualFollowUps, partialOperationSecurityFollowUp)
+	}
 	switch {
 	case len(row.UndeclaredSecuritySchemes) > 0 && row.SecuritySchemeCount == 0:
 		row.Status = SecurityAuditArtifactMissingSecuritySchemes
@@ -332,15 +343,14 @@ func auditOpenAPISecurityArtifact(providerID, specRefID string, artifact catalog
 	case len(row.UndeclaredSecuritySchemes) > 0:
 		row.Status = SecurityAuditArtifactUndeclaredSecuritySchemes
 		row.ManualFollowUps = append(row.ManualFollowUps, "Review upstream security requirements that reference undeclared schemes.")
-	case row.SecuritySchemeCount == 0 && row.RootSecurityRequirementCount == 0 && row.OperationSecurityCount == 0:
+	case row.SecuritySchemeCount == 0 && !row.RootSecurityDeclared && row.OperationSecurityDeclarationCount == 0:
 		row.Status = SecurityAuditArtifactMissingSecurityMetadata
 		row.ManualFollowUps = append(row.ManualFollowUps, "Review provider auth docs and add a source-backed security overlay if endpoints are protected.")
-	case row.SecuritySchemeCount == 0:
-		row.Status = SecurityAuditArtifactMissingSecuritySchemes
-		row.ManualFollowUps = append(row.ManualFollowUps, "Review provider auth docs and add a source-backed security overlay if endpoints are protected.")
-	case row.RootSecurityRequirementCount == 0 && row.OperationSecurityCount == 0:
+	case !row.RootSecurityDeclared && row.OperationSecurityDeclarationCount == 0:
 		row.Status = SecurityAuditArtifactMissingSecurityRequirements
 		row.ManualFollowUps = append(row.ManualFollowUps, "Review provider auth docs and add root or operation security overlay metadata if endpoints are protected.")
+	case partialCoverage:
+		row.Status = SecurityAuditArtifactPartialOperationSecurity
 	default:
 		row.Status = SecurityAuditArtifactHasSecurityMetadata
 	}
@@ -352,7 +362,8 @@ func applyCoveredSecurityArtifactFollowUp(row *CatalogSecurityArtifactAuditRow, 
 	case SecurityAuditArtifactMissingSecurityMetadata,
 		SecurityAuditArtifactMissingSecuritySchemes,
 		SecurityAuditArtifactMissingSecurityRequirements,
-		SecurityAuditArtifactUndeclaredSecuritySchemes:
+		SecurityAuditArtifactUndeclaredSecuritySchemes,
+		SecurityAuditArtifactPartialOperationSecurity:
 	default:
 		return
 	}
@@ -362,6 +373,9 @@ func applyCoveredSecurityArtifactFollowUp(row *CatalogSecurityArtifactAuditRow, 
 	}
 	row.ManualFollowUps = []string{
 		fmt.Sprintf("Reviewed by catalog security overlay(s) %s; upstream artifact still reports %s for source review.", strings.Join(overlayIDs, ", "), row.Status),
+	}
+	if isPartialOperationSecurity(*row) {
+		row.ManualFollowUps = append(row.ManualFollowUps, partialOperationSecurityFollowUp)
 	}
 }
 
@@ -395,7 +409,7 @@ func securityRequirementNames(value any) []string {
 	return sortedUniqueStrings(out)
 }
 
-func operationSecurityAuditCounts(root map[string]any, schemes map[string]SecuritySummary) (operationCount int, operationSecurityCount int, undeclared []string) {
+func operationSecurityAuditCounts(root map[string]any, schemes map[string]SecuritySummary) (operationCount int, operationSecurityCount int, operationSecurityDeclarationCount int, undeclared []string) {
 	for _, pathItemValue := range mapValue(root["paths"]) {
 		pathItem := mapValue(pathItemValue)
 		for _, method := range operationMethods(pathItem) {
@@ -405,6 +419,10 @@ func operationSecurityAuditCounts(root map[string]any, schemes map[string]Securi
 			if !ok {
 				continue
 			}
+			if _, ok := value.([]any); !ok {
+				continue
+			}
+			operationSecurityDeclarationCount++
 			names := securityRequirementNames(value)
 			if len(names) == 0 {
 				continue
@@ -413,7 +431,7 @@ func operationSecurityAuditCounts(root map[string]any, schemes map[string]Securi
 			undeclared = append(undeclared, undeclaredSecurityRequirementNames(names, schemes)...)
 		}
 	}
-	return operationCount, operationSecurityCount, sortedUniqueStrings(undeclared)
+	return operationCount, operationSecurityCount, operationSecurityDeclarationCount, sortedUniqueStrings(undeclared)
 }
 
 func undeclaredSecurityRequirementNames(names []string, schemes map[string]SecuritySummary) []string {
@@ -441,6 +459,9 @@ func catalogSecurityDisposition(security catalog.ProviderSecurityReport, artifac
 		if hasArtifactSecurityFinding(artifacts) {
 			followUps = append(followUps, "Review local OpenAPI/Swagger artifact security metadata before changing classification.")
 		}
+		if hasPartialOperationSecurity(artifacts) {
+			followUps = append(followUps, partialOperationSecurityFollowUp)
+		}
 		return SecurityAuditDispositionPresentIncompleteReviewed, reasons, followUps
 	case security.Status == catalog.AuthStatusIntentionallyAnonymous:
 		reasons = append(reasons, "provider source is intentionally anonymous or public")
@@ -466,11 +487,26 @@ func catalogSecurityDisposition(security catalog.ProviderSecurityReport, artifac
 func hasArtifactSecurityFinding(artifacts []CatalogSecurityArtifactAuditRow) bool {
 	for _, artifact := range artifacts {
 		switch artifact.Status {
-		case SecurityAuditArtifactMissingSecurityMetadata, SecurityAuditArtifactMissingSecuritySchemes, SecurityAuditArtifactMissingSecurityRequirements, SecurityAuditArtifactUndeclaredSecuritySchemes:
+		case SecurityAuditArtifactPartialOperationSecurity, SecurityAuditArtifactMissingSecurityMetadata, SecurityAuditArtifactMissingSecuritySchemes, SecurityAuditArtifactMissingSecurityRequirements, SecurityAuditArtifactUndeclaredSecuritySchemes:
 			return true
 		}
 	}
 	return false
+}
+
+func hasPartialOperationSecurity(artifacts []CatalogSecurityArtifactAuditRow) bool {
+	for _, artifact := range artifacts {
+		if isPartialOperationSecurity(artifact) {
+			return true
+		}
+	}
+	return false
+}
+
+func isPartialOperationSecurity(artifact CatalogSecurityArtifactAuditRow) bool {
+	return !artifact.RootSecurityDeclared &&
+		artifact.OperationSecurityCount > 0 &&
+		artifact.OperationSecurityDeclarationCount < artifact.OperationCount
 }
 
 func buildCatalogSecurityAuditSummary(rows []CatalogSecurityAuditRow) CatalogSecurityAuditSummary {

@@ -5,9 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/fs"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -17,7 +15,7 @@ type LocalOptions struct {
 	Dir      string
 	BaseDir  string
 	Query    string
-	MaxBytes int64
+	MaxBytes int64 // per-file limit; zero uses DefaultMaxBytes
 }
 
 type LocalResult struct {
@@ -30,69 +28,56 @@ type LocalResult struct {
 }
 
 // LocalFiles discovers OpenAPI or Swagger documents already present on disk.
-// Invalid documents are ignored so callers can scan mixed project directories.
+// Invalid or unreadable entries are ignored so callers can scan mixed project
+// directories. Traversal, candidate, and per-file byte limits are bounded;
+// reaching a traversal or candidate limit returns an error with partial results.
+// Use DiscoverLocalSources when structured per-entry rejection details are needed.
 func LocalFiles(ctx context.Context, opts LocalOptions) ([]LocalResult, error) {
+	results, _, err := localFilesWithDigests(ctx, opts)
+	return results, err
+}
+
+func localFilesWithDigests(ctx context.Context, opts LocalOptions) ([]LocalResult, []string, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	dir := strings.TrimSpace(opts.Dir)
 	if dir == "" {
-		return nil, fmt.Errorf("local OpenAPI directory is required")
+		return nil, nil, fmt.Errorf("local OpenAPI directory is required")
+	}
+	dir, _, err := resolveLocalScanRoot(dir)
+	if err != nil {
+		return nil, nil, err
 	}
 	baseDir := strings.TrimSpace(opts.BaseDir)
 	if baseDir == "" {
 		baseDir = dir
+	} else {
+		baseDir, err = filepath.Abs(baseDir)
+		if err != nil {
+			return nil, nil, err
+		}
+		baseDir = filepath.Clean(baseDir)
+		if resolved, resolveErr := filepath.EvalSymlinks(baseDir); resolveErr == nil {
+			baseDir = resolved
+		}
 	}
-	if err := validateLocalScanRoot(dir); err != nil {
-		return nil, err
-	}
-	var results []LocalResult
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if ctxErr := ctx.Err(); ctxErr != nil {
-			return ctxErr
-		}
-		if d.Type()&fs.ModeSymlink != 0 {
-			return fmt.Errorf("local OpenAPI path %q is a symlink", path)
-		}
-		if d.IsDir() || !hasOpenAPIFileExt(path) {
-			return nil
-		}
-		content, err := readLocalSpecFile(path, opts.MaxBytes)
-		if err != nil {
-			return err
-		}
-		metadata, ok := localSpecMetadata(ctx, content)
-		if !ok {
-			return nil
-		}
-		rel, err := filepath.Rel(baseDir, path)
-		if err != nil {
-			return err
-		}
-		rel = filepath.ToSlash(rel)
-		results = append(results, LocalResult{
-			Path:         path,
-			RelativePath: rel,
-			Title:        metadata.Title,
-			Description:  metadata.Description,
-			Score:        ScoreText(opts.Query, metadata.Title+" "+metadata.Description+" "+rel),
-			Metadata:     metadata,
-		})
-		return nil
-	})
+	state, err := discoverLocalSources(ctx, LocalSourceDiscoveryOptions{
+		Roots:    []string{dir},
+		Query:    opts.Query,
+		MaxBytes: opts.MaxBytes,
+	}, true, baseDir)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	sort.SliceStable(results, func(i, j int) bool {
-		if results[i].Score != results[j].Score {
-			return results[i].Score > results[j].Score
-		}
-		return results[i].RelativePath < results[j].RelativePath
-	})
-	return results, nil
+	digests := make([]string, len(state.localResults))
+	for i, result := range state.localResults {
+		digests[i] = state.localResultDigests[result.Path]
+	}
+	if state.report.Truncated && len(state.report.Diagnostics) > 0 {
+		return state.localResults, digests, fmt.Errorf("local OpenAPI scan is incomplete: %s", state.report.Diagnostics[0].Message)
+	}
+	return state.localResults, digests, nil
 }
 
 func localSpecMetadata(ctx context.Context, content []byte) (SpecMetadata, bool) {

@@ -1,7 +1,9 @@
 package operationlifecycle
 
 import (
+	"net/url"
 	"path"
+	"path/filepath"
 	"slices"
 	"strings"
 	"unicode"
@@ -70,15 +72,24 @@ type candidateScore struct {
 // sibling operations when one same-source candidate is clearly stronger for a
 // role; ambiguous role matches are diagnosed and omitted.
 func Expand(operations []apitools.OperationSummary, seed apitools.OperationSummary, opts Options) Expansion {
-	seed = normalizeSeed(operations, seed)
+	var seedDiagnostic Diagnostic
+	seed, seedDiagnostic = normalizeSeed(operations, seed)
 	seedID := operationID(seed)
 	out := Expansion{SeedOperationID: seedID, FamilyKey: familyKey(seed)}
+	if seedDiagnostic.Code != "" {
+		out.Diagnostics = append(out.Diagnostics, seedDiagnostic)
+		return out
+	}
 	if seedID == "" {
 		out.Diagnostics = append(out.Diagnostics, Diagnostic{Code: "operation_lifecycle.seed_missing", Severity: "warning", Message: "seed operation is empty"})
 		return out
 	}
+	seedPurpose := lifecyclePurpose(seed)
 	siblings := map[string]candidateScore{}
 	for _, role := range []string{"read", "update", "delete"} {
+		if role == seedPurpose {
+			continue
+		}
 		if role == "update" && !goalWantsUpdate(opts.Goal) {
 			continue
 		}
@@ -108,37 +119,102 @@ func Expand(operations []apitools.OperationSummary, seed apitools.OperationSumma
 	return out
 }
 
-func normalizeSeed(operations []apitools.OperationSummary, seed apitools.OperationSummary) apitools.OperationSummary {
-	if operationID(seed) == "" {
-		return seed
+func normalizeSeed(operations []apitools.OperationSummary, seed apitools.OperationSummary) (apitools.OperationSummary, Diagnostic) {
+	seedID := operationID(seed)
+	if seedID == "" {
+		return seed, Diagnostic{}
 	}
+	var matches []apitools.OperationSummary
 	for _, operation := range operations {
-		if sameOperation(operation, seed) {
-			return operation
+		if operationID(operation) == seedID {
+			matches = append(matches, operation)
 		}
 	}
-	return seed
+	if seedSource := sourceID(seed); seedSource != "" {
+		var sourceMatches []apitools.OperationSummary
+		for _, operation := range matches {
+			if sourceID(operation) == seedSource {
+				sourceMatches = append(sourceMatches, operation)
+			}
+		}
+		if len(sourceMatches) == 1 {
+			return sourceMatches[0], Diagnostic{}
+		}
+		if len(sourceMatches) > 1 {
+			return seed, Diagnostic{Code: "operation_lifecycle.seed_ambiguous", Severity: "warning", Message: "multiple operations with the seed identity are present in the same source"}
+		}
+		if len(matches) > 0 {
+			return seed, Diagnostic{Code: "operation_lifecycle.seed_source_mismatch", Severity: "warning", Message: "the seed operation ID was found only in different document sources"}
+		}
+	}
+	if len(matches) == 1 {
+		return matches[0], Diagnostic{}
+	}
+	if len(matches) > 1 {
+		return seed, Diagnostic{Code: "operation_lifecycle.seed_ambiguous", Severity: "warning", Message: "the seed operation ID occurs in multiple document sources"}
+	}
+	if strings.TrimSpace(seed.Method) == "" || strings.TrimSpace(seed.Path) == "" {
+		return seed, Diagnostic{Code: "operation_lifecycle.seed_not_found", Severity: "warning", Message: "an operation-ID-only seed did not match a supplied operation"}
+	}
+	return seed, Diagnostic{}
 }
 
 func primaryRole(seed apitools.OperationSummary, opts Options, expanded bool) string {
 	if opts.DesiredState && expanded {
-		switch strings.ToUpper(strings.TrimSpace(seed.Method)) {
-		case "POST":
+		if strings.EqualFold(seed.Method, "PUT") && operationHasAny(seed, "create", "createorupdate", "insert") {
 			return "create"
-		case "PUT":
-			if operationHasAny(seed, "create", "createorupdate", "insert") {
-				return "create"
-			}
-			return "update"
-		case "PATCH":
-			return "update"
-		case "GET", "HEAD":
-			return "read"
-		case "DELETE":
-			return "delete"
+		}
+		if purpose := lifecyclePurpose(seed); purpose != "" {
+			return purpose
 		}
 	}
 	return methodRole(seed)
+}
+
+func lifecyclePurpose(operation apitools.OperationSummary) string {
+	purpose := apitools.ClassifyOperationPurpose(operation, apitools.OperationSelectionHints{})
+	if !strings.EqualFold(operation.Method, "POST") || purpose != "create" {
+		return purpose
+	}
+	if operationHasAny(operation, "createorupdate") {
+		return "create"
+	}
+	if operationNameMatchesRole(operation, "update") {
+		return "update"
+	}
+	if operationHasAny(operation, "create", "insert", "add") {
+		return "create"
+	}
+	if postOperationIsAction(operation) {
+		return methodRole(operation)
+	}
+	return purpose
+}
+
+func postOperationIsAction(operation apitools.OperationSummary) bool {
+	if operationHasAny(operation,
+		"activate", "acknowledge", "approve", "archive", "cancel", "close",
+		"complete", "confirm", "deactivate", "disable", "enable", "execute",
+		"invoke", "lock", "pause", "publish", "refresh", "reject", "release",
+		"reopen", "reset", "restore", "resume", "restart", "retry", "rotate",
+		"run", "send", "start", "stop", "submit", "trigger", "unlock",
+		"validate",
+	) {
+		return true
+	}
+	parts := pathSegments(normalizePath(operation.Path, isGoogleDiscovery(operation)))
+	if len(parts) > 0 && strings.Contains(parts[len(parts)-1], ":") {
+		return true
+	}
+	// A POST against a parameterized item or action route is not sufficient
+	// evidence of resource creation. Keep otherwise unclassified operations
+	// in the generic POST role rather than inventing a create disposition.
+	for _, part := range parts {
+		if isPathParameter(part) {
+			return true
+		}
+	}
+	return false
 }
 
 func methodRole(op apitools.OperationSummary) string {
@@ -164,6 +240,9 @@ func bestSibling(operations []apitools.OperationSummary, seed apitools.Operation
 		if sameOperation(operation, seed) || !sameSource(operation, seed) {
 			continue
 		}
+		if lifecyclePurpose(operation) != role {
+			continue
+		}
 		score, reason := siblingScore(operation, seed, role)
 		if score < MinimumSiblingScore {
 			continue
@@ -187,12 +266,6 @@ func bestSibling(operations []apitools.OperationSummary, seed apitools.Operation
 
 func siblingScore(op, seed apitools.OperationSummary, role string) (int, string) {
 	if !lifecyclePathsMatch(seed, op, role) {
-		return 0, ""
-	}
-	if role == "read" && operationHasAny(op, "list") {
-		return 0, ""
-	}
-	if (role == "update" || role == "delete") && operationHasAny(op, "collection") {
 		return 0, ""
 	}
 	score := 0
@@ -264,12 +337,30 @@ func sameSource(a, b apitools.OperationSummary) bool {
 }
 
 func sourceID(op apitools.OperationSummary) string {
-	return strings.TrimSpace(firstNonEmpty(op.DocumentRelativePath, op.DocumentPath, op.DocumentURL, op.DocumentName))
+	if documentPath := strings.TrimSpace(op.DocumentPath); filepath.IsAbs(documentPath) {
+		return "path:" + filepath.Clean(documentPath)
+	}
+	if documentURL := absoluteURLIdentity(op.DocumentURL); documentURL != "" {
+		return "url:" + documentURL
+	}
+	if documentURL := absoluteURLIdentity(op.DocumentPath); documentURL != "" {
+		return "url:" + documentURL
+	}
+	return firstNonEmpty(op.DocumentRelativePath, op.DocumentPath, op.DocumentName)
+}
+
+func absoluteURLIdentity(value string) string {
+	parsed, err := url.Parse(strings.TrimSpace(value))
+	if err != nil || !parsed.IsAbs() || parsed.Host == "" {
+		return ""
+	}
+	return parsed.String()
 }
 
 func sameOperation(a, b apitools.OperationSummary) bool {
 	aID, bID := operationID(a), operationID(b)
-	return aID != "" && aID == bID && sourceID(a) == sourceID(b)
+	aSource, bSource := sourceID(a), sourceID(b)
+	return aID != "" && aID == bID && aSource != "" && aSource == bSource
 }
 
 func operationID(op apitools.OperationSummary) string {
@@ -297,10 +388,10 @@ func sameFamily(a, b apitools.OperationSummary) bool {
 }
 
 func familyTokens(op apitools.OperationSummary) []string {
-	raw := operationTokens(op)
+	raw := wordTokenSet(operationID(op) + " " + op.Path)
 	var out []string
 	for token := range raw {
-		if lifecycleWord(token) || token == "v1" || token == "v2" || token == "v3" || token == "api" {
+		if lifecycleWord(token) || familyStopWord(token) {
 			continue
 		}
 		out = append(out, token)
@@ -311,8 +402,17 @@ func familyTokens(op apitools.OperationSummary) []string {
 
 func operationTokens(op apitools.OperationSummary) map[string]bool {
 	text := operationID(op) + " " + op.Summary + " " + strings.Join(op.Tags, " ")
+	out := wordTokenSet(text)
+	joined := strings.ToLower(strings.NewReplacer("_", "", "-", "", ".", "").Replace(operationID(op)))
+	if strings.Contains(joined, "createorupdate") {
+		out["createorupdate"], out["create"], out["update"] = true, true, true
+	}
+	return out
+}
+
+func wordTokenSet(text string) map[string]bool {
 	parts := strings.FieldsFunc(text, func(r rune) bool {
-		return r == '_' || r == '-' || r == '.' || r == '/' || r == ':' || unicode.IsSpace(r)
+		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 	})
 	out := map[string]bool{}
 	for _, part := range parts {
@@ -323,11 +423,20 @@ func operationTokens(op apitools.OperationSummary) map[string]bool {
 			}
 		}
 	}
-	joined := strings.ToLower(strings.NewReplacer("_", "", "-", "", ".", "").Replace(operationID(op)))
-	if strings.Contains(joined, "createorupdate") {
-		out["createorupdate"], out["create"], out["update"] = true, true, true
-	}
 	return out
+}
+
+func familyStopWord(token string) bool {
+	switch token {
+	case "api", "apis", "endpoint", "endpoints", "entity", "entities",
+		"id", "ids", "item", "items", "name", "object", "objects",
+		"operation", "operations", "request", "requests", "resource",
+		"resources", "response", "responses", "service", "services",
+		"v1", "v2", "v3", "v4":
+		return true
+	default:
+		return false
+	}
 }
 
 func splitCamel(value string) []string {
@@ -353,19 +462,26 @@ func lifecycleWord(token string) bool {
 }
 
 func lifecyclePathsMatch(seed, operation apitools.OperationSummary, role string) bool {
+	if role != "read" && role != "update" && role != "delete" {
+		return false
+	}
 	seedPath := normalizePath(seed.Path, isGoogleDiscovery(seed))
 	opPath := normalizePath(operation.Path, isGoogleDiscovery(operation))
 	if seedPath == "" || opPath == "" {
 		return false
 	}
-	if seedPath == opPath {
-		return role != "read" && role != "update" && role != "delete" || hasPathParameter(opPath)
-	}
-	seedBase, opBase := collectionPath(seedPath), collectionPath(opPath)
-	if seedBase == "" || opBase == "" || seedBase != opBase {
+	seedCollection, seedIsItem := collectionPath(seedPath, isGoogleDiscovery(seed))
+	opCollection, opIsItem := collectionPath(opPath, isGoogleDiscovery(operation))
+	if !opIsItem {
 		return false
 	}
-	return role != "read" && role != "update" && role != "delete" || hasPathParameter(opPath)
+	if seedIsItem && seedCollection == opCollection {
+		return true
+	}
+	if !seedIsItem && seedPath == opCollection {
+		return true
+	}
+	return googleDiscoveryResourcePathMatches(seed, operation, opPath)
 }
 
 func isGoogleDiscovery(op apitools.OperationSummary) bool {
@@ -390,27 +506,56 @@ func normalizePath(value string, stripDiscoveryUpload bool) string {
 	return value
 }
 
-func collectionPath(value string) string {
-	parts := strings.Split(strings.Trim(value, "/"), "/")
-	var out []string
-	for _, part := range parts {
-		if !strings.HasPrefix(part, "{") || !strings.HasSuffix(part, "}") {
-			out = append(out, part)
-		}
+func collectionPath(value string, googleDiscovery bool) (string, bool) {
+	parts := pathSegments(value)
+	if len(parts) == 0 || !isPathParameter(parts[len(parts)-1]) ||
+		(googleDiscovery && parts[len(parts)-1] == "{+parent}") {
+		return value, false
 	}
-	if len(out) == 0 {
-		return "/"
+	parts = parts[:len(parts)-1]
+	if len(parts) == 0 {
+		return "/", true
 	}
-	return "/" + strings.Join(out, "/")
+	return "/" + strings.Join(parts, "/"), true
 }
 
-func hasPathParameter(value string) bool {
-	for _, part := range strings.Split(value, "/") {
-		if strings.HasPrefix(part, "{") && strings.HasSuffix(part, "}") {
-			return true
-		}
+func pathSegments(value string) []string {
+	value = strings.Trim(value, "/")
+	if value == "" {
+		return nil
 	}
-	return false
+	return strings.Split(value, "/")
+}
+
+func isPathParameter(segment string) bool {
+	return strings.HasPrefix(segment, "{") && strings.HasSuffix(segment, "}") && len(segment) > 2
+}
+
+func googleDiscoveryResourcePathMatches(seed, operation apitools.OperationSummary, operationPath string) bool {
+	if !isGoogleDiscovery(seed) || !isGoogleDiscovery(operation) ||
+		!hasTrailingGoogleNameParameter(operationPath) {
+		return false
+	}
+	seedResource, seedOK := googleDiscoveryMethodResourceIdentity(seed)
+	operationResource, operationOK := googleDiscoveryMethodResourceIdentity(operation)
+	return seedOK && operationOK && seedResource == operationResource
+}
+
+func hasTrailingGoogleNameParameter(value string) bool {
+	parts := pathSegments(value)
+	return len(parts) > 0 && parts[len(parts)-1] == "{+name}"
+}
+
+func googleDiscoveryMethodResourceIdentity(operation apitools.OperationSummary) (string, bool) {
+	if !isGoogleDiscovery(operation) {
+		return "", false
+	}
+	id := operationID(operation)
+	methodSeparator := strings.LastIndexByte(id, '.')
+	if methodSeparator <= 0 || methodSeparator == len(id)-1 {
+		return "", false
+	}
+	return id[:methodSeparator], true
 }
 
 func confidence(score int) string {
@@ -425,9 +570,9 @@ func confidence(score int) string {
 }
 
 func goalWantsUpdate(goal string) bool {
-	goal = strings.ToLower(goal)
-	for _, word := range []string{"update", "updates", "updated", "patch", "patches", "modify", "modifies", "replace", "supports update"} {
-		if strings.Contains(goal, word) {
+	tokens := wordTokenSet(goal)
+	for _, word := range []string{"update", "updates", "updated", "patch", "patches", "modify", "modifies", "modifying", "replace", "replaces", "replacing"} {
+		if tokens[word] {
 			return true
 		}
 	}

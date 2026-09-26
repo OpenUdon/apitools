@@ -59,6 +59,43 @@ func TestRefreshCatalogSpecReferencesDownloadsValidOpenAPI(t *testing.T) {
 	}
 }
 
+func TestRefreshCatalogSpecReferencesReturnsCompletedResultsOnLaterFailure(t *testing.T) {
+	firstContent := []byte(`{"openapi":"3.0.0","info":{"title":"First refreshed API","version":"1.0.0"},"paths":{}}`)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/second.json" {
+			http.Error(w, "upstream unavailable", http.StatusBadGateway)
+			return
+		}
+		_, _ = w.Write(firstContent)
+	}))
+	defer server.Close()
+
+	cacheDir := t.TempDir()
+	refs := []catalog.RefreshableSpecReference{
+		{ProviderID: "test", SpecRefID: "first", Kind: catalog.SpecKindOpenAPI, URL: server.URL + "/first.json"},
+		{ProviderID: "test", SpecRefID: "second", Kind: catalog.SpecKindOpenAPI, URL: server.URL + "/second.json"},
+	}
+	report, err := (&Client{HTTPClient: server.Client(), AllowUnsafeHosts: true}).RefreshCatalogSpecReferences(context.Background(), refs, CatalogSpecRefreshOptions{CacheDir: cacheDir})
+	if err == nil || !strings.Contains(err.Error(), "test/second") {
+		t.Fatalf("refresh error = %v, want failing provider/spec reference", err)
+	}
+	if len(report.Results) != 1 || report.Results[0].SpecRefID != "first" {
+		t.Fatalf("partial refresh report = %#v", report)
+	}
+	result := report.Results[0]
+	saved, err := os.ReadFile(result.SavedPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(saved, firstContent) {
+		t.Fatalf("saved first artifact = %q, want raw downloaded bytes %q", saved, firstContent)
+	}
+	digest := sha256.Sum256(firstContent)
+	if result.SHA256 != hex.EncodeToString(digest[:]) || result.Bytes != int64(len(firstContent)) {
+		t.Fatalf("partial result integrity = %q/%d, want %x/%d", result.SHA256, result.Bytes, digest, len(firstContent))
+	}
+}
+
 func TestRefreshCatalogSpecReferencesSavesParseableInvalidOpenAPI(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

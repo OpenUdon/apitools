@@ -114,13 +114,17 @@ type localSourceMetadata struct {
 }
 
 type localDiscoveryState struct {
-	ctx           context.Context
-	opts          LocalSourceDiscoveryOptions
-	report        LocalSourceDiscoveryReport
-	byDigest      map[string]int
-	explicitPaths map[string]LocalSource
-	seenPaths     map[string]bool
-	stop          bool
+	ctx                context.Context
+	opts               LocalSourceDiscoveryOptions
+	report             LocalSourceDiscoveryReport
+	byDigest           map[string]int
+	explicitPaths      map[string]LocalSource
+	seenPaths          map[string]bool
+	openAPIOnly        bool
+	baseDir            string
+	localResults       []LocalResult
+	localResultDigests map[string]string
+	stop               bool
 }
 
 var errStopLocalDiscovery = errors.New("stop local source discovery")
@@ -130,6 +134,14 @@ var errStopLocalDiscovery = errors.New("stop local source discovery")
 // files, deduplicates identical content by SHA-256 digest, and never performs a
 // network request.
 func DiscoverLocalSources(ctx context.Context, opts LocalSourceDiscoveryOptions) (LocalSourceDiscoveryReport, error) {
+	state, err := discoverLocalSources(ctx, opts, false, "")
+	if state == nil {
+		return LocalSourceDiscoveryReport{}, err
+	}
+	return state.report, err
+}
+
+func discoverLocalSources(ctx context.Context, opts LocalSourceDiscoveryOptions, openAPIOnly bool, baseDir string) (*localDiscoveryState, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -137,33 +149,36 @@ func DiscoverLocalSources(ctx context.Context, opts LocalSourceDiscoveryOptions)
 	opts.MaxCandidates = positiveOrDefault(opts.MaxCandidates, DefaultLocalSourceMaxCandidates)
 	opts.MaxBytes = resolvedLocalMaxBytes(opts.MaxBytes)
 	state := &localDiscoveryState{
-		ctx:           ctx,
-		opts:          opts,
-		report:        LocalSourceDiscoveryReport{Version: LocalSourceDiscoveryVersion},
-		byDigest:      map[string]int{},
-		explicitPaths: map[string]LocalSource{},
-		seenPaths:     map[string]bool{},
+		ctx:                ctx,
+		opts:               opts,
+		report:             LocalSourceDiscoveryReport{Version: LocalSourceDiscoveryVersion},
+		byDigest:           map[string]int{},
+		explicitPaths:      map[string]LocalSource{},
+		seenPaths:          map[string]bool{},
+		openAPIOnly:        openAPIOnly,
+		baseDir:            baseDir,
+		localResultDigests: map[string]string{},
 	}
 
 	if len(opts.Roots) == 0 && len(opts.Sources) == 0 {
-		return state.report, fmt.Errorf("at least one explicit local source root is required")
+		return state, fmt.Errorf("at least one explicit local source root is required")
 	}
 	for _, source := range opts.Sources {
 		if strings.TrimSpace(source.Path) == "" {
-			return state.report, fmt.Errorf("explicit local source path is required")
+			return state, fmt.Errorf("explicit local source path is required")
 		}
 		kind := normalizeAPISourceKind(source.Kind)
 		if kind == "" {
-			return state.report, fmt.Errorf("unsupported explicit API source kind %q", source.Kind)
+			return state, fmt.Errorf("unsupported explicit API source kind %q", source.Kind)
 		}
-		abs, err := filepath.Abs(source.Path)
+		abs, err := resolveLocalPath(source.Path)
 		if err != nil {
-			return state.report, err
+			return state, err
 		}
-		source.Path = filepath.Clean(abs)
+		source.Path = abs
 		source.Kind = kind
 		if prior, ok := state.explicitPaths[source.Path]; ok && (prior.Kind != source.Kind || prior.ID != source.ID) {
-			return state.report, fmt.Errorf("local source path %q has conflicting explicit declarations", source.Path)
+			return state, fmt.Errorf("local source path %q has conflicting explicit declarations", source.Path)
 		}
 		state.explicitPaths[source.Path] = source
 	}
@@ -171,13 +186,13 @@ func DiscoverLocalSources(ctx context.Context, opts LocalSourceDiscoveryOptions)
 	rootSet := map[string]bool{}
 	for _, root := range opts.Roots {
 		if strings.TrimSpace(root) == "" {
-			return state.report, fmt.Errorf("local source root is required")
+			return state, fmt.Errorf("local source root is required")
 		}
-		abs, err := filepath.Abs(root)
+		abs, err := resolveLocalPath(root)
 		if err != nil {
-			return state.report, err
+			return state, err
 		}
-		rootSet[filepath.Clean(abs)] = true
+		rootSet[abs] = true
 	}
 	for path := range state.explicitPaths {
 		rootSet[path] = true
@@ -190,17 +205,17 @@ func DiscoverLocalSources(ctx context.Context, opts LocalSourceDiscoveryOptions)
 
 	for _, root := range roots {
 		if err := state.ctx.Err(); err != nil {
-			return state.report, err
+			return state, err
 		}
-		info, err := lstatLocalPathNoSymlinks(root)
+		info, err := lstatLocalLeaf(root)
 		if err != nil {
-			return state.report, fmt.Errorf("local source root %q: %w", root, err)
+			return state, fmt.Errorf("local source root %q: %w", root, err)
 		}
 		if !info.IsDir() && !info.Mode().IsRegular() {
-			return state.report, fmt.Errorf("local source root %q is not a regular file or directory", root)
+			return state, fmt.Errorf("local source root %q is not a regular file or directory", root)
 		}
 		if _, explicit := state.explicitPaths[root]; explicit && info.IsDir() {
-			return state.report, fmt.Errorf("explicit local source %q is a directory", root)
+			return state, fmt.Errorf("explicit local source %q is a directory", root)
 		}
 		if info.IsDir() {
 			err = filepath.WalkDir(root, state.visit)
@@ -213,20 +228,17 @@ func DiscoverLocalSources(ctx context.Context, opts LocalSourceDiscoveryOptions)
 			err = state.inspect(root, info)
 		}
 		if err != nil && !errors.Is(err, errStopLocalDiscovery) {
-			return state.report, err
+			return state, err
 		}
 		if state.stop {
 			break
 		}
 	}
 	state.finish()
-	return state.report, nil
+	return state, nil
 }
 
 func (state *localDiscoveryState) visit(path string, entry fs.DirEntry, walkErr error) error {
-	if walkErr != nil {
-		return walkErr
-	}
 	if err := state.ctx.Err(); err != nil {
 		return err
 	}
@@ -235,6 +247,10 @@ func (state *localDiscoveryState) visit(path string, entry fs.DirEntry, walkErr 
 		return errStopLocalDiscovery
 	}
 	state.report.VisitedEntries++
+	if walkErr != nil {
+		state.reject(path, "", "path.walk", fmt.Sprintf("cannot walk local source path: %v", walkErr), "Check directory and file permissions, then retry the local scan.")
+		return nil
+	}
 	if entry.Type()&fs.ModeSymlink != 0 {
 		state.reject(path, "", "path.symlink", "local source path is a symlink", "Use a regular file inside the explicit root.")
 		if entry.IsDir() {
@@ -247,7 +263,8 @@ func (state *localDiscoveryState) visit(path string, entry fs.DirEntry, walkErr 
 	}
 	info, err := entry.Info()
 	if err != nil {
-		return err
+		state.reject(path, "", "path.stat", fmt.Sprintf("cannot inspect local source path: %v", err), "Check file permissions and retry the local scan.")
+		return nil
 	}
 	return state.inspect(path, info)
 }
@@ -270,7 +287,11 @@ func (state *localDiscoveryState) inspect(path string, info fs.FileInfo) error {
 		state.reject(path, explicit.Kind, "path.not_regular", "local source path is not a regular file", "Use a regular file.")
 		return nil
 	}
-	if !hasExplicit && !hasLocalSourceExtension(path) {
+	if state.openAPIOnly {
+		if !hasOpenAPIFileExt(path) {
+			return nil
+		}
+	} else if !hasExplicit && !hasLocalSourceExtension(path) {
 		return nil
 	}
 	if !hasExplicit && isLocalSourceSidecar(path) {
@@ -285,10 +306,22 @@ func (state *localDiscoveryState) inspect(path string, info fs.FileInfo) error {
 		state.reject(path, explicit.Kind, "file.read", err.Error(), "Use a stable, regular local file within the configured size bound.")
 		return nil
 	}
-	metadata, matches, err := detectLocalSource(state.ctx, content, path, explicit.Kind)
-	if err != nil {
-		state.reject(path, explicit.Kind, "document.invalid", err.Error(), "Provide a valid document of the declared source family.")
-		return nil
+	var metadata localSourceMetadata
+	var matches []string
+	var openAPIMetadata SpecMetadata
+	if state.openAPIOnly {
+		var ok bool
+		openAPIMetadata, ok = localSpecMetadata(state.ctx, content)
+		if !ok {
+			return nil
+		}
+		metadata = localSourceMetadata{kind: APISourceKindOpenAPI, title: openAPIMetadata.Title, operationCount: openAPIMetadata.OperationCount}
+	} else {
+		metadata, matches, err = detectLocalSource(state.ctx, content, path, explicit.Kind)
+		if err != nil {
+			state.reject(path, explicit.Kind, "document.invalid", err.Error(), "Provide a valid document of the declared source family.")
+			return nil
+		}
 	}
 	if metadata.kind == "" {
 		if len(matches) > 1 || ambiguousStructuredDocument(content, path) {
@@ -314,6 +347,22 @@ func (state *localDiscoveryState) inspect(path string, info fs.FileInfo) error {
 	if index, ok := state.byDigest[digestText]; ok {
 		state.report.Candidates[index].DuplicatePaths = append(state.report.Candidates[index].DuplicatePaths, path)
 		return nil
+	}
+	if state.openAPIOnly {
+		relative, err := filepath.Rel(state.baseDir, path)
+		if err != nil {
+			return err
+		}
+		relative = filepath.ToSlash(relative)
+		state.localResults = append(state.localResults, LocalResult{
+			Path:         path,
+			RelativePath: relative,
+			Title:        openAPIMetadata.Title,
+			Description:  openAPIMetadata.Description,
+			Score:        ScoreText(state.opts.Query, openAPIMetadata.Title+" "+openAPIMetadata.Description+" "+relative),
+			Metadata:     openAPIMetadata,
+		})
+		state.localResultDigests[path] = digestText
 	}
 	candidate := LocalSourceCandidate{
 		ID:             strings.TrimSpace(explicit.ID),
@@ -366,6 +415,14 @@ func (state *localDiscoveryState) finish() {
 	})
 	for i := range state.report.Candidates {
 		sort.Strings(state.report.Candidates[i].DuplicatePaths)
+	}
+	if state.openAPIOnly {
+		sort.SliceStable(state.localResults, func(i, j int) bool {
+			if state.localResults[i].Score != state.localResults[j].Score {
+				return state.localResults[i].Score > state.localResults[j].Score
+			}
+			return state.localResults[i].RelativePath < state.localResults[j].RelativePath
+		})
 	}
 	sort.SliceStable(state.report.Rejected, func(i, j int) bool { return state.report.Rejected[i].Path < state.report.Rejected[j].Path })
 	sort.SliceStable(state.report.Ambiguous, func(i, j int) bool { return state.report.Ambiguous[i].Path < state.report.Ambiguous[j].Path })

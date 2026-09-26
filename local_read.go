@@ -23,22 +23,36 @@ func validateInlineSpecContent(content []byte, maxBytes int64, label string) err
 	return nil
 }
 
-func validateLocalScanRoot(path string) error {
-	info, err := lstatLocalPathNoSymlinks(path)
+func resolveLocalScanRoot(path string) (string, os.FileInfo, error) {
+	resolved, err := resolveLocalPath(path)
 	if err != nil {
-		return err
+		return "", nil, err
+	}
+	info, err := os.Lstat(resolved)
+	if err != nil {
+		return "", nil, err
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return "", nil, fmt.Errorf("local OpenAPI path %q is a symlink", path)
 	}
 	if !info.IsDir() {
-		return fmt.Errorf("local OpenAPI directory %q is not a directory", path)
+		return "", nil, fmt.Errorf("local OpenAPI directory %q is not a directory", path)
 	}
-	return nil
+	return resolved, info, nil
 }
 
 func readLocalSpecFile(path string, maxBytes int64) ([]byte, error) {
 	maxBytes = resolvedLocalMaxBytes(maxBytes)
-	info, err := lstatLocalPathNoSymlinks(path)
+	resolved, err := resolveLocalPath(path)
 	if err != nil {
 		return nil, err
+	}
+	info, err := os.Lstat(resolved)
+	if err != nil {
+		return nil, err
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return nil, fmt.Errorf("local OpenAPI document %q is a symlink", path)
 	}
 	if info.IsDir() {
 		return nil, fmt.Errorf("local OpenAPI document %q is a directory", path)
@@ -49,7 +63,7 @@ func readLocalSpecFile(path string, maxBytes int64) ([]byte, error) {
 	if info.Size() > maxBytes {
 		return nil, fmt.Errorf("local OpenAPI document %q is larger than %d bytes", path, maxBytes)
 	}
-	file, err := os.Open(path)
+	file, err := os.Open(resolved)
 	if err != nil {
 		return nil, err
 	}
@@ -80,46 +94,36 @@ func readLocalSpecFile(path string, maxBytes int64) ([]byte, error) {
 	return content, nil
 }
 
-func lstatLocalPathNoSymlinks(path string) (os.FileInfo, error) {
+func lstatLocalLeaf(path string) (os.FileInfo, error) {
+	resolved, err := resolveLocalPath(path)
+	if err != nil {
+		return nil, err
+	}
+	info, err := os.Lstat(resolved)
+	if err != nil {
+		return nil, err
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return nil, fmt.Errorf("local OpenAPI path %q is a symlink", path)
+	}
+	return info, nil
+}
+
+// resolveLocalPath resolves symlinked ancestors once while leaving the caller's
+// final path component un-followed, so a selected file or scan root can still
+// be checked for being a symlink itself.
+func resolveLocalPath(path string) (string, error) {
 	if strings.TrimSpace(path) == "" {
-		return nil, fmt.Errorf("local OpenAPI path is required")
+		return "", fmt.Errorf("local OpenAPI path is required")
 	}
 	abs, err := filepath.Abs(path)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	clean := filepath.Clean(abs)
-	root := string(filepath.Separator)
-	if volume := filepath.VolumeName(clean); volume != "" {
-		root = volume + string(filepath.Separator)
-	}
-	rel, err := filepath.Rel(root, clean)
+	parent, err := filepath.EvalSymlinks(filepath.Dir(clean))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	current := root
-	var info os.FileInfo
-	for _, part := range strings.Split(rel, string(filepath.Separator)) {
-		if part == "" || part == "." {
-			continue
-		}
-		current = filepath.Join(current, part)
-		info, err = os.Lstat(current)
-		if err != nil {
-			return nil, err
-		}
-		if info.Mode()&os.ModeSymlink != 0 {
-			return nil, fmt.Errorf("local OpenAPI path %q contains symlink component %q", path, current)
-		}
-	}
-	if info == nil {
-		info, err = os.Lstat(clean)
-		if err != nil {
-			return nil, err
-		}
-		if info.Mode()&os.ModeSymlink != 0 {
-			return nil, fmt.Errorf("local OpenAPI path %q contains symlink component %q", path, clean)
-		}
-	}
-	return info, nil
+	return filepath.Join(parent, filepath.Base(clean)), nil
 }

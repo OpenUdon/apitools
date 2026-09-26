@@ -429,6 +429,40 @@ func TestBuildOperationInventoryLimitAndPromptSafety(t *testing.T) {
 	}
 }
 
+func TestBuildOperationInventorySanitizesInvisibleUnicode(t *testing.T) {
+	document, err := json.Marshal(map[string]any{
+		"openapi": "3.0.0",
+		"info":    map[string]any{"title": "Unicode", "version": "1"},
+		"paths": map[string]any{"/unicode": map[string]any{"get": map[string]any{
+			"operationId": "unicode",
+			"description": "café\u202ehidden\u202c\u200b漢字\ufe0f\U000e0100\U000e0001tag\U000e007f",
+			"responses":   map[string]any{"200": map[string]any{"description": "ok"}},
+		}}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	inventory, err := BuildOperationInventory(context.Background(), InventoryOptions{
+		Documents: []InventoryDocument{{Name: "unicode", Content: document}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(inventory.Operations) != 1 || inventory.Operations[0].Description != "café hidden 漢字 tag" {
+		t.Fatalf("inventory operations = %#v", inventory.Operations)
+	}
+	found := false
+	for _, diagnostic := range inventory.Diagnostics {
+		if diagnostic.Code == "prompt.operation_sanitized" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("inventory did not diagnose Unicode sanitization: %#v", inventory.Diagnostics)
+	}
+}
+
 func TestBuildOperationInventoryReportsMissingOperationIDAndRefs(t *testing.T) {
 	inventory, err := BuildOperationInventory(context.Background(), InventoryOptions{
 		Documents: []InventoryDocument{{
@@ -672,7 +706,7 @@ func TestBuildOperationInventoryReportsReadFailuresForUnsafePaths(t *testing.T) 
 	}
 }
 
-func TestBuildOperationInventoryRejectsSymlinkedParentComponents(t *testing.T) {
+func TestBuildOperationInventoryAllowsSymlinkedAncestors(t *testing.T) {
 	base := t.TempDir()
 	realDir := filepath.Join(base, "real")
 	if err := os.Mkdir(realDir, 0o755); err != nil {
@@ -688,8 +722,8 @@ func TestBuildOperationInventoryRejectsSymlinkedParentComponents(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(inventory.Diagnostics) != 1 || inventory.Diagnostics[0].Code != "document.read" || !strings.Contains(inventory.Diagnostics[0].Message, "symlink") {
-		t.Fatalf("diagnostics = %#v", inventory.Diagnostics)
+	if len(inventory.Diagnostics) != 0 || len(inventory.Documents) != 1 || len(inventory.Operations) == 0 {
+		t.Fatalf("inventory = %#v", inventory)
 	}
 }
 

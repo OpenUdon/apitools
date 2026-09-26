@@ -120,6 +120,10 @@ go run ./cmd/apitools import \
 
 Cache modes are `read-write`, `refresh`, `offline`, and `bypass`. The
 `--offline` flag is shorthand for `--cache-mode offline`.
+Offline imports validate URL syntax without DNS or network access, accept an
+integrity-checked cached document regardless of its age, and report its stored
+timestamp and age in the import result. Network-capable modes continue to
+reject unsafe hosts before cache use or fetching.
 
 The SQLite backend is bounded by default. Search queries/results, document
 rows, and catalog artifact rows use deterministic least-recently-used
@@ -189,6 +193,11 @@ source notes, manual follow-ups, optional registered artifact paths, protocol
 classifications, and UWS source type labels from an existing `cache.sqlite`.
 It does not create a cache when the file is missing, fetch remote documents,
 apply overlays, execute API operations, or resolve credentials.
+Resolved-reference JSON includes the selected source kind and protocol; text
+inspect/advisory headings use the selected non-OpenAPI protocol rather than
+labeling a Discovery, Smithy, or documentation source as OpenAPI. Explicit
+`--openapi` references are labeled by the caller-declared kind without reading
+or validating their contents.
 
 Catalog curation follows a fixed per-service workflow: try official OpenAPI,
 Swagger, Google Discovery, and AWS Smithy sources first, review auth/security
@@ -253,7 +262,20 @@ durable provider by effective auth/security disposition and, when local cache
 artifacts are registered, inspects OpenAPI/Swagger `securitySchemes` or
 `securityDefinitions` plus root and operation-level `security` requirements.
 It reports missing, incomplete, or internally inconsistent artifact security
-metadata without fetching provider documents or applying credentials.
+metadata without fetching provider documents or applying credentials. When
+root security is undeclared, at least one operation names an authentication
+scheme, and some other operations have no explicit `security` declaration,
+the audit reports
+`partial-operation-security` and asks maintainers to confirm that operations
+without requirements are intentionally anonymous. The audit counts root
+requirement alternatives, including an explicit anonymous alternative such as
+`security: [{}]`, and separately records whether the root declares a security
+array at all (including `security: []`). It also separates operation security
+declarations, including explicit anonymous `[]` or `[{}]`, from operations
+that name authentication schemes. Only a scheme-bearing operation subset with
+other operations lacking an explicit security declaration is reported as
+partial; a more specific scheme diagnostic can take precedence while retaining
+the partial-coverage follow-up.
 
 Security classifications and overlays are resolved by provider/spec scope.
 Classifications remain baseline evidence and a scoped overlay is an explicit
@@ -310,7 +332,12 @@ download limits as imports, saves the artifact under ignored
 `catalog-openapi-cache/aws-smithy/`, and registers file paths in SQLite instead
 of storing duplicate document blobs. Registration and cache-relative path
 containment are owned by `sqlitecache.RegisterCatalogRefreshResults`; the CLI
-only supplies the selected refresh report and renders its result.
+registers completed results before surfacing a later refresh failure. A partial
+failure exits nonzero while retaining successful rows in text or JSON output
+and naming the failing provider/spec reference, keeping each overwritten
+artifact's registered digest and byte count aligned with its saved file. The
+SQLite result registration is one transaction; if registration fails, the CLI
+restores previously registered artifact files where a safe backup was captured.
 Legacy Google Discovery or AWS Smithy cache rows that still point under
 `openapi/` are normalized to `google-discovery/` or `aws-smithy/` in catalog
 outputs; rerun the artifact registry when accepting those source-aligned paths.
@@ -368,6 +395,25 @@ MiB per file. Reaching either count bound marks the report truncated with a
 blocking diagnostic and narrowing guidance. Identical content is deduplicated
 by SHA-256. Ambiguous JSON or XML requires an explicit `LocalSource.Kind`;
 conventional source directory names affect neither detection nor validation.
+
+The legacy `LocalFiles` helper uses the same bounded walker in OpenAPI-only
+mode, while retaining draft-friendly metadata and score ordering. Invalid,
+oversized, symlinked, or unreadable entries are skipped so healthy siblings
+remain available; reaching its visit or candidate limit returns partial results
+with an error. It uses the shared 10,000-entry and 100-candidate defaults;
+`LocalOptions.MaxBytes` remains configurable. Use `DiscoverLocalSources` when
+structured rejection details or explicit count bounds are needed.
+
+Project-text URL discovery processes at most 16 unique URLs in first-seen order.
+If more are present, `ImportProjectURLsReport` sets `Truncated` and adds a
+warning, but discovery still returns local and successfully imported URL
+candidates. Existing `ImportProjectURLs` and `ImportProjectURLsWithReport`
+signatures remain available. Repeated imports reuse same-name files when their
+bytes match; candidate reports deduplicate identical documents by SHA-256.
+For offline imports, `Client.ImportWithReport` exposes cache timestamp and age
+without changing the historical `ImportedSpec` fields or `Client.Import`
+signature. The CLI JSON output keeps the imported fields flattened and adds
+`cache_stored_at` and `cache_age` when a cached document was used.
 
 Prompt-safe OpenAPI operation context is available through inventories and
 document summaries:
@@ -496,11 +542,12 @@ Callers that intentionally need local fixtures can opt out of host and port
 checks with `Client.AllowUnsafeHosts`; userinfo and response byte limits remain
 enforced.
 
-Local file reads are also fail-closed. `LocalFiles`, `DiscoverLocalSources`,
-`BuildOperationInventory`, and `LoadOperationIndex` reject symlinked scan
-roots, symlinked document paths,
-symlinked parent components, directories, special files, and files larger than
-the resolved byte limit before parsing. Path-backed local reads use bounded I/O;
+Local file reads are also fail-closed. Scanners resolve symlinked ancestors of
+the caller-selected root once, then reject a symlink at that root or beneath it.
+Path-backed `BuildOperationInventory` and `LoadOperationIndex` inputs similarly
+resolve ancestor symlinks while rejecting a symlink at the selected file.
+Directories, special files, and files larger than the resolved byte limit are
+never parsed. Path-backed local reads use bounded I/O;
 `LocalOptions.MaxBytes` and `InventoryOptions.MaxBytes` can lower or raise the
 limit, and `0` uses `DefaultMaxBytes` (`20 MiB`), matching remote downloads.
 In-memory `InventoryDocument.Content` is unchanged. Regular `.json`, `.yaml`,

@@ -601,6 +601,69 @@ func TestOpenRejectsSymlinkCachePath(t *testing.T) {
 	}
 }
 
+func TestOpenResolvesSymlinkedAncestorsOfCacheRoot(t *testing.T) {
+	realParent := t.TempDir()
+	if err := os.Mkdir(filepath.Join(realParent, "cache"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	aliasParent := filepath.Join(t.TempDir(), "workspace")
+	if err := os.Symlink(realParent, aliasParent); err != nil {
+		t.Skipf("symlinks unavailable: %v", err)
+	}
+
+	cachePath := filepath.Join(aliasParent, "cache", "cache.sqlite")
+	cache, err := Open(cachePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := cache.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if info, err := os.Stat(filepath.Join(realParent, "cache", "cache.sqlite")); err != nil || !info.Mode().IsRegular() {
+		t.Fatalf("canonical cache file = %v, %v", info, err)
+	}
+}
+
+func TestOfflineImportUsesExpiredCachedSpecAndReportsAge(t *testing.T) {
+	cache, err := Open(filepath.Join(t.TempDir(), "cache.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+
+	rawURL := "https://unresolvable.offline.invalid/openapi.yaml"
+	content := []byte("openapi: 3.0.0\ninfo:\n  title: Offline\n  version: 1.0.0\npaths: {}\n")
+	if err := cache.StoreSpec(context.Background(), apitools.CachedSpec{
+		OriginalURL: rawURL,
+		FinalURL:    rawURL,
+		Content:     content,
+		Metadata:    apitools.SpecMetadata{Title: "Offline", OpenAPI: "3.0.0"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	storedAt := time.Now().UTC().Add(-72 * time.Hour).Truncate(time.Second)
+	if _, err := cache.db.ExecContext(context.Background(), `UPDATE spec_documents SET updated_at = ? WHERE url = ?`, storedAt.Unix(), rawURL); err != nil {
+		t.Fatal(err)
+	}
+
+	importReport, err := (&apitools.Client{Cache: cache}).ImportWithReport(context.Background(), apitools.ImportOptions{
+		URL:         rawURL,
+		Dir:         t.TempDir(),
+		CacheMode:   apitools.CacheModeOffline,
+		CacheMaxAge: time.Hour,
+	})
+	if err != nil {
+		t.Fatalf("offline import of expired cached spec failed: %v", err)
+	}
+	if importReport.CacheStoredAt == nil || !importReport.CacheStoredAt.Equal(storedAt) {
+		t.Fatalf("CacheStoredAt = %v, want %s", importReport.CacheStoredAt, storedAt)
+	}
+	age, err := time.ParseDuration(importReport.CacheAge)
+	if err != nil || age < 71*time.Hour {
+		t.Fatalf("CacheAge = %q (%v), want age near 72 hours", importReport.CacheAge, err)
+	}
+}
+
 func TestConfiguredByteBudgetsRejectOversizedRecords(t *testing.T) {
 	cache, err := OpenWithOptions(":memory:", Options{MaxArtifactBytes: 4, MaxSearchReportBytes: 4, MaxMetadataBytes: 8})
 	if err != nil {

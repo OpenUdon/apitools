@@ -129,7 +129,7 @@ func (c *Client) searchPublicAPIs(ctx context.Context, query string, limit, prob
 			}
 			seen[candidateURL] = true
 			candidateCtx, cancelCandidate := context.WithTimeout(probeCtx, probeTimeout)
-			_, _, metadata, err := c.downloadSpecWithCache(candidateCtx, candidateURL, mode, maxAge)
+			_, _, metadata, _, err := c.downloadSpecWithCache(candidateCtx, candidateURL, mode, maxAge)
 			cancelCandidate()
 			if err != nil {
 				attempts = append(attempts, SearchAttempt{Source: string(SourcePublicAPIs), URL: candidateURL, Status: "fail", Detail: err.Error()})

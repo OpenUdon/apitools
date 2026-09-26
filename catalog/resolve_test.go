@@ -1,6 +1,10 @@
 package catalog
 
-import "testing"
+import (
+	"encoding/json"
+	"strings"
+	"testing"
+)
 
 func TestResolveProviderUsesBuiltInMetadata(t *testing.T) {
 	resolved, err := ResolveProvider(ResolveProviderOptions{ProviderKey: "slack"})
@@ -21,6 +25,67 @@ func TestResolveProviderUsesBuiltInMetadata(t *testing.T) {
 	}
 	if resolved.SecurityStatus != AuthStatusPresentIncomplete {
 		t.Fatalf("SecurityStatus = %q, want %q", resolved.SecurityStatus, AuthStatusPresentIncomplete)
+	}
+}
+
+func TestResolveProviderReportsSelectedReferenceKindAndProtocol(t *testing.T) {
+	tests := []struct {
+		provider string
+		specID   string
+		kind     SpecKind
+		protocol SpecProtocol
+	}{
+		{provider: "slack", specID: "slack-web-openapi-v2", kind: SpecKindOpenAPI, protocol: SpecProtocolSwagger},
+		{provider: "aws-acm", specID: "aws-acm-smithy-model", kind: SpecKindSmithyJSON, protocol: SpecProtocolSmithy},
+		{provider: "gmail", specID: "gmail-discovery-v1", kind: SpecKindGoogleDiscovery, protocol: SpecProtocolGoogleDiscovery},
+		{provider: "airtable", specID: "airtable-web-api-docs", kind: SpecKindHumanDocs, protocol: SpecProtocolHumanDocs},
+	}
+	for _, test := range tests {
+		t.Run(test.provider, func(t *testing.T) {
+			resolved, err := ResolveProvider(ResolveProviderOptions{ProviderKey: test.provider})
+			if err != nil {
+				t.Fatalf("ResolveProvider() error = %v", err)
+			}
+			if resolved.OpenAPI.SpecRefID != test.specID || resolved.OpenAPI.Kind != test.kind || resolved.OpenAPI.Protocol != test.protocol {
+				t.Fatalf("resolved OpenAPI source = %#v, want spec=%q kind=%q protocol=%q", resolved.OpenAPI, test.specID, test.kind, test.protocol)
+			}
+		})
+	}
+}
+
+func TestResolvedReferenceJSONAddsKindAndProtocolCompatibly(t *testing.T) {
+	const legacy = `{"source":"built-in-spec-reference","value":"https://example.test/api.json","spec_ref_id":"example"}`
+	var decoded ResolvedReference
+	if err := json.Unmarshal([]byte(legacy), &decoded); err != nil {
+		t.Fatalf("unmarshal legacy resolved reference: %v", err)
+	}
+	if decoded.Source != ResolutionSourceBuiltInSpecReference || decoded.Kind != "" || decoded.Protocol != "" {
+		t.Fatalf("legacy reference decoded as %#v", decoded)
+	}
+	encodedLegacy, err := json.Marshal(decoded)
+	if err != nil {
+		t.Fatalf("marshal legacy resolved reference: %v", err)
+	}
+	if strings.Contains(string(encodedLegacy), `"kind"`) || strings.Contains(string(encodedLegacy), `"protocol"`) {
+		t.Fatalf("zero-value additive fields were not omitted: %s", encodedLegacy)
+	}
+
+	withClassification := ResolvedReference{
+		Source:    ResolutionSourceBuiltInSpecReference,
+		SpecRefID: "gmail-discovery-v1",
+		Kind:      SpecKindGoogleDiscovery,
+		Protocol:  SpecProtocolGoogleDiscovery,
+	}
+	encoded, err := json.Marshal(withClassification)
+	if err != nil {
+		t.Fatalf("marshal classified resolved reference: %v", err)
+	}
+	var roundTrip ResolvedReference
+	if err := json.Unmarshal(encoded, &roundTrip); err != nil {
+		t.Fatalf("unmarshal classified resolved reference: %v", err)
+	}
+	if roundTrip.Kind != withClassification.Kind || roundTrip.Protocol != withClassification.Protocol {
+		t.Fatalf("classified reference round-trip = %#v", roundTrip)
 	}
 }
 
@@ -159,6 +224,36 @@ func TestResolveProviderPrecedence(t *testing.T) {
 		if resolved.SecurityStatus != test.wantStatus {
 			t.Fatalf("%s: SecurityStatus = %q, want %q", test.name, resolved.SecurityStatus, test.wantStatus)
 		}
+	}
+}
+
+func TestResolveProviderClassifiesExplicitOpenAPISourcesByDeclaration(t *testing.T) {
+	tests := []struct {
+		name    string
+		options ResolveProviderOptions
+		source  ResolutionSource
+	}{
+		{
+			name:    "user openapi",
+			options: ResolveProviderOptions{ProviderKey: "slack", UserOpenAPI: "./openapi/slack.yaml"},
+			source:  ResolutionSourceUserOpenAPI,
+		},
+		{
+			name:    "project local openapi",
+			options: ResolveProviderOptions{ProviderKey: "slack", ProjectLocalOpenAPI: "./openapi/slack.yaml"},
+			source:  ResolutionSourceProjectLocalOpenAPI,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resolved, err := ResolveProvider(test.options)
+			if err != nil {
+				t.Fatalf("ResolveProvider() error = %v", err)
+			}
+			if resolved.OpenAPI.Source != test.source || resolved.OpenAPI.Kind != SpecKindOpenAPI || resolved.OpenAPI.Protocol != SpecProtocolOpenAPI {
+				t.Fatalf("resolved explicit source = %#v, want %q/openapi/openapi", resolved.OpenAPI, test.source)
+			}
+		})
 	}
 }
 

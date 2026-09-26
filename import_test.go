@@ -117,3 +117,36 @@ func TestImportSurfacesDownloadFailures(t *testing.T) {
 		t.Errorf("expected localhost rejection")
 	}
 }
+
+func TestWriteUniqueFileReusesIdenticalContent(t *testing.T) {
+	dir := t.TempDir()
+	content := []byte("same API document")
+	firstName, firstPath, err := writeUniqueFile(dir, "service.yaml", content)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondName, secondPath, err := writeUniqueFile(dir, "service.yaml", content)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if firstName != secondName || firstPath != secondPath {
+		t.Fatalf("identical import names/paths = %q/%q and %q/%q", firstName, firstPath, secondName, secondPath)
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 1 || entries[0].Name() != "service.yaml" {
+		t.Fatalf("directory entries = %#v, want one reused file", entries)
+	}
+	if _, _, err := writeUniqueFile(dir, "service.yaml", []byte("different content")); err != nil {
+		t.Fatal(err)
+	}
+	entries, err = os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 2 {
+		t.Fatalf("directory entries = %#v, want original plus collision-safe second file", entries)
+	}
+}

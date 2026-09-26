@@ -2,7 +2,6 @@ package apitools
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -67,20 +66,39 @@ func TestDiscoveryAPIsGuruRejectsPrivateListURLBeforeRequest(t *testing.T) {
 	}
 }
 
-func TestImportProjectURLsRejectsBreadthBeforeDownloading(t *testing.T) {
+func TestImportProjectURLsTruncatesWithoutFailingDiscovery(t *testing.T) {
 	var text strings.Builder
 	for i := 0; i < DefaultMaxProjectURLs+1; i++ {
-		text.WriteString(" https://api.example.test/spec-")
+		text.WriteString(" http://127.0.0.1/spec-")
 		text.WriteRune(rune('a' + i))
 		text.WriteString(".yaml")
 	}
-	report, err := (&Discoverer{}).ImportProjectURLsReport(context.Background(), t.TempDir(), t.TempDir(), text.String())
-	var diagnosticErr DiagnosticError
-	if !errors.As(err, &diagnosticErr) {
-		t.Fatalf("error = %T %v, want DiagnosticError", err, err)
+	openAPIDir := t.TempDir()
+	report, err := (&Discoverer{}).ImportProjectURLsReport(context.Background(), openAPIDir, t.TempDir(), text.String())
+	if err != nil {
+		t.Fatalf("ImportProjectURLsReport() error = %v", err)
 	}
-	if !report.Truncated || len(report.Candidates) != 0 || len(report.Attempts) != 0 || len(report.Diagnostics) != 1 || report.Diagnostics[0].Code != "discovery.limit.project_urls" {
+	if !report.Truncated || len(report.Candidates) != 0 || len(report.Attempts) != DefaultMaxProjectURLs || len(report.Diagnostics) != DefaultMaxProjectURLs+1 || report.Diagnostics[0].Code != "discovery.limit.project_urls" || report.Diagnostics[0].Severity != "warning" {
 		t.Fatalf("report = %#v", report)
+	}
+	for _, attempt := range report.Attempts {
+		if attempt.Status != "fail" || !strings.Contains(attempt.Source, "spec-") {
+			t.Fatalf("unexpected bounded attempt = %#v", attempt)
+		}
+	}
+
+	exampleDir := t.TempDir()
+	openAPIDir = filepath.Join(exampleDir, "openapi")
+	if err := os.MkdirAll(openAPIDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeLocalFile(t, filepath.Join(openAPIDir, "local.yaml"), validLocalSpec("Local API", "Local"))
+	candidates, discoveryReport, err := (&Discoverer{}).DiscoverWithReport(context.Background(), exampleDir, text.String())
+	if err != nil {
+		t.Fatalf("DiscoverWithReport() error = %v", err)
+	}
+	if !discoveryReport.Truncated || len(discoveryReport.Attempts) != DefaultMaxProjectURLs+1 || len(discoveryReport.Diagnostics) != DefaultMaxProjectURLs+1 || discoveryReport.Diagnostics[0].Code != "discovery.limit.project_urls" || len(candidates) != 1 || candidates[0].Title != "Local API" {
+		t.Fatalf("partial discovery = candidates %#v, report %#v", candidates, discoveryReport)
 	}
 }
 
@@ -97,6 +115,26 @@ func TestProjectURLImportMethodsRemainSourceCompatible(t *testing.T) {
 	if len(candidates) != 0 || len(attempts) != 0 {
 		t.Fatalf("ImportProjectURLsWithReport() = %#v, %#v", candidates, attempts)
 	}
+}
+
+func TestDiscoveryCandidatesDeduplicateByDigest(t *testing.T) {
+	candidates, digests := dedupeDiscoveryCandidatesByDigest([]DiscoveryCandidate{
+		{RelativePath: "openapi/a.yaml", Source: "local"},
+		{RelativePath: "openapi/b.yaml", Source: "url"},
+		{RelativePath: "openapi/c.yaml", Source: "url"},
+		{RelativePath: "openapi/no-digest.yaml", Source: "local"},
+	}, []string{"abc", "ABC", "def", ""})
+	if len(candidates) != 3 || len(digests) != 3 || candidates[0].RelativePath != "openapi/a.yaml" || digests[0] != "abc" || candidates[1].RelativePath != "openapi/c.yaml" || digests[1] != "def" || candidates[2].RelativePath != "openapi/no-digest.yaml" {
+		t.Fatalf("deduplicated candidates = %#v with digests %#v", candidates, digests)
+	}
+}
+
+func TestDiscoveryCandidateKeepsLegacyFieldShape(t *testing.T) {
+	// Unkeyed construction protects source compatibility for downstream users.
+	_ = DiscoveryCandidate{"path", "relative", "title", "description", "source", 1}
+	_ = LocalOptions{"dir", "base", "query", 1024}
+	_ = LocalResult{"path", "relative", "title", "description", 1, SpecMetadata{}}
+	_ = ImportedSpec{"name", "path", "title", "description", "url", "sha256", 1, SpecMetadata{}}
 }
 
 type roundTripFunc func(*http.Request) (*http.Response, error)
