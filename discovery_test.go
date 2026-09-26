@@ -2,6 +2,7 @@ package apitools
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -114,6 +115,62 @@ func TestProjectURLImportMethodsRemainSourceCompatible(t *testing.T) {
 	candidates, attempts := importURLsWithReport(context.Background(), t.TempDir(), t.TempDir(), "no URLs")
 	if len(candidates) != 0 || len(attempts) != 0 {
 		t.Fatalf("ImportProjectURLsWithReport() = %#v, %#v", candidates, attempts)
+	}
+}
+
+// TestDiscoverWithReportKeepsPartialLocalCandidatesOnTruncation proves that
+// hitting the local candidate bound does not abort the whole multi-source
+// discovery attempt: partial local candidates are kept, the report records
+// the truncation as a diagnostic rather than a fatal error, and URL discovery
+// still runs.
+func TestDiscoverWithReportKeepsPartialLocalCandidatesOnTruncation(t *testing.T) {
+	exampleDir := t.TempDir()
+	openAPIDir := filepath.Join(exampleDir, "openapi")
+	if err := os.MkdirAll(openAPIDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	const localSpecCount = DefaultLocalSourceMaxCandidates + 1
+	for i := 0; i < localSpecCount; i++ {
+		name := fmt.Sprintf("s%03d.yaml", i)
+		writeLocalFile(t, filepath.Join(openAPIDir, name), validLocalSpec(fmt.Sprintf("Local API %d", i), fmt.Sprintf("local-%d", i)))
+	}
+
+	candidates, report, err := (&Discoverer{}).DiscoverWithReport(context.Background(), exampleDir, "http://127.0.0.1/extra.yaml")
+	if err != nil {
+		t.Fatalf("DiscoverWithReport() error = %v, want nil (truncation is recoverable)", err)
+	}
+	if !report.Truncated {
+		t.Fatalf("report.Truncated = false, want true: %#v", report)
+	}
+	foundLocalTruncation := false
+	for _, d := range report.Diagnostics {
+		if d.Code == "discovery.local.truncated" {
+			foundLocalTruncation = true
+		}
+	}
+	if !foundLocalTruncation {
+		t.Fatalf("expected a discovery.local.truncated diagnostic, got %#v", report.Diagnostics)
+	}
+	if len(candidates) != DefaultLocalSourceMaxCandidates {
+		t.Fatalf("candidates = %d, want the %d partial local results kept despite truncation: %#v", len(candidates), DefaultLocalSourceMaxCandidates, candidates)
+	}
+	foundLocalAttempt := false
+	for _, attempt := range report.Attempts {
+		if attempt.Kind == "local" && attempt.Status == "pass" {
+			foundLocalAttempt = true
+		}
+	}
+	if !foundLocalAttempt {
+		t.Fatalf("expected a passing local attempt despite truncation, got %#v", report.Attempts)
+	}
+	foundURLAttempt := false
+	for _, attempt := range report.Attempts {
+		if attempt.Kind == "url" {
+			foundURLAttempt = true
+		}
+	}
+	if !foundURLAttempt {
+		t.Fatalf("expected discovery to still attempt URL import after local truncation, got %#v", report.Attempts)
 	}
 }
 

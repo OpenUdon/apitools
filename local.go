@@ -4,12 +4,21 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 )
+
+// ErrLocalScanTruncated wraps the error LocalFiles and DiscoverOpenAPI return
+// when a local scan reaches its visit or candidate bound before completing.
+// Results returned alongside this error are valid and partial, not invalid:
+// callers may keep and use them, and multi-source discovery treats this as
+// recoverable rather than aborting. Use errors.Is to distinguish it from a
+// scan failure such as a missing or unreadable root.
+var ErrLocalScanTruncated = errors.New("local scan reached a bound before completing")
 
 type LocalOptions struct {
 	Dir      string
@@ -75,7 +84,7 @@ func localFilesWithDigests(ctx context.Context, opts LocalOptions) ([]LocalResul
 		digests[i] = state.localResultDigests[result.Path]
 	}
 	if state.report.Truncated && len(state.report.Diagnostics) > 0 {
-		return state.localResults, digests, fmt.Errorf("local OpenAPI scan is incomplete: %s", state.report.Diagnostics[0].Message)
+		return state.localResults, digests, fmt.Errorf("local OpenAPI scan is incomplete: %s: %w", state.report.Diagnostics[0].Message, ErrLocalScanTruncated)
 	}
 	return state.localResults, digests, nil
 }

@@ -2,6 +2,7 @@ package apitools
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -75,8 +76,21 @@ func (d *Discoverer) DiscoverWithReport(ctx context.Context, exampleDir, project
 	var candidateDigests []string
 	var report DiscoveryReport
 	local, localDigests, err := discoverOpenAPIWithDigests(ctx, openAPIDir, exampleDir, projectText)
-	if err != nil {
+	if err != nil && !errors.Is(err, ErrLocalScanTruncated) {
 		return nil, report, err
+	}
+	if err != nil {
+		// A truncated local scan is recoverable: keep the partial local
+		// candidates it already found and continue to URL and APIs.guru
+		// discovery instead of aborting the whole multi-source attempt.
+		report.Truncated = true
+		report.Diagnostics = append(report.Diagnostics, Diagnostic{
+			Severity:    "warning",
+			Code:        "discovery.local.truncated",
+			Message:     err.Error(),
+			Path:        filepath.ToSlash(openAPIDir),
+			Remediation: "Narrow the local OpenAPI directory or increase local discovery bounds to see every candidate; continuing with the partial local results plus URL and APIs.guru fallback.",
+		})
 	}
 	report.Attempts = append(report.Attempts, DiscoveryAttempt{
 		Kind:   "local",
@@ -90,7 +104,7 @@ func (d *Discoverer) DiscoverWithReport(ctx context.Context, exampleDir, project
 	urlReport, urlDigests, err := d.importProjectURLsReportWithDigests(ctx, openAPIDir, exampleDir, projectText)
 	report.Attempts = append(report.Attempts, urlReport.Attempts...)
 	report.Diagnostics = append(report.Diagnostics, urlReport.Diagnostics...)
-	report.Truncated = urlReport.Truncated
+	report.Truncated = report.Truncated || urlReport.Truncated
 	if err != nil {
 		return candidates, report, err
 	}
@@ -184,6 +198,8 @@ func (d *Discoverer) importProjectURLsReportWithDigests(ctx context.Context, ope
 }
 
 // DiscoverOpenAPI returns local OpenAPI document candidates under openAPIDir.
+// If the scan is truncated (ErrLocalScanTruncated), the candidates found
+// before the bound was reached are still returned alongside the error.
 func DiscoverOpenAPI(ctx context.Context, openAPIDir, baseDir, projectText string) ([]DiscoveryCandidate, error) {
 	candidates, _, err := discoverOpenAPIWithDigests(ctx, openAPIDir, baseDir, projectText)
 	return candidates, err
@@ -195,9 +211,9 @@ func discoverOpenAPIWithDigests(ctx context.Context, openAPIDir, baseDir, projec
 		BaseDir: baseDir,
 		Query:   projectText,
 	})
-	if err != nil {
-		return nil, nil, err
-	}
+	// Build candidates from whatever results were collected even when err is
+	// set: a truncated scan (ErrLocalScanTruncated) still returns valid
+	// partial results that DiscoverWithReport keeps rather than discarding.
 	candidates := make([]DiscoveryCandidate, 0, len(results))
 	for _, result := range results {
 		candidates = append(candidates, DiscoveryCandidate{
@@ -209,7 +225,7 @@ func discoverOpenAPIWithDigests(ctx context.Context, openAPIDir, baseDir, projec
 			Score:        result.Score,
 		})
 	}
-	return candidates, digests, nil
+	return candidates, digests, err
 }
 
 func (d *Discoverer) ImportBestAPIsGuruMatch(ctx context.Context, openAPIDir, baseDir, projectText string) (DiscoveryCandidate, error) {

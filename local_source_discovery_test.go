@@ -3,6 +3,7 @@ package apitools
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -184,6 +185,47 @@ func TestDiscoverLocalSourcesReportsBoundsAndOversizedFiles(t *testing.T) {
 	}
 	if !report.Truncated || len(report.Diagnostics) != 1 || report.Diagnostics[0].Code != "local.limit.entries" {
 		t.Fatalf("entry limit report = %#v", report)
+	}
+}
+
+// TestDiscoverLocalSourcesExactCandidateLimitIsNotTruncated proves that
+// hitting MaxCandidates exactly (no additional candidate exists to exclude)
+// is not reported as truncated. Truncation must reflect a candidate that was
+// actually dropped, not merely reaching the limit while accepting the last
+// one that fits.
+func TestDiscoverLocalSourcesExactCandidateLimitIsNotTruncated(t *testing.T) {
+	dir := t.TempDir()
+	const limit = 5
+	for i := 0; i < limit; i++ {
+		name := fmt.Sprintf("s%03d.json", i)
+		writeLocalDiscoveryFile(t, dir, name, fmt.Sprintf(`{"openrpc":"1.3.2","info":{"title":"%s","version":"1"},"methods":[{"name":"ping","params":[],"result":{"name":"pong","schema":{"type":"string"}}}]}`, name))
+	}
+	report, err := DiscoverLocalSources(context.Background(), LocalSourceDiscoveryOptions{Roots: []string{dir}, MaxCandidates: limit})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Truncated {
+		t.Fatalf("exactly %d unique candidates should not be truncated, got %#v", limit, report)
+	}
+	if len(report.Candidates) != limit {
+		t.Fatalf("candidates = %d, want %d: %#v", len(report.Candidates), limit, report.Candidates)
+	}
+	if len(report.Diagnostics) != 0 {
+		t.Fatalf("unexpected diagnostics at the exact limit: %#v", report.Diagnostics)
+	}
+
+	// One more unique candidate beyond the limit must still be reported as
+	// truncated (the limit still excludes something).
+	writeLocalDiscoveryFile(t, dir, "one-more.json", `{"openrpc":"1.3.2","info":{"title":"one-more","version":"1"},"methods":[{"name":"ping","params":[],"result":{"name":"pong","schema":{"type":"string"}}}]}`)
+	report, err = DiscoverLocalSources(context.Background(), LocalSourceDiscoveryOptions{Roots: []string{dir}, MaxCandidates: limit})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !report.Truncated || len(report.Diagnostics) != 1 || report.Diagnostics[0].Code != "local.limit.candidates" {
+		t.Fatalf("one candidate beyond the limit should truncate: %#v", report)
+	}
+	if len(report.Candidates) != limit {
+		t.Fatalf("candidates = %d, want %d: %#v", len(report.Candidates), limit, report.Candidates)
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -235,6 +236,41 @@ func TestLocalFilesDeduplicatesAndEnforcesTraversalBounds(t *testing.T) {
 	}
 	if !candidateBound.report.Truncated || len(candidateBound.localResults) != 1 || len(candidateBound.report.Diagnostics) == 0 || !strings.Contains(candidateBound.report.Diagnostics[0].Message, "candidate acceptance limit") {
 		t.Fatalf("bounded candidates = %#v, results %#v", candidateBound.report, candidateBound.localResults)
+	}
+}
+
+// TestLocalFilesFailsOnUnreadableRoot proves that a scan root that cannot be
+// read (for example, permission denied) is a scan failure, not an empty
+// result: descendant read errors are recorded as rejections so the rest of a
+// scan can continue, but the root itself failing means the scan made no
+// progress at all.
+func TestLocalFilesFailsOnUnreadableRoot(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("directory permission bits do not restrict reads the same way on Windows")
+	}
+	base := t.TempDir()
+	dir := filepath.Join(base, "locked")
+	if err := os.Mkdir(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeLocalFile(t, filepath.Join(dir, "spec.yaml"), validLocalSpec("Locked API", "Locked"))
+	if err := os.Chmod(dir, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(dir, 0o755)
+	if _, err := os.ReadDir(dir); err == nil {
+		t.Skip("this process can read a mode-000 directory (likely running as root); the permission check cannot be exercised")
+	}
+
+	got, err := LocalFiles(context.Background(), LocalOptions{Dir: dir, BaseDir: base})
+	if err == nil {
+		t.Fatalf("LocalFiles() on an unreadable root = (%#v, nil), want an error", got)
+	}
+	if len(got) != 0 {
+		t.Fatalf("LocalFiles() on an unreadable root returned %d results, want none", len(got))
+	}
+	if !strings.Contains(err.Error(), "cannot read local source root") {
+		t.Fatalf("err = %v, want a root-read failure", err)
 	}
 }
 

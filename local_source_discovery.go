@@ -125,6 +125,12 @@ type localDiscoveryState struct {
 	localResults       []LocalResult
 	localResultDigests map[string]string
 	stop               bool
+	// currentRoot is the caller-provided root currently being walked. A walk
+	// error reported for this exact path means the root itself could not be
+	// read (for example, permission denied), which fails the scan; a walk
+	// error reported for any other path is a descendant and is recorded as a
+	// rejection so the rest of the scan can continue.
+	currentRoot string
 }
 
 var errStopLocalDiscovery = errors.New("stop local source discovery")
@@ -218,6 +224,7 @@ func discoverLocalSources(ctx context.Context, opts LocalSourceDiscoveryOptions,
 			return state, fmt.Errorf("explicit local source %q is a directory", root)
 		}
 		if info.IsDir() {
+			state.currentRoot = root
 			err = filepath.WalkDir(root, state.visit)
 		} else {
 			if state.report.VisitedEntries >= state.opts.MaxVisitedEntries {
@@ -248,6 +255,13 @@ func (state *localDiscoveryState) visit(path string, entry fs.DirEntry, walkErr 
 	}
 	state.report.VisitedEntries++
 	if walkErr != nil {
+		if path == state.currentRoot {
+			// The scan root itself could not be read (for example, permission
+			// denied on the directory). Unlike a descendant, this leaves the
+			// whole scan unable to make any progress, so it fails rather than
+			// silently reporting zero candidates.
+			return fmt.Errorf("cannot read local source root %q: %w", path, walkErr)
+		}
 		state.reject(path, "", "path.walk", fmt.Sprintf("cannot walk local source path: %v", walkErr), "Check directory and file permissions, then retry the local scan.")
 		return nil
 	}
@@ -348,6 +362,13 @@ func (state *localDiscoveryState) inspect(path string, info fs.FileInfo) error {
 		state.report.Candidates[index].DuplicatePaths = append(state.report.Candidates[index].DuplicatePaths, path)
 		return nil
 	}
+	// This is a new, previously unseen candidate. Check the limit before
+	// accepting it so truncation is reported only when a candidate is
+	// actually excluded, not merely when accepting one reaches the limit.
+	if len(state.report.Candidates) >= state.opts.MaxCandidates {
+		state.limit("local.limit.candidates", fmt.Sprintf("local discovery reached the %d-candidate acceptance limit", state.opts.MaxCandidates), "Narrow --source-root or explicitly increase MaxCandidates.")
+		return errStopLocalDiscovery
+	}
 	if state.openAPIOnly {
 		relative, err := filepath.Rel(state.baseDir, path)
 		if err != nil {
@@ -378,10 +399,6 @@ func (state *localDiscoveryState) inspect(path string, info fs.FileInfo) error {
 	}
 	state.byDigest[digestText] = len(state.report.Candidates)
 	state.report.Candidates = append(state.report.Candidates, candidate)
-	if len(state.report.Candidates) >= state.opts.MaxCandidates {
-		state.limit("local.limit.candidates", fmt.Sprintf("local discovery reached the %d-candidate acceptance limit", state.opts.MaxCandidates), "Narrow --source-root or explicitly increase MaxCandidates.")
-		return errStopLocalDiscovery
-	}
 	return nil
 }
 

@@ -584,15 +584,47 @@ func TestCachedSpecRevalidatedBeforeImport(t *testing.T) {
 	}
 }
 
-func TestOfflineCachedPrivateURLUsesCacheWithoutHostResolution(t *testing.T) {
+// TestOfflineCachedPrivateURLRejectedByDefault proves that offline mode's
+// DNS-free host validation still refuses localhost and private IP literals by
+// default. Offline mode skips DNS lookups (TestOfflineCachedSpecSkipsDNSAndTTLAndReportsAge),
+// not host safety: without this, offline import could serve a cache entry
+// planted or stored for a private host.
+func TestOfflineCachedPrivateURLRejectedByDefault(t *testing.T) {
 	rawURL := "http://127.0.0.1/openapi.yaml"
-	_, err := (&Client{Cache: validSpecCache(rawURL)}).Import(context.Background(), ImportOptions{
+	cache := fakeCache{
+		loadSpec: func(context.Context, string, time.Duration) (CachedSpec, bool, error) {
+			t.Fatalf("LoadSpec should not be called for unsafe URL")
+			return CachedSpec{}, false, nil
+		},
+	}
+	_, err := (&Client{Cache: cache}).Import(context.Background(), ImportOptions{
 		URL:       rawURL,
 		Dir:       t.TempDir(),
 		CacheMode: CacheModeOffline,
 	})
-	if err != nil {
-		t.Fatalf("expected offline cached private URL import without network validation, got %v", err)
+	if err == nil || !strings.Contains(err.Error(), "refusing private") {
+		t.Fatalf("expected private URL rejection, got %v", err)
+	}
+}
+
+// TestOfflineCachedLocalhostURLRejectedByDefault covers the "localhost"
+// hostname literal, which is not an IP address and so takes a different path
+// through rejectHostLiteral than an IP literal such as 127.0.0.1.
+func TestOfflineCachedLocalhostURLRejectedByDefault(t *testing.T) {
+	rawURL := "http://localhost/openapi.yaml"
+	cache := fakeCache{
+		loadSpec: func(context.Context, string, time.Duration) (CachedSpec, bool, error) {
+			t.Fatalf("LoadSpec should not be called for unsafe URL")
+			return CachedSpec{}, false, nil
+		},
+	}
+	_, err := (&Client{Cache: cache}).Import(context.Background(), ImportOptions{
+		URL:       rawURL,
+		Dir:       t.TempDir(),
+		CacheMode: CacheModeOffline,
+	})
+	if err == nil || !strings.Contains(err.Error(), "refusing localhost") {
+		t.Fatalf("expected localhost URL rejection, got %v", err)
 	}
 }
 

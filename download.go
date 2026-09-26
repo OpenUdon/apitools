@@ -360,6 +360,11 @@ func (c *Client) validateHTTPURL(ctx context.Context, rawURL string) (*url.URL, 
 	return parsed, nil
 }
 
+// validateCacheURL validates a cache key URL for offline use: syntax, scheme,
+// userinfo, port, and the DNS-free host-literal checks in rejectHostLiteral.
+// It never performs a DNS lookup, so it works without network access, but it
+// still refuses "localhost" and unsafe IP literals by default so offline mode
+// cannot be used to plant or replay a cache entry for a private host.
 func (c *Client) validateCacheURL(rawURL string) (*url.URL, error) {
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || parsed.Scheme == "" {
@@ -377,13 +382,21 @@ func (c *Client) validateCacheURL(rawURL string) (*url.URL, error) {
 	if parsed.User != nil {
 		return nil, fmt.Errorf("URL userinfo is not allowed")
 	}
+	if err := c.rejectHostLiteral(parsed.Hostname()); err != nil {
+		return nil, err
+	}
 	if err := c.validateURLPort(parsed); err != nil {
 		return nil, err
 	}
 	return parsed, nil
 }
 
-func (c *Client) rejectHost(ctx context.Context, host string) error {
+// rejectHostLiteral performs the DNS-free portion of host safety checks: an
+// empty host, "localhost", an IPv6 zone-scoped host, and an unsafe literal IP
+// address. It never performs a network lookup, so it applies in every mode,
+// including offline, where a DNS query is not just unavailable but would also
+// leak which host is being imported.
+func (c *Client) rejectHostLiteral(host string) error {
 	if c != nil && c.AllowUnsafeHosts {
 		return nil
 	}
@@ -397,11 +410,22 @@ func (c *Client) rejectHost(ctx context.Context, host string) error {
 	if strings.Contains(host, "%") {
 		return fmt.Errorf("refusing scoped URL host %q", host)
 	}
-	ip := net.ParseIP(host)
-	if ip != nil {
-		if isUnsafeIP(ip) {
-			return fmt.Errorf("refusing private URL host %q", host)
-		}
+	if ip := net.ParseIP(host); ip != nil && isUnsafeIP(ip) {
+		return fmt.Errorf("refusing private URL host %q", host)
+	}
+	return nil
+}
+
+func (c *Client) rejectHost(ctx context.Context, host string) error {
+	if c != nil && c.AllowUnsafeHosts {
+		return nil
+	}
+	if err := c.rejectHostLiteral(host); err != nil {
+		return err
+	}
+	host = strings.TrimSpace(host)
+	if net.ParseIP(host) != nil {
+		// Already checked as a literal above; no lookup needed.
 		return nil
 	}
 	addrs, err := net.DefaultResolver.LookupIPAddr(ctx, host)
