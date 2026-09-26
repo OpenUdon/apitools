@@ -1068,8 +1068,7 @@ func writeCatalogSecurityAuditReport(out io.Writer, report apitools.CatalogSecur
 	for _, provider := range report.Providers {
 		for _, artifact := range provider.ArtifactSecurity {
 			partial := artifact.Status == apitools.SecurityAuditArtifactPartialOperationSecurity ||
-				(!artifact.RootSecurityDeclared && artifact.OperationSecurityCount > 0 &&
-					artifact.OperationSecurityDeclarationCount < artifact.OperationCount)
+				apitools.IsPartialOperationSecurity(artifact)
 			if !partial {
 				continue
 			}

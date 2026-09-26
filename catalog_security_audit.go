@@ -332,7 +332,7 @@ func auditOpenAPISecurityArtifact(providerID, specRefID string, artifact catalog
 	row.OperationSecurityDeclarationCount = opDeclarationCount
 	undeclared = append(undeclared, undeclaredSecurityRequirementNames(rootNames, schemes)...)
 	row.UndeclaredSecuritySchemes = sortedUniqueStrings(undeclared)
-	partialCoverage := isPartialOperationSecurity(row)
+	partialCoverage := IsPartialOperationSecurity(row)
 	if partialCoverage {
 		row.ManualFollowUps = append(row.ManualFollowUps, partialOperationSecurityFollowUp)
 	}
@@ -343,10 +343,19 @@ func auditOpenAPISecurityArtifact(providerID, specRefID string, artifact catalog
 	case len(row.UndeclaredSecuritySchemes) > 0:
 		row.Status = SecurityAuditArtifactUndeclaredSecuritySchemes
 		row.ManualFollowUps = append(row.ManualFollowUps, "Review upstream security requirements that reference undeclared schemes.")
-	case row.SecuritySchemeCount == 0 && !row.RootSecurityDeclared && row.OperationSecurityDeclarationCount == 0:
+	// These two checks require both: no scheme-bearing requirement anywhere
+	// (OperationSecurityCount, not OperationSecurityDeclarationCount, which
+	// also counts explicit anonymous security:[]/[{}] declarations), and at
+	// least one operation left with no explicit declaration of any kind
+	// (DeclarationCount < OperationCount). An anonymous declaration on some
+	// operations must not excuse other, completely undeclared operations from
+	// being flagged as missing; but when every operation explicitly declares
+	// its security posture (even an all-anonymous API), that is a complete,
+	// unambiguous statement, not a gap an overlay needs to fill.
+	case row.SecuritySchemeCount == 0 && !row.RootSecurityDeclared && row.OperationSecurityCount == 0 && row.OperationSecurityDeclarationCount < row.OperationCount:
 		row.Status = SecurityAuditArtifactMissingSecurityMetadata
 		row.ManualFollowUps = append(row.ManualFollowUps, "Review provider auth docs and add a source-backed security overlay if endpoints are protected.")
-	case !row.RootSecurityDeclared && row.OperationSecurityDeclarationCount == 0:
+	case !row.RootSecurityDeclared && row.OperationSecurityCount == 0 && row.OperationSecurityDeclarationCount < row.OperationCount:
 		row.Status = SecurityAuditArtifactMissingSecurityRequirements
 		row.ManualFollowUps = append(row.ManualFollowUps, "Review provider auth docs and add root or operation security overlay metadata if endpoints are protected.")
 	case partialCoverage:
@@ -374,7 +383,7 @@ func applyCoveredSecurityArtifactFollowUp(row *CatalogSecurityArtifactAuditRow, 
 	row.ManualFollowUps = []string{
 		fmt.Sprintf("Reviewed by catalog security overlay(s) %s; upstream artifact still reports %s for source review.", strings.Join(overlayIDs, ", "), row.Status),
 	}
-	if isPartialOperationSecurity(*row) {
+	if IsPartialOperationSecurity(*row) {
 		row.ManualFollowUps = append(row.ManualFollowUps, partialOperationSecurityFollowUp)
 	}
 }
@@ -496,14 +505,20 @@ func hasArtifactSecurityFinding(artifacts []CatalogSecurityArtifactAuditRow) boo
 
 func hasPartialOperationSecurity(artifacts []CatalogSecurityArtifactAuditRow) bool {
 	for _, artifact := range artifacts {
-		if isPartialOperationSecurity(artifact) {
+		if IsPartialOperationSecurity(artifact) {
 			return true
 		}
 	}
 	return false
 }
 
-func isPartialOperationSecurity(artifact CatalogSecurityArtifactAuditRow) bool {
+// IsPartialOperationSecurity reports whether an audited artifact has
+// scheme-bearing security on some operations but not on every operation, with
+// no root-level security declared. Callers (including report renderers) use
+// this instead of re-deriving the same condition, since it is also true for
+// rows whose Status was overridden by a higher-priority finding, such as an
+// undeclared security scheme.
+func IsPartialOperationSecurity(artifact CatalogSecurityArtifactAuditRow) bool {
 	return !artifact.RootSecurityDeclared &&
 		artifact.OperationSecurityCount > 0 &&
 		artifact.OperationSecurityDeclarationCount < artifact.OperationCount

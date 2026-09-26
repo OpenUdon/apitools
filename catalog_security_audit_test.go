@@ -330,6 +330,82 @@ func TestCatalogSecurityAuditCountsAnonymousOperationRequirement(t *testing.T) {
 	}
 }
 
+// TestCatalogSecurityAuditAnonymousOperationDoesNotExcuseUndeclaredSiblings
+// proves U1: one operation explicitly declaring itself anonymous
+// (security: []) must not cause other, completely undeclared operations in
+// the same spec to be reported as having complete security metadata. This is
+// distinct from TestCatalogSecurityAuditCountsAnonymousOperationRequirement,
+// where every operation in the spec is explicitly declared (all-anonymous
+// coverage is a complete, unambiguous statement, not a gap).
+func TestCatalogSecurityAuditAnonymousOperationDoesNotExcuseUndeclaredSiblings(t *testing.T) {
+	newOptions := func(t *testing.T, content []byte) CatalogSecurityAuditOptions {
+		t.Helper()
+		dir := t.TempDir()
+		if err := os.MkdirAll(filepath.Join(dir, "openapi"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		specPath := filepath.Join("openapi", "partial-anonymous.json")
+		if err := os.WriteFile(filepath.Join(dir, filepath.FromSlash(specPath)), content, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return CatalogSecurityAuditOptions{
+			Catalog: catalog.Catalog{Providers: []catalog.Provider{testSecurityAuditProvider()}},
+			SecurityClassifications: []catalog.SecurityClassification{{
+				ProviderID: "example", SpecRefID: "example-openapi",
+				Status: catalog.AuthStatusPresentIncomplete, SourceRefs: []string{"https://example.com/auth"},
+				SourceNote: "reviewed example auth documentation",
+			}},
+			Artifacts: []catalog.CatalogSpecArtifact{{ProviderID: "example", SpecRefID: "example-openapi", Kind: "openapi", Path: specPath}},
+			CacheDir:  dir,
+		}
+	}
+
+	// With a scheme defined (but never required by name) and one anonymous
+	// operation among several completely undeclared ones, the gap in the
+	// undeclared operations must still be reported.
+	withScheme := []byte(`{
+  "openapi": "3.0.3",
+  "info": {"title": "Example", "version": "1.0.0"},
+  "paths": {
+    "/health": {"get": {"operationId": "getHealth", "security": []}},
+    "/widgets": {"get": {"operationId": "listWidgets"}},
+    "/widgets/{id}": {"get": {"operationId": "getWidget"}}
+  },
+  "components": {"securitySchemes": {"BearerAuth": {"type": "http", "scheme": "bearer"}}}
+}`)
+	options := newOptions(t, withScheme)
+	report, err := BuildCatalogSecurityAuditReport(options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	artifact := findAuditProvider(t, report, "example").ArtifactSecurity[0]
+	if artifact.Status != SecurityAuditArtifactMissingSecurityRequirements {
+		t.Fatalf("status = %q, want %q: %#v", artifact.Status, SecurityAuditArtifactMissingSecurityRequirements, artifact)
+	}
+	if artifact.OperationSecurityDeclarationCount != 1 || artifact.OperationSecurityCount != 0 || artifact.OperationCount != 3 {
+		t.Fatalf("counts = %#v, want 1 declared/0 named/3 total", artifact)
+	}
+
+	// Same shape but with no scheme declared anywhere.
+	noScheme := []byte(`{
+  "openapi": "3.0.3",
+  "info": {"title": "Example", "version": "1.0.0"},
+  "paths": {
+    "/health": {"get": {"operationId": "getHealth", "security": []}},
+    "/widgets": {"get": {"operationId": "listWidgets"}}
+  }
+}`)
+	options = newOptions(t, noScheme)
+	report, err = BuildCatalogSecurityAuditReport(options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	artifact = findAuditProvider(t, report, "example").ArtifactSecurity[0]
+	if artifact.Status != SecurityAuditArtifactMissingSecurityMetadata {
+		t.Fatalf("status = %q, want %q: %#v", artifact.Status, SecurityAuditArtifactMissingSecurityMetadata, artifact)
+	}
+}
+
 func TestCatalogSecurityAuditDetectsMissingOpenAPISecurityMetadata(t *testing.T) {
 	dir := t.TempDir()
 	openAPIDir := filepath.Join(dir, "openapi")
