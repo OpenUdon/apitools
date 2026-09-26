@@ -80,10 +80,9 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestones: S02, S03, C03, C02, S04, and M76 (restored from an
-uncommitted retirement; S02, S03, C03, and C02 have open review-fix rows, and
-S04 and M76 are closure-ready).
-Latest completed milestone: M75 - Operation Lifecycle Ranking Ownership. Apitools and Authoring are published, and OpenUdon/Ramen pin both
+Active milestones: S02, C03, C02, S04, and M76 (S02, C03, and C02 have open
+review-fix rows; S04 and M76 are closure-ready).
+Latest completed milestone: S03 - Operation Lifecycle Ranking Correctness. Apitools and Authoring are published, and OpenUdon/Ramen pin both
 revisions with passing standalone test/vet.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
@@ -120,7 +119,6 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 |---|---|---|
 | S02 - Local, Offline, And Discovery Safety Remediation | [status-S02.md](status-S02.md) | Active: review fixes |
 | C02 - Catalog Refresh Manifest Integrity | [status-C02.md](status-C02.md) | Active: review fixes |
-| S03 - Operation Lifecycle Ranking Correctness | [status-S03.md](status-S03.md) | Active: review fixes |
 | S04 - Prompt Sanitizer Invisible-Unicode Hardening | [status-S04.md](status-S04.md) | Active: closure-ready |
 | C03 - Catalog Resolution And Security Audit Accuracy | [status-C03.md](status-C03.md) | Active: review fixes |
 | M76 - CLI Usage Exit Contract | [status-M76.md](status-M76.md) | Active: closure-ready |
@@ -677,57 +675,6 @@ provider/spec once, and refresh registration shares the spec/artifact upsert
 code with `StoreSpec`/`StoreCatalogArtifact`. `go test ./...`,
 `go vet ./...`, `go run ./cmd/cataloggen -check`,
 `go run ./cmd/apitools catalog check`, and `git diff --check` pass.
-
-## S03 - Operation Lifecycle Ranking Correctness
-
-**Goal.** Make lifecycle sibling ranking pick the true item-level
-read/update/delete siblings with honest confidence, so destructive or unrelated
-operations are not proposed as lifecycle siblings.
-
-**Scope.**
-
-- Treat a path as an item sibling only when it equals the seed's collection
-  path plus a trailing parameter segment; resolve Google Discovery
-  `{+name}`/`{+parent}` paths from method resource identity; remove the
-  `list`/`collection` token exclusions and the dead path-match clause.
-- Derive roles from operation semantics by reusing
-  `apitools.ClassifyOperationPurpose`, so POST updates and actions are not
-  labelled create, and score or diagnose only non-seed roles.
-- Build family tokens from operation IDs and paths without free-text
-  stop-words, and match goal intent on word boundaries.
-- Resolve a seed identified only by operation ID, and prefer absolute document
-  path or URL over relative path for source identity.
-- Keep the package metadata-only; do not add workflow semantics, fetches,
-  credentials, or execution.
-
-**Review provenance.** "apitools Code Review" Pass 0 findings F01, F02, F03,
-F04, F05, F06, F07, F08, F12, and F14 (source priority not supplied), stated
-baseline `a5699e5`, revalidated at
-`a5699e570fb5d6288fdd255c71d229fb062b50b3` with a probe of `Expand`; F04 is
-partially confirmed by code evidence only. F13 was unsupported (not
-reproduced). Lineage: M75 (completed; not reopened).
-
-**Dependencies.** None; independent of S02 and C02.
-
-**Parallel ownership.** `operationlifecycle/` only, plus its tests and docs.
-
-**Downstream impacts.** OpenUdon and Ramen consume lifecycle roles for draft
-ranking; their workspace suites must pass. Publishing and re-pinning consumers
-need separate authorization.
-
-**Acceptance.** Regression tests cover scoped collection versus item siblings,
-Discovery `{+name}` resources, POST update seeds, resources named
-`list`/`collection`, stop-word-only family overlap, goals containing
-`dispatch` or other embedded verbs, operation-ID-only seeds, and same relative
-paths from different documents. Review-iteration-3 regressions (U2-U7, U11)
-also hold: a seed identified by relative path, URL, or name resolves against
-inventory operations; a fully specified seed with a duplicated operation ID
-resolves by method and path; a create-or-update PUT keeps its update sibling
-when the goal asks for updates; nested-collection POST creates stay create;
-HEAD operations can be read siblings; an explicit create/update operation ID
-outranks summary or tag wording; and inflected goal verbs (`patching`,
-`patched`, `replaced`) request updates. `go test ./...`, `go vet ./...`,
-`git diff --check`, and the OpenUdon and Ramen workspace suites pass.
 
 ## S04 - Prompt Sanitizer Invisible-Unicode Hardening
 

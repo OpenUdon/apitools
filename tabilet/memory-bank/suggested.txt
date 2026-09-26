@@ -5,11 +5,10 @@
 Using tabilet/GOAL.md, execute this loop.
 
 STATUS_ORDER:
-S02 -> S03 -> C03 -> C02 -> S04 -> M76
+S02 -> C03 -> C02 -> S04 -> M76
 
 STATUS_FILE_MAP:
 S02 = tabilet/memory-bank/status-S02.md
-S03 = tabilet/memory-bank/status-S03.md
 C03 = tabilet/memory-bank/status-C03.md
 C02 = tabilet/memory-bank/status-C02.md
 S04 = tabilet/memory-bank/status-S04.md

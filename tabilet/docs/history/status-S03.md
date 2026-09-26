@@ -1,3 +1,75 @@
+# Retired milestone S03 - Operation Lifecycle Ranking Correctness
+
+**Milestone.** S03
+**Outcome.** completed
+**Retired.** 2026-09-26
+**Source status.** tabilet/memory-bank/status-S03.md
+**Source specification.** tabilet/memory-bank/milestone.md#s03---operation-lifecycle-ranking-correctness
+**Evidence.** 3bcba9a6c74e3d6b38307dfb04b3578d789ad174
+**Worktree.** clean
+**Review.** passed
+**Review iterations.** 4
+**Verification.** go build ./..., go vet ./..., go test ./... (apitools, all packages); OpenUdon full go test ./...; Ramen full go test ./... including the long-running tests package (333s). All passed at the evidence commit.
+**Consolidated into.** tabilet/memory-bank/architecture.md (operationlifecycle/ row updated) and tabilet/memory-bank/lessons.md ("Keep inferred POST actions out of resource creation", revised for the trailing-vs-parent-parameter distinction).
+
+## Milestone specification
+
+````markdown
+## S03 - Operation Lifecycle Ranking Correctness
+
+**Goal.** Make lifecycle sibling ranking pick the true item-level
+read/update/delete siblings with honest confidence, so destructive or unrelated
+operations are not proposed as lifecycle siblings.
+
+**Scope.**
+
+- Treat a path as an item sibling only when it equals the seed's collection
+  path plus a trailing parameter segment; resolve Google Discovery
+  `{+name}`/`{+parent}` paths from method resource identity; remove the
+  `list`/`collection` token exclusions and the dead path-match clause.
+- Derive roles from operation semantics by reusing
+  `apitools.ClassifyOperationPurpose`, so POST updates and actions are not
+  labelled create, and score or diagnose only non-seed roles.
+- Build family tokens from operation IDs and paths without free-text
+  stop-words, and match goal intent on word boundaries.
+- Resolve a seed identified only by operation ID, and prefer absolute document
+  path or URL over relative path for source identity.
+- Keep the package metadata-only; do not add workflow semantics, fetches,
+  credentials, or execution.
+
+**Review provenance.** "apitools Code Review" Pass 0 findings F01, F02, F03,
+F04, F05, F06, F07, F08, F12, and F14 (source priority not supplied), stated
+baseline `a5699e5`, revalidated at
+`a5699e570fb5d6288fdd255c71d229fb062b50b3` with a probe of `Expand`; F04 is
+partially confirmed by code evidence only. F13 was unsupported (not
+reproduced). Lineage: M75 (completed; not reopened).
+
+**Dependencies.** None; independent of S02 and C02.
+
+**Parallel ownership.** `operationlifecycle/` only, plus its tests and docs.
+
+**Downstream impacts.** OpenUdon and Ramen consume lifecycle roles for draft
+ranking; their workspace suites must pass. Publishing and re-pinning consumers
+need separate authorization.
+
+**Acceptance.** Regression tests cover scoped collection versus item siblings,
+Discovery `{+name}` resources, POST update seeds, resources named
+`list`/`collection`, stop-word-only family overlap, goals containing
+`dispatch` or other embedded verbs, operation-ID-only seeds, and same relative
+paths from different documents. Review-iteration-3 regressions (U2-U7, U11)
+also hold: a seed identified by relative path, URL, or name resolves against
+inventory operations; a fully specified seed with a duplicated operation ID
+resolves by method and path; a create-or-update PUT keeps its update sibling
+when the goal asks for updates; nested-collection POST creates stay create;
+HEAD operations can be read siblings; an explicit create/update operation ID
+outranks summary or tag wording; and inflected goal verbs (`patching`,
+`patched`, `replaced`) request updates. `go test ./...`, `go vet ./...`,
+`git diff --check`, and the OpenUdon and Ramen workspace suites pass.
+````
+
+## Status record
+
+````markdown
 # Status S03 - Operation Lifecycle Ranking Correctness
 
 State of each S03 milestone item. Update as items complete. See
@@ -54,3 +126,4 @@ Iteration 3 review provenance: Review "apitools uncommitted-diff review" (2026-0
 | Seed resolution and source identity | `[+]` | U2 and U11, local P2, fixed. Replaced the single-string `sourceID` with `sourceIdentity` (absolute path, URL, relative-path/name), compared pairwise: the highest-priority kind both sides have populated is decisive, so a disagreement there rejects the match even if a lower-priority kind agrees (preserves the same-relative-path-different-document rejection), while a kind one side lacks is skipped rather than forcing a mismatch (fixes U2's under-specified seed). `normalizeSeed` now also narrows same-ID, same-source candidates by the seed's own method+path when it carries them, resolving a duplicated operation ID to its exact match instead of reporting ambiguity (fixes U11); a bare operation-ID-only seed with no method/path is still reported ambiguous. Regressions: `TestUnderSpecifiedSeedResolvesAgainstFullyDescribedOperation`, `TestFullySpecifiedSeedResolvesDuplicateOperationIDByMethodAndPath` (covers both the resolved and the still-ambiguous case). All prior seed/source tests (`TestOperationIDOnlyAmbiguousSeedDoesNotChooseDocument`, `TestSameRelativePathDifferentAbsoluteDocumentsAreNotSiblings`, `TestAbsoluteDocumentPathAndURLOutrankRelativePath`) still pass. `go test ./operationlifecycle -v`, `go vet ./operationlifecycle`, full apitools `go test ./...`/`go vet ./...`, and `go build`+`go test ./internal/icot/...` in OpenUdon (the consumer package) pass. |
 | Role classification regressions | `[+]` | U3, U4, and U6, local P2, fixed. **U3:** `Expand`'s sibling-skip decision and `primaryRole`'s final label now share one `seedPrimaryPurpose` helper, so a create-or-update PUT is treated as "create" in both places; the update role is no longer skipped in the sibling search merely because `ClassifyOperationPurpose`'s raw, method-based answer for any PUT is "update". Regression: `TestCreateOrUpdatePUTKeepsUpdateSiblingWhenGoalAsksForUpdate` (Databases_CreateOrUpdate/Get/Update, goal "update databases"). **U4:** `postOperationIsAction`'s path-parameter check now looks only at the trailing path segment, not every segment, so a parent-scoping parameter earlier in the path (nested-collection create) no longer suppresses the create role; a POST directly against a parameterized item is still treated as an action. Regression: `TestNestedCollectionPOSTStaysCreateDespiteParentPathParameter` (covers both the nested-create and the still-generic item-action case). **U6:** added `operationIDHasAny`/`operationIDTokens` (operation-ID-only tokenization, no summary/tags) and reordered `lifecyclePurpose` so an explicit create verb in the operation ID is checked before the update-name check, which still considers summary/tag text. Regression: `TestExplicitCreateOperationIDOutranksUpdateWordingInSummary`. Revisited the "Keep inferred POST actions out of resource creation" lesson to state the trailing-vs-parent-parameter distinction. All prior classification tests (`TestExpandClassifiesPostUpdatesAndActions`, `TestExpandHyphenAndCreateOrUpdateFamilies`, `TestExpandCollectionItemLifecycle`) still pass unchanged. `go test ./operationlifecycle -v`, `go vet ./operationlifecycle`, full apitools `go test ./...`/`go vet ./...`, and OpenUdon's `go build ./...` plus `go test ./internal/icot/...` pass. |
 | HEAD read siblings and inflected goal verbs | `[+]` | U5 and U7, local P2, fixed. **U5:** `lifecyclePurpose` now maps HEAD to `"read"` directly (matching how `verbMatchesRole`/`methodRole` already treat it) instead of falling through to `ClassifyOperationPurpose`, which does not classify HEAD at all. Regression: `TestHeadOperationCanBeReadSibling`. **U7:** `goalWantsUpdate`'s word list now includes the missing inflected forms for every verb family (`updating`; `patched`, `patching`; `modified`; `replaced`) instead of just the three the review probed, since the underlying gap (word-boundary tokenization does not stem "-ing"/"-ed") applies uniformly across all four verbs. The existing `TestGoalWantsUpdateUsesWordBoundaries` asserted "no patching required" should *not* match update; that assertion was the exact gap this fix corrects, so it was rewritten to move "patching"/"patched"/"replaced" into the positive cases (matching the review's stated baseline: substring matching at commit `6ee935b` returned true for these before word-boundary tokenization dropped them). `dispatch a thing` and `the updater flow` remain negative (real word-boundary false positives, unrelated to inflection). `go test ./operationlifecycle -v`, `go vet ./operationlifecycle`, full apitools `go test ./...`/`go vet ./...` pass; OpenUdon full `go test ./...` passes; Ramen full `go test ./...` passes, including the long-running `tests` package (333s). |
+````
