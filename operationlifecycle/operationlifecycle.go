@@ -84,7 +84,7 @@ func Expand(operations []apitools.OperationSummary, seed apitools.OperationSumma
 		out.Diagnostics = append(out.Diagnostics, Diagnostic{Code: "operation_lifecycle.seed_missing", Severity: "warning", Message: "seed operation is empty"})
 		return out
 	}
-	seedPurpose := lifecyclePurpose(seed)
+	seedPurpose := seedPrimaryPurpose(seed, opts.DesiredState)
 	siblings := map[string]candidateScore{}
 	for _, role := range []string{"read", "update", "delete"} {
 		if role == seedPurpose {
@@ -187,14 +187,24 @@ func narrowSeedMatchesByMethodAndPath(candidates []apitools.OperationSummary, se
 
 func primaryRole(seed apitools.OperationSummary, opts Options, expanded bool) string {
 	if opts.DesiredState && expanded {
-		if strings.EqualFold(seed.Method, "PUT") && operationHasAny(seed, "create", "createorupdate", "insert") {
-			return "create"
-		}
-		if purpose := lifecyclePurpose(seed); purpose != "" {
+		if purpose := seedPrimaryPurpose(seed, opts.DesiredState); purpose != "" {
 			return purpose
 		}
 	}
 	return methodRole(seed)
+}
+
+// seedPrimaryPurpose determines the seed's own lifecycle role when the caller
+// wants a desired-state interpretation. It is shared by Expand's sibling-role
+// skip decision and primaryRole's final label, so both agree: a create-or-update
+// PUT is "create" in both places, and Expand does not skip searching for an
+// update sibling merely because ClassifyOperationPurpose's raw, method-based
+// answer for PUT is "update".
+func seedPrimaryPurpose(seed apitools.OperationSummary, desiredState bool) string {
+	if desiredState && strings.EqualFold(seed.Method, "PUT") && operationHasAny(seed, "create", "createorupdate", "insert") {
+		return "create"
+	}
+	return lifecyclePurpose(seed)
 }
 
 func lifecyclePurpose(operation apitools.OperationSummary) string {
@@ -202,14 +212,18 @@ func lifecyclePurpose(operation apitools.OperationSummary) string {
 	if !strings.EqualFold(operation.Method, "POST") || purpose != "create" {
 		return purpose
 	}
-	if operationHasAny(operation, "createorupdate") {
+	// Explicit create verbs in the operation ID itself outrank a summary or
+	// tag that happens to mention update/patch wording; only the operation ID
+	// is checked here; operationNameMatchesRole (below) also considers
+	// summary/tag text for the update fallback.
+	if operationIDHasAny(operation, "createorupdate") {
+		return "create"
+	}
+	if operationIDHasAny(operation, "create", "insert", "add") {
 		return "create"
 	}
 	if operationNameMatchesRole(operation, "update") {
 		return "update"
-	}
-	if operationHasAny(operation, "create", "insert", "add") {
-		return "create"
 	}
 	if postOperationIsAction(operation) {
 		return methodRole(operation)
@@ -232,13 +246,15 @@ func postOperationIsAction(operation apitools.OperationSummary) bool {
 	if len(parts) > 0 && strings.Contains(parts[len(parts)-1], ":") {
 		return true
 	}
-	// A POST against a parameterized item or action route is not sufficient
-	// evidence of resource creation. Keep otherwise unclassified operations
-	// in the generic POST role rather than inventing a create disposition.
-	for _, part := range parts {
-		if isPathParameter(part) {
-			return true
-		}
+	// A POST directly against a parameterized item (the route ends in a path
+	// parameter, such as POST /widgets/{id}) is not sufficient evidence of
+	// resource creation, so it stays a generic POST rather than an invented
+	// create disposition. A parameter earlier in the path only scopes a
+	// parent resource (for example the {projectId} in POST
+	// /projects/{projectId}/children, a nested-collection create) and does
+	// not by itself make the operation an item-level action.
+	if len(parts) > 0 && isPathParameter(parts[len(parts)-1]) {
+		return true
 	}
 	return false
 }
@@ -349,6 +365,19 @@ func operationNameMatchesRole(op apitools.OperationSummary, role string) bool {
 
 func operationHasAny(op apitools.OperationSummary, terms ...string) bool {
 	tokens := operationTokens(op)
+	for _, term := range terms {
+		if tokens[strings.ToLower(term)] {
+			return true
+		}
+	}
+	return false
+}
+
+// operationIDHasAny is like operationHasAny but tokenizes only the operation
+// ID, not its summary or tags. Use it where an explicit verb named directly on
+// the operation must outrank free-text wording elsewhere on the operation.
+func operationIDHasAny(op apitools.OperationSummary, terms ...string) bool {
+	tokens := operationIDTokens(op)
 	for _, term := range terms {
 		if tokens[strings.ToLower(term)] {
 			return true
@@ -475,6 +504,17 @@ func familyTokens(op apitools.OperationSummary) []string {
 func operationTokens(op apitools.OperationSummary) map[string]bool {
 	text := operationID(op) + " " + op.Summary + " " + strings.Join(op.Tags, " ")
 	out := wordTokenSet(text)
+	joined := strings.ToLower(strings.NewReplacer("_", "", "-", "", ".", "").Replace(operationID(op)))
+	if strings.Contains(joined, "createorupdate") {
+		out["createorupdate"], out["create"], out["update"] = true, true, true
+	}
+	return out
+}
+
+// operationIDTokens is operationTokens restricted to the operation ID, with no
+// summary or tag text mixed in.
+func operationIDTokens(op apitools.OperationSummary) map[string]bool {
+	out := wordTokenSet(operationID(op))
 	joined := strings.ToLower(strings.NewReplacer("_", "", "-", "", ".", "").Replace(operationID(op)))
 	if strings.Contains(joined, "createorupdate") {
 		out["createorupdate"], out["create"], out["update"] = true, true, true

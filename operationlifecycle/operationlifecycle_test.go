@@ -297,6 +297,63 @@ func TestFullySpecifiedSeedResolvesDuplicateOperationIDByMethodAndPath(t *testin
 	}
 }
 
+// TestCreateOrUpdatePUTKeepsUpdateSiblingWhenGoalAsksForUpdate proves that a
+// create-or-update PUT seed does not silently drop its PATCH update sibling
+// when the caller's goal requests updates: the sibling-role skip decision
+// must agree with the seed's own primary role (create), not with the raw,
+// method-based purpose (update) that ClassifyOperationPurpose reports for any
+// PUT regardless of its create-or-update naming.
+func TestCreateOrUpdatePUTKeepsUpdateSiblingWhenGoalAsksForUpdate(t *testing.T) {
+	operations := []apitools.OperationSummary{
+		op("azure", "Databases_CreateOrUpdate", "PUT", "/dbs/{db}"),
+		op("azure", "Databases_Get", "GET", "/dbs/{db}"),
+		op("azure", "Databases_Update", "PATCH", "/dbs/{db}"),
+	}
+	expanded := Expand(operations, operations[0], Options{DesiredState: true, Goal: "update databases"})
+	if got, want := roleIDs(expanded), []string{"create:Databases_CreateOrUpdate", "read:Databases_Get", "update:Databases_Update"}; !slices.Equal(got, want) {
+		t.Fatalf("roles = %#v, want %#v; diagnostics = %#v", got, want, expanded.Diagnostics)
+	}
+}
+
+// TestNestedCollectionPOSTStaysCreateDespiteParentPathParameter proves that a
+// parent-scoping path parameter earlier in the route (not the trailing
+// segment) does not make a POST an "action" and lose its create role.
+func TestNestedCollectionPOSTStaysCreateDespiteParentPathParameter(t *testing.T) {
+	operations := []apitools.OperationSummary{
+		op("projects", "newChild", "POST", "/projects/{projectId}/children"),
+		op("projects", "getChild", "GET", "/projects/{projectId}/children/{childId}"),
+	}
+	expanded := Expand(operations, operations[0], Options{DesiredState: true})
+	if got, want := roleIDs(expanded), []string{"create:newChild", "read:getChild"}; !slices.Equal(got, want) {
+		t.Fatalf("roles = %#v, want %#v; diagnostics = %#v", got, want, expanded.Diagnostics)
+	}
+
+	// A POST directly against a parameterized item (trailing path parameter),
+	// with no explicit create/update verb in its own ID, is still not
+	// sufficient evidence of resource creation.
+	itemAction := []apitools.OperationSummary{
+		op("widgets", "attachWidget", "POST", "/widgets/{id}"),
+		op("widgets", "getWidget", "GET", "/widgets/{id}"),
+	}
+	itemExpanded := Expand(itemAction, itemAction[0], Options{DesiredState: true})
+	if got, want := roleIDs(itemExpanded), []string{"post:attachWidget", "read:getWidget"}; !slices.Equal(got, want) {
+		t.Fatalf("item-action roles = %#v, want %#v; diagnostics = %#v", got, want, itemExpanded.Diagnostics)
+	}
+}
+
+// TestExplicitCreateOperationIDOutranksUpdateWordingInSummary proves that an
+// explicit create verb in the operation ID itself is not overridden by
+// update/patch wording that only appears in the summary or tags.
+func TestExplicitCreateOperationIDOutranksUpdateWordingInSummary(t *testing.T) {
+	seed := op("widgets", "createWidget", "POST", "/widgets")
+	seed.Summary = "Create a widget; use PATCH to update it later"
+	sibling := op("widgets", "getWidget", "GET", "/widgets/{id}")
+	expanded := Expand([]apitools.OperationSummary{seed, sibling}, seed, Options{DesiredState: true})
+	if got, want := roleIDs(expanded), []string{"create:createWidget", "read:getWidget"}; !slices.Equal(got, want) {
+		t.Fatalf("roles = %#v, want %#v; diagnostics = %#v", got, want, expanded.Diagnostics)
+	}
+}
+
 func TestExpandCollectionItemLifecycle(t *testing.T) {
 	operations := []apitools.OperationSummary{
 		op("k8s", "createCoreV1NamespacedConfigMap", "POST", "/api/v1/namespaces/{namespace}/configmaps"),

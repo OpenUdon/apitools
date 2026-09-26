@@ -26,6 +26,6 @@ need no journal entry or separate archive run.
 ## Keep inferred POST actions out of resource creation
 
 - **Applies when:** Ranking lifecycle roles from API documents whose operation IDs and paths may use provider-specific naming.
-- **Lesson:** HTTP method alone is not enough to label a POST as create. Respect explicit update/create semantics and known action routes; on parameterized item/action paths, keep otherwise ambiguous POSTs generic rather than treating a finite action-name list as exhaustive.
-- **Why it matters:** Custom verbs such as `renew` or `reprocess` can mutate an existing resource without creating it. A false create classification can distort a generated lifecycle proposal.
-- **Evidence:** [S03 - Operation Lifecycle Ranking Correctness](status-S03.md), especially review iteration 1 and the `renewInvoice` regression.
+- **Lesson:** HTTP method alone is not enough to label a POST as create. Respect explicit update/create semantics named on the operation itself before path shape, and known action routes; on a path whose *trailing* segment is a parameter (a POST directly against an item ID), keep an otherwise ambiguous POST generic rather than treating a finite action-name list as exhaustive. A parameter earlier in the path only scopes a parent resource (for example `{projectId}` in a nested-collection create) and must not by itself suppress a create classification.
+- **Why it matters:** Custom verbs such as `renew` or `reprocess` can mutate an existing resource without creating it, and checking every path segment for a parameter (not just the trailing one) misclassifies ordinary nested-collection creates as actions. A false classification either way can distort a generated lifecycle proposal.
+- **Evidence:** [S03 - Operation Lifecycle Ranking Correctness](status-S03.md), especially review iteration 1's `renewInvoice` regression and iteration 3's `newChild`/nested-collection regression (U4).
