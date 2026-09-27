@@ -29,6 +29,9 @@ func requestBodySummary(ctx context.Context, root map[string]any, operation map[
 		}
 		content := mapValue(body["content"])
 		summary.ContentTypes = sortedMapKeys(content)
+		if len(summary.ContentTypes) > 1 {
+			addOperationIssue(op, "schema.content_type_selection_required", "request body declares multiple media types; only one selected request schema is summarized", "")
+		}
 		if len(summary.ContentTypes) > 0 {
 			media := mapValue(content[summary.ContentTypes[0]])
 			rawSchema, err := resolveLocalSchemaRefs(ctx, root, mapValue(media["schema"]), op)
@@ -38,6 +41,9 @@ func requestBodySummary(ctx context.Context, root map[string]any, operation map[
 			schema := schemaSummary(rawSchema)
 			summary.Schema = &schema
 			summary.Fields = requestFieldSummaries(rawSchema, "", summary.Required, 0)
+			if requestFieldSummaryWouldTruncate(rawSchema) {
+				addOperationIssue(op, "schema.field_summary_truncated", "request-body fields exceeded the local summary count or depth bound", "")
+			}
 			if len(summary.Fields) == 0 && len(rawSchema) > 0 && !looksLikeCredentialName("body") {
 				summary.Fields = []RequestFieldSummary{requestFieldSummary("body", summary.Required, rawSchema)}
 			}
@@ -69,6 +75,9 @@ func requestBodySummary(ctx context.Context, root map[string]any, operation map[
 			addOperationIssue(op, "schema.ref_unresolved", "body parameter schema reference was not resolved", schema.Ref)
 		}
 		fields := requestFieldSummaries(rawSchema, "", boolValue(parameter["required"]), 0)
+		if requestFieldSummaryWouldTruncate(rawSchema) {
+			addOperationIssue(op, "schema.field_summary_truncated", "request-body fields exceeded the local summary count or depth bound", "")
+		}
 		if len(fields) == 0 && len(rawSchema) > 0 && !looksLikeCredentialName("body") {
 			fields = []RequestFieldSummary{requestFieldSummary("body", boolValue(parameter["required"]), rawSchema)}
 		}
@@ -89,7 +98,11 @@ func responseBodySummary(ctx context.Context, root map[string]any, operation map
 	if len(responses) == 0 {
 		return nil, nil
 	}
-	for _, status := range successfulResponseStatuses(responses) {
+	statuses := successfulResponseStatuses(responses)
+	if len(statuses) > 1 {
+		addOperationIssue(op, "schema.response_selection_required", "operation declares multiple successful response statuses; only one response schema is summarized", "")
+	}
+	for _, status := range statuses {
 		response := mapValue(responses[status])
 		if len(response) == 0 {
 			continue
@@ -111,6 +124,9 @@ func responseBodySummary(ctx context.Context, root map[string]any, operation map
 		}
 		if content := mapValue(response["content"]); len(content) > 0 {
 			summary.ContentTypes = sortedMapKeys(content)
+			if len(summary.ContentTypes) > 1 {
+				addOperationIssue(op, "schema.response_content_type_selection_required", "successful response declares multiple media types; only one selected response schema is summarized", "")
+			}
 			for _, contentType := range preferredResponseContentTypes(summary.ContentTypes) {
 				media := mapValue(content[contentType])
 				rawSchema, err := resolveLocalSchemaRefs(ctx, root, mapValue(media["schema"]), op)
@@ -122,7 +138,10 @@ func responseBodySummary(ctx context.Context, root map[string]any, operation map
 				}
 				schema := schemaSummary(rawSchema)
 				summary.Schema = &schema
-				summary.Fields = requestFieldSummaries(rawSchema, "", false, 0)
+				summary.Fields = requestFieldSummaries(rawSchema, "", true, 0)
+				if requestFieldSummaryWouldTruncate(rawSchema) {
+					addOperationIssue(op, "schema.field_summary_truncated", "response fields exceeded the local summary count or depth bound", "")
+				}
 				summary.Fields = appendMissingTopLevelResponseFields(summary.Fields, rawSchema, "name", "id")
 				if len(summary.Fields) == 0 && !looksLikeCredentialName("body") {
 					summary.Fields = []RequestFieldSummary{requestFieldSummary("body", false, rawSchema)}
@@ -146,7 +165,10 @@ func responseBodySummary(ctx context.Context, root map[string]any, operation map
 		}
 		schema := schemaSummary(rawSchema)
 		summary.Schema = &schema
-		summary.Fields = requestFieldSummaries(rawSchema, "", false, 0)
+		summary.Fields = requestFieldSummaries(rawSchema, "", true, 0)
+		if requestFieldSummaryWouldTruncate(rawSchema) {
+			addOperationIssue(op, "schema.field_summary_truncated", "response fields exceeded the local summary count or depth bound", "")
+		}
 		summary.Fields = appendMissingTopLevelResponseFields(summary.Fields, rawSchema, "name", "id")
 		if len(summary.Fields) == 0 && !looksLikeCredentialName("body") {
 			summary.Fields = []RequestFieldSummary{requestFieldSummary("body", false, rawSchema)}
@@ -165,6 +187,10 @@ func appendMissingTopLevelResponseFields(fields []RequestFieldSummary, schema ma
 		return fields
 	}
 	seen := map[string]bool{}
+	required := map[string]bool{}
+	for _, name := range stringSlice(schema["required"]) {
+		required[name] = true
+	}
 	for _, field := range fields {
 		seen[field.Path] = true
 	}
@@ -176,7 +202,7 @@ func appendMissingTopLevelResponseFields(fields []RequestFieldSummary, schema ma
 		if len(property) == 0 {
 			continue
 		}
-		fields = append(fields, requestFieldSummary(name, false, property))
+		fields = append(fields, requestFieldSummary(name, required[name], property))
 		seen[name] = true
 	}
 	sort.SliceStable(fields, func(i, j int) bool {
@@ -502,6 +528,35 @@ func requestFieldSummary(path string, required bool, schema map[string]any) Requ
 		Ref:         stringValue(schema["$ref"]),
 		Description: stringValue(schema["description"]),
 	}
+}
+
+func requestFieldSummaryWouldTruncate(schema map[string]any) bool {
+	work := 0
+	depthExceeded := false
+	var visit func(map[string]any, int)
+	visit = func(current map[string]any, depth int) {
+		if depth > maxRequestFieldDepth {
+			depthExceeded = true
+			return
+		}
+		if work > maxRequestFields {
+			return
+		}
+		properties := mapValue(current["properties"])
+		for _, name := range sortedMapKeys(properties) {
+			work++
+			if work > maxRequestFields {
+				return
+			}
+			visit(mapValue(properties[name]), depth+1)
+		}
+		if items := mapValue(current["items"]); len(items) > 0 {
+			work++
+			visit(items, depth+1)
+		}
+	}
+	visit(schema, 0)
+	return work > maxRequestFields || depthExceeded
 }
 
 func requiredRequestFieldPaths(fields []RequestFieldSummary) []string {

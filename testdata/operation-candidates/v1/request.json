@@ -1,0 +1,20 @@
+{
+  "schema_version": "apitools.operation-candidates/v1",
+  "contract": {
+    "purpose": "send a message",
+    "inputs": {
+      "message": {
+        "type": "string",
+        "required": true,
+        "description": "The text to send"
+      }
+    },
+    "outputs": {
+      "message_id": {
+        "type": "string",
+        "required": true
+      }
+    },
+    "effect": "write"
+  }
+}

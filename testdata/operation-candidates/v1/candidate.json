@@ -1,0 +1,129 @@
+{
+  "source": {
+    "kind": "openapi",
+    "document_path": "openapi/mail.yaml",
+    "sha256": "7c216f3755d84f6ad9adc7a3ca6bd80aa8c89c636e4e0ae642db0f2098f2f459",
+    "selector": "#/paths/~1messages/post"
+  },
+  "operation": {
+    "id": "sendMessage",
+    "document_name": "mail.yaml",
+    "operation_id": "sendMessage",
+    "method": "POST",
+    "path": "/messages",
+    "summary": "Send a message",
+    "request_body": {
+      "required": true,
+      "content_types": ["application/json"],
+      "schema": {"type": "object", "required": ["message"], "properties": [{"name": "message", "type": "string", "required": true}]},
+      "fields": [
+        {"path": "message", "required": true, "type": "string"}
+      ]
+    },
+    "response_body": {
+      "status_code": "200",
+      "content_types": ["application/json"],
+      "schema": {"type": "object", "required": ["message_id"], "properties": [{"name": "message_id", "type": "string", "required": true}]},
+      "fields": [
+        {"path": "message_id", "required": true, "type": "string"}
+      ]
+    }
+  },
+  "summary": {
+    "description": "Send a message",
+    "inputs": [
+        {"name": "body", "location": "body", "type": "object", "required": true,
+        "evidence": [{"kind": "request.body", "reference": "#/paths/~1messages/post/request"}]},
+      {"name": "message", "location": "body", "type": "string", "required": true,
+        "container_required": true,
+        "evidence": [{"kind": "request.body_field", "reference": "#/paths/~1messages/post/request/fields/message"}]}
+    ],
+    "outputs": [
+      {"name": "body", "location": "response", "type": "object",
+        "evidence": [{"kind": "response.body", "reference": "#/paths/~1messages/post/response"}]},
+      {"name": "message_id", "location": "response", "type": "string", "required": true,
+        "evidence": [{"kind": "response.field", "reference": "#/paths/~1messages/post/response/fields/message_id"}]}
+    ],
+    "evidence": [{"kind": "operation.summary", "reference": "#/paths/~1messages/post"}]
+  },
+  "capabilities": [
+    {"dimension": "inputs", "status": "supported", "evidence": [{"kind": "operation.inputs", "reference": "#/paths/~1messages/post"}]},
+    {"dimension": "outputs", "status": "supported", "evidence": [{"kind": "operation.outputs", "reference": "#/paths/~1messages/post"}]},
+    {"dimension": "auth", "status": "supported", "evidence": [{"kind": "openapi.security", "reference": "#/paths/~1messages/post"}]},
+    {"dimension": "effect", "status": "partial", "evidence": [{"kind": "operation.meaning", "reference": "#/paths/~1messages/post"}],
+      "gaps": ["Textual operation meaning does not prove runtime effects or authorization."]}
+  ],
+  "effect": {
+    "class": "write",
+    "evidence": [
+      {
+        "kind": "operation.operation_id",
+        "reference": "#/paths/~1messages/post"
+      },
+      {
+        "kind": "operation.summary",
+        "reference": "#/paths/~1messages/post"
+      }
+    ],
+    "reasons": ["Operation metadata contains the mutating action \"send\"; the HTTP method was not used as proof."]
+  },
+  "match": {
+    "score": 100,
+    "purpose": {
+      "status": "compatible",
+      "score": 20,
+      "reasons": ["2 of 2 step-purpose terms overlap documented operation wording; this is advisory lexical similarity."],
+      "evidence": [
+        {
+          "kind": "operation.summary",
+          "reference": "#/paths/~1messages/post"
+        }
+      ]
+    },
+    "inputs": {
+      "status": "compatible",
+      "score": 30,
+      "reasons": ["2 of 2 source-declared input values have compatible type and requiredness evidence."],
+      "evidence": [
+        {
+          "kind": "operation.inputs",
+          "reference": "#/paths/~1messages/post"
+        },
+        {
+          "kind": "request.body_field",
+          "reference": "#/paths/~1messages/post/request/fields/message"
+        }
+      ]
+    },
+    "outputs": {
+      "status": "compatible",
+      "score": 30,
+      "reasons": ["1 of 1 expected output values have compatible source type evidence."],
+      "evidence": [
+        {
+          "kind": "operation.outputs",
+          "reference": "#/paths/~1messages/post"
+        },
+        {
+          "kind": "response.field",
+          "reference": "#/paths/~1messages/post/response/fields/message_id"
+        }
+      ]
+    },
+    "effect": {
+      "status": "compatible",
+      "score": 20,
+      "evidence": [
+        {
+          "kind": "operation.operation_id",
+          "reference": "#/paths/~1messages/post"
+        },
+        {
+          "kind": "operation.summary",
+          "reference": "#/paths/~1messages/post"
+        }
+      ],
+      "reasons": ["Operation metadata contains the mutating action \"send\"; the HTTP method was not used as proof."]
+    }
+  }
+}

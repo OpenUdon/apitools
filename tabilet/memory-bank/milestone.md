@@ -80,13 +80,11 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestone: M77 - Step-contract operation metadata, approved for planning
-on 2026-09-26. It is the next implementation priority, starting with M77.1 under
-a separate execution request. All earlier milestones through M76 are completed
-and retired; see the history index below.
-Latest completed milestone: M76 - CLI Usage Exit Contract.
-Apitools and Authoring are published, and OpenUdon/Ramen pin both revisions
-with passing standalone test/vet.
+Active milestone: none. M77 - Step-contract operation metadata completed and
+was retired on 2026-09-27. All earlier milestones through M76 are completed
+and retired; see the history index below. Latest completed milestone: M77.
+Apitools and Authoring are published, and OpenUdon pins both revisions with
+passing standalone test/vet.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
 (`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
@@ -118,109 +116,7 @@ retired row per milestone.
 
 Retired milestones are indexed in [the history index](../docs/history/index.md).
 
-| Milestone | Status File | State |
-|---|---|---|
-| M77 - Step-contract operation metadata | [status-M77.md](status-M77.md) | Pending; planning approved, implementation and acceptance not started. |
-
-## M77 - Step-contract operation metadata
-
-**Goal.** Give OpenUdon's non-interactive `step candidates` consumer readable
-operation summaries, evidence-backed `read`/`write`/`unknown` effects, and
-deterministic ranking by step purpose, available inputs, and expected outputs.
-This is APItools' part of sibling item S2a in
-[Kinet's design, section 7](../../../kinet/docs/icot.md#7-proposed-changes-by-package).
-It is new work building on existing inventories and ranking; no completed
-milestone is reopened and no existing candidate direction is promoted.
-
-**Direction.** [Evolution v24](../evolution/result-v24.md) records the approved
-future public metadata contract. Implementation and acceptance remain pending.
-
-**Scope and contract.**
-
-- Add public Go types and versioned conformance fixtures for operation/source
-  identity, source kind, native selector, content digest, consumer summary,
-  effect evidence, and a bounded step contract containing purpose, typed
-  available inputs, and expected outputs. Preserve existing exported APIs,
-  data shapes, and legacy scoring behavior through an additive interface.
-- Produce concise, source-grounded descriptions of what an operation does,
-  requires, and returns. Distinguish extracted facts, inferred wording, and
-  missing evidence. Do not invent accounts, recipients, capabilities, fields,
-  or operation identifiers. The first version is deterministic and offline;
-  no model service or provider lookup is part of summary generation.
-- Classify effects from operation meaning and available protocol/source
-  evidence, returning the class, evidence provenance, and concise reasons.
-  HTTP method alone cannot establish `read`. Missing, insufficient, or
-  conflicting evidence remains `unknown`; it cannot satisfy a confirmed
-  read-only requirement. Existing lifecycle purposes are not execution-safety
-  evidence. Inferred classification never becomes user confirmation or approval.
-- Rank against purpose, required request inputs, and expected response outputs
-  with separate compatibility evidence and score explanations. Distinguish
-  compatible, incompatible, and indeterminate relationships; missing schema
-  evidence is not a positive match. Expose absent inputs/outputs, type conflicts,
-  ties, no matches, and truncation. Natural-language similarity is advisory and
-  cannot prove that a workflow's intended outcome will be achieved.
-- Integrate OpenAPI/Swagger inventories and adapt existing native metadata for
-  Google Discovery, AWS Smithy, AsyncAPI, GraphQL, OpenRPC, gRPC/protobuf, and
-  OData. Reuse existing parsers, preserve native kinds and selectors, and
-  document per-family evidence and capability limits. Unsupported details
-  produce explicit diagnostics rather than silently disappearing or becoming
-  successful compatibility claims. This does not add protocol parsers or
-  lower native source documents into OpenAPI.
-- Preserve exact source identity and authentication OR-of-AND alternatives.
-  Apply existing prompt-safety, collection, byte, and work budgets to the new
-  requests, summaries, evidence, and ranked reports. Report compaction and
-  fail visibly if it would change identity, field, security, or effect meaning.
-  Public helpers return independent data and do not mutate caller metadata.
-
-**Ownership and order.** Lane M owns this shared public consumer contract.
-M77.1 defines it and its fixture shapes; M77.2 and M77.3 provide summaries and
-effects; M77.4 ranks contracts; M77.5 integrates the source paths; M77.6
-qualifies the full surface and consumer handoff. One execution owner and at
-most one general row may be in progress. Ownership covers APItools metadata,
-summary/classification/ranking adapters, tests, fixtures, and documentation;
-catalog curation, remote discovery policy, runtime behavior, and sibling
-implementation are outside this milestone.
-
-**Dependencies and downstream effects.** Existing inventory/prompt hardening
-(S01, M74, S04) and lifecycle ranking (M75, S03) provide completed baseline
-contracts, resolved through the history index. There is no active upstream
-implementation prerequisite. OpenUdon's pending M87.1 drafts its own command
-contract independently; reconcile the metadata handoff against that work
-without making either contract-design row wait for the other's implementation.
-OpenUdon M87.4 production integration and M87.6 acceptance require a compatible
-published APItools revision. APItools qualifies its public API and fixtures
-without depending on Kinet W03 delivery. OpenUdon, Ramen, and Udon remain
-compatibility consumers. Publication, dependency re-pinning, and changes to
-sibling ledgers or code require their own authority and are not performed by
-this planning approval.
-
-Kinet retains the planning loop and confirmed step decisions. OpenUdon retains
-command JSON, step binding/checking, account/destination constraints, approval,
-and package behavior. UWS and Udon retain workflow effect semantics and runtime
-enforcement. Effect override authority, browser actions, simulation, and iCoT
-retirement are not APItools deliverables or prerequisites for M77.
-
-**Acceptance and verification.** Public fixtures demonstrate useful
-source-grounded summaries and actual read/write/unknown classifications, with
-reasons, rather than a permanently unknown substitute for classification.
-Rankings change appropriately when required inputs or expected outputs change
-while purpose text stays constant. Negative cases cover misleading methods,
-conflicting evidence, missing schemas, type/requiredness conflicts, unsupported
-source details, duplicate IDs across sources, ambiguity, no match, hostile
-descriptions, budget exhaustion, and caller-data preservation. Results retain
-source identity and auth alternatives with deterministic ordering. Preserve
-existing inventory, selection, authoring-context, and lifecycle regressions.
-
-Run focused metadata/adapter/conformance tests, affected race checks,
-`go test ./...`, `go vet ./...`, `GOWORK=off go test ./...`,
-`GOWORK=off go vet ./...`, and `git diff --check`. Run available OpenUdon,
-Ramen, and Udon consumer suites in workspace and standalone modes, distinguishing
-tests against the local API from standalone tests of existing pinned versions.
-New public API examples and fixtures must compile and run against the local
-implementation. Keep default verification credential-free and provider-free.
-Document the adoption contract and evidence required for later published-pin
-verification. Complete the persisted maximum-ten-iteration review, current-memory
-consolidation, and downstream reconciliation before normal milestone retirement.
+No active status files. Closed milestones are recorded in the history index.
 
 ## Requested Changes After Initialization
 

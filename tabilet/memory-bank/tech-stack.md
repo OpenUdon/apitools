@@ -92,6 +92,12 @@ available:
   standard-library filesystem, SHA-256, and context primitives. Its defaults
   are 10,000 visited entries, 100 accepted candidates, and
   `DefaultMaxBytes` (20 MiB) per file.
+- Step-contract candidates use `BuildOperationCandidates` with explicit local
+  bytes or regular files only; it hashes the original bytes, reuses the
+  existing family parsers, and never fetches provenance URLs or external refs.
+  Defaults are 20 MiB per artifact, 32 sources, 10,000 operations, 100 results,
+  and the shared 512 KiB context budget. Family-native selector and auth/effect
+  limitations are returned with the report.
 - `operationlifecycle` uses only the standard library and root
   `OperationSummary`. Google Discovery `/upload` normalization requires the
   explicit `x-uws-source-kind=google-discovery` extension; generic paths are
@@ -162,6 +168,7 @@ available:
 
 | Harness | Command | What it proves | Requirements |
 |---|---|---|---|
+| Step-candidate contract and source-adapter tests | `go test . -run 'Test(StepMetadata|EffectAndContract|OperationSourceReport|ContractRequiredness|OperationCandidateV1|SummarizeOperationForConsumer|AssessOperationEffect|RankOperationCandidates|BuildOperationCandidates|SanitizeAdapterCandidates|NativeSchemaFields|NativeOperationAdapter)'` | Versioned wire fixtures validated against producer ranking, source-backed summaries and effect rationale, typed contract matching, all eight local source adapters, exact digest/native selector preservation, auth alternatives, truncation blockers, cancellation, and source safety. | Go toolchain. |
 | Unit tests | `go test ./...` | Core discovery, validation, import, inventory, auth, ranking, and cache behavior. | Go toolchain. |
 | Lifecycle ranking tests | `go test ./operationlifecycle` | Same-source role scoring, ambiguity, API-first compatibility, and explicit Discovery provenance. | Go toolchain. |
 | Helper tests | `go test ./helper/...` | Public helper descriptors and pure Gmail raw-message encoding without credential or network behavior. | Go toolchain. |

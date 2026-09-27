@@ -1,0 +1,19 @@
+{
+  "schema_version": "apitools.operation-candidates/v1",
+  "sources": [
+    {
+      "kind": "graphql",
+      "document_path": "schema.graphql",
+      "operation_count": 0,
+      "capabilities": [
+        {
+          "dimension": "auth",
+          "status": "unsupported",
+          "gaps": ["GraphQL schema metadata does not declare provider authentication requirements."]
+        }
+      ],
+      "diagnostics": []
+    }
+  ],
+  "truncated": false
+}

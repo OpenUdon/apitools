@@ -42,7 +42,8 @@ func TestLooksLikeCredentialName(t *testing.T) {
 		"password", "user.password", "auth_token", "AUTH-TOKEN", "secret",
 		"api_key", "apiKey", "X-API-KEY", "credentials.access",
 		"groups[].token", "bearer_token", "authorization", "client_secret",
-		"secret_key", "x-api-token", "oauth.credentials",
+		"accessToken", "refreshToken", "clientSecret", "oauth2AccessToken",
+		"secret_key", "accessKey", "subscriptionKey", "user.key", "key", "x-api-token", "oauth.credentials",
 	}
 	for _, name := range flagged {
 		if !looksLikeCredentialName(name) {
@@ -51,7 +52,7 @@ func TestLooksLikeCredentialName(t *testing.T) {
 	}
 	allowed := []string{
 		"name", "email", "user.profile.display_name", "passwordless_login",
-		"keystore_path", "tokenizer", "subject",
+		"keystore_path", "tokenizer", "subject", "projectKey", "idempotencyKey",
 	}
 	for _, name := range allowed {
 		if looksLikeCredentialName(name) {

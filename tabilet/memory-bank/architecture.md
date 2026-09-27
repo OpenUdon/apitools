@@ -13,6 +13,11 @@
 - import into deterministic local `openapi/` files;
 - operation inventories, indexes, summaries, selection ranking, and
   provenance-aware lifecycle sibling ranking;
+- additive, versioned `BuildOperationCandidates` metadata that reads only
+  explicit local source bytes/files, preserves SHA-256 and native selectors,
+  emits consumer-readable summaries and evidence-bearing read/write/unknown
+  effects, and ranks purpose/input/output/effect fit without binding or
+  approving operations;
 - auth/security summaries derived from OpenAPI security metadata;
 - optional cache adapters;
 - provider catalog, spec protocol classification, security-overlay metadata,
@@ -66,6 +71,7 @@ Related repositories:
 |---|---|
 | `*.go` | Root `github.com/OpenUdon/apitools` package: client, discovery, validation, import, inventory, auth, and ranking APIs. |
 | `operationlifecycle/` | Conservative same-source item-lifecycle ranking over root `OperationSummary` records; candidate roles require a trailing item parameter, with Discovery `{+name}` matched by method resource identity, and HEAD is treated as read. Shared purpose classification keeps POST updates/actions out of create, checking explicit create/update verbs on the operation ID before summary or tag wording; only a *trailing* path parameter marks a POST as an item-level action, so a parent-scoping parameter elsewhere in the path does not suppress a nested-collection create. A create-or-update PUT is treated as create consistently in both the seed's reported role and its sibling search. Family keys use operation IDs/paths, and update intent uses whole tokens across inflected forms. Source identity compares the highest-priority identifier both operations have populated (absolute path, then URL, then relative path/name); disagreement there is decisive, but an under-specified seed missing a higher-priority identifier still resolves against a fully described operation. A same-ID, same-source seed with its own method and path resolves to its exact match rather than reporting ambiguity. No fetch or execution. |
+| `step_metadata.go`, `operation_summary.go`, `operation_effect.go`, `operation_rank.go`, `operation_candidates.go`, `operation_source_native.go` | Additive versioned operation-candidate contract, bounded local source adapters, exact digest/native-selector identity, prompt-safe consumer summaries, evidence-backed effects, and dimension-level contract ranking. External references and source URLs are never fetched; incomplete evidence remains visible or blocks ranking. |
 | `cmd/apitools/` | Thin CLI wrapper over reusable package behavior. |
 | `catalog/` | Metadata-only candidate inventory, durable provider entries, and official spec references. |
 | `catalog/data/catalog.json` | Canonical reviewed C01 catalog bundle for candidates, providers, security classifications, overlays, and provenance. |
@@ -224,6 +230,39 @@ service hint / project text / URL / local openapi directory
   -> OperationInventory / OperationIndex / AuthoringAPIDocument
   -> downstream OpenUdon authoring, review, and package evidence
 ```
+
+Step-contract candidate flow:
+
+```text
+explicit local files/bytes + step purpose/inputs/outputs/effect
+  -> bounded native parser for the declared source family
+  -> exact raw-content digest and source-native operation selector
+  -> sanitized operation summary + capability/evidence gaps
+  -> advisory purpose/input/output/effect ranking
+  -> report with ties, conflicts, unsupported details, or blocking truncation
+```
+
+`BuildOperationCandidates` handles OpenAPI/Swagger, Google Discovery, AWS
+Smithy, AsyncAPI, GraphQL, OpenRPC, gRPC/protobuf, and OData using their
+existing parsers. Only explicit local bytes or paths are read; a supplied URL
+is provenance only. OpenAPI security alternatives retain OR-of-AND grouping.
+Native `OperationSummary.Method`/`Path` fields for non-OpenAPI families are
+display projections; consumers identify the source with kind, digest, and
+native selector. Unsupported auth, nested shape, response, streaming, or
+requiredness semantics remain partial/unsupported rather than becoming
+positive compatibility evidence. Negated or conflicting effect text remains
+unknown; OData action/function kinds can provide effect hints, but entity-set,
+singleton, and navigation resource selectors do not assert read-only behavior.
+OpenAPI security alternatives retain OR-of-AND structure; a requirement with a
+missing or incomplete scheme is retained but marks candidate auth capability
+partial with an explicit gap. Native schema compositions and dynamic
+`additionalProperties` values are not expanded, and each omission is reported
+as a summary gap. Effect analysis bounds source meaning text before
+tokenization, and source adapters honor cancellation between operations.
+Synthetic OpenAPI response-body requiredness remains unknown when its schema
+does not establish it. An over-context result is reduced to a bounded
+diagnostic-only report. Ranking is informational and never binds an operation,
+resolves credentials, chooses an account, or authorizes execution.
 
 Provider catalog flow:
 
@@ -485,9 +524,16 @@ No API operation execution is part of either flow.
 ## Public Contracts
 
 - Go module path: `github.com/OpenUdon/apitools`.
+- The versioned step-candidate wire contract and source-family matrix are
+  documented in [`docs/operation-candidates.md`](../../docs/operation-candidates.md).
 - Public root package APIs include `Client`, `Search`, `Import`,
   additive `ImportWithReport`, `LocalFiles`, `BuildOperationInventory`, `LoadOperationIndex`,
   `BuildAuthoringAPIDocuments`, auth summaries, and operation selection.
+  Step-candidate contracts are additive types in `step_metadata.go`; the
+  versioned request carries purpose, typed inputs/outputs, and effect, while
+  the result envelope pairs existing operation data with exact source identity,
+  evidence, consumer summary, effect, and match diagnostics. These types do
+  not change existing operation-summary or selection JSON shapes.
 - The historical exported struct field shapes for `ImportedSpec`, `LocalOptions`,
   `LocalResult`, and `DiscoveryCandidate` are preserved. `LocalFiles` uses the
   shared 10,000-entry and 100-candidate defaults, while the existing
