@@ -27,6 +27,35 @@ func TestBuildOperationCandidatesDoesNotCallCompoundMutationRead(t *testing.T) {
 	}
 }
 
+func TestBuildOperationCandidatesKeepsNullableResponseIndeterminate(t *testing.T) {
+	source, err := os.ReadFile("testdata/operation-candidates/v1/sources/openapi-nullable.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	required := true
+	report, err := BuildOperationCandidates(context.Background(), OperationCandidateOptions{
+		Sources: []OperationSourceInput{{Kind: OperationSourceOpenAPI, Path: "people.json", Content: source}},
+		Contract: StepContract{
+			Purpose: "Get person", Effect: OperationEffectRead,
+			Outputs: map[string]ContractValue{"name": {Type: "string", Required: &required}},
+		},
+	})
+	if err != nil || len(report.Candidates) != 1 {
+		t.Fatalf("candidate report = %#v, error = %v", report, err)
+	}
+	candidate := report.Candidates[0]
+	if candidate.Match.Outputs.Status != ContractMatchIndeterminate || candidate.Match.Outputs.Score != 0 {
+		t.Fatalf("nullable response earned output compatibility: %#v", candidate.Match.Outputs)
+	}
+	capability := candidateCapability(candidate, "outputs")
+	if capability.Status != OperationCapabilityPartial || !strings.Contains(strings.Join(capability.Gaps, " "), "null") {
+		t.Fatalf("nullable response gap was not exposed: %#v", capability)
+	}
+	if candidateCapability(candidate, "inputs").Status != OperationCapabilitySupported {
+		t.Fatalf("response nullability downgraded unrelated inputs: %#v", candidate.Capabilities)
+	}
+}
+
 func TestBuildOperationCandidatesAdaptsEverySourceFamily(t *testing.T) {
 	kinds := []OperationSourceKind{
 		OperationSourceOpenAPI,

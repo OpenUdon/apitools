@@ -130,7 +130,10 @@ opaque, unresolved, or named protocol types remain indeterminate; even equal
 custom type names are not treated as compatible unless their shapes are
 resolved. Primitive integer/number compatibility follows the data-flow
 direction. A type or requiredness conflict stays visible even when other
-dimensions produce a high score.
+dimensions produce a high score. OpenAPI response schemas that permit null are
+reported as partial output evidence. The v1 step contract has no nullability
+field, so a nullable response cannot earn output compatibility points or a
+compatible output status.
 
 Each dimension has `compatible`, `incompatible`, or `indeterminate` status,
 with separate evidence, reasons, missing values, conflicts, and gaps. A
@@ -154,11 +157,11 @@ Effect is an evidence-based metadata assessment. HTTP methods and names alone
 cannot establish `read`; method fields are not classification evidence.
 Recognized operation-meaning tokens in the operation ID and leading documented
 action phrases can support a classification, while negated, compound, or
-conflicting meaning stays `unknown`. Once a leading documented action is found, the bounded
-summary or description is scanned for later conflicting verbs, including verbs
-in another sentence or separated from a connector by request-object wording.
-Source-native protocol semantics may add
-independent evidence, and disagreement with operation wording stays `unknown`. An
+conflicting meaning stays `unknown`. Once a leading documented action is found,
+the bounded summary or description is scanned for later conflicting verbs,
+including verbs in another sentence or separated from a connector by
+request-object wording. Source-native protocol semantics may add independent
+evidence, and disagreement with operation wording stays `unknown`. An
 assessment never substitutes for a user-confirmed decision, downstream
 approval, account binding, or runtime enforcement.
 

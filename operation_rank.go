@@ -514,6 +514,15 @@ func matchOutputs(candidate OperationCandidate, stepValues map[string]ContractVa
 		accumulator.indeterminate = true
 		result.Gaps = append(result.Gaps, "Output evidence is partial or unsupported for this source family.")
 	}
+	for _, issue := range candidate.Operation.ReadinessIssues {
+		if issue.Code == "schema.response_nullable" {
+			accumulator.indeterminate = true
+			result.Score = 0
+			result.Reasons = []string{"Response output compatibility cannot be scored because the selected schema permits null."}
+			result.Gaps = append(result.Gaps, issue.Message)
+			break
+		}
+	}
 	setDimensionStatus(&result, accumulator)
 	return normalizeDimensionMatch(result)
 }

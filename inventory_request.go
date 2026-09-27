@@ -136,6 +136,7 @@ func responseBodySummary(ctx context.Context, root map[string]any, operation map
 				if len(rawSchema) == 0 {
 					continue
 				}
+				recordNullableResponseSchema(op, rawSchema)
 				schema := schemaSummary(rawSchema)
 				summary.Schema = &schema
 				summary.Fields = requestFieldSummaries(rawSchema, "", true, 0)
@@ -163,6 +164,7 @@ func responseBodySummary(ctx context.Context, root map[string]any, operation map
 		if len(rawSchema) == 0 {
 			continue
 		}
+		recordNullableResponseSchema(op, rawSchema)
 		schema := schemaSummary(rawSchema)
 		summary.Schema = &schema
 		summary.Fields = requestFieldSummaries(rawSchema, "", true, 0)
@@ -179,6 +181,40 @@ func responseBodySummary(ctx context.Context, root map[string]any, operation map
 		return summary, nil
 	}
 	return nil, nil
+}
+
+// The legacy inventory fields do not carry JSON Schema nullability. Keep the
+// fact as an existing readiness issue so candidate ranking cannot mistake a
+// nullable response for a guaranteed value without changing inventory shapes.
+func recordNullableResponseSchema(op *OperationSummary, schema map[string]any) {
+	visited := 0
+	if !responseSchemaMayBeNullable(schema, 0, &visited) {
+		return
+	}
+	op.ReadinessIssues = append(op.ReadinessIssues, ReadinessIssue{
+		Severity:    "warning",
+		Code:        "schema.response_nullable",
+		Message:     "The response schema permits null; the step candidate contract cannot establish non-null output values.",
+		OperationID: op.OperationID,
+		Path:        op.Provenance,
+		Remediation: "Review the nullable response before requiring a non-null output.",
+	})
+}
+
+func responseSchemaMayBeNullable(schema map[string]any, depth int, visited *int) bool {
+	if len(schema) == 0 || depth > maxRequestFieldDepth || *visited >= maxRequestFields+1 {
+		return false
+	}
+	(*visited)++
+	if boolValue(schema["nullable"]) {
+		return true
+	}
+	for _, name := range sortedMapKeys(mapValue(schema["properties"])) {
+		if responseSchemaMayBeNullable(mapValue(mapValue(schema["properties"])[name]), depth+1, visited) {
+			return true
+		}
+	}
+	return responseSchemaMayBeNullable(mapValue(schema["items"]), depth+1, visited)
 }
 
 func appendMissingTopLevelResponseFields(fields []RequestFieldSummary, schema map[string]any, names ...string) []RequestFieldSummary {

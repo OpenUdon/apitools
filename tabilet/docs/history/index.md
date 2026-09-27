@@ -84,6 +84,7 @@ Frozen retired records. IDs stay reserved; see [milestone.md](../../memory-bank/
 | M75 | completed | 2026-09-25 | [M75](status-M75.md) | Operation Lifecycle Ranking Ownership |
 | M76 | completed | 2026-09-26 | [M76](status-M76.md) | CLI Usage Exit Contract |
 | M77 | completed | 2026-09-27 | [M77](status-M77.md) | Step-contract Operation Metadata |
+| M78 | completed | 2026-09-27 | [M78](status-M78.md) | Stage 1 Operation-Metadata Remediation |
 | S01 | completed | 2026-09-25 | [S01](status-S01.md) | Untrusted Source And Prompt Contract Hardening |
 | S02 | completed | 2026-09-26 | [S02](status-S02.md) | Local, Offline, And Discovery Safety Remediation |
 | S03 | completed | 2026-09-26 | [S03](status-S03.md) | Operation Lifecycle Ranking Correctness |

@@ -1,0 +1,27 @@
+{
+  "openapi": "3.0.3",
+  "info": {"title": "People", "version": "1"},
+  "paths": {
+    "/person": {
+      "get": {
+        "operationId": "getPerson",
+        "summary": "Get person",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Person",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["name"],
+                  "properties": {"name": {"type": "string", "nullable": true}}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

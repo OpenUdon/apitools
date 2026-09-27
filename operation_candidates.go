@@ -659,6 +659,11 @@ func openAPICapabilities(operation OperationSummary, selector string) []Operatio
 		output.Gaps = append(output.Gaps, "The operation has no inspectable successful response schema.")
 	}
 	for _, issue := range operation.ReadinessIssues {
+		if issue.Code == "schema.response_nullable" {
+			output.Status = OperationCapabilityPartial
+			output.Gaps = append(output.Gaps, issue.Message)
+			continue
+		}
 		if strings.HasPrefix(issue.Code, "schema.") {
 			input.Status = OperationCapabilityPartial
 			output.Status = OperationCapabilityPartial
