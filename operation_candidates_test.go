@@ -12,6 +12,21 @@ import (
 	"testing"
 )
 
+func TestBuildOperationCandidatesDoesNotCallCompoundMutationRead(t *testing.T) {
+	source := []byte(`{"openapi":"3.0.3","info":{"title":"Queue","version":"1"},"paths":{"/messages/next":{"get":{"operationId":"getMessage","description":"Retrieves the next pending message and deletes it from the queue.","security":[],"responses":{"200":{"description":"Message"}}}}}}`)
+	report, err := BuildOperationCandidates(context.Background(), OperationCandidateOptions{
+		Sources:  []OperationSourceInput{{Kind: OperationSourceOpenAPI, Path: "queue.json", Content: source}},
+		Contract: StepContract{Purpose: "retrieve message", Effect: OperationEffectRead},
+	})
+	if err != nil || len(report.Candidates) != 1 {
+		t.Fatalf("candidate report = %#v, error = %v", report, err)
+	}
+	candidate := report.Candidates[0]
+	if candidate.Effect.Class != OperationEffectUnknown || candidate.Match.Effect.Status == ContractMatchCompatible {
+		t.Fatalf("compound mutation satisfied a read contract: %#v", candidate)
+	}
+}
+
 func TestBuildOperationCandidatesAdaptsEverySourceFamily(t *testing.T) {
 	kinds := []OperationSourceKind{
 		OperationSourceOpenAPI,

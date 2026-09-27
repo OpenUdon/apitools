@@ -177,14 +177,18 @@ func semanticEffectSignals(value, evidenceKind, reference string) ([]effectSigna
 			return []effectSignal{{kind: evidenceKind, reference: reference}}, true
 		}
 		signals = append(signals, effectSignal{effect: effect, kind: evidenceKind, reference: reference, word: tokens[i]})
-		for j := i + 1; j+1 < len(tokens); j++ {
-			if !isEffectConnector(tokens[j]) || j > i+3 {
+		// Once the leading action is known, inspect the rest of the bounded
+		// wording for conflicting actions. A connector can be separated from
+		// its verb by objects or modifiers, and prose can use two sentences.
+		for j := i + 1; j < len(tokens); j++ {
+			nextEffect, nextOK := effectForVerb(tokens[j])
+			if !nextOK {
 				continue
 			}
-			nextEffect, nextOK := effectForVerb(tokens[j+1])
-			if nextOK {
-				signals = append(signals, effectSignal{effect: nextEffect, kind: evidenceKind, reference: reference, word: tokens[j+1]})
+			if effectNegated(tokens, j) {
+				return []effectSignal{{kind: evidenceKind, reference: reference}}, true
 			}
+			signals = append(signals, effectSignal{effect: nextEffect, kind: evidenceKind, reference: reference, word: tokens[j]})
 		}
 		break
 	}

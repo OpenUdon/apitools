@@ -80,7 +80,7 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-Active milestone: none. M77 - Step-contract operation metadata completed and
+Active milestone: M78 - Stage 1 operation-metadata remediation. M77 - Step-contract operation metadata completed and
 was retired on 2026-09-27. All earlier milestones through M76 are completed
 and retired; see the history index below. Latest completed milestone: M77.
 Apitools and Authoring are published, and OpenUdon pins both revisions with
@@ -116,7 +116,21 @@ retired row per milestone.
 
 Retired milestones are indexed in [the history index](../docs/history/index.md).
 
-No active status files. Closed milestones are recorded in the history index.
+| ID | Status file | State |
+| --- | --- | --- |
+| [M78](#m78---stage-1-operation-metadata-remediation) | [status-M78.md](status-M78.md) | Active remediation of M77 findings. |
+
+Closed milestones are recorded in the history index.
+
+## M78 - Stage 1 operation-metadata remediation
+
+**Goal.** Correct two confirmed P2 findings from the 2026-09-27 UWS/APItools/OpenUdon stage 1 review before OpenUdon repins the APItools consumer contract. This is M77 remediation, not a reopening of its retired record.
+
+**Scope and acceptance.** Compound operation wording that explicitly includes both read and mutation must yield `unknown`, including a read verb followed by a distant connector. OpenAPI nullable response fields must not earn compatible output type/requiredness evidence when a non-nullable step contract cannot represent null. Expose a source-grounded gap and indeterminate output match, preserve exact operation/source identity and auth metadata, and keep existing public version and legacy wire shapes. Add focused public-API regressions and conformance fixture coverage where applicable.
+
+**Order and dependency.** [M78.1 and M78.2](status-M78.md) run in order. The existing M77 publication is the prerequisite. OpenUdon M88 consumes the completed M78 revision; Kinet W03 is a downstream consumer. No UWS wire version or provider operation is changed.
+
+**Verification and closeout.** Run focused regressions, `GOWORK=off go test ./...`, `GOWORK=off go test -race ./...`, `GOWORK=off go vet ./...`, downstream OpenUdon tests against the candidate revision, `git diff --check`, and the persisted whole-milestone review gate. Publish the reviewed commit before OpenUdon pins it.
 
 ## Requested Changes After Initialization
 

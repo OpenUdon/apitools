@@ -154,7 +154,10 @@ Effect is an evidence-based metadata assessment. HTTP methods and names alone
 cannot establish `read`; method fields are not classification evidence.
 Recognized operation-meaning tokens in the operation ID and leading documented
 action phrases can support a classification, while negated, compound, or
-conflicting meaning stays `unknown`. Source-native protocol semantics may add
+conflicting meaning stays `unknown`. Once a leading documented action is found, the bounded
+summary or description is scanned for later conflicting verbs, including verbs
+in another sentence or separated from a connector by request-object wording.
+Source-native protocol semantics may add
 independent evidence, and disagreement with operation wording stays `unknown`. An
 assessment never substitutes for a user-confirmed decision, downstream
 approval, account binding, or runtime enforcement.

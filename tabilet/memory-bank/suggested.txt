@@ -1,0 +1,16 @@
+# Disposable launch reference; reconcile against milestone.md before use.
+Using tabilet/GOAL.md, execute this loop.
+
+STATUS_ORDER:
+M78
+
+STATUS_FILE_MAP:
+M78 = tabilet/memory-bank/status-M78.md
+
+DOWNSTREAM_IMPACTS:
+M78 -> OpenUdon M88 -> Kinet W03
+
+COMMIT_POLICY: task
+EXTERNAL_MUTATIONS: none
+
+Completion condition: M78's rows, verification, and bounded review gate pass.
