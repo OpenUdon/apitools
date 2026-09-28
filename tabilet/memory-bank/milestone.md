@@ -119,7 +119,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M79 | [status-M79.md](status-M79.md) | In progress; completing review and publication |
+| M79 | [status-M79.md](status-M79.md) | Accepted and published; downstream reconciliation pending before retirement |
 
 Closed milestones are recorded in the history index.
 
