@@ -82,3 +82,20 @@ metadata, or native source parsers.
   reviewed subset and the overlay would not misrepresent the API model.
 - Run catalog stats, refresh-report, catalog quality, Go tests, vet, and diff
   checks before committing the batch.
+
+## Pending Proposal
+
+[catalog-upgrade-2026-09.md](catalog-upgrade-2026-09.md) is a proposal only;
+nothing in it is planned in the memory bank. It covers:
+- a license-clean catalog baseline;
+- source-ladder batches of widely used services with official specs;
+- native cloud-family expansion;
+- native-format upgrades;
+- workflow-ready docs-derived overlays;
+- a catalog discovery API for step contracts.
+
+Kinet's
+[request-resolution note](../../kinet/docs/request-resolution.md) references it
+for Kinet's stage-5 planning. Promote its items through the requested-change
+procedure in `tabilet/memory-bank/milestone.md`, and reconcile its batch sizes
+with this queue first.
