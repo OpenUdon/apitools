@@ -19,6 +19,10 @@ func TestAssessOperationEffectUsesMeaningNotHTTPMethod(t *testing.T) {
 		{name: "method alone unknown", operation: OperationSummary{Method: "GET"}, want: OperationEffectUnknown},
 		{name: "neutral name unknown", operation: OperationSummary{OperationID: "processCustomer", Method: "POST"}, want: OperationEffectUnknown},
 		{name: "noun after read verb", operation: OperationSummary{OperationID: "getCreatedAt"}, want: OperationEffectRead},
+		{name: "unknown leading operation id before read token", operation: OperationSummary{OperationID: "markMessageRead"}, want: OperationEffectUnknown},
+		{name: "unknown leading summary action before read token", operation: OperationSummary{Summary: "Mark message as read"}, want: OperationEffectUnknown},
+		{name: "unknown save search operation id", operation: OperationSummary{OperationID: "saveSearch"}, want: OperationEffectUnknown},
+		{name: "unknown save search summary action", operation: OperationSummary{Summary: "Save search"}, want: OperationEffectUnknown},
 		{name: "conflicting operation and summary", operation: OperationSummary{OperationID: "getCustomer", Summary: "Delete customer"}, want: OperationEffectUnknown},
 		{name: "compound read and write", operation: OperationSummary{OperationID: "getOrCreateCustomer"}, want: OperationEffectUnknown},
 		{name: "distant compound action", operation: OperationSummary{OperationID: "getMessage", Description: "Retrieves the next pending message and deletes it from the queue."}, want: OperationEffectUnknown},
@@ -56,6 +60,20 @@ func TestAssessOperationEffectCombinesNativeProtocolEvidence(t *testing.T) {
 	}})
 	if got.Class != OperationEffectRead || len(got.Evidence) != 1 || got.Evidence[0].Kind != "graphql.operation_kind" {
 		t.Fatalf("native GraphQL query evidence not preserved: %#v", got)
+	}
+
+	namespaced := OperationSummary{OperationID: "pets.messages.get"}
+	got = assessOperationEffect(namespaced, "#/methods/pets.messages.get")
+	if got.Class != OperationEffectRead {
+		t.Fatalf("Google Discovery method suffix was not classified: %#v", got)
+	}
+
+	resourceName := OperationSummary{OperationID: "pet"}
+	got = assessOperationEffectWithNative(resourceName, "graphql:query", []effectSignal{{
+		effect: OperationEffectRead, kind: "graphql.operation_kind", reference: "graphql:query", word: "query",
+	}})
+	if got.Class != OperationEffectRead {
+		t.Fatalf("native GraphQL operation kind was masked by a resource-name ID: %#v", got)
 	}
 
 	conflict := OperationSummary{OperationID: "deleteCustomer"}

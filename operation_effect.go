@@ -24,6 +24,16 @@ func assessOperationEffect(operation OperationSummary, selector string) EffectAs
 
 func assessOperationEffectWithNative(operation OperationSummary, selector string, native []effectSignal) EffectAssessment {
 	textSignals, textConflict := semanticSignalsForOperation(operation, selector)
+	if len(native) > 0 {
+		filtered := textSignals[:0]
+		for _, signal := range textSignals {
+			if signal.kind == "operation.operation_id" && signal.word == "unrecognized-leading-action" {
+				continue
+			}
+			filtered = append(filtered, signal)
+		}
+		textSignals = filtered
+	}
 	all := append(append([]effectSignal(nil), textSignals...), native...)
 	return resolveEffectSignals(all, textConflict)
 }
@@ -88,6 +98,12 @@ func resolveEffectSignals(signals []effectSignal, conflictingText bool) EffectAs
 		assessment.Reasons = []string{"Source meaning evidence is incomplete, negated, or conflicting; the operation effect is unknown."}
 		return assessment
 	}
+	for _, signal := range signals {
+		if signal.word == "unrecognized-leading-action" {
+			assessment.Reasons = []string{"The leading documented action is not recognized; the operation effect remains unknown."}
+			return assessment
+		}
+	}
 	if read {
 		assessment.Class = OperationEffectRead
 		word := firstEffectWord(signals, OperationEffectRead)
@@ -117,11 +133,21 @@ func semanticEffectSignals(value, evidenceKind, reference string) ([]effectSigna
 	if exceedsEffectTextBudget(value) {
 		return []effectSignal{{kind: evidenceKind, reference: reference, word: "text-over-budget"}}, true
 	}
+	if evidenceKind == "operation.operation_id" && strings.HasPrefix(reference, "#/methods/") {
+		// Google Discovery method IDs are service/resource/method names. Only
+		// the final component names the operation action.
+		if separator := strings.LastIndex(value, "."); separator >= 0 {
+			value = value[separator+1:]
+		}
+	}
 	tokens := effectWords(value)
 	if len(tokens) == 0 {
 		return nil, false
 	}
 	if evidenceKind == "operation.operation_id" {
+		if _, ok := effectForVerb(tokens[0]); !ok {
+			return []effectSignal{{kind: evidenceKind, reference: reference, word: "unrecognized-leading-action"}}, false
+		}
 		var signals []effectSignal
 		read, write := false, false
 		first := -1
@@ -166,6 +192,9 @@ func semanticEffectSignals(value, evidenceKind, reference string) ([]effectSigna
 	}
 	if start >= len(tokens) {
 		return nil, false
+	}
+	if _, ok := effectForVerb(tokens[start]); !ok {
+		return []effectSignal{{kind: evidenceKind, reference: reference, word: "unrecognized-leading-action"}}, false
 	}
 	var signals []effectSignal
 	for i := start; i < len(tokens) && i < start+5; i++ {
