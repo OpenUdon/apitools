@@ -86,6 +86,7 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 | M76 | completed | 2026-09-26 | [M76](status-M76.md) | CLI Usage Exit Contract |
 | M77 | completed | 2026-09-27 | [M77](status-M77.md) | Step-contract Operation Metadata |
 | M78 | completed | 2026-09-27 | [M78](status-M78.md) | Stage 1 Operation-Metadata Remediation |
+| M79 | completed | 2026-09-28 | [M79](status-M79.md) | Published conservative effect and selected-output nullability metadata, consumed by OpenUdon M89; review iteration 1 passed. |
 | S01 | completed | 2026-09-25 | [S01](status-S01.md) | Untrusted Source And Prompt Contract Hardening |
 | S02 | completed | 2026-09-26 | [S02](status-S02.md) | Local, Offline, And Discovery Safety Remediation |
 | S03 | completed | 2026-09-26 | [S03](status-S03.md) | Operation Lifecycle Ranking Correctness |

@@ -80,12 +80,16 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-M79 is the active Stage 1 operation-metadata remediation plan. M78 - the prior
-Stage 1 operation-metadata remediation - completed and was retired on
-2026-09-27. All earlier milestones through M77 are completed and retired; see
-the history index below. Latest completed milestone: M78.
-Apitools and Authoring are published, and OpenUdon pins both revisions with
-passing standalone test/vet.
+M79 completed the Stage 1 operation-metadata remediation. Its accepted API
+revision `e3625f6ef52ea54b7f78b7a4a4f1993bf8a06a46` is published and consumed
+by OpenUdon M89. OpenUdon M89's published implementation at
+`2e2ecedb32add53e10d6d81d4b2528ca2bdfdcc8` passed Kinet W04.6's exact consumer
+check and is retired in published closure commit
+`0c7c5d33da2ba7b190954b9eb402cc14b5ec1f73`. No milestone is currently active;
+latest completed milestone: M79. M78 and all earlier milestones through M77
+are retired; see the history index below.
+Apitools and Authoring are published, and OpenUdon passes standalone test/vet
+against its pinned APItools revision.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
 (`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
@@ -119,28 +123,10 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M79 | [status-M79.md](status-M79.md) | Accepted and published; downstream reconciliation pending before retirement |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
-
-## M79 — Correct operation effect and nullable-output metadata
-
-Correct the leading-action classifier so an unrecognized leading verb cannot
-be skipped in search of a later read verb; retain `unknown` when the action is
-not understood. Determine nullable-output compatibility from the selected
-declared/mapped response fields and their schema ancestors, not from unrelated
-fields elsewhere in the response. Keep the existing conservative behavior for
-unknown effects. Acceptance covers mutating summaries and operation IDs,
-unrecognized actions, unrelated nullable fields, and selected nullable output
-fields. Publish the accepted revision for OpenUdon M89 to consume and verify
-the OpenUdon consumer behavior against that exact revision.
-
-**Dependencies.** No technical upstream dependency. The cross-package order
-requires this milestone's accepted, published revision before OpenUdon's
-dependent Stage 1 milestone begins. Findings F1/F2 are from the 2026-09-28
-independent Stage 1 review.
 
 ## Requested Changes After Initialization
 

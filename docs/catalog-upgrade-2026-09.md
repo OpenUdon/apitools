@@ -374,7 +374,7 @@ of the resolution work.
 
 | Item | Stage | Reason |
 |---|---|---|
-| C04–C08 (license baseline and catalog waves) | **No kinet stage: apitools' own catalog lane** | kinet-order allows sibling preparation during stage 1. Start after apitools M79 retires; M79 is accepted and published, with retirement pending downstream reconciliation. |
+| C04–C08 (license baseline and catalog waves) | **No kinet stage: apitools' own catalog lane** | kinet-order allows sibling preparation during stage 1. M79 completed and retired after OpenUdon M89 consumed its exact published contract; see the [M79 history record](../tabilet/docs/history/status-M79.md). |
 | C09 (workflow-ready docs overlays) | **No kinet stage, but prioritize it before kinet stage 5** | It raises candidate quality for stage 5's step-contract ranking and catalog discovery. |
 | Catalog discovery API for step contracts ([Kinet request-resolution note](../../kinet/docs/request-resolution.md) G1) | **Stage 5, first slice**, with the contract designed during stage 1 | It must exist before iCoT retires (S3). This is apitools' part of a proposed kinet sibling item S2d. |
 | UI-only routing to browsertools (§9) | **Stage 5** | Needs S2b's supervised browser acquisition. |

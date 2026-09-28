@@ -17,3 +17,7 @@ compatible output status.
 This is an additive API. Existing inventory, selection, ranking, and lifecycle
 functions and JSON shapes remain unchanged.
 ````
+
+**Retirement correction (2026-09-28).** M79 completed after OpenUdon M89 consumed
+the exact published APItools revision. The complete milestone status and review
+evidence are preserved in the [retired M79 record](status-M79.md).
