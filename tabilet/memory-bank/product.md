@@ -46,9 +46,11 @@ execution.
   evidence-bearing read/write/unknown effect assessment, and an advisory
   comparison against a step's purpose, inputs, outputs, and effect. The local
   producer binds each candidate to raw-content SHA-256 and a family-native
-  selector, exposes source-family limitations, and never fetches provenance
-  URLs or external references. It carries metadata only; it does not bind,
-  approve, or execute an operation.
+  selector, carries response-field nullability through selected schema
+  ancestors, exposes source-family limitations, and never fetches provenance
+  URLs or external references. An unknown leading action remains unknown even
+  when later wording contains a recognized read/write token. It carries
+  metadata only; it does not bind, approve, or execute an operation.
 - **Operation lifecycle ranking**: conservative same-source sibling selection
   for read/update/delete roles over `OperationSummary`, with explicit source
   provenance controlling provider-specific path normalization.

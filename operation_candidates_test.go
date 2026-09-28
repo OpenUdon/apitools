@@ -47,13 +47,92 @@ func TestBuildOperationCandidatesKeepsNullableResponseIndeterminate(t *testing.T
 	if candidate.Match.Outputs.Status != ContractMatchIndeterminate || candidate.Match.Outputs.Score != 0 {
 		t.Fatalf("nullable response earned output compatibility: %#v", candidate.Match.Outputs)
 	}
+	if !hasNullableOutput(candidate.Summary.Outputs, "name") {
+		t.Fatalf("selected nullable response field was not labeled: %#v", candidate.Summary.Outputs)
+	}
 	capability := candidateCapability(candidate, "outputs")
-	if capability.Status != OperationCapabilityPartial || !strings.Contains(strings.Join(capability.Gaps, " "), "null") {
-		t.Fatalf("nullable response gap was not exposed: %#v", capability)
+	if capability.Status != OperationCapabilitySupported {
+		t.Fatalf("a selected nullable output changed parser capability: %#v", capability)
 	}
 	if candidateCapability(candidate, "inputs").Status != OperationCapabilitySupported {
 		t.Fatalf("response nullability downgraded unrelated inputs: %#v", candidate.Capabilities)
 	}
+}
+
+func TestBuildOperationCandidatesIgnoresUnselectedNullableResponseFields(t *testing.T) {
+	source := []byte(`{"openapi":"3.0.3","info":{"title":"People","version":"1"},"paths":{"/person":{"get":{"operationId":"getPerson","summary":"Get person","security":[],"responses":{"200":{"description":"Person","content":{"application/json":{"schema":{"type":"object","required":["name"],"properties":{"name":{"type":"string"},"nickname":{"type":"string","nullable":true}}}}}}}}}}}`)
+	required := true
+	report, err := BuildOperationCandidates(context.Background(), OperationCandidateOptions{
+		Sources: []OperationSourceInput{{Kind: OperationSourceOpenAPI, Path: "people.json", Content: source}},
+		Contract: StepContract{
+			Purpose: "Get person", Effect: OperationEffectRead,
+			Outputs: map[string]ContractValue{"name": {Type: "string", Required: &required}},
+		},
+	})
+	if err != nil || len(report.Candidates) != 1 {
+		t.Fatalf("candidate report = %#v, error = %v", report, err)
+	}
+	candidate := report.Candidates[0]
+	if candidate.Match.Outputs.Status != ContractMatchCompatible || candidate.Match.Outputs.Score != 30 {
+		t.Fatalf("unselected nullable sibling made the selected output indeterminate: %#v", candidate.Match.Outputs)
+	}
+	if hasNullableOutput(candidate.Summary.Outputs, "name") || !hasNullableOutput(candidate.Summary.Outputs, "nickname") {
+		t.Fatalf("field-level nullable metadata is incorrect: %#v", candidate.Summary.Outputs)
+	}
+	if candidateCapability(candidate, "outputs").Status != OperationCapabilitySupported {
+		t.Fatalf("unselected nullable sibling changed output capability: %#v", candidate.Capabilities)
+	}
+}
+
+func TestBuildOperationCandidatesIncludesNullableSchemaAncestors(t *testing.T) {
+	tests := []struct {
+		name   string
+		schema string
+		output string
+	}{
+		{
+			name:   "nullable response body",
+			schema: `{"type":"object","nullable":true,"required":["name"],"properties":{"name":{"type":"string"}}}`,
+			output: "name",
+		},
+		{
+			name:   "nullable parent object",
+			schema: `{"type":"object","required":["data"],"properties":{"data":{"type":"object","nullable":true,"required":["name"],"properties":{"name":{"type":"string"}}}}}`,
+			output: "data.name",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			source := []byte(`{"openapi":"3.0.3","info":{"title":"People","version":"1"},"paths":{"/person":{"get":{"operationId":"getPerson","summary":"Get person","security":[],"responses":{"200":{"description":"Person","content":{"application/json":{"schema":` + test.schema + `}}}}}}}}`)
+			required := true
+			report, err := BuildOperationCandidates(context.Background(), OperationCandidateOptions{
+				Sources: []OperationSourceInput{{Kind: OperationSourceOpenAPI, Path: "people.json", Content: source}},
+				Contract: StepContract{
+					Purpose: "Get person", Effect: OperationEffectRead,
+					Outputs: map[string]ContractValue{test.output: {Type: "string", Required: &required}},
+				},
+			})
+			if err != nil || len(report.Candidates) != 1 {
+				t.Fatalf("candidate report = %#v, error = %v", report, err)
+			}
+			candidate := report.Candidates[0]
+			if candidate.Match.Outputs.Status != ContractMatchIndeterminate || candidate.Match.Outputs.Score != 0 {
+				t.Fatalf("nullable ancestor earned output compatibility: %#v", candidate.Match.Outputs)
+			}
+			if !hasNullableOutput(candidate.Summary.Outputs, test.output) {
+				t.Fatalf("nullable ancestor was not copied to selected output metadata: %#v", candidate.Summary.Outputs)
+			}
+		})
+	}
+}
+
+func hasNullableOutput(values []OperationValueSummary, name string) bool {
+	for _, value := range values {
+		if value.Name == name {
+			return value.Nullable
+		}
+	}
+	return false
 }
 
 func TestBuildOperationCandidatesAdaptsEverySourceFamily(t *testing.T) {

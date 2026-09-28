@@ -1,6 +1,7 @@
 # Retired Milestones
 
 Frozen retired records. IDs stay reserved; see [milestone.md](../../memory-bank/milestone.md#long-term-memory-and-retirement).
+Superseded planning and contract wording is preserved in the [knowledge journal](knowledge.md).
 
 | Milestone | Outcome | Retired | Record | Summary |
 |---|---|---|---|---|

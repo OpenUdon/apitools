@@ -157,13 +157,15 @@ type ConsumerOperationSummary struct {
 
 // OperationValueSummary describes one source-declared request or response
 // value. Required is nil only when the source metadata does not establish the
-// value's requiredness.
+// value's requiredness. Response Nullable is true when the value or one of its
+// schema ancestors permits null.
 type OperationValueSummary struct {
 	Name              string              `json:"name"`
 	Location          string              `json:"location,omitempty"`
 	Type              string              `json:"type,omitempty"`
 	Format            string              `json:"format,omitempty"`
 	Required          *bool               `json:"required,omitempty"`
+	Nullable          bool                `json:"nullable,omitempty"`
 	ContainerRequired *bool               `json:"container_required,omitempty"`
 	Description       string              `json:"description,omitempty"`
 	Evidence          []OperationEvidence `json:"evidence,omitempty"`

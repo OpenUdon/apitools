@@ -490,8 +490,12 @@ func matchOutputs(candidate OperationCandidate, stepValues map[string]ContractVa
 		}
 		status, reason := compareValueType(expected, contractValueFromOperation(source), false)
 		applyTypeResult(&result, &accumulator, status, name, reason)
+		if source.Nullable {
+			accumulator.indeterminate = true
+			result.Gaps = append(result.Gaps, "Operation output "+name+" or one of its response schema ancestors permits null; the step contract does not establish that null is acceptable.")
+		}
 		result.Evidence = append(result.Evidence, source.Evidence...)
-		if status == ContractMatchCompatible && !duplicateAlias && !hasConflictForName(result.Conflicts, name) {
+		if status == ContractMatchCompatible && !source.Nullable && !duplicateAlias && !hasConflictForName(result.Conflicts, name) {
 			matched++
 		}
 	}
@@ -513,15 +517,6 @@ func matchOutputs(candidate OperationCandidate, stepValues map[string]ContractVa
 	if capability.Status != OperationCapabilitySupported {
 		accumulator.indeterminate = true
 		result.Gaps = append(result.Gaps, "Output evidence is partial or unsupported for this source family.")
-	}
-	for _, issue := range candidate.Operation.ReadinessIssues {
-		if issue.Code == "schema.response_nullable" {
-			accumulator.indeterminate = true
-			result.Score = 0
-			result.Reasons = []string{"Response output compatibility cannot be scored because the selected schema permits null."}
-			result.Gaps = append(result.Gaps, issue.Message)
-			break
-		}
 	}
 	setDimensionStatus(&result, accumulator)
 	return normalizeDimensionMatch(result)

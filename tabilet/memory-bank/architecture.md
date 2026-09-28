@@ -16,8 +16,8 @@
 - additive, versioned `BuildOperationCandidates` metadata that reads only
   explicit local source bytes/files, preserves SHA-256 and native selectors,
   emits consumer-readable summaries and evidence-bearing read/write/unknown
-  effects, and ranks purpose/input/output/effect fit without binding or
-  approving operations;
+  effects, carries response nullability by field and schema ancestry, and ranks
+  purpose/input/output/effect fit without binding or approving operations;
 - auth/security summaries derived from OpenAPI security metadata;
 - optional cache adapters;
 - provider catalog, spec protocol classification, security-overlay metadata,
@@ -246,6 +246,11 @@ explicit local files/bytes + step purpose/inputs/outputs/effect
 Smithy, AsyncAPI, GraphQL, OpenRPC, gRPC/protobuf, and OData using their
 existing parsers. Only explicit local bytes or paths are read; a supplied URL
 is provenance only. OpenAPI security alternatives retain OR-of-AND grouping.
+OpenAPI response nullability is attached to each field together with nullable
+schema ancestors; only selected nullable outputs make their output match
+indeterminate. An unrelated nullable response field does not downgrade other
+selected outputs. Effect analysis leaves an unrecognized leading action
+unknown instead of searching later wording for a read/write token.
 Native `OperationSummary.Method`/`Path` fields for non-OpenAPI families are
 display projections; consumers identify the source with kind, digest, and
 native selector. Unsupported auth, nested shape, response, streaming, or

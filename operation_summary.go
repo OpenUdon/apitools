@@ -167,6 +167,7 @@ func summarizeOperationForConsumer(operation OperationSummary, selector string, 
 			}
 			summary.Outputs = append(summary.Outputs, OperationValueSummary{
 				Name: "body", Location: "response", Type: bodyType, Format: bodyFormat,
+				Nullable:    body.Schema != nil && body.Schema.Nullable,
 				Description: body.Description,
 				Evidence:    []OperationEvidence{{Kind: "response.body", Reference: evidenceReference(ref, "response")}},
 			})
@@ -186,7 +187,7 @@ func summarizeOperationForConsumer(operation OperationSummary, selector string, 
 				required := boolPointer(field.Required)
 				summary.Outputs = append(summary.Outputs, OperationValueSummary{
 					Name: name, Location: "response", Type: field.Type, Format: field.Format,
-					Required: required, Description: field.Description,
+					Required: required, Nullable: field.Nullable, Description: field.Description,
 					Evidence: []OperationEvidence{{Kind: "response.field", Reference: evidenceReference(ref, "response", "fields", name)}},
 				})
 				if field.Ref != "" {
@@ -199,7 +200,7 @@ func summarizeOperationForConsumer(operation OperationSummary, selector string, 
 		} else if body.Schema != nil {
 			value := OperationValueSummary{
 				Name: "body", Location: "response", Type: body.Schema.Type,
-				Format: body.Schema.Format, Description: body.Description,
+				Format: body.Schema.Format, Nullable: body.Schema.Nullable, Description: body.Description,
 				Evidence: []OperationEvidence{{Kind: "response.body", Reference: evidenceReference(ref, "response")}},
 			}
 			if body.Schema.Ref != "" {

@@ -97,9 +97,10 @@ type ResponseBodySummary struct {
 	Fields       []RequestFieldSummary `json:"fields,omitempty"`
 }
 
-// SchemaSummary is a shallow, prompt-safe schema description.
+// SchemaSummary is a shallow, prompt-safe schema description with root nullability.
 type SchemaSummary struct {
 	Type        string            `json:"type,omitempty"`
+	Nullable    bool              `json:"nullable,omitempty"`
 	Format      string            `json:"format,omitempty"`
 	Ref         string            `json:"ref,omitempty"`
 	Description string            `json:"description,omitempty"`
@@ -117,11 +118,13 @@ type PropertySummary struct {
 	Required    bool   `json:"required,omitempty"`
 }
 
-// RequestFieldSummary is a recursive prompt-safe request body field summary. It
-// intentionally omits defaults, examples, and secret-like field names.
+// RequestFieldSummary is a recursive prompt-safe request/response field
+// summary. Nullable includes the field and any represented schema ancestors.
+// It intentionally omits defaults, examples, and secret-like field names.
 type RequestFieldSummary struct {
 	Path        string `json:"path"`
 	Required    bool   `json:"required,omitempty"`
+	Nullable    bool   `json:"nullable,omitempty"`
 	Type        string `json:"type,omitempty"`
 	Format      string `json:"format,omitempty"`
 	Ref         string `json:"ref,omitempty"`

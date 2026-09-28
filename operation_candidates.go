@@ -660,8 +660,8 @@ func openAPICapabilities(operation OperationSummary, selector string) []Operatio
 	}
 	for _, issue := range operation.ReadinessIssues {
 		if issue.Code == "schema.response_nullable" {
-			output.Status = OperationCapabilityPartial
-			output.Gaps = append(output.Gaps, issue.Message)
+			// Nullable values are represented on the selected response fields.
+			// An unrelated nullable sibling must not make this capability partial.
 			continue
 		}
 		if strings.HasPrefix(issue.Code, "schema.") {

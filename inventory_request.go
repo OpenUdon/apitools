@@ -183,9 +183,8 @@ func responseBodySummary(ctx context.Context, root map[string]any, operation map
 	return nil, nil
 }
 
-// The legacy inventory fields do not carry JSON Schema nullability. Keep the
-// fact as an existing readiness issue so candidate ranking cannot mistake a
-// nullable response for a guaranteed value without changing inventory shapes.
+// Preserve an inventory warning while field summaries carry the exact
+// nullable state needed for selected-output matching.
 func recordNullableResponseSchema(op *OperationSummary, schema map[string]any) {
 	visited := 0
 	if !responseSchemaMayBeNullable(schema, 0, &visited) {
@@ -194,7 +193,7 @@ func recordNullableResponseSchema(op *OperationSummary, schema map[string]any) {
 	op.ReadinessIssues = append(op.ReadinessIssues, ReadinessIssue{
 		Severity:    "warning",
 		Code:        "schema.response_nullable",
-		Message:     "The response schema permits null; the step candidate contract cannot establish non-null output values.",
+		Message:     "One or more response fields or schema ancestors permit null; inspect field-level nullable metadata before selecting outputs.",
 		OperationID: op.OperationID,
 		Path:        op.Provenance,
 		Remediation: "Review the nullable response before requiring a non-null output.",
@@ -238,7 +237,9 @@ func appendMissingTopLevelResponseFields(fields []RequestFieldSummary, schema ma
 		if len(property) == 0 {
 			continue
 		}
-		fields = append(fields, requestFieldSummary(name, required[name], property))
+		field := requestFieldSummary(name, required[name], property)
+		field.Nullable = boolValue(schema["nullable"]) || field.Nullable
+		fields = append(fields, field)
 		seen[name] = true
 	}
 	sort.SliceStable(fields, func(i, j int) bool {
@@ -464,6 +465,7 @@ func schemaSummary(schema map[string]any) SchemaSummary {
 	}
 	summary := SchemaSummary{
 		Type:        schemaType(schema["type"]),
+		Nullable:    boolValue(schema["nullable"]),
 		Format:      stringValue(schema["format"]),
 		Ref:         stringValue(schema["$ref"]),
 		Description: stringValue(schema["description"]),
@@ -502,7 +504,7 @@ const (
 
 func requestFieldSummaries(schema map[string]any, path string, required bool, depth int) []RequestFieldSummary {
 	var out []RequestFieldSummary
-	collectRequestFields(schema, path, required, depth, &out)
+	collectRequestFields(schema, path, required, false, depth, &out)
 	sort.SliceStable(out, func(i, j int) bool {
 		return out[i].Path < out[j].Path
 	})
@@ -512,18 +514,21 @@ func requestFieldSummaries(schema map[string]any, path string, required bool, de
 	return out
 }
 
-func collectRequestFields(schema map[string]any, path string, required bool, depth int, out *[]RequestFieldSummary) {
+func collectRequestFields(schema map[string]any, path string, required, nullable bool, depth int, out *[]RequestFieldSummary) {
 	if len(*out) >= maxRequestFields || depth > maxRequestFieldDepth {
 		return
 	}
+	nullable = nullable || boolValue(schema["nullable"])
 	if len(schema) == 0 {
 		if path != "" && !looksLikeCredentialName(path) {
-			*out = append(*out, RequestFieldSummary{Path: path, Required: required})
+			*out = append(*out, RequestFieldSummary{Path: path, Required: required, Nullable: nullable})
 		}
 		return
 	}
 	if path != "" && !looksLikeCredentialName(path) {
-		*out = append(*out, requestFieldSummary(path, required, schema))
+		field := requestFieldSummary(path, required, schema)
+		field.Nullable = nullable
+		*out = append(*out, field)
 		if len(*out) >= maxRequestFields || depth == maxRequestFieldDepth {
 			return
 		}
@@ -539,7 +544,7 @@ func collectRequestFields(schema map[string]any, path string, required bool, dep
 			if path != "" {
 				childPath = path + "." + name
 			}
-			collectRequestFields(mapValue(properties[name]), childPath, required && requiredSet[name], depth+1, out)
+			collectRequestFields(mapValue(properties[name]), childPath, required && requiredSet[name], nullable, depth+1, out)
 			if len(*out) >= maxRequestFields {
 				return
 			}
@@ -551,7 +556,7 @@ func collectRequestFields(schema map[string]any, path string, required bool, dep
 		if path != "" {
 			itemPath = path + "[]"
 		}
-		collectRequestFields(items, itemPath, required, depth+1, out)
+		collectRequestFields(items, itemPath, required, nullable, depth+1, out)
 	}
 }
 
@@ -559,6 +564,7 @@ func requestFieldSummary(path string, required bool, schema map[string]any) Requ
 	return RequestFieldSummary{
 		Path:        path,
 		Required:    required,
+		Nullable:    boolValue(schema["nullable"]),
 		Type:        schemaType(schema["type"]),
 		Format:      stringValue(schema["format"]),
 		Ref:         stringValue(schema["$ref"]),

@@ -80,9 +80,10 @@ concurrent ledger writers. A `tabilet/GOAL.md` run keeps its own single-row rule
 
 ## Current Dashboard
 
-No active milestone. M78 - Stage 1 operation-metadata remediation completed and
-was retired on 2026-09-27. All earlier milestones through M77 are completed
-and retired; see the history index below. Latest completed milestone: M78.
+M79 is the active Stage 1 operation-metadata remediation plan. M78 - the prior
+Stage 1 operation-metadata remediation - completed and was retired on
+2026-09-27. All earlier milestones through M77 are completed and retired; see
+the history index below. Latest completed milestone: M78.
 Apitools and Authoring are published, and OpenUdon pins both revisions with
 passing standalone test/vet.
 
@@ -118,8 +119,28 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
+| M79 | [status-M79.md](status-M79.md) | In progress; completing review and publication |
 
 Closed milestones are recorded in the history index.
+
+## Active Milestone Specifications
+
+## M79 — Correct operation effect and nullable-output metadata
+
+Correct the leading-action classifier so an unrecognized leading verb cannot
+be skipped in search of a later read verb; retain `unknown` when the action is
+not understood. Determine nullable-output compatibility from the selected
+declared/mapped response fields and their schema ancestors, not from unrelated
+fields elsewhere in the response. Keep the existing conservative behavior for
+unknown effects. Acceptance covers mutating summaries and operation IDs,
+unrecognized actions, unrelated nullable fields, and selected nullable output
+fields. Publish the accepted revision for OpenUdon M89 to consume and verify
+the OpenUdon consumer behavior against that exact revision.
+
+**Dependencies.** No technical upstream dependency. The cross-package order
+requires this milestone's accepted, published revision before OpenUdon's
+dependent Stage 1 milestone begins. Findings F1/F2 are from the 2026-09-28
+independent Stage 1 review.
 
 ## Requested Changes After Initialization
 

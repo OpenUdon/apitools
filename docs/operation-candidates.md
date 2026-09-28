@@ -85,13 +85,14 @@ Named nested types that APItools cannot resolve remain opaque and produce an
 indeterminate comparison rather than an assumed match. The richer metadata
 contract intentionally does not require a downstream workflow-model package.
 
-Each candidate pairs the unchanged public `OperationSummary` with an exact
-source identity (`kind`, path or URL, SHA-256, and a source-native `selector`),
+Each candidate pairs the public `OperationSummary` with an exact source
+identity (`kind`, path or URL, SHA-256, and a source-native `selector`),
 a consumer-readable summary, an evidence-bearing effect assessment, and
 separate purpose/input/output/effect match results. The consumer summary has a
 description plus structured input/output values; each value records name,
 location, type/format when known, requiredness, description, and source
-evidence. For step matching, the summary's tri-state `Required` values are
+evidence. Response values also carry `nullable` when established; this flag
+includes nullable schema ancestors. For step matching, the summary's tri-state `Required` values are
 authoritative; the paired legacy `OperationSummary` retains its existing
 Boolean fields for compatibility. If purpose text is missing, the fallback identifies the operation
 and explicitly says that its documented purpose is unavailable. Existing
@@ -130,10 +131,12 @@ opaque, unresolved, or named protocol types remain indeterminate; even equal
 custom type names are not treated as compatible unless their shapes are
 resolved. Primitive integer/number compatibility follows the data-flow
 direction. A type or requiredness conflict stays visible even when other
-dimensions produce a high score. OpenAPI response schemas that permit null are
-reported as partial output evidence. The v1 step contract has no nullability
-field, so a nullable response cannot earn output compatibility points or a
-compatible output status.
+dimensions produce a high score. OpenAPI response nullability is recorded per
+field and inherited from its schema ancestors. Only selected outputs that
+permit null remain indeterminate; an unrelated nullable sibling does not
+downgrade them. The v1 step contract has no nullability field, so a selected
+nullable output cannot earn compatibility points or a compatible output
+status.
 
 Each dimension has `compatible`, `incompatible`, or `indeterminate` status,
 with separate evidence, reasons, missing values, conflicts, and gaps. A
@@ -156,8 +159,10 @@ oversized candidate/source payload.
 Effect is an evidence-based metadata assessment. HTTP methods and names alone
 cannot establish `read`; method fields are not classification evidence.
 Recognized operation-meaning tokens in the operation ID and leading documented
-action phrases can support a classification, while negated, compound, or
-conflicting meaning stays `unknown`. Once a leading documented action is found,
+action phrases can support a classification. The first action must be
+recognized; an unknown leading action cannot be skipped in search of a later
+read or write token. Negated, compound, or conflicting meaning stays `unknown`.
+Once a leading documented action is found,
 the bounded summary or description is scanned for later conflicting verbs,
 including verbs in another sentence or separated from a connector by
 request-object wording. Source-native protocol semantics may add independent
@@ -202,10 +207,14 @@ reported as a summary gap so missing mappings remain visible.
 ## Compatibility
 
 This is an additive API. Existing inventory, selection, ranking, and lifecycle
-functions and JSON shapes remain unchanged. Consumers should reject an unknown
-`schema_version` rather than assuming compatible semantics. A future
-incompatible wire change requires a new versioned contract; additional optional
-fields within v1 must not change the meaning of existing fields.
+function signatures and existing field meanings remain unchanged. Candidate
+v1 now includes optional nullable annotations on root schema summaries,
+response field summaries, and consumer output values; callers may ignore these
+additive fields. Consumers
+should reject an unknown `schema_version` rather than assuming compatible
+semantics. A future incompatible wire change requires a new versioned contract;
+additional optional fields within v1 must not change the meaning of existing
+fields.
 
 Versioned examples and request/report fixtures are stored under
 [`testdata/operation-candidates/v1/`](../testdata/operation-candidates/v1/),
