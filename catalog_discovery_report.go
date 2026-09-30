@@ -25,7 +25,7 @@ func boundCatalogDiscoveryReport(report CatalogDiscoveryReport) CatalogDiscovery
 	report.Diagnostics = nil
 	report.Ties = nil
 	data, _ := json.Marshal(report)
-	used := len(data) + 256 // reserve a generic loss diagnostic and JSON field framing
+	used := len(data) + 512 // reserve a generic loss diagnostic and JSON field framing
 	loss := false
 	if used > budget {
 		report.Scope.ProviderIDs = nil
@@ -34,7 +34,7 @@ func boundCatalogDiscoveryReport(report CatalogDiscoveryReport) CatalogDiscovery
 		}
 		loss = true
 		data, _ = json.Marshal(report)
-		used = len(data) + 256
+		used = len(data) + 512
 	}
 	fit := func(item any) bool {
 		data, err := json.Marshal(item)
@@ -106,10 +106,22 @@ func boundCatalogDiscoveryReport(report CatalogDiscoveryReport) CatalogDiscovery
 		report.Truncated = true
 		report.Incomplete = true
 		report.Scope.Complete = false
-		if report.Outcome == CatalogDiscoveryNoQualifyingAPI || (report.Outcome == CatalogDiscoveryMatch && len(report.Candidates) == 0) {
+		if report.Outcome == CatalogDiscoveryNoQualifyingAPI {
 			report.Outcome = CatalogDiscoveryInsufficientEvidence
 		}
 		report.Diagnostics = append(report.Diagnostics, Diagnostic{Severity: "warning", Code: "discovery.context_limit", Message: "report limits omitted evidence; scope remains incomplete"})
+	}
+	if report.Outcome == CatalogDiscoveryMatch || report.Outcome == CatalogDiscoveryAmbiguous {
+		visible := false
+		for _, candidate := range report.Candidates {
+			visible = visible || candidate.Qualified
+		}
+		if !visible {
+			report.Outcome = CatalogDiscoveryInsufficientEvidence
+			report.Incomplete = true
+			report.Scope.Complete = false
+			report.Diagnostics = append(report.Diagnostics, Diagnostic{Severity: "warning", Code: "discovery.matches_not_displayed", Message: "report limits omitted all qualified operation evidence"})
+		}
 	}
 	return report
 }

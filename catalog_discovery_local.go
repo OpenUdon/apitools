@@ -19,16 +19,36 @@ type catalogDiscoveryLocalEvidence struct {
 // DiscoverCatalogOperations retrieves index-backed metadata for the additive
 // contract. Source confirmation, provisioning and execution remain downstream.
 func DiscoverCatalogOperations(ctx context.Context, options CatalogDiscoveryOptions) (CatalogDiscoveryReport, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	parent := ctx
+	timeout := options.Request.Limits.TimeoutMillis
+	if timeout <= 0 || timeout > int(MaxCatalogDiscoveryTimeout/time.Millisecond) {
+		timeout = int(DefaultCatalogDiscoveryTimeout / time.Millisecond)
+	}
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Millisecond)
+	defer cancel()
 	evidence, err := retrieveCatalogDiscovery(ctx, options)
 	report := evidence.report
 	if err != nil || report.Outcome == CatalogDiscoveryBlocked {
+		if parent.Err() == nil && ctx.Err() != nil {
+			err = nil
+		}
 		return boundCatalogDiscoveryReport(report), err
 	}
-	if len(evidence.candidates) > 0 {
-		report.Diagnostics = append(report.Diagnostics, Diagnostic{Severity: "warning", Code: "discovery.comparison_unavailable", Message: "operation metadata is available, but full contract compatibility has not been established"})
+	report, err = rankCatalogDiscovery(ctx, evidence, options.Request)
+	if err != nil && parent.Err() == nil {
+		err = nil // installation deadline is incomplete evidence, not caller cancellation
 	}
-	report.Candidates = evidence.candidates
-	return boundCatalogDiscoveryReport(report), nil
+	report = boundCatalogDiscoveryReport(report)
+	if parent.Err() != nil {
+		return boundCatalogDiscoveryReport(catalogDiscoveryInterrupted(report, parent.Err()).report), parent.Err()
+	}
+	if ctx.Err() != nil {
+		return boundCatalogDiscoveryReport(catalogDiscoveryInterrupted(report, ctx.Err()).report), nil
+	}
+	return report, err
 }
 
 func retrieveCatalogDiscovery(ctx context.Context, options CatalogDiscoveryOptions) (catalogDiscoveryLocalEvidence, error) {
@@ -139,6 +159,12 @@ func retrieveCatalogDiscovery(ctx context.Context, options CatalogDiscoveryOptio
 		if len(refs) == 0 {
 			continue
 		}
+		sanitized := map[string]bool{}
+		for _, diagnostic := range artifact.Diagnostics {
+			if diagnostic.Code == "prompt.operation_sanitized" {
+				sanitized[diagnostic.Path] = true
+			}
+		}
 		limited := false
 		for _, candidate := range artifact.Operations {
 			if err := ctx.Err(); err != nil {
@@ -162,7 +188,11 @@ func retrieveCatalogDiscovery(ctx context.Context, options CatalogDiscoveryOptio
 			for i := range selected {
 				selected[i].Selector = candidate.Source.Selector
 			}
-			result.candidates = append(result.candidates, CatalogDiscoveryCandidate{Candidate: candidate, References: selected, Sources: sources, ProviderConstrained: report.Scope.ProviderConstrained})
+			item := CatalogDiscoveryCandidate{Candidate: candidate, References: selected, Sources: sources, ProviderConstrained: report.Scope.ProviderConstrained}
+			if sanitized[candidate.Operation.Provenance] || sanitized[candidate.Source.Selector] {
+				item.QualificationGaps = append(item.QualificationGaps, "source operation metadata was sanitized; review any identity or selected-field loss")
+			}
+			result.candidates = append(result.candidates, item)
 			report.ExaminedOperations++
 		}
 	}

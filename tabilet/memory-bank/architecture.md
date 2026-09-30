@@ -711,7 +711,7 @@ validation preserves multiword names and distinguishes nil/open provider scope
 from explicit empty scope. Unknown licenses/redistribution and verbatim bounded
 notes are source evidence; filters and exclusions stay explicit. Coverage,
 qualification counts, native references and tied ranking data preserve the
-five-outcome consumer contract. Lookup/ranking/remote remain pending M80.2–.4.
+five-outcome consumer contract. Local retrieval and ranking are implemented; remote lookup remains M80.4 work.
 Frozen synthetic wire cases are serialization fixtures, not observed lookup
 results or source-binding acceptance. See README for supported request limits.
 
@@ -728,5 +728,12 @@ metadata-only leads; invalid identity/configuration blocks, stale coverage
 contains no operation candidates, and work limits mark relevant coverage
 `work_limit`. All local scope and output work is bounded without parsing raw
 sources or fetching URLs. Oversized notes produce evidence gaps; report
-projection losses remain incomplete. Retrieval candidates are still unqualified
-until M80.3; no match/no-match acceptance is claimed by metadata retrieval.
+projection losses remain incomplete. Discovery qualification now applies the approved strong documented-purpose
+criterion and existing typed dimension comparisons. Scores order all candidates
+by canonical catalog identity; qualified counts precede display limits. Multiple
+qualified native operations remain ambiguous. Complete scope with definitive
+conflicts permits a scoped no-match; unexamined scope or indeterminate
+comparisons remain insufficient. Required inputs, selected nullable outputs,
+unknown requested effects and incomplete auth cannot be hidden by scores.
+Sanitation/compaction loss requires source review. The query deadline covers
+retrieval, ranking and projection; caller cancellation clears positive results.

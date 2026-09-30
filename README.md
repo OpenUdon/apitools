@@ -411,8 +411,7 @@ functions and option shapes keep their behavior.
 M80.1 adds `CatalogDiscoveryRequest` / `CatalogDiscoveryReport` as
 `apitools.catalog-discovery/v1`, separate from existing candidate wires.
 `DecodeCatalogDiscoveryRequest` bounds JSON to 64 KiB, rejects unknown fields
-and trailing data, and never accepts installation paths/endpoints. Lookup and
-ranking are subsequent M80 work, not delivered by defining these types.
+and trailing data, and never accepts installation paths/endpoints. Local lookup and ranking are implemented; remote lookup remains M80.4 work.
 
 Optional provider keys resolve individually by exact catalog key, including
 multiword display names. Omitted/null keys mean open scope; an explicit empty
@@ -424,9 +423,10 @@ are separate bounded source evidence, never inferred permission or instructions.
 
 `DiscoverCatalogOperations(ctx, CatalogDiscoveryOptions{Request: request,
 Index: indexOptions})` now retrieves source-backed local metadata with no
-source parsing, provider calls or provisioning. At this point of M80 the
-candidates are unqualified: contract ranking/outcome qualification and remote
-lookup are subsequent task rows. Missing root/index/registrations yield
+source parsing, provider calls or provisioning. It compares typed inputs/outputs, required inputs, documented purpose
+and explicitly requested effects. Qualification needs at least two documented
+purpose terms covering half the request terms; identity wording alone cannot
+qualify. Unknown effects never assert read safety. Missing root/index/registrations yield
 metadata-only leads with insufficient evidence; invalid configuration/index
 identity yields blocked. Stale entries have no candidates. Exact provider
 constraints and evidence filters narrow scope with named exclusions.
@@ -444,6 +444,12 @@ context and a 30-second cooperative local deadline. Ceilings are the index's
 limits must allow at least 4 KiB for a bounded report. At most 32 provider keys
 and five authority filters are accepted. Prompt safety and nested typed-field
 limits stay unchanged. JSON bounds/deadlines do not claim hard process RSS.
+Multiple qualified operations remain ambiguous even with a one-result display
+limit. A no-match requires complete scope and definitive conflicts for every
+examined operation. Weak wording, omitted fields, incomplete authentication,
+nullable selected outputs or unknown constrained effects remain insufficient.
+Scores rank evidence without selecting or approving operations. Sorting uses
+canonical provider/spec/artifact/native identity, never host paths.
 Remote lookup needs explicit request and installation opt-in; it remains
 subsequent M80.4 work. No discovery result grants routing or action authority.
 

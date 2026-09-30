@@ -356,14 +356,12 @@ through serialization and needs insufficient-evidence handling. Structured
 license identification and redistribution stay explicitly unknown unless
 reviewed source fields support them; free-text notes never create permission.
 The README records defaults/ceilings and the synthetic v1 wire fixture set.
-Lookup, ranking and remote opt-in are the subsequent M80 implementation rows.
+Local retrieval/ranking are delivered; remote opt-in remains M80.4.
 
 ### Delivered local retrieval (M80.2)
 
 `DiscoverCatalogOperations` now returns scoped index metadata and references
-under the M81 installation options. Its intermediate M80.2 behavior keeps
-candidates unqualified pending M80.3 comparison; no metadata score proves a
-match or no-match. Missing root/index yields metadata-only leads, stale index
+under the M81 installation options. M80.3 applies the qualification/outcome rules above; scores remain advisory. Missing root/index yields metadata-only leads, stale index
 entries have no candidates, and invalid configuration/identity blocks. Exact
 provider and evidence filters report their narrowed scope and exclusions.
 Work limits are explicit `work_limit` query coverage; display/context omissions
@@ -372,3 +370,27 @@ source evidence gap, never truncated into altered evidence or permission.
 No source parsing, network activity, migration, access-time write, provisioning
 or operation execution occurs. Remote requests remain unsupported until the
 separate M80.4 implementation qualifies.
+
+### Delivered ranking (M80.3)
+
+`catalog_discovery_rank.go` reuses the existing typed comparisons without
+changing the older candidate API. It requires strong documented-purpose overlap,
+compatible input/output dimensions and requested effects, complete auth
+alternatives, and no blocking metadata loss. Unused contract inputs remain
+indeterminate. Each shared artifact/native operation counts once, preserving all
+provider links. Counts precede display limits; positive scope gaps remain visible.
+If projection omits every qualified candidate, the report becomes insufficient
+rather than claiming a reviewable match. Sorting/ties use catalog identity.
+
+The query's cooperative deadline covers index reading, comparison and report
+projection. Caller cancellation clears positive evidence; budget expiration is
+reported as incomplete evidence. Empty/filtered/unexamined scope never proves
+absence. Remote requests remain unsupported until M80.4.
+
+The small repository-owned relevance baseline is described in
+`testdata/catalog-discovery/relevance/README.md`. Observed precision@1 is 3/3;
+this is a ranking baseline, not a semantic correctness threshold. Slack qualifies;
+Jira remains insufficient due to credential-shaped field removal, and Drive
+remains insufficient because the existing effect classifier does not recognize
+upload as a documented write. Neither limitation is concealed or treated as
+no API. No source/model/provider operations are performed by these fixtures.
