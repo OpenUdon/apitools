@@ -92,3 +92,4 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 | S03 | completed | 2026-09-26 | [S03](status-S03.md) | Operation Lifecycle Ranking Correctness |
 | S04 | completed | 2026-09-26 | [S04](status-S04.md) | Prompt Sanitizer Invisible-Unicode Hardening |
 | M81 | completed | 2026-09-30 | [M81](status-M81.md) | Explicit catalog roots, bounded registered parsing, digest-bound operation index and selected artifact export; review passed in 3 iterations. |
+| M80 | completed | 2026-09-30 | [M80](status-M80.md) | Versioned catalog step discovery, evidence-based outcomes, guarded opt-in remote lookup; qualified source/module published, review passed in 3 iterations. |

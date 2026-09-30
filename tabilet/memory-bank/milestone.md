@@ -85,11 +85,14 @@ revision `e3625f6ef52ea54b7f78b7a4a4f1993bf8a06a46` is published and consumed
 by OpenUdon M89. OpenUdon M89's published implementation at
 `2e2ecedb32add53e10d6d81d4b2528ca2bdfdcc8` passed Kinet W04.6's exact consumer
 check and is retired in published closure commit
-`0c7c5d33da2ba7b190954b9eb402cc14b5ec1f73`. M80 is active approved work (2026-09-30). Prerequisite M81 completed and retired
-after review iteration 3 at qualified source
-`8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6`. M80 is reconciled to that source; its discovery implementation and review
-are qualified under the confirmed Stage 5 goal, with publication pending. Latest completed milestone: M81; see
-the history index below. M81 publication is carried by M80, not a separate gate.
+`0c7c5d33da2ba7b190954b9eb402cc14b5ec1f73`. M81 and M80 are complete
+and retired. M81 foundations qualified at
+`8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6`; M80 discovery qualified and
+published at `fb132631c9827eae5f2ec4503d03f21eabfb4113`
+(`v0.0.0-20260930205753-fb132631c982`), carrying M81 publication. The latest
+completed milestone is M80; its whole-milestone review passed in 3 iterations.
+No active milestone remains; unnumbered candidates require fresh approval.
+Exact history and observed publication evidence resolve through the history index.
 Apitools and Authoring are published, and OpenUdon passes standalone test/vet
 against its pinned APItools revision.
 
@@ -125,133 +128,12 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M80 | [status-M80.md](status-M80.md) | In progress; M80.1–M80.4 complete; qualification review passed, publication pending. |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
 
-## M80 — Catalog discovery API for step contracts
-
-Add an additive, versioned library discovery contract that takes a step's
-purpose, typed inputs/outputs, effect, and optional provider constraints, and
-returns ranked providers and artifact references across the local catalog by
-reading the M81 operation index. Reuse the operation-candidate metadata and
-conservative ranking delivered by M77-M79; do not reopen their retired
-records. This shared public contract belongs in lane M. The active order is
-M81 then M80; implementation stays sequential under one execution owner, with
-no parallel ownership or sibling writes authorized.
-
-The user approved this reconciliation of "APItools stage 5 draft — M80"
-(Kinet stage 5 draft plan, revision 2, 2026-09-30; staging material outside
-Kinet's tracked history) on 2026-09-30. Source context is that draft plan's
-deep review (finding 2) and Kinet's
-[request-resolution G1/S2d](../../../kinet/docs/request-resolution.md). Review
-and revalidation baseline are both
-`8580ff2485a3faff139b17bdc0b8e78d2af4ce18`; the worktree was clean during that
-assessment and immediately before its planning writes. Assigned source finding
-labels F01-F06, their evidence, and their owners are retained in
-[status-M80.md](status-M80.md). Local P2 classifications describe gaps in the
-proposed acceptance, not regressions in the existing API. The draft was
-promoted before Kinet's stage 4 retired, consistent with the draft plan's note
-that APItools M80 does not depend on stage 4.
-
-A second approved intake on 2026-09-30 applied review "APItools M80 — Catalog
-discovery API for step contracts" (`apitools-m80-review.md`) at the same
-baseline, with the uncommitted planning files as evidence. It moved the six
-design decisions and the pre-existing limits into prerequisite
-[M81](../docs/history/status-M81.md) and amended the scope and rows
-below. Neither intake starts the closing review counter.
-
-**Scope and acceptance.**
-
-- Implement the contract approved at M81's design checkpoint. Optional
-  provider constraints resolve by exact catalog key, and each result records
-  whether it came from a constraint or from open retrieval.
-- Retrieve deterministically from the M81 operation index under an explicitly
-  supplied catalog root, with caller-visible authority and
-  license/redistribution filters and rank evidence. Do not parse catalog
-  artifacts per call. Verify the index version and registration digests;
-  stale, oversized, missing, invalid, or unsupported artifacts are reported as
-  unexamined scope. Without a root, return metadata-only provider leads and
-  insufficient evidence that names what would resolve it. Report catalog
-  identity, searched scope, exclusions, missing evidence, limits, and
-  cancellation, and bound local discovery time and memory. A catalog reference
-  without indexed operations remains a reference-only lead, not an invented
-  operation or positive contract match.
-- Every indexed local operation result carries catalog-stable provider/artifact identity and a
-  reference that round-trips into M81's artifact-scoped export, source
-  authority, license and redistribution evidence or explicit unknowns
-  (unknowns included by default and labeled, `license_note` passed through
-  verbatim, no inferred permission), authentication needs,
-  read/write/unknown effect, and concise rank evidence. Keep official sources,
-  docs-derived advisory artifacts, and public-catalog provenance distinct;
-  auth evidence stays scoped to the selected spec, with alternatives intact.
-  Existing license notes such as "terms apply" do not establish permission.
-- Reuse step-contract preparation and dimension matching only where source
-  evidence supports them. Apply the approved qualification rule, so a single
-  shared purpose term cannot make a match. Break ties on catalog-stable
-  identity, never on machine paths. Preserve exact digests and native
-  selectors, ties, typed input/output gaps, and conservative unknown effects.
-  Model consumers may choose only returned source-backed operations; scores
-  never approve or bind an operation.
-- Distinguish match, ambiguous, no qualifying API within the checked scope,
-  insufficient evidence, and blocked. Missing documents, unsupported
-  semantics, indeterminate comparisons, unexamined scope, and failed reads
-  must not become a definitive no-API result. Only a scoped no-match is
-  browser-routable, and curated catalog facts are evidence, never proof.
-  Never claim that a task is impossible. Browser routing and source
-  provisioning belong to OpenUdon/Kinet; this library performs neither.
-- Default to offline operation. An explicitly configured remote tier initially
-  uses APIs.guru through the existing guarded search/download path, with an
-  eight-second total network deadline, at most three source documents, and
-  the 20 MiB per-document bound, matching iCoT's remote lookup (OpenUdon
-  `internal/icot/elicitor/remote_sources.go`). Report each remote result's
-  fetched digest and final URL so later provisioning can detect drift.
-  Preserve URL/redirect/dial-time unsafe-host rejection, cancellation, prompt
-  budgets, and visible timeout/empty/partial outcomes. No general crawling,
-  provider operation, credential resolution, or implicit artifact
-  provisioning is permitted.
-- Add fixtures for ordering under input permutations and root relocation,
-  matches, ambiguity, ties, provider constraints including iCoT `CatalogPlan`
-  parity, authority/license filters, unknown metadata, no root, empty and
-  stale indexes, scoped no-match, unexamined scope, cancellation, unsafe
-  paths/hosts, digest failures, and offline defaults. Add a small labeled
-  relevance set of step contracts derived from OpenUdon's `examples/eval` step
-  shapes, with no user data, and record precision@k as a baseline rather than
-  a pass/fail gate. Add an opt-in, provider-free scale benchmark over a
-  populated local root. Keep existing exported APIs and wire shapes unchanged;
-  introduce the discovery report as a separate additive contract. Run
-  workspace and standalone tests/vet, catalog generation/quality checks, CLI
-  help, diff checks, and affected OpenUdon/Udon compatibility checks, with
-  Ramen excluded. Network tests use local servers and default verification
-  remains provider-free.
-
-**Dependencies and downstream acceptance.** M81 is the technical upstream
-prerequisite: its approved design record, catalog root contract,
-large-artifact limits, operation index, and artifact-scoped export must be
-complete, and its review gate closed, before M80.1 starts. M77-M79 supply the
-existing operation-metadata foundation and are completed, retired
-dependencies. Catalog-wide license audits, provider expansion, and
-typed-overlay upgrades remain unnumbered candidates; M80 represents their
-missing evidence explicitly rather than requiring or claiming their delivery.
-The coordinated handoff is M80 qualification and authorized publication ->
-OpenUdon's proposed M94 -> Kinet's proposed W10. M94 also retains its proposed
-M93 prerequisite; OpenUdon's proposed M95 iCoT removal gate requires the
-replacement discovery journey. These sibling IDs are draft references, not
-allocations or execution authority in this ledger. The handoff states that
-consumers must supply the catalog root explicitly and must not rely on iCoT's
-sibling-checkout default.
-
-Qualify the producer and existing consumers independently of future M94
-adoption; M94 owns re-pinning and verification against the exact accepted,
-published revision. M80 must not wait for M94 implementation to qualify,
-because M94 itself waits for M80. Publication remains a required handoff gate,
-but planning approval authorizes no commit, push, tag, release, or sibling
-edit. Obtain separate authority before publishing and record the actual
-accepted revision; leave the publication portion incomplete while authority
-or evidence is missing. Preserve the ten-iteration review count across
-qualification/publication and normal milestone closure; no counter reset.
+No active milestone specifications remain.
 
 ## Requested Changes After Initialization
 

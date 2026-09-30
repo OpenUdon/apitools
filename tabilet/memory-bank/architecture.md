@@ -552,7 +552,8 @@ pruning or access-time updates, including legacy registry schemas 1–3; newer
 schemas refuse. Snapshot bounds are five seconds, 10,000 rows and 32 MiB
 aggregate registration text before decoding. Missing registry/index remains
 missing evidence. M80 discovery and M81 index generation/read/publication
-and selected-artifact export are delivered; release publication is pending. The synthetic shared-artifact fixture
+and selected-artifact export are delivered and published at M80 source
+`fb132631c9827eae5f2ec4503d03f21eabfb4113`. The synthetic shared-artifact fixture
 is under `testdata/catalog-root` with an explicit disposable preparation recipe.
 
 - Go module path: `github.com/OpenUdon/apitools`.

@@ -2,10 +2,12 @@
 
 **Status:** M81.1 design approved by the user on 2026-09-30. This document
 records the approved design and delivered M81/M80 implementation below;
-M81 is retired and M80 publication qualification is in progress. Design baseline: `fdc0a3f2647a0c4488f0c0a6334fb2647aa73447`.
+M81/M80 are retired; qualified source is published at
+`fb132631c9827eae5f2ec4503d03f21eabfb4113`
+(`v0.0.0-20260930205753-fb132631c982`). Design baseline: `fdc0a3f2647a0c4488f0c0a6334fb2647aa73447`.
 
 Owners: [M81 foundations](../tabilet/docs/history/status-M81.md) and
-[M80 discovery](../tabilet/memory-bank/status-M80.md). APItools implements
+[M80 discovery](../tabilet/docs/history/status-M80.md). APItools implements
 metadata discovery and artifact export. OpenUdon owns workflow source
 confirmation; Kinet owns user interaction and browser routing. No source,
 rank, license note or discovery outcome grants execution authority.

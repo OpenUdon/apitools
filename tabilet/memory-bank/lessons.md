@@ -47,5 +47,5 @@ need no journal entry or separate archive run.
   coverage would silently authorize downstream fallback on missing evidence.
 - **Evidence:** [M81 task/review record](../docs/history/status-M81.md), including local large
   artifact measurements and index coverage, drift and failure regressions;
-  [M80 review findings](status-M80.md) and the source-backed field-loss,
+  [M80 review findings](../docs/history/status-M80.md) and the source-backed field-loss,
   no-reference provider, shared-link and prompt-budget regressions.
