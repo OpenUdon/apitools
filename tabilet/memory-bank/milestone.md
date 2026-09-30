@@ -86,8 +86,8 @@ by OpenUdon M89. OpenUdon M89's published implementation at
 `2e2ecedb32add53e10d6d81d4b2528ca2bdfdcc8` passed Kinet W04.6's exact consumer
 check and is retired in published closure commit
 `0c7c5d33da2ba7b190954b9eb402cc14b5ec1f73`. Two milestones are active, both
-approved for planning on 2026-09-30 with every row pending: prerequisite M81
-(catalog discovery foundations) runs first, then M80 (the catalog discovery
+approved on 2026-09-30. M81.1 is complete under the confirmed Stage 5 goal.
+Prerequisite M81 (catalog discovery foundations) runs first, then M80 (the catalog discovery
 API). Latest completed milestone: M79. M78 and all earlier milestones through M77
 are retired; see the history index below.
 Apitools and Authoring are published, and OpenUdon passes standalone test/vet
@@ -125,7 +125,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M81 | [status-M81.md](status-M81.md) | Pending; approved prerequisite for M80, implementation not started. |
+| M81 | [status-M81.md](status-M81.md) | In progress; M81.1 design approved, remaining foundation tasks pending. |
 | M80 | [status-M80.md](status-M80.md) | Pending; approved plan, waits for M81, implementation not started. |
 
 Closed milestones are recorded in the history index.

@@ -1,7 +1,8 @@
 # Status M81 — Catalog discovery foundations
 
-**State:** Approved plan, 2026-09-30. All six implementation rows are pending;
-no implementation or closing review has started.
+**State:** Execution started, 2026-09-30, under the confirmed Kinet Stage 5
+goal with `COMMIT_POLICY: task`. M81.1 is complete; M81.2–M81.6 remain
+pending. Closing review has not started.
 
 **Specification:** [M81](milestone.md#m81--catalog-discovery-foundations).
 
@@ -42,7 +43,7 @@ and ID, so neither is required.
 
 | Item | State | Notes |
 |---|---|---|
-| M81.1 — Design record and contract checkpoint | `[ ]` | Owns P2-7, the decision parts of P2-3/P2-5/P2-6, and L2. Write `docs/catalog-discovery.md`: request with optional provider constraints; the five outcomes; the qualification rule separating a match from a weak or ambiguous result; the outcome-to-consumer-action table (only a scoped no-match is browser-routable; curated catalog facts are evidence only); license defaults (unknowns included and labeled, `license_note` verbatim, no inferred permission); the catalog-stable reference and its round trip into M81.5; the root contract; the index approach; and the changes the proposed OpenUdon M94 and Kinet W10 drafts must absorb. Complete only after the user approves the record. No sibling edits. |
+| M81.1 — Design record and contract checkpoint | `[+]` | Owns P2-7, the decision parts of P2-3/P2-5/P2-6, and L2. Write `docs/catalog-discovery.md`: request with optional provider constraints; the five outcomes; the qualification rule separating a match from a weak or ambiguous result; the outcome-to-consumer-action table (only a scoped no-match is browser-routable; curated catalog facts are evidence only); license defaults (unknowns included and labeled, `license_note` verbatim, no inferred permission); the catalog-stable reference and its round trip into M81.5; the root contract; the index approach; and the changes the proposed OpenUdon M94 and Kinet W10 drafts must absorb. Complete only after the user approves the record. No sibling edits. |
 | M81.2 — Catalog root contract and fixture root | `[ ]` | Owns the implementation part of P2-3. Depends on M81.1. Add a caller-supplied root option (cache directory, artifact registrations, index location) and the documented no-root behavior. Document how an operator prepares a root (refresh, then index). Commit a synthetic, redistributable fixture root with no third-party provider specs, usable by APItools tests and later consumer conformance fixtures. |
 | M81.3 — Large registered artifact limits | `[ ]` | Owns P2-2. Depends on M81.2. Allow the index path only to read and parse catalog-registered, digest-verified artifacts up to 128 MiB, with separately reviewed time, memory, and structural budgets. Keep the 20 MiB default for every existing parser entry point and `BuildOperationCandidates`. Record measurements from an opt-in, provider-free local check against `microsoft-graph-v1-openapi` and `cloudflare-api-openapi`; CI uses synthetic large fixtures. Over-limit artifacts fail closed as unexamined scope. |
 | M81.4 — Digest-bound operation index | `[ ]` | Owns P2-1 and L1. Depends on M81.3. Add a `catalog index` command and library builder that digest-verify registered artifacts and store sanitized, source-backed operation metadata under catalog-stable identity with no absolute paths. Index shared artifacts once with every provider link. Record the catalog identity and per-artifact coverage (indexed, missing, digest mismatch, oversize, parse failure, unsupported). Rebuilds are byte-identical and root relocation leaves the index unchanged. Readers verify the index version and registration digests and report stale entries as unexamined. No network; existing cache readers keep working without migration. |
@@ -85,6 +86,34 @@ per tech-stack.md, with Ramen excluded. Default checks stay provider-free and
 offline; the large-artifact measurements are opt-in local checks.
 
 ## Review and planning evidence
+
+### M81.1 execution checkpoint — 2026-09-30
+
+The user confirmed Kinet's complete Stage 5 launch request, including this
+repository's M81 → M80 order and `COMMIT_POLICY: task`. One execution owner
+selected M81.1; M81.2–M81.6 and all M80 rows remain pending.
+
+Prepared [the discovery design record](../../docs/catalog-discovery.md) against
+clean baseline `fdc0a3f2647a0c4488f0c0a6334fb2647aa73447`. Read the current
+instructions, current truth, M81/M80 specifications/statuses and relevant
+operation-candidate, ranking, registry, artifact safety and export contracts;
+inspected OpenUdon's catalog hints and CatalogPlan as read-only consumer
+evidence. The record includes all six approved decisions, the stronger purpose
+qualification rule, five-outcome precedence, explicit root/read-only index
+policy, native reference/export round trip, scoped security/license evidence,
+remote bounds and required M94/W10 reconciliation.
+
+Focused verification passed: `git diff --check`; all design-record Markdown
+file links resolve; a coverage check found the required decision/outcome/root/
+identity/consumer topics; the APItools ledger has exactly one in-progress task,
+M81.1. These are document checks, not implementation acceptance, and no new
+code or runtime verification is claimed. No sibling file was changed. The
+design record and ledger updates remain uncommitted until the user's required
+approval completes M81.1; then make its scoped task commit before M81.2.
+
+**Approved:** The user approved the design record on 2026-09-30. M81.1 is
+complete; its scoped task commit precedes M81.2. This is not a closing-review
+iteration. No implementation or publication acceptance is implied.
 
 **Review iterations started:** 0 of at most 10; closing gate not started.
 This is ordinary approved intake, not a bounded-gate pass. Persist the count
