@@ -509,6 +509,21 @@ ORDER BY provider_id, artifact_id`)
 		return nil, err
 	}
 	defer rows.Close()
+	out, err := readCatalogArtifactRows(rows, c.options)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now().UTC().UnixNano()
+	for _, artifact := range out {
+		if _, err := c.db.ExecContext(ctx, `UPDATE catalog_artifacts SET accessed_at = ? WHERE provider_id = ? AND artifact_id = ?`, now, artifact.ProviderID, artifact.ArtifactID); err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
+}
+
+func readCatalogArtifactRows(rows *sql.Rows, options Options) ([]CatalogArtifact, error) {
 	var out []CatalogArtifact
 	for rows.Next() {
 		var artifact CatalogArtifact
@@ -530,14 +545,14 @@ ORDER BY provider_id, artifact_id`)
 			return nil, err
 		}
 		if len(metadataJSON) > 0 {
-			if int64(len(metadataJSON)) > c.options.MaxMetadataBytes {
-				return nil, fmt.Errorf("catalog artifact %s/%s metadata is %d bytes, over limit %d", artifact.ProviderID, artifact.ArtifactID, len(metadataJSON), c.options.MaxMetadataBytes)
+			if int64(len(metadataJSON)) > options.MaxMetadataBytes {
+				return nil, fmt.Errorf("catalog artifact %s/%s metadata is %d bytes, over limit %d", artifact.ProviderID, artifact.ArtifactID, len(metadataJSON), options.MaxMetadataBytes)
 			}
 			if err := json.Unmarshal(metadataJSON, &artifact.Metadata); err != nil {
 				return nil, err
 			}
 		}
-		if err := validateRecordBudget("catalog artifact", c.options.MaxMetadataBytes, artifact.ProviderID, artifact.ArtifactID, artifact.Kind, artifact.Path, artifact.SourceURL, artifact.OverlayPath, artifact.BuilderPath, artifact.SHA256); err != nil {
+		if err := validateRecordBudget("catalog artifact", options.MaxMetadataBytes, artifact.ProviderID, artifact.ArtifactID, artifact.Kind, artifact.Path, artifact.SourceURL, artifact.OverlayPath, artifact.BuilderPath, artifact.SHA256); err != nil {
 			return nil, err
 		}
 		cleanedPath, err := cleanLocalPath(artifact.Path, "catalog artifact")
@@ -564,12 +579,6 @@ ORDER BY provider_id, artifact_id`)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
-	}
-	now := time.Now().UTC().UnixNano()
-	for _, artifact := range out {
-		if _, err := c.db.ExecContext(ctx, `UPDATE catalog_artifacts SET accessed_at = ? WHERE provider_id = ? AND artifact_id = ?`, now, artifact.ProviderID, artifact.ArtifactID); err != nil {
-			return nil, err
-		}
 	}
 	return out, nil
 }

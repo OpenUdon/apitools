@@ -165,6 +165,11 @@ verification, per the user's confirmed scope:
 
 ## Harnesses
 
+M81.2's focused root/registration gate is `go test ./catalog ./sqlitecache`.
+`go run testdata/catalog-root/prepare.go /absolute/new/directory` creates an
+explicit new disposable synthetic root without fetching documents. No new
+module dependency is used. The operation index command is pending M81.4.
+
 | Harness | Command | What it proves | Requirements |
 |---|---|---|---|
 | Step-candidate contract and source-adapter tests | `go test . -run 'Test(StepMetadata|EffectAndContract|OperationSourceReport|ContractRequiredness|OperationCandidateV1|SummarizeOperationForConsumer|AssessOperationEffect|RankOperationCandidates|BuildOperationCandidates|SanitizeAdapterCandidates|NativeSchemaFields|NativeOperationAdapter)'` | Versioned wire fixtures validated against producer ranking, source-backed summaries and effect rationale, typed contract matching, all eight local source adapters, exact digest/native selector preservation, auth alternatives, truncation blockers, cancellation, and source safety. | Go toolchain. |

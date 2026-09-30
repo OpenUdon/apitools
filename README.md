@@ -344,6 +344,26 @@ outputs; rerun the artifact registry when accepting those source-aligned paths.
 Refresh reports are review inputs only: they do not edit provider metadata,
 verified dates, tracked advisory overlays, or security classifications.
 
+### Explicit catalog roots
+
+`catalog.RootOptions` names an operator-supplied directory, a confined relative
+registry path (default `cache.sqlite`) and index path (default
+`operations.v1.json`). `catalog.ResolveRoot` checks these paths without creating
+anything. An empty root means metadata-only leads for the future discovery API;
+no sibling checkout or home directory is searched automatically.
+
+`sqlitecache.ReadCatalogArtifacts(ctx, options)` reads existing registrations
+without migration, pruning or access-time writes. Missing files remain missing
+evidence; invalid/newer registry schemas fail closed. Reads are bounded to five
+seconds, 10,000 rows and 32 MiB aggregate registration text. Existing read/write
+cache APIs remain unchanged.
+
+For a local root, explicitly refresh selected artifacts with `catalog refresh
+--cache-dir ROOT --cache ROOT/cache.sqlite`, then build its index with the
+offline index command when M81.4 lands. Refresh has network effects and is not
+part of a discovery call. A redistributable, provider-free root preparation
+recipe is in [testdata/catalog-root](testdata/catalog-root/README.md).
+
 ## Go Usage
 
 ```go
