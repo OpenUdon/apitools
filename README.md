@@ -406,6 +406,31 @@ Requests are limited to 64 references, 128 MiB per raw source, 512 MiB aggregate
 export and a three-minute cooperative deadline. Existing provider-level export
 functions and option shapes keep their behavior.
 
+### Catalog discovery contract
+
+M80.1 adds `CatalogDiscoveryRequest` / `CatalogDiscoveryReport` as
+`apitools.catalog-discovery/v1`, separate from existing candidate wires.
+`DecodeCatalogDiscoveryRequest` bounds JSON to 64 KiB, rejects unknown fields
+and trailing data, and never accepts installation paths/endpoints. Lookup and
+ranking are subsequent M80 work, not delivered by defining these types.
+
+Optional provider keys resolve individually by exact catalog key, including
+multiword display names. Omitted/null keys mean open scope; an explicit empty
+array means empty constrained scope and must not broaden silently. Reports
+carry one of match, ambiguous, no_qualifying_api, insufficient_evidence or
+blocked, plus coverage, exclusions, unknown license/redistribution evidence,
+native references and advisory auth/effect/rank metadata. Raw license notes
+are separate bounded source evidence, never inferred permission or instructions.
+
+Defaults are 50,000 evaluated operations, 20 returned candidates, 512 KiB
+context and a 30-second cooperative local deadline. Ceilings are the index's
+500,000 operations, 100 results, 2 MiB context and 60 seconds. Nonzero context
+limits must allow at least 4 KiB for a bounded report. At most 32 provider keys
+and five authority filters are accepted. Prompt safety and nested typed-field
+limits stay unchanged. JSON bounds/deadlines do not claim hard process RSS.
+Remote lookup needs explicit request and installation opt-in; it remains
+subsequent M80.4 work. No discovery result grants routing or action authority.
+
 ## Go Usage
 
 ```go

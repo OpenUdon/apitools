@@ -227,3 +227,11 @@ module dependency is used. The operation index command is pending M81.4.
   transactions. Bounds: 64 references, 128 MiB per raw source, 512 MiB total,
   three-minute cooperative deadline. No index parser, network call or new
   dependency is used by export.
+
+- Catalog discovery's additive strict request decoder accepts at most 64 KiB
+  and no installation paths/endpoints. Default local limits: 50,000 operations,
+  20 results, 512 KiB report, 30 cooperative seconds; ceilings: 500,000 operations,
+  100 results, 2 MiB, 60 seconds; nonzero context floor 4 KiB. Provider and
+  authority request arrays are bounded to 32 and 5; existing typed field and
+  prompt-safety limits are reused. The contract is delivered; query behavior
+  remains subsequent M80 work until its task rows qualify.

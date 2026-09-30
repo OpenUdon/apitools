@@ -1,8 +1,9 @@
 # Status M80 — Catalog discovery API for step contracts
 
-**State:** Approved plan, 2026-09-30, amended the same day. All five
-implementation rows are pending and wait for prerequisite M81; no
-implementation, publication, or closing review has started.
+**State:** Execution started, 2026-09-30, under the confirmed Stage 5 goal.
+M81 is retired at closure `d32995f628b9bdf91b6963d566fbac9c16fe6afe`
+(qualified source `8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6`). M80.1 is
+complete; M80.2–M80.5 are pending. No publication or closing review started.
 
 **Specification:** [M80](milestone.md#m80--catalog-discovery-api-for-step-contracts).
 
@@ -53,7 +54,7 @@ recorded at the first intake are marked as such.
 
 | Item | State | Notes |
 |---|---|---|
-| M80.1 — Contract and fixtures | `[ ]` | Owns F06 and F02's contract part, plus the M80 parts of review findings P2-4, P2-6, and L2. Depends on M81. Implement the additive versioned request/report approved at M81.1 over the existing StepContract: optional provider constraints resolved by exact catalog key; catalog-stable provider/artifact identity with a reference that round-trips into M81.5's artifact-scoped export; authority and license filters with unknowns included by default and labeled; auth, effect, and rank metadata; coverage; and the five outcomes. Freeze fixtures for matches, ambiguity, ties, filtering, unknowns, no root, no-match, insufficient evidence, blockers, and root relocation. Evidence: `step_metadata.go`, `catalog/provider.go` (free-text LicenseNote), `docs/catalog-discovery.md` (from M81.1). Existing exported APIs and wires stay unchanged. |
+| M80.1 — Contract and fixtures | `[+]` | Owns F06 and F02's contract part, plus the M80 parts of review findings P2-4, P2-6, and L2. Depends on M81. Implement the additive versioned request/report approved at M81.1 over the existing StepContract: optional provider constraints resolved by exact catalog key; catalog-stable provider/artifact identity with a reference that round-trips into M81.5's artifact-scoped export; authority and license filters with unknowns included by default and labeled; auth, effect, and rank metadata; coverage; and the five outcomes. Freeze fixtures for matches, ambiguity, ties, filtering, unknowns, no root, no-match, insufficient evidence, blockers, and root relocation. Evidence: `step_metadata.go`, `catalog/provider.go` (free-text LicenseNote), `docs/catalog-discovery.md` (from M81.1). Existing exported APIs and wires stay unchanged. |
 | M80.2 — Local catalog retrieval | `[ ]` | Owns F01, F02's retrieval part, F04's local part, and the M80 part of P2-1. Depends on M80.1. Read the M81 operation index under an explicitly supplied root, with no per-call parsing of catalog artifacts. Verify the index version and registration digests; report stale, oversized, missing, invalid, or unsupported artifacts as unexamined scope. Without a root, return metadata-only provider leads and insufficient evidence naming what would resolve it. Return authority, license/redistribution evidence or explicit unknowns, authentication needs, effect, and source-qualified ranking inputs. Keep artifacts without indexed operations as reference-only leads; record coverage, exclusions, missing evidence, and limits; bound local time and memory. Evidence: `operation_candidates.go` requires explicit sources; M81.4 supplies the index. |
 | M80.3 — Contract ranking and outcomes | `[ ]` | Owns F03 and the M80 parts of P2-5, P2-6, and L1. Depends on M80.2. Reuse `prepareStepContract` and dimension matching over index entries with exact digests and native selectors. Apply the approved qualification rule so one shared purpose term cannot make a match; report ambiguity; break ties on catalog-stable identity, never machine paths. Distinguish match, ambiguous, no qualifying API within the checked scope, insufficient evidence, and blocked; only a scoped no-match is browser-routable, and curated catalog facts are evidence only. Add iCoT `CatalogPlan`-parity fixtures for named providers and a small labeled relevance set derived from OpenUdon `examples/eval` step shapes (no user data), recording precision@k as a baseline. Evidence: `operation_rank.go:276-297,803-826,845-846`. Browser routing, provisioning, account choices, approval, and execution remain downstream. |
 | M80.4 — Opt-in remote lookup | `[ ]` | Owns F04's remote part. Depends on M80.3. Default to offline with no lookup or implicit provisioning; explicitly configured lookup initially uses APIs.guru through existing guarded search/download. Bound total network time to eight seconds, fetched source documents to three, and each document to 20 MiB, matching iCoT's remote lookup (OpenUdon `internal/icot/elicitor/remote_sources.go`). Report each remote result's fetched digest and final URL. Preserve safe URL/redirect/dial-time checks and parser/prompt limits; report cancellation, timeout, empty results, and partial evidence. Keep remote/public-catalog provenance distinct from reviewed official or docs-derived sources. Evidence: `client.go`, `download.go`, `remote_discovery.go`, and `operation_candidates.go`. Use local-server fixtures only; no general crawling, credentials, or provider operations. |
@@ -165,3 +166,29 @@ from APItools. OpenUdon can qualify actual APItools adoption with a disposable
 replacement before publication. M80's publication carries M81 and waits for
 review of the exact outgoing diff under the confirmed launch policy. No producer
 qualification depends on future M94 implementation or changes sibling ledgers.
+
+### M80.1 execution evidence — 2026-09-30
+
+Implemented the additive `apitools.catalog-discovery/v1` request/report types,
+strict 64-KiB decoder, fixed lookup/result/context/time limits and exact-key
+validation over the existing StepContract. Installation root/adapter/client
+options serialize as `{}` and cannot enter request JSON. Multiword names remain
+one exact key; invalid keys/version/limits are diagnosed rather than broadened.
+Nil/omitted/null provider keys mean open scope; explicit empty arrays preserve
+empty scope through JSON serialization. Structured unknown license and
+redistribution evidence remain distinct from verbatim notes. Candidates retain
+M81-native artifact references, metadata, source evidence, qualification counts,
+coverage/exclusions and tied rank data under all five outcomes.
+
+Frozen synthetic wire examples cover match, ambiguity despite a display limit,
+ties, filtering, unknowns, missing root, scoped no-match, stale/insufficient
+scope, blockers and relocation. They are serialization fixtures, not observed
+lookup runs or claims that retrieval/ranking is implemented. The synthetic tie
+case declaration is explicitly documented. Behavioral source-backed tests and
+lookup/ranking are M80.2/M80.3; remote lookup remains M80.4. No old exported API
+or wire changed. README/design/current architecture describe the exact scope.
+
+Focused decoder/exact-provider/empty-scope/bounds/unknown/wire/relocation tests,
+APItools workspace/standalone full tests and vet, OpenUdon/Udon full workspace
+consumer tests and diff checks pass. No model, provider operation, credentials,
+sibling edits or publication. Closing review has not started (count 0/10).

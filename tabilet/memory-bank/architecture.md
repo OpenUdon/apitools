@@ -700,3 +700,17 @@ collision or drift publishes no partial tree. Private registration metadata
 and URL secrets are omitted; advisory source kind remains labeled. Native
 selector validation and approvals belong to the downstream OpenUdon binder.
 Legacy provider-level materialization/export APIs and struct shapes are intact.
+
+### Catalog discovery wire foundations (M80.1)
+
+The additive `apitools.catalog-discovery/v1` types reuse StepContract and
+OperationCandidate without changing their shapes. Installation-selected root,
+registration adapter and remote client remain outside the request wire.
+The bounded strict decoder refuses hidden path/endpoint options. Exact-key
+validation preserves multiword names and distinguishes nil/open provider scope
+from explicit empty scope. Unknown licenses/redistribution and verbatim bounded
+notes are source evidence; filters and exclusions stay explicit. Coverage,
+qualification counts, native references and tied ranking data preserve the
+five-outcome consumer contract. Lookup/ranking/remote remain pending M80.2–.4.
+Frozen synthetic wire cases are serialization fixtures, not observed lookup
+results or source-binding acceptance. See README for supported request limits.

@@ -345,3 +345,15 @@ alternatives or source documents. The index is not parsed during export.
 The confined workflow output uses existing transaction/collision/reuse/force
 semantics. Invalid sources, cancellation or registration drift leave no
 partial output. The README documents fixed bounds and source-root exclusion.
+
+### Delivered wire foundations (M80.1)
+
+The additive Go types and strict bounded decoder now live in
+`catalog_discovery_types.go` and `catalog_discovery_request.go`. Installation
+options serialize as `{}` and cannot enter request JSON. Nil/omitted/null
+provider keys mean open scope; an explicit empty array preserves empty scope
+through serialization and needs insufficient-evidence handling. Structured
+license identification and redistribution stay explicitly unknown unless
+reviewed source fields support them; free-text notes never create permission.
+The README records defaults/ceilings and the synthetic v1 wire fixture set.
+Lookup, ranking and remote opt-in are the subsequent M80 implementation rows.

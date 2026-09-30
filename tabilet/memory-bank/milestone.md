@@ -125,7 +125,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M80 | [status-M80.md](status-M80.md) | Pending; M81 prerequisite accepted and reconciled, ready to start. |
+| M80 | [status-M80.md](status-M80.md) | In progress; M80.1 contract complete, local retrieval/ranking/remote/qualification pending. |
 
 Closed milestones are recorded in the history index.
 
