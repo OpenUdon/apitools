@@ -357,3 +357,18 @@ license identification and redistribution stay explicitly unknown unless
 reviewed source fields support them; free-text notes never create permission.
 The README records defaults/ceilings and the synthetic v1 wire fixture set.
 Lookup, ranking and remote opt-in are the subsequent M80 implementation rows.
+
+### Delivered local retrieval (M80.2)
+
+`DiscoverCatalogOperations` now returns scoped index metadata and references
+under the M81 installation options. Its intermediate M80.2 behavior keeps
+candidates unqualified pending M80.3 comparison; no metadata score proves a
+match or no-match. Missing root/index yields metadata-only leads, stale index
+entries have no candidates, and invalid configuration/identity blocks. Exact
+provider and evidence filters report their narrowed scope and exclusions.
+Work limits are explicit `work_limit` query coverage; display/context omissions
+remain incomplete. Verbatim notes exceeding 64 KiB are omitted with an explicit
+source evidence gap, never truncated into altered evidence or permission.
+No source parsing, network activity, migration, access-time write, provisioning
+or operation execution occurs. Remote requests remain unsupported until the
+separate M80.4 implementation qualifies.

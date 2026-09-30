@@ -714,3 +714,19 @@ qualification counts, native references and tied ranking data preserve the
 five-outcome consumer contract. Lookup/ranking/remote remain pending M80.2–.4.
 Frozen synthetic wire cases are serialization fixtures, not observed lookup
 results or source-binding acceptance. See README for supported request limits.
+
+### Local catalog retrieval (M80.2)
+
+`DiscoverCatalogOperations` reads the validated M81 index and current read-only
+registration snapshot under explicit installation root/catalog options. It
+joins canonical selected provider/spec/artifact links, preserves all shared
+references, source authority or unknowns, bounded verbatim license evidence,
+relative native identity, auth alternatives and effects. Provider popularity
+never upgrades advisory artifacts into official source truth. Authority/license
+filters produce named exclusions. Missing configuration/index yields separate
+metadata-only leads; invalid identity/configuration blocks, stale coverage
+contains no operation candidates, and work limits mark relevant coverage
+`work_limit`. All local scope and output work is bounded without parsing raw
+sources or fetching URLs. Oversized notes produce evidence gaps; report
+projection losses remain incomplete. Retrieval candidates are still unqualified
+until M80.3; no match/no-match acceptance is claimed by metadata retrieval.

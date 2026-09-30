@@ -235,3 +235,9 @@ module dependency is used. The operation index command is pending M81.4.
   authority request arrays are bounded to 32 and 5; existing typed field and
   prompt-safety limits are reused. The contract is delivered; query behavior
   remains subsequent M80 work until its task rows qualify.
+
+- Local discovery reads only the saved index and read-only SQLite registrations;
+  no raw-source parsing or URL fetching occurs. Report projection is bounded
+  independently of evaluated-operation work. Raw license notes are retained up
+  to 64 KiB, otherwise emitted as a named evidence gap. Query work limits use
+  `work_limit` report coverage; stale registrations remove indexed candidates.

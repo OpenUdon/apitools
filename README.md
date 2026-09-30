@@ -422,6 +422,22 @@ blocked, plus coverage, exclusions, unknown license/redistribution evidence,
 native references and advisory auth/effect/rank metadata. Raw license notes
 are separate bounded source evidence, never inferred permission or instructions.
 
+`DiscoverCatalogOperations(ctx, CatalogDiscoveryOptions{Request: request,
+Index: indexOptions})` now retrieves source-backed local metadata with no
+source parsing, provider calls or provisioning. At this point of M80 the
+candidates are unqualified: contract ranking/outcome qualification and remote
+lookup are subsequent task rows. Missing root/index/registrations yield
+metadata-only leads with insufficient evidence; invalid configuration/index
+identity yields blocked. Stale entries have no candidates. Exact provider
+constraints and evidence filters narrow scope with named exclusions.
+
+Reports preserve relative native references, auth alternatives and effect
+metadata. A displayed candidate permits at most 32 source/provider links;
+larger projections are omitted with an incomplete-evidence diagnostic. Work-limited coverage is labeled `work_limit`; report omissions
+remain incomplete evidence. Raw license notes above 64 KiB are omitted with
+an explicit evidence gap rather than changed and called verbatim. Query
+metadata limits do not imply source/parser failure or negative API evidence.
+
 Defaults are 50,000 evaluated operations, 20 returned candidates, 512 KiB
 context and a 30-second cooperative local deadline. Ceilings are the index's
 500,000 operations, 100 results, 2 MiB context and 60 seconds. Nonzero context

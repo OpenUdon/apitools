@@ -74,14 +74,15 @@ type CatalogDiscoveryScope struct {
 // LicenseNote is verbatim bounded evidence. Explicit unknowns must not be
 // inferred into license identification or redistribution permission.
 type CatalogDiscoverySourceEvidence struct {
-	ProviderID        string `json:"provider_id"`
-	SpecRefID         string `json:"spec_ref_id"`
-	ArtifactID        string `json:"artifact_id,omitempty"`
-	Authority         string `json:"authority"`
-	Advisory          bool   `json:"advisory,omitempty"`
-	LicenseNote       string `json:"license_note,omitempty"`
-	LicenseIdentifier string `json:"license_identifier"`
-	Redistribution    string `json:"redistribution"`
+	ProviderID        string   `json:"provider_id"`
+	SpecRefID         string   `json:"spec_ref_id"`
+	ArtifactID        string   `json:"artifact_id,omitempty"`
+	Authority         string   `json:"authority"`
+	Advisory          bool     `json:"advisory,omitempty"`
+	LicenseNote       string   `json:"license_note,omitempty"`
+	LicenseIdentifier string   `json:"license_identifier"`
+	Redistribution    string   `json:"redistribution"`
+	EvidenceGaps      []string `json:"evidence_gaps,omitempty"`
 }
 
 type CatalogDiscoveryLead struct {
