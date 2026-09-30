@@ -360,9 +360,29 @@ cache APIs remain unchanged.
 
 For a local root, explicitly refresh selected artifacts with `catalog refresh
 --cache-dir ROOT --cache ROOT/cache.sqlite`, then build its index with the
-offline index command when M81.4 lands. Refresh has network effects and is not
+`catalog index --root ROOT` command. Refresh has network effects and is not
 part of a discovery call. A redistributable, provider-free root preparation
 recipe is in [testdata/catalog-root](testdata/catalog-root/README.md).
+
+`BuildCatalogOperationIndex`, `WriteCatalogOperationIndex` and
+`ReadCatalogOperationIndex` take `CatalogIndexOptions` with the explicit root
+and installation-selected `sqlitecache.ReadCatalogSpecArtifacts` adapter.
+Indexing is offline; requests cannot raise its limits. It verifies raw digests,
+indexes shared artifacts once, and records every catalog reference as indexed
+or unexamined (missing, digest mismatch, oversize, parse failure, unsupported).
+Partial candidate metadata stays positive evidence with incomplete coverage.
+The atomic index is deterministic and contains no absolute paths or timestamps.
+Readers validate version, catalog identity, coverage, and native source binding
+without parsing source files. A changed registration snapshot makes the saved
+generation stale and removes its candidates; explicitly rebuild it. A saved
+index is installation-owned derived metadata, not a cryptographic signature
+or evidence that an operation was approved.
+
+Generation has a three-minute cooperative deadline, 10,000 registrations,
+500,000 candidates and a 512-MiB index bound. Reading/publishing applies depth
+100 and 32-million JSON-token bounds before typed decoding. These are work and
+metadata limits, not a hard process RSS ceiling. Malformed or incomplete
+indexes fail closed; they cannot prove that no qualifying API exists.
 
 ## Go Usage
 

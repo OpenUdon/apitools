@@ -316,3 +316,18 @@ and quality checks, new command help and affected consumer compatibility at
 their owner milestones. M81 publishes through M80, which records actual source
 revision/module identity after the required publication review. No release or
 implementation is claimed by approval of this document alone.
+
+### Delivered index implementation (M81.4)
+
+`catalog index --root DIRECTORY` (optionally `--registry`, `--index` and a
+confined `--catalog catalog.json` for synthetic/custom fixtures) uses
+`BuildCatalogOperationIndex` and atomic `WriteCatalogOperationIndex` with the
+read-only `sqlitecache.ReadCatalogSpecArtifacts` adapter. No network is used.
+The builder groups shared raw identity once and records every provider link
+and catalog-reference coverage. It refuses registration drift before returning.
+Partial metadata remains positive evidence with unexamined source coverage.
+`ReadCatalogOperationIndex` checks identities, bindings and complete coverage
+without re-reading source bytes. Registration drift marks the whole saved
+generation stale and strips candidates. Operator-owned indexes are derived
+metadata, not signatures or approval records. The byte/depth/work limits and
+cooperative deadlines are documented in README; no hard RSS claim is made.

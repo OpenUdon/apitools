@@ -539,7 +539,7 @@ families retain their 20-MiB direct-parser limit. Shared inventory/candidate
 conversion and explicit internal sourceguard limits avoid a second parser or
 changed direct-parser defaults. Summary omissions remain diagnostics and
 unexamined coverage; a large artifact is not automatically complete evidence.
-M81.4 must consume these helpers and preserve that distinction in its index.
+M81.4 consumes these helpers and preserves that distinction in its index.
 
 M81.2 adds `catalog.RootOptions`/`ResolveRoot` for explicit root, registry and
 index path configuration. No root selects no implicit directory; future M80
@@ -552,7 +552,7 @@ pruning or access-time updates, including legacy registry schemas 1–3; newer
 schemas refuse. Snapshot bounds are five seconds, 10,000 rows and 32 MiB
 aggregate registration text before decoding. Missing registry/index remains
 missing evidence. Indexing/discovery and artifact-scoped export are still
-pending M81.4/M80/M81.5 work. The synthetic two-provider shared-artifact fixture
+pending M80/M81.5 work; M81.4 index generation/read/publication is delivered. The synthetic two-provider shared-artifact fixture
 is under `testdata/catalog-root` with an explicit disposable preparation recipe.
 
 - Go module path: `github.com/OpenUdon/apitools`.
@@ -671,3 +671,17 @@ operation ranking, or provider catalog security overlays:
 2. Confirm boundary text in README and memory bank remains accurate.
 3. Run `go test ./...`, `go vet ./...`, and `git diff --check`.
 4. For exported API changes, run available sibling consumer tests.
+
+### Offline catalog operation index (M81.4)
+
+The root library builds one sanitized operation entry per shared raw identity,
+with every provider/spec link and coverage for every catalog reference. It
+rechecks the read-only registry snapshot before returning a generation. The
+writer validates bindings and complete coverage against the current snapshot,
+then atomically replaces only the confined index. Readers enforce schema,
+metadata/catalog identities, structural bounds and complete coverage without
+reading source artifacts. Snapshot drift removes candidates and marks all
+coverage stale/unexamined. This is installation-owned derived metadata, not
+signed provider evidence or execution authority. See README for operator
+commands and budgets. Missing, unsupported or partially summarized sources
+never become definitive negative API evidence.

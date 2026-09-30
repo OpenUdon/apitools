@@ -55,6 +55,7 @@ go run ./cmd/apitools catalog specs
 go run ./cmd/apitools catalog stats
 go run ./cmd/apitools catalog refresh-report
 go run ./cmd/apitools catalog refresh --help
+go run ./cmd/apitools catalog index --help
 go run ./cmd/apitools catalog overlay-view github
 go run ./cmd/apitools catalog security-audit
 ```
@@ -214,3 +215,10 @@ module dependency is used. The operation index command is pending M81.4.
   actionable and blocked rows deterministically.
 - Keep generated or cached files out of the public repository unless they are
   deliberate fixtures.
+
+- The offline `catalog index --root DIRECTORY` command uses the read-only SQLite
+  registration adapter, registered-artifact parsers and atomic artifact I/O.
+  Generation is bounded to three cooperative minutes, 10,000 registrations,
+  500,000 candidates and 512 MiB serialized metadata. Reader/writer JSON
+  preflight uses depth 100 and 32 million tokens; these limits do not claim
+  a hard process RSS ceiling. Unknown coverage remains explicit.

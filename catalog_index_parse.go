@@ -134,5 +134,10 @@ func parseCatalogOpenAPI(ctx context.Context, content []byte) (map[string]any, e
 	if !strings.HasPrefix(openapi, "3.0.") && !strings.HasPrefix(openapi, "3.1.") && swagger != "2.0" {
 		return nil, fmt.Errorf("unsupported catalog OpenAPI version")
 	}
+	info, infoOK := root["info"].(map[string]any)
+	_, pathsOK := root["paths"].(map[string]any)
+	if !infoOK || stringValue(info["title"]) == "" || stringValue(info["version"]) == "" || !pathsOK {
+		return nil, fmt.Errorf("catalog OpenAPI requires info and a supported paths object")
+	}
 	return root, ctx.Err()
 }

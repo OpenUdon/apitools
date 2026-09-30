@@ -66,6 +66,8 @@ func runCatalog(args []string, out, errOut io.Writer) int {
 		return runCatalogCheck(args[1:], out, errOut)
 	case "export":
 		return runCatalogExport(args[1:], out, errOut)
+	case "index":
+		return runCatalogIndex(args[1:], out, errOut)
 	case "list":
 		return runCatalogList(args[1:], out, errOut)
 	case "materialize":
@@ -105,6 +107,7 @@ func catalogUsage(out io.Writer) {
 	fmt.Fprintln(out, "  advisory         render provider advisory summaries")
 	fmt.Fprintln(out, "  check            run offline catalog quality checks")
 	fmt.Fprintln(out, "  export           copy selected provider artifacts into a workflow directory")
+	fmt.Fprintln(out, "  index            build an offline operation index under an explicit root")
 	fmt.Fprintln(out, "  list             list built-in provider catalog metadata")
 	fmt.Fprintln(out, "  materialize      copy one provider's registered artifacts with provenance")
 	fmt.Fprintln(out, "  resolve          resolve provider names to catalog artifact metadata")

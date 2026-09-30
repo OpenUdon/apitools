@@ -1,7 +1,7 @@
 # Status M81 — Catalog discovery foundations
 
 **State:** Execution started, 2026-09-30, under the confirmed Kinet Stage 5
-goal with `COMMIT_POLICY: task`. M81.1–M81.3 are complete; M81.4–M81.6 remain pending. Closing review has not started.
+goal with `COMMIT_POLICY: task`. M81.1–M81.4 are complete; M81.5–M81.6 pending. Closing review has not started.
 
 **Specification:** [M81](milestone.md#m81--catalog-discovery-foundations).
 
@@ -45,7 +45,7 @@ and ID, so neither is required.
 | M81.1 — Design record and contract checkpoint | `[+]` | Owns P2-7, the decision parts of P2-3/P2-5/P2-6, and L2. Write `docs/catalog-discovery.md`: request with optional provider constraints; the five outcomes; the qualification rule separating a match from a weak or ambiguous result; the outcome-to-consumer-action table (only a scoped no-match is browser-routable; curated catalog facts are evidence only); license defaults (unknowns included and labeled, `license_note` verbatim, no inferred permission); the catalog-stable reference and its round trip into M81.5; the root contract; the index approach; and the changes the proposed OpenUdon M94 and Kinet W10 drafts must absorb. Complete only after the user approves the record. No sibling edits. |
 | M81.2 — Catalog root contract and fixture root | `[+]` | Owns the implementation part of P2-3. Depends on M81.1. Add a caller-supplied root option (cache directory, artifact registrations, index location) and the documented no-root behavior. Document how an operator prepares a root (refresh, then index). Commit a synthetic, redistributable fixture root with no third-party provider specs, usable by APItools tests and later consumer conformance fixtures. |
 | M81.3 — Large registered artifact limits | `[+]` | Owns P2-2. Depends on M81.2. Allow the index path only to read and parse catalog-registered, digest-verified artifacts up to 128 MiB, with separately reviewed time, memory, and structural budgets. Keep the 20 MiB default for every existing parser entry point and `BuildOperationCandidates`. Record measurements from an opt-in, provider-free local check against `microsoft-graph-v1-openapi` and `cloudflare-api-openapi`; CI uses synthetic large fixtures. Over-limit artifacts fail closed as unexamined scope. |
-| M81.4 — Digest-bound operation index | `[ ]` | Owns P2-1 and L1. Depends on M81.3. Add a `catalog index` command and library builder that digest-verify registered artifacts and store sanitized, source-backed operation metadata under catalog-stable identity with no absolute paths. Index shared artifacts once with every provider link. Record the catalog identity and per-artifact coverage (indexed, missing, digest mismatch, oversize, parse failure, unsupported). Rebuilds are byte-identical and root relocation leaves the index unchanged. Readers verify the index version and registration digests and report stale entries as unexamined. No network; existing cache readers keep working without migration. |
+| M81.4 — Digest-bound operation index | `[+]` | Owns P2-1 and L1. Depends on M81.3. Add a `catalog index` command and library builder that digest-verify registered artifacts and store sanitized, source-backed operation metadata under catalog-stable identity with no absolute paths. Index shared artifacts once with every provider link. Record the catalog identity and per-artifact coverage (indexed, missing, digest mismatch, oversize, parse failure, unsupported). Rebuilds are byte-identical and root relocation leaves the index unchanged. Readers verify the index version and registration digests and report stale entries as unexamined. No network; existing cache readers keep working without migration. |
 | M81.5 — Artifact-scoped export | `[ ]` | Owns P2-4. Depends on M81.2. Add a new function or options type that exports or materializes selected artifacts by reference, verifies expected digests, includes provider- or spec-scoped security overlays and provenance, handles shared artifacts, and fails closed on a mismatch. Existing exported struct shapes, unkeyed composite literals, and provider-level export behavior stay unchanged. |
 | M81.6 — Documentation and compatibility verification | `[ ]` | Depends on M81.1-M81.5. Update README and architecture for the delivered behavior. Run the verification below and pass the persisted ten-iteration review gate with no open P1/P2-or-higher findings. No separate publication; M80's authorized publication carries M81. |
 
@@ -161,6 +161,33 @@ maximum process RSS. Evidence: `/tmp/apitools-m81-3.Zcbpg8mQ` result/time files.
 Existing schema-summary limits leave incomplete evidence; M81.4 must preserve
 omitted operations and diagnostics as unexamined coverage, never fully indexed
 scope or definitive no-match. No official source bytes were committed.
+
+### M81.4 execution evidence — 2026-09-30
+
+Delivered the additive index types, offline builder, validated atomic writer,
+source-free reader and `catalog index` CLI. Shared raw identity parses once
+with all provider links; complete coverage preserves missing, digest mismatch,
+oversize, parse failure and unsupported scope. Snapshot drift removes saved
+candidates and marks coverage stale. Unknown versions, malformed identities,
+incomplete/duplicate coverage, false authority, wrong registration bindings,
+unsafe paths, secret provenance and input/sidecar overwrite are refused.
+Limits: three cooperative minutes, 10,000 registrations, 500,000 candidates,
+512 MiB index; preflight depth 100/32 million JSON tokens before typed decode.
+No network, schema migration or legacy exported shape change.
+
+APItools workspace/standalone tests and vet, generator freshness, catalog
+check, index help and diff checks pass. Focused regressions cover identity,
+coverage, drift/cancellation, source deletion without reader reparsing,
+invalid OpenAPI coverage and byte-identical input permutation/root relocation.
+CLI fixture preparation and two deterministic rebuilds passed at
+`/tmp/apitools-m81-4-a362a70b/root` (1 artifact, 2 candidates, no gaps).
+OpenUdon workspace/standalone full tests pass; Udon workspace full tests pass.
+Udon's literal standalone command requests module metadata updates unrelated
+to this additive API. The standalone suite passed offline with an isolated
+modfile at `/tmp/udon-m81-4-standalone-i0or7vo4`; its recorded delta resolves
+local replacements' testify 1.12.1 and YAML 3.0.5 requirements. Udon go.mod,
+go.sum and all sibling worktrees were left unchanged. Repeat this qualification
+at final review and retain the distinction from literal readonly success.
 
 **Review iterations started:** 0 of at most 10; closing gate not started.
 This is ordinary approved intake, not a bounded-gate pass. Persist the count

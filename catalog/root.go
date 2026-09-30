@@ -76,6 +76,11 @@ func ResolveRoot(options RootOptions) (RootPaths, error) {
 	if registry == index || strings.HasPrefix(registry, index+string(filepath.Separator)) || strings.HasPrefix(index, registry+string(filepath.Separator)) {
 		return RootPaths{}, fmt.Errorf("catalog registry and index paths overlap")
 	}
+	for _, suffix := range []string{"-wal", "-shm", "-journal"} {
+		if index == registry+suffix {
+			return RootPaths{}, fmt.Errorf("catalog index overlaps a registry sidecar")
+		}
+	}
 	return RootPaths{Directory: directory, RegistryPath: filepath.Join(directory, registry), IndexPath: filepath.Join(directory, index)}, nil
 }
 

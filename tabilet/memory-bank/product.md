@@ -21,7 +21,7 @@ execution.
 ## Core Concepts
 
 - **Explicit catalog root**: operator configuration identifying the local
-  artifact registry and future operation index. Metadata reads never select a
+  artifact registry and deterministic offline operation index. Metadata reads never select a
   sibling checkout implicitly and never migrate, prune or update registrations.
   No-root discovery remains pending M80 and must report insufficient evidence.
 

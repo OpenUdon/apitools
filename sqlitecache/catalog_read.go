@@ -15,6 +15,24 @@ import (
 // MaxCatalogRegistrationBytes bounds aggregate registry text before decoding.
 const MaxCatalogRegistrationBytes = 32 << 20
 
+// ReadCatalogSpecArtifacts adapts the same read-only snapshot for the root
+// library's index builder, avoiding a root-package import of sqlitecache.
+func ReadCatalogSpecArtifacts(ctx context.Context, options catalog.RootOptions) ([]catalog.CatalogSpecArtifact, error) {
+	rows, err := ReadCatalogArtifacts(ctx, options)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]catalog.CatalogSpecArtifact, 0, len(rows))
+	for _, row := range rows {
+		ref := row.Metadata["spec_ref_id"]
+		if ref == "" {
+			ref = row.ArtifactID
+		}
+		result = append(result, catalog.CatalogSpecArtifact{ProviderID: row.ProviderID, SpecRefID: ref, ArtifactID: row.ArtifactID, Kind: row.Kind, Path: row.Path, SourceURL: row.SourceURL, OverlayPath: row.OverlayPath, BuilderPath: row.BuilderPath, SHA256: row.SHA256, Bytes: row.Bytes, Metadata: row.Metadata})
+	}
+	return result, nil
+}
+
 // ReadCatalogArtifacts reads an existing catalog root's registrations without
 // migration, pruning or access-time writes. A missing registry remains an
 // os.ErrNotExist error so consumers can report insufficient evidence.

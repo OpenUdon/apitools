@@ -23,6 +23,12 @@ built-in provider catalog. Configure `catalog.RootOptions.Directory` with the
 new directory. `sqlitecache.ReadCatalogArtifacts` reads its registrations
 without migration, pruning or access-time changes.
 
-M81.4 will add the offline index command and its exact invocation here. This
-fixture currently proves root/registration preparation, not discovery or
-index acceptance. Delete only the disposable root you created after checking.
+Build the offline index with the synthetic catalog selected explicitly:
+
+```bash
+go run ./cmd/apitools catalog index --root /tmp/my-new-synthetic-catalog --catalog catalog.json --json
+```
+
+It reports one shared artifact, two operation candidates and zero unexamined
+coverage entries. Repeating the command leaves index bytes identical. This
+fixture proves root/index preparation; the discovery API is separate M80 work. Delete only the disposable root you created after checking.
