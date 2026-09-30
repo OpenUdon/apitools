@@ -41,5 +41,5 @@ need no journal entry or separate archive run.
 - **Why it matters:** A valid large source can exceed schema-summary budgets
   even when it fits a raised byte limit. Counting retained candidates as full
   coverage would silently authorize downstream fallback on missing evidence.
-- **Evidence:** [M81 task/review record](status-M81.md), including local large
+- **Evidence:** [M81 task/review record](../docs/history/status-M81.md), including local large
   artifact measurements and index coverage, drift and failure regressions.

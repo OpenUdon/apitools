@@ -23,7 +23,7 @@ actions on 2026-09-30. Execution and release authority remain separate.
 **Provenance (second intake):** Review "APItools M80 — Catalog discovery API
 for step contracts" (`apitools-m80-review.md`, 2026-09-30), at the same
 baseline, with these uncommitted planning files as evidence. Its P2 findings,
-L1, and L2 are owned by prerequisite [M81](status-M81.md) and by the amended
+L1, and L2 are owned by prerequisite [M81](../docs/history/status-M81.md) and by the amended
 rows below. L3 (links to untracked drafts), L4 (finding labels without finding
 text), and L5 (missing provenance) were fixed directly in this planning text.
 The user approved the dispositions, M81, and these amendments on 2026-09-30.
@@ -136,3 +136,32 @@ budgets, parser limits, local cache, and iCoT's catalog path, plus a read-only
 harness validation. No full implementation verification or milestone review
 is claimed. Evolution V25 records the catalog-discovery target, including the
 M81 prerequisite, as planned.
+
+### Upstream reconciliation — M81 accepted, 2026-09-30
+
+M81 completed and passed closing review in iteration 3. Exact qualified source:
+`8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6`; ordinary retirement follows in a
+separate closure commit. No M80 row is implemented by this reconciliation.
+The technical prerequisite is satisfied; M80 remains sequential approved work.
+
+Use `CatalogIndexOptions` with an explicit `catalog.RootOptions`, selected
+catalog and read-only `sqlitecache.ReadCatalogSpecArtifacts` callback.
+`ReadCatalogOperationIndex` consumes validated `apitools.catalog-operation-index/v1`
+metadata without source parsing; retain complete coverage and stale-generation
+candidate removal. `CatalogIndexedArtifact` groups shared raw identity with
+all canonical provider/spec links and explicit advisory flags. Partial metadata
+is positive evidence with unexamined coverage, never a definitive no-match.
+`CatalogArtifactReference` plus `ExportCatalogArtifacts` now provide the exact
+provisioning round trip; keep selectors native and leave binding/approvals to
+OpenUdon. Existing APIs and exported option shapes are unchanged.
+
+Discovery must respect the index's coverage and fixed budgets, then apply its
+own bounded query/result/context work. No root stays metadata-only/insufficient;
+missing/invalid/stale evidence must not route automatically to a browser.
+The default SQLite reader is migration/pruning/access-time free. Final Udon
+standalone compatibility needs a disposable modfile for its preexisting
+module metadata updates; record that distinction, never edit Udon dependencies
+from APItools. OpenUdon can qualify actual APItools adoption with a disposable
+replacement before publication. M80's publication carries M81 and waits for
+review of the exact outgoing diff under the confirmed launch policy. No producer
+qualification depends on future M94 implementation or changes sibling ledgers.

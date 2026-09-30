@@ -1,7 +1,137 @@
+# Retired milestone M81 - Catalog discovery foundations
+
+**Milestone.** M81
+**Outcome.** completed
+**Retired.** 2026-09-30
+**Source status.** tabilet/memory-bank/status-M81.md
+**Source specification.** tabilet/memory-bank/milestone.md#m81--catalog-discovery-foundations
+**Evidence.** 8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 3
+**Verification.** Workspace/standalone APItools tests and vet, catalog generator/check, index CLI help, focused regression/fixture rebuild checks and git diff --check pass. OpenUdon workspace/standalone and isolated actual-M81 adoption pass; Udon workspace and isolated standalone module qualification pass (literal standalone needs preexisting module metadata updates). Details and evidence paths are retained below.
+**Consolidated into.** [architecture](../../memory-bank/architecture.md), [tech stack](../../memory-bank/tech-stack.md), [coverage lesson](../../memory-bank/lessons.md#keep-incomplete-catalog-coverage-distinct-from-negative-evidence), [design](../../../docs/catalog-discovery.md), operator README and reconciled [M80](../../memory-bank/status-M80.md).
+
+## Milestone specification
+
+``````markdown
+## M81 — Catalog discovery foundations
+
+Settle the six design decisions M80 depends on, and deliver the fixes for
+pre-existing limits that would otherwise stop catalog-wide discovery: parser
+and ranking budgets sized for explicit sources, a 20 MiB cap that excludes
+large official specs, no defined artifact root for consumers, and
+provider-level-only provisioning. M81 changes no existing exported API, JSON
+shape, or `BuildOperationCandidates` behavior or ordering, and does not reopen
+retired M77-M79 records. It adds shared public contracts (an operation index
+builder and an artifact-scoped export), so it belongs in lane M. It runs
+before M80; permanent IDs do not imply order, and the status index above is
+the priority view. Implementation stays sequential under one execution owner,
+with no parallel ownership or sibling writes authorized.
+
+Provenance: review "APItools M80 — Catalog discovery API for step contracts"
+(`apitools-m80-review.md`, 2026-09-30), findings P2-1 through P2-7, L1, and
+L2; source and local severities are recorded in M81's status file. Review
+baseline `8580ff2`; revalidated at
+`8580ff2485a3faff139b17bdc0b8e78d2af4ce18`, with the uncommitted M80 planning
+files as part of the evidence and no uncommitted code. The user approved the
+dispositions, the six decisions below, this milestone, and the M80 amendments
+on 2026-09-30. This intake starts no review counter.
+
+**Approved design decisions.**
+
+1. **Retrieval.** An explicit refresh-time command builds a digest-bound,
+   versioned operation index; discovery reads only the index.
+2. **Large artifacts.** Only the index builder may read catalog-registered,
+   digest-verified artifacts above 20 MiB, up to the existing 128 MiB artifact
+   bound, under separately reviewed parser budgets. Every existing parser
+   entry point and `BuildOperationCandidates` keep the 20 MiB default.
+3. **Artifact roots.** The caller always supplies the catalog root. With no
+   root, discovery returns metadata-only provider leads and insufficient
+   evidence that names what would resolve it. Embedding the committed
+   overlays remains a candidate direction.
+4. **Provider constraints.** An optional request field resolved by exact key
+   through the catalog's `FindProvider` lookup, which already matches
+   multi-word names such as "Microsoft Outlook". Each result states whether
+   it came from a constraint or from open retrieval.
+5. **Outcomes.** Match, ambiguous, no qualifying API within the checked scope,
+   insufficient evidence, and blocked. Only a scoped no-match may route a
+   consumer to a browser step. Curated catalog facts, such as an unavailable
+   machine spec or a docs-only provider, are evidence, never proof.
+6. **Provisioning.** An additive artifact-scoped export/materialize API, added
+   as a new function or options type so existing exported struct shapes and
+   unkeyed composite literals stay unchanged.
+
+**Scope and acceptance.**
+
+- **Design record and checkpoint.** `docs/catalog-discovery.md` records the
+  request with provider constraints; the outcome set; the qualification rule
+  that separates a match from a weak or ambiguous result; the
+  outcome-to-consumer-action table; license/redistribution defaults (unknowns
+  included and labeled, `license_note` passed through verbatim, no inferred
+  permission); the catalog-stable provider/artifact reference and its round
+  trip into the M81 export API; the root contract; and the index approach. It
+  lists the changes the proposed OpenUdon M94 and Kinet W10 drafts must absorb
+  at their promotion. The user approves the record before M80's contract is
+  implemented; APItools edits no sibling file.
+- **Catalog root contract.** A caller-supplied root option naming the cache
+  directory, the artifact registrations, and the index location; documented
+  no-root behavior; operator documentation for preparing a root (refresh,
+  then index); and a committed synthetic, redistributable fixture root that
+  contains no third-party provider specs.
+- **Large registered artifacts.** A reviewed limit up to 128 MiB for
+  digest-verified registered artifacts on the index path only, with explicit
+  time, memory, and structural budgets. Record measurements from an opt-in,
+  provider-free local check against the two known oversized cached specs
+  (`microsoft-graph-v1-openapi`, 35.4 MiB; `cloudflare-api-openapi`,
+  20.9 MiB); CI uses synthetic large fixtures. Artifacts over the limit or a
+  budget fail closed as unexamined scope.
+- **Operation index.** A `catalog index` command and library builder that
+  digest-verify each registered artifact and store sanitized, source-backed
+  operation metadata: native selector, effect assessment, input/output value
+  summaries, security alternatives, and capability gaps. Entries use
+  catalog-stable identity (provider IDs, spec-ref ID, artifact ID, SHA-256,
+  native selector) and no absolute paths; an artifact shared by several
+  providers is indexed once with every provider link. The index records the
+  built-in catalog identity and per-artifact coverage: indexed, missing
+  registration or file, digest mismatch, oversize, parse failure, or
+  unsupported family. Rebuilding from the same inputs is byte-identical, and
+  relocating the root does not change the index. Readers verify the index
+  version and each entry's registration digest and report stale entries as
+  unexamined. The index lives under the supplied root, is never committed,
+  needs no network, and must not break existing cache readers or require
+  migrating existing caches.
+- **Artifact-scoped provisioning.** Select one or more artifacts by reference,
+  verify their expected digests, copy only them with their provider- or
+  spec-scoped security overlays and provenance, fail closed on a mismatch, and
+  handle shared artifacts. Existing provider-level export and materialization
+  behavior is unchanged.
+- **Documentation and compatibility.** README and architecture describe the
+  delivered behavior, and the verification below passes: `go test ./...`,
+  `GOWORK=off go test ./...`, `go vet ./...`, `GOWORK=off go vet ./...`,
+  `go run ./cmd/cataloggen -check`, `go run ./cmd/apitools catalog check`,
+  `go run ./cmd/apitools catalog index --help`, `git diff --check`, and
+  OpenUdon/Udon compatibility checks in workspace and standalone modes per
+  tech-stack.md, with Ramen excluded. Default checks stay provider-free and
+  offline.
+
+**Dependencies and downstream.** No upstream prerequisite: retired M77-M79
+supply the operation metadata, and the existing catalog refresh registrations
+and `internal/artifactio` reads supply digest-verified artifacts. M80 depends
+on M81's completed rows and closed review gate. M81 needs no separate
+publication; M80's authorized published revision carries it to the proposed
+OpenUdon M94. Kinet's Stage 5 draft plan still lists only APItools M80;
+updating it is outside this repository.
+
+``````
+
+## Status record
+
+``````markdown
 # Status M81 — Catalog discovery foundations
 
 **State:** Execution started, 2026-09-30, under the confirmed Kinet Stage 5
-goal with `COMMIT_POLICY: task`. All six task rows are complete. Closing review passed in iteration 3; downstream reconciliation and retirement follow the task commit.
+goal with `COMMIT_POLICY: task`. Complete. All six task rows are verified; closing review passed in iteration 3. M80 is reconciled to the exact qualified source and this milestone is retired.
 
 **Specification:** [M81](milestone.md#m81--catalog-discovery-foundations).
 
@@ -291,3 +421,15 @@ boundaries and M81→M80 direction; implementation refines that same scope.
 M80 must now reconcile to the actual M81 task commit before starting.
 No separate M81 publication; authorized M80 publication carries the reviewed
 sources and ordinary closure record. The approved global sequence is unchanged.
+
+### Downstream reconciliation and retirement — 2026-09-30
+
+M80 is reconciled to qualified source
+`8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6`, the delivered index and selected
+export APIs, source/coverage semantics, native-selector ownership, fixed limits,
+and consumer qualification procedure. M80 stays pending, ready to start; no
+M80 implementation is claimed. Consolidated current truth, design/operator docs
+and the coverage lesson. No new evolution version (V25 direction unchanged).
+The full specification and status are retained literally in history. Separate
+M81 publication is not required; M80's authorized handoff carries this work.
+``````

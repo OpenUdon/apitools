@@ -4,7 +4,7 @@
 specifies future M81/M80 behavior; it does not claim those APIs or commands
 already exist. Baseline: `fdc0a3f2647a0c4488f0c0a6334fb2647aa73447`.
 
-Owners: [M81 foundations](../tabilet/memory-bank/status-M81.md) and
+Owners: [M81 foundations](../tabilet/docs/history/status-M81.md) and
 [M80 discovery](../tabilet/memory-bank/status-M80.md). APItools implements
 metadata discovery and artifact export. OpenUdon owns workflow source
 confirmation; Kinet owns user interaction and browser routing. No source,
