@@ -356,7 +356,7 @@ through serialization and needs insufficient-evidence handling. Structured
 license identification and redistribution stay explicitly unknown unless
 reviewed source fields support them; free-text notes never create permission.
 The README records defaults/ceilings and the synthetic v1 wire fixture set.
-Local retrieval/ranking are delivered; remote opt-in remains M80.4.
+Local retrieval/ranking and explicit remote opt-in are delivered.
 
 ### Delivered local retrieval (M80.2)
 
@@ -368,8 +368,7 @@ Work limits are explicit `work_limit` query coverage; display/context omissions
 remain incomplete. Verbatim notes exceeding 64 KiB are omitted with an explicit
 source evidence gap, never truncated into altered evidence or permission.
 No source parsing, network activity, migration, access-time write, provisioning
-or operation execution occurs. Remote requests remain unsupported until the
-separate M80.4 implementation qualifies.
+or operation execution occurs. Explicit remote lookup is delivered by M80.4 as described below.
 
 ### Delivered ranking (M80.3)
 
@@ -385,7 +384,7 @@ rather than claiming a reviewable match. Sorting/ties use catalog identity.
 The query's cooperative deadline covers index reading, comparison and report
 projection. Caller cancellation clears positive evidence; budget expiration is
 reported as incomplete evidence. Empty/filtered/unexamined scope never proves
-absence. Remote requests remain unsupported until M80.4.
+absence. Explicit remote lookup is now delivered by M80.4.
 
 The small repository-owned relevance baseline is described in
 `testdata/catalog-discovery/relevance/README.md`. Observed precision@1 is 3/3;
@@ -394,3 +393,26 @@ Jira remains insufficient due to credential-shaped field removal, and Drive
 remains insufficient because the existing effect classifier does not recognize
 upload as a documented write. Neither limitation is concealed or treated as
 no API. No source/model/provider operations are performed by these fixtures.
+
+### Delivered remote lookup (M80.4)
+
+The request and installation must both enable remote lookup. The optional
+installation client selects APIs.guru and cannot enter request JSON. A copied
+client drops caches, cookie jars and redirect callbacks; existing owned URL,
+redirect and dial-time guards remain in force. Only guarded APIs.guru search and
+at most three guarded source downloads occur. The eight-second cooperative
+budget covers search/download/parsing, within the overall query deadline. Each
+source and catalog response is capped at 20 MiB, with lower configured bounds
+preserved. Parsing uses existing inventory/prompt guards and a 16-MiB candidate
+metadata cap per source; omitted operations remain partial evidence.
+
+Every fetched source has a lead with sanitized final URL, exact digest/bytes and
+public-catalog authority; operation candidates retain that same remote evidence.
+Matching local/remote digest/native identities count once. Sources stay ephemeral;
+registration/provisioning and credentials are downstream decisions. Exact
+provider-constrained remote selection requires a matching catalog source URL;
+public-catalog labels cannot establish that identity. Evidence filters apply
+before downloading source documents. Empty, failed, timed-out or partially parsed
+remote results remain insufficient unless other operations qualify. Unsafe
+URLs/transports/redirects block; caller cancellation clears positive results.
+Local HTTP fixtures verify these paths without network/provider/model operations.

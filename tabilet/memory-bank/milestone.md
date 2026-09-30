@@ -179,7 +179,7 @@ below. Neither intake starts the closing review counter.
   cancellation, and bound local discovery time and memory. A catalog reference
   without indexed operations remains a reference-only lead, not an invented
   operation or positive contract match.
-- Every result carries catalog-stable provider/artifact identity and a
+- Every indexed local operation result carries catalog-stable provider/artifact identity and a
   reference that round-trips into M81's artifact-scoped export, source
   authority, license and redistribution evidence or explicit unknowns
   (unknowns included by default and labeled, `license_note` passed through

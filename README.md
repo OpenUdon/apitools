@@ -411,7 +411,7 @@ functions and option shapes keep their behavior.
 M80.1 adds `CatalogDiscoveryRequest` / `CatalogDiscoveryReport` as
 `apitools.catalog-discovery/v1`, separate from existing candidate wires.
 `DecodeCatalogDiscoveryRequest` bounds JSON to 64 KiB, rejects unknown fields
-and trailing data, and never accepts installation paths/endpoints. Local lookup and ranking are implemented; remote lookup remains M80.4 work.
+and trailing data, and never accepts installation paths/endpoints. Local lookup, ranking and explicitly enabled remote lookup are implemented.
 
 Optional provider keys resolve individually by exact catalog key, including
 multiword display names. Omitted/null keys mean open scope; an explicit empty
@@ -450,8 +450,18 @@ examined operation. Weak wording, omitted fields, incomplete authentication,
 nullable selected outputs or unknown constrained effects remain insufficient.
 Scores rank evidence without selecting or approving operations. Sorting uses
 canonical provider/spec/artifact/native identity, never host paths.
-Remote lookup needs explicit request and installation opt-in; it remains
-subsequent M80.4 work. No discovery result grants routing or action authority.
+Remote lookup needs `request.RemoteLookup` and installation `RemoteEnabled`.
+The optional `RemoteClient` and APIs.guru endpoint stay outside request JSON.
+Lookup uses guarded APIs.guru search/download only, capped at eight seconds,
+three source documents and 20 MiB per document (stricter configured caps remain).
+HTTP cookies, redirect callbacks and caches are not inherited as credentials or
+persistence. Default host/redirect/dial protection remains enabled; unsafe-host
+opt-in is installation-only for reviewed tests. Fetched digests/final URLs remain
+public-catalog evidence, with URL userinfo/query/fragment excluded from reports.
+Remote bytes are ephemeral and need separately approved registration before local
+export. Provider-constrained remote sources require an exact catalog URL link;
+public catalog labels cannot broaden the selection. Empty/partial remote results
+never establish API absence. No discovery result grants routing or action authority.
 
 ## Go Usage
 

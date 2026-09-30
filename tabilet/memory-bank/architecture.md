@@ -711,7 +711,7 @@ validation preserves multiword names and distinguishes nil/open provider scope
 from explicit empty scope. Unknown licenses/redistribution and verbatim bounded
 notes are source evidence; filters and exclusions stay explicit. Coverage,
 qualification counts, native references and tied ranking data preserve the
-five-outcome consumer contract. Local retrieval and ranking are implemented; remote lookup remains M80.4 work.
+five-outcome consumer contract. Local retrieval/ranking and explicitly enabled remote lookup are implemented.
 Frozen synthetic wire cases are serialization fixtures, not observed lookup
 results or source-binding acceptance. See README for supported request limits.
 
@@ -737,3 +737,19 @@ comparisons remain insufficient. Required inputs, selected nullable outputs,
 unknown requested effects and incomplete auth cannot be hidden by scores.
 Sanitation/compaction loss requires source review. The query deadline covers
 retrieval, ranking and projection; caller cancellation clears positive results.
+
+### Explicit remote discovery (M80.4)
+
+`DiscoverCatalogOperations` requires both request `RemoteLookup` and installation
+`RemoteEnabled` before guarded APIs.guru search/download. Installation endpoint/
+HTTP options remain outside request JSON. Copied clients drop source caches,
+cookie jars and redirect callbacks; owned host/port, redirect and dial-time
+checks remain intact. Eight seconds, three documents and 20 MiB per document
+bound lookup; existing parser/prompt limits and a per-source 16-MiB candidate
+metadata budget bound projections. Stricter installation byte caps are retained.
+Every fetched source retains public-catalog authority, final URL without query/
+userinfo/fragment, exact SHA/bytes and ephemeral/provisioning status. Digest/native
+duplicates count once. Constrained providers need an exact catalog URL link;
+filters exclude named evidence before source fetching. Partial/empty/failing
+remote lookup never proves absence. Unsafe configuration/URLs block; caller
+cancellation clears positives. No remote bytes are registered or persisted.

@@ -234,7 +234,10 @@ module dependency is used. The operation index command is pending M81.4.
   100 results, 2 MiB, 60 seconds; nonzero context floor 4 KiB. Provider and
   authority request arrays are bounded to 32 and 5; existing typed field and
   prompt-safety limits are reused. The contract is delivered; query behavior
-  remains subsequent M80 work until its task rows qualify.
+  now supports local qualification and opt-in guarded APIs.guru lookup.
+  Remote lookup is capped at eight seconds, three documents and 20 MiB each;
+  installation configuration stays outside request JSON, and source bytes remain
+  ephemeral. Default checks use only local HTTP fixtures.
 
 - Local discovery reads only the saved index and read-only SQLite registrations;
   no raw-source parsing or URL fetching occurs. Report projection is bounded

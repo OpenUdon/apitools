@@ -86,13 +86,14 @@ type CatalogDiscoverySourceEvidence struct {
 }
 
 type CatalogDiscoveryLead struct {
-	ProviderID  string                         `json:"provider_id"`
-	DisplayName string                         `json:"display_name"`
-	SpecRefID   string                         `json:"spec_ref_id,omitempty"`
-	Kind        string                         `json:"kind,omitempty"`
-	Reason      string                         `json:"reason"`
-	Evidence    CatalogDiscoverySourceEvidence `json:"evidence"`
-	Reference   *CatalogArtifactReference      `json:"reference,omitempty"`
+	ProviderID  string                          `json:"provider_id"`
+	DisplayName string                          `json:"display_name"`
+	SpecRefID   string                          `json:"spec_ref_id,omitempty"`
+	Kind        string                          `json:"kind,omitempty"`
+	Reason      string                          `json:"reason"`
+	Evidence    CatalogDiscoverySourceEvidence  `json:"evidence"`
+	Reference   *CatalogArtifactReference       `json:"reference,omitempty"`
+	Remote      *CatalogDiscoveryRemoteEvidence `json:"remote,omitempty"`
 }
 
 type CatalogDiscoveryCandidate struct {

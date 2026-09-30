@@ -37,6 +37,12 @@ func DiscoverCatalogOperations(ctx context.Context, options CatalogDiscoveryOpti
 		}
 		return boundCatalogDiscoveryReport(report), err
 	}
+	if options.Request.RemoteLookup {
+		evidence = retrieveCatalogDiscoveryRemote(ctx, evidence, options)
+		if evidence.report.Outcome == CatalogDiscoveryBlocked {
+			return boundCatalogDiscoveryReport(evidence.report), nil
+		}
+	}
 	report, err = rankCatalogDiscovery(ctx, evidence, options.Request)
 	if err != nil && parent.Err() == nil {
 		err = nil // installation deadline is incomplete evidence, not caller cancellation
@@ -82,7 +88,7 @@ func retrieveCatalogDiscovery(ctx context.Context, options CatalogDiscoveryOptio
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(limits.TimeoutMillis)*time.Millisecond)
 	defer cancel()
-	if options.Request.RemoteLookup {
+	if options.Request.RemoteLookup && !options.RemoteEnabled {
 		return catalogDiscoveryRefusal(report, "discovery.remote_unavailable", "remote lookup requires configured supported installation capability"), nil
 	}
 	paths, err := catalog.ResolveRoot(options.Index.Root)

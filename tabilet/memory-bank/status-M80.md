@@ -3,7 +3,7 @@
 **State:** Execution started, 2026-09-30, under the confirmed Stage 5 goal.
 M81 is retired at closure `d32995f628b9bdf91b6963d566fbac9c16fe6afe`
 (qualified source `8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6`). M80.1 is
-complete; M80.2–M80.3 are complete; M80.4–M80.5 are pending. No publication or closing review started.
+complete; M80.2–M80.3 are complete; M80.4 is complete; M80.5 is pending. No publication or closing review started.
 
 **Specification:** [M80](milestone.md#m80--catalog-discovery-api-for-step-contracts).
 
@@ -57,7 +57,7 @@ recorded at the first intake are marked as such.
 | M80.1 — Contract and fixtures | `[+]` | Owns F06 and F02's contract part, plus the M80 parts of review findings P2-4, P2-6, and L2. Depends on M81. Implement the additive versioned request/report approved at M81.1 over the existing StepContract: optional provider constraints resolved by exact catalog key; catalog-stable provider/artifact identity with a reference that round-trips into M81.5's artifact-scoped export; authority and license filters with unknowns included by default and labeled; auth, effect, and rank metadata; coverage; and the five outcomes. Freeze fixtures for matches, ambiguity, ties, filtering, unknowns, no root, no-match, insufficient evidence, blockers, and root relocation. Evidence: `step_metadata.go`, `catalog/provider.go` (free-text LicenseNote), `docs/catalog-discovery.md` (from M81.1). Existing exported APIs and wires stay unchanged. |
 | M80.2 — Local catalog retrieval | `[+]` | Owns F01, F02's retrieval part, F04's local part, and the M80 part of P2-1. Depends on M80.1. Read the M81 operation index under an explicitly supplied root, with no per-call parsing of catalog artifacts. Verify the index version and registration digests; report stale, oversized, missing, invalid, or unsupported artifacts as unexamined scope. Without a root, return metadata-only provider leads and insufficient evidence naming what would resolve it. Return authority, license/redistribution evidence or explicit unknowns, authentication needs, effect, and source-qualified ranking inputs. Keep artifacts without indexed operations as reference-only leads; record coverage, exclusions, missing evidence, and limits; bound local time and memory. Evidence: `operation_candidates.go` requires explicit sources; M81.4 supplies the index. |
 | M80.3 — Contract ranking and outcomes | `[+]` | Owns F03 and the M80 parts of P2-5, P2-6, and L1. Depends on M80.2. Reuse `prepareStepContract` and dimension matching over index entries with exact digests and native selectors. Apply the approved qualification rule so one shared purpose term cannot make a match; report ambiguity; break ties on catalog-stable identity, never machine paths. Distinguish match, ambiguous, no qualifying API within the checked scope, insufficient evidence, and blocked; only a scoped no-match is browser-routable, and curated catalog facts are evidence only. Add iCoT `CatalogPlan`-parity fixtures for named providers and a small labeled relevance set derived from OpenUdon `examples/eval` step shapes (no user data), recording precision@k as a baseline. Evidence: `operation_rank.go:276-297,803-826,845-846`. Browser routing, provisioning, account choices, approval, and execution remain downstream. |
-| M80.4 — Opt-in remote lookup | `[ ]` | Owns F04's remote part. Depends on M80.3. Default to offline with no lookup or implicit provisioning; explicitly configured lookup initially uses APIs.guru through existing guarded search/download. Bound total network time to eight seconds, fetched source documents to three, and each document to 20 MiB, matching iCoT's remote lookup (OpenUdon `internal/icot/elicitor/remote_sources.go`). Report each remote result's fetched digest and final URL. Preserve safe URL/redirect/dial-time checks and parser/prompt limits; report cancellation, timeout, empty results, and partial evidence. Keep remote/public-catalog provenance distinct from reviewed official or docs-derived sources. Evidence: `client.go`, `download.go`, `remote_discovery.go`, and `operation_candidates.go`. Use local-server fixtures only; no general crawling, credentials, or provider operations. |
+| M80.4 — Opt-in remote lookup | `[+]` | Owns F04's remote part. Depends on M80.3. Default to offline with no lookup or implicit provisioning; explicitly configured lookup initially uses APIs.guru through existing guarded search/download. Bound total network time to eight seconds, fetched source documents to three, and each document to 20 MiB, matching iCoT's remote lookup (OpenUdon `internal/icot/elicitor/remote_sources.go`). Report each remote result's fetched digest and final URL. Preserve safe URL/redirect/dial-time checks and parser/prompt limits; report cancellation, timeout, empty results, and partial evidence. Keep remote/public-catalog provenance distinct from reviewed official or docs-derived sources. Evidence: `client.go`, `download.go`, `remote_discovery.go`, and `operation_candidates.go`. Use local-server fixtures only; no general crawling, credentials, or provider operations. |
 | M80.5 — Qualification and publication handoff | `[ ]` | Owns F05. Depends on M80.1-M80.4. Run the verification below, including an opt-in, provider-free scale benchmark over a populated local root; document the additive contract and evidence limitations; and pass the persisted ten-iteration review gate with no open P1/P2-or-higher findings. Qualify existing OpenUdon/Udon consumers without depending on future M94 implementation; Ramen is excluded. The handoff states that consumers supply the catalog root explicitly and must not rely on iCoT's sibling-checkout default. Publication remains a required handoff but requires separate explicit commit/push/publication authority; it carries M81's changes. Record the actual accepted full revision and module version once authorized and published. OpenUdon's proposed M94 owns exact-pin adoption; APItools does not edit sibling ledgers or code. Evidence: the Kinet stage 5 draft plan's OpenUdon M94 status waits for accepted, published M80. Do not complete the publication portion without authority and observed evidence. |
 
 ## Dependencies and ownership
@@ -253,3 +253,33 @@ Focused behavioral checks, APItools full workspace/standalone tests and vet,
 OpenUdon/Udon full workspace tests and diff checks pass. No models, provider
 operations, credentials, sibling edits or publication. Closing review remains
 0/10. Remote lookup is still the separately pending M80.4 task.
+
+### M80.4 execution evidence — 2026-09-30
+
+Delivered explicitly enabled APIs.guru lookup through existing guarded search/
+download, with both request and installation opt-in. Installation client and
+endpoint stay outside JSON. Copied clients drop caches, cookie jars and redirect
+callbacks; default URL/host/port, redirect and dial-time protection remains.
+Bounds are eight cooperative seconds, three fetched documents, 20 MiB each
+(stricter configured caps stay effective), existing inventory/prompt limits and
+16 MiB candidate metadata per source. Default calls make no remote requests.
+
+Every fetched source retains public-catalog authority, sanitized final URL,
+exact digest/bytes and ephemeral/provisioning status in a lead; operations retain
+that remote evidence too. Local/remote digest/native duplicates count once.
+Remote-only candidates have no fabricated registered reference. Constrained
+remote sources require exact catalog URL linkage and preserve all matching
+provider/spec links. Filters exclude named evidence before source fetching.
+Lookup empty/failure/timeout/partial parsing never establishes absence; positive
+local/remote matches keep coverage gaps. Unsafe URL/transport/redirect refusals
+block; hard caller cancellation clears positives. Nothing is registered,
+persisted, provisioned or executed.
+
+Local HTTP/TLS fixtures verify opt-ins and zero default calls, the three-document
+cap, duplicate operations, each fetched digest/final URL, query-secret omission,
+no cookie/authorization propagation, ephemeral remote-only matches, shared exact
+URL provider links, empty/invalid/oversized evidence, timeout/cancellation,
+unsafe lists/sources/userinfo/redirects, provider constraints and filtering.
+APItools full workspace/standalone tests/vet and OpenUdon/Udon full workspace
+consumer tests pass; diff checks pass. No external network, models, provider
+operations, credentials or sibling changes. Closing review remains 0/10.
