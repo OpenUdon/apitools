@@ -207,6 +207,16 @@ limits alone does not qualify the parser. Deadline/cancellation checks must
 cover extraction, not merely file reads. Limits cannot silently turn omissions
 into `no_qualifying_api`.
 
+M81.3 implementation uses the private OpenAPI index path with 4,000,000
+structural items, depth 100, 100,000 operations, 256 MiB metadata and a
+45-second cooperative context deadline. YAML nodes are checked once and reused
+for decoding. Other families retain their 20-MiB parser limits. Decode and
+normalization are bounded structurally but cannot be preempted mid-call by a
+Go context; this is not a hard process CPU/RSS cap. Read/extraction cancellation
+discards the result. The measured Cloudflare and Graph files fit these budgets
+but retain explicit operation-summary gaps. M81.4 still owns the index builder
+and coverage publication; no direct parser limit was raised.
+
 M81.4 freezes index read/build ceilings sized for the recorded approximately
 40,000-operation catalog, with synthetic boundary fixtures; M80 local queries
 bound work and report size separately from whole-catalog indexing. Index

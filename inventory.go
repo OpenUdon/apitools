@@ -2,6 +2,7 @@ package apitools
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -96,6 +97,11 @@ func inventoryDocumentContent(doc InventoryDocument, maxBytes int64) ([]byte, er
 }
 
 func addDocumentInventory(ctx context.Context, inventory *OperationInventory, doc InventoryDocument, index int, root map[string]any, query string, maxOperations int) (bool, error) {
+	return addDocumentInventoryBounded(ctx, inventory, doc, index, root, query, maxOperations, 0)
+}
+
+func addDocumentInventoryBounded(ctx context.Context, inventory *OperationInventory, doc InventoryDocument, index int, root map[string]any, query string, maxOperations, maxMetadataBytes int) (bool, error) {
+	var metadataBytes int
 	info := mapValue(root["info"])
 	name := firstNonEmpty(doc.Name, stringValue(info["title"]), filepath.Base(doc.Path), doc.URL, fmt.Sprintf("document-%d", index+1))
 	summary := DocumentSummary{
@@ -164,6 +170,16 @@ func addDocumentInventory(ctx context.Context, inventory *OperationInventory, do
 					Remediation: "Add operationId to the OpenAPI document or select this operation by inventory id.",
 				}
 				op.ReadinessIssues = append(op.ReadinessIssues, issue)
+			}
+			if maxMetadataBytes > 0 {
+				encoded, err := json.Marshal(op)
+				if err != nil {
+					return false, err
+				}
+				metadataBytes += len(encoded)
+				if metadataBytes > maxMetadataBytes {
+					return false, fmt.Errorf("catalog artifact inventory exceeds metadata byte budget")
+				}
 			}
 			inventory.ReadinessIssues = append(inventory.ReadinessIssues, op.ReadinessIssues...)
 			inventory.Operations = append(inventory.Operations, op)

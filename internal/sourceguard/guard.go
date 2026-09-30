@@ -4,6 +4,7 @@ package sourceguard
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -27,6 +28,44 @@ const (
 	MaxStructuralItems = 1_000_000
 )
 
+// Limits are internal, explicit budgets for the registered catalog index path.
+// Existing parsers always select DefaultLimits; these are not caller request
+// options and cannot raise nesting or remove structural limits.
+type Limits struct {
+	MaxDocumentBytes   int
+	MaxStructuralItems int
+	MaxNestingDepth    int
+}
+
+func DefaultLimits() Limits {
+	return Limits{MaxDocumentBytes: MaxDocumentBytes, MaxStructuralItems: MaxStructuralItems, MaxNestingDepth: MaxNestingDepth}
+}
+
+func checkLimits(ctx context.Context, kind string, data []byte, limits Limits) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if limits.MaxDocumentBytes <= 0 || limits.MaxDocumentBytes > 128<<20 || limits.MaxStructuralItems <= 0 || limits.MaxStructuralItems > 8_000_000 || limits.MaxNestingDepth <= 0 || limits.MaxNestingDepth > MaxNestingDepth {
+		return fmt.Errorf("%s: invalid explicit parser limits", kind)
+	}
+	if len(data) > limits.MaxDocumentBytes {
+		return fmt.Errorf("%s: document exceeds maximum size %d bytes", kind, limits.MaxDocumentBytes)
+	}
+	return nil
+}
+
+type contextReader struct {
+	ctx    context.Context
+	reader io.Reader
+}
+
+func (r contextReader) Read(p []byte) (int, error) {
+	if err := r.ctx.Err(); err != nil {
+		return 0, err
+	}
+	return r.reader.Read(p)
+}
+
 // CheckDocument enforces the shared direct-parser byte limit.
 func CheckDocument(kind string, data []byte) error {
 	if len(data) > MaxDocumentBytes {
@@ -39,20 +78,27 @@ func CheckDocument(kind string, data []byte) error {
 // Go values. Alias nodes are rejected because expansion can multiply work
 // beyond the source byte and node budgets.
 func CheckYAML(kind string, data []byte) error {
-	if err := CheckDocument(kind, data); err != nil {
-		return err
+	_, err := YAMLDocument(context.Background(), kind, data, DefaultLimits())
+	return err
+}
+
+// YAMLDocument validates one bounded alias-free document, retaining its node
+// tree so an index caller can decode it without parsing the source twice.
+func YAMLDocument(ctx context.Context, kind string, data []byte, limits Limits) (*yaml.Node, error) {
+	if err := checkLimits(ctx, kind, data, limits); err != nil {
+		return nil, err
 	}
-	decoder := yaml.NewDecoder(bytes.NewReader(data))
+	decoder := yaml.NewDecoder(contextReader{ctx: ctx, reader: bytes.NewReader(data)})
 	var document yaml.Node
 	if err := decoder.Decode(&document); err != nil {
-		return fmt.Errorf("%s: decode YAML structure: %w", kind, err)
+		return nil, fmt.Errorf("%s: decode YAML structure: %w", kind, err)
 	}
 	var trailing yaml.Node
 	if err := decoder.Decode(&trailing); err != io.EOF {
 		if err == nil {
-			return fmt.Errorf("%s: YAML contains multiple documents", kind)
+			return nil, fmt.Errorf("%s: YAML contains multiple documents", kind)
 		}
-		return fmt.Errorf("%s: decode YAML trailing content: %w", kind, err)
+		return nil, fmt.Errorf("%s: decode YAML trailing content: %w", kind, err)
 	}
 	type item struct {
 		node  *yaml.Node
@@ -61,6 +107,9 @@ func CheckYAML(kind string, data []byte) error {
 	stack := []item{{node: &document, depth: 0}}
 	work := 0
 	for len(stack) > 0 {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
 		last := len(stack) - 1
 		current := stack[last]
 		stack = stack[:last]
@@ -68,34 +117,43 @@ func CheckYAML(kind string, data []byte) error {
 			continue
 		}
 		work++
-		if work > MaxStructuralItems {
-			return fmt.Errorf("%s: YAML node count exceeds maximum %d", kind, MaxStructuralItems)
+		if work > limits.MaxStructuralItems {
+			return nil, fmt.Errorf("%s: YAML node count exceeds maximum %d", kind, limits.MaxStructuralItems)
 		}
-		if current.depth > MaxNestingDepth {
-			return fmt.Errorf("%s: YAML nesting exceeds maximum depth %d", kind, MaxNestingDepth)
+		if current.depth > limits.MaxNestingDepth {
+			return nil, fmt.Errorf("%s: YAML nesting exceeds maximum depth %d", kind, limits.MaxNestingDepth)
 		}
 		if current.node.Kind == yaml.AliasNode {
-			return fmt.Errorf("%s: YAML aliases are not supported in untrusted source metadata", kind)
+			return nil, fmt.Errorf("%s: YAML aliases are not supported in untrusted source metadata", kind)
 		}
 		for i := len(current.node.Content) - 1; i >= 0; i-- {
 			stack = append(stack, item{node: current.node.Content[i], depth: current.depth + 1})
 		}
 	}
-	return nil
+	return &document, ctx.Err()
 }
 
 // CheckJSON performs a streaming structural pass before callers decode JSON
 // into recursive maps. It limits nesting and total tokens without retaining
 // attacker-controlled values.
 func CheckJSON(kind string, data []byte) error {
-	if err := CheckDocument(kind, data); err != nil {
+	return CheckJSONWithLimits(context.Background(), kind, data, DefaultLimits())
+}
+
+// CheckJSONWithLimits is the explicit internal index preflight. Direct parsers
+// continue using CheckJSON and its original limits.
+func CheckJSONWithLimits(ctx context.Context, kind string, data []byte, limits Limits) error {
+	if err := checkLimits(ctx, kind, data, limits); err != nil {
 		return err
 	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder := json.NewDecoder(contextReader{ctx: ctx, reader: bytes.NewReader(data)})
 	decoder.UseNumber()
 	depth := 0
 	work := 0
 	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		token, err := decoder.Token()
 		if err == io.EOF {
 			break
@@ -104,15 +162,15 @@ func CheckJSON(kind string, data []byte) error {
 			return fmt.Errorf("%s: decode JSON structure: %w", kind, err)
 		}
 		work++
-		if work > MaxStructuralItems {
-			return fmt.Errorf("%s: JSON token count exceeds maximum %d", kind, MaxStructuralItems)
+		if work > limits.MaxStructuralItems {
+			return fmt.Errorf("%s: JSON token count exceeds maximum %d", kind, limits.MaxStructuralItems)
 		}
 		if delimiter, ok := token.(json.Delim); ok {
 			switch delimiter {
 			case '{', '[':
 				depth++
-				if depth > MaxNestingDepth {
-					return fmt.Errorf("%s: JSON nesting exceeds maximum depth %d", kind, MaxNestingDepth)
+				if depth > limits.MaxNestingDepth {
+					return fmt.Errorf("%s: JSON nesting exceeds maximum depth %d", kind, limits.MaxNestingDepth)
 				}
 			case '}', ']':
 				depth--

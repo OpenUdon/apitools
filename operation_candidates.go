@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -436,6 +437,11 @@ func adaptOpenAPISource(ctx context.Context, source loadedOperationSource, budge
 	inventory, err := buildOperationInventory(ctx, InventoryOptions{
 		Documents: []InventoryDocument{doc}, MaxBytes: int64(len(source.content)), MaxOperations: budget.MaxOperations,
 	}, budget)
+	return openAPICandidatesFromInventory(ctx, source, budget, inventory, err, 0)
+}
+
+func openAPICandidatesFromInventory(ctx context.Context, source loadedOperationSource, budget PromptBudget, inventory OperationInventory, inventoryErr error, maxMetadataBytes int) (operationSourceAdapterResult, error) {
+	var metadataBytes int
 	result := operationSourceAdapterResult{}
 	if len(inventory.Documents) > 0 {
 		result.title = firstNonEmpty(inventory.Documents[0].Title, inventory.Documents[0].Name)
@@ -471,11 +477,21 @@ func adaptOpenAPISource(ctx context.Context, source loadedOperationSource, budge
 		if summaryErr != nil {
 			continue
 		}
+		if maxMetadataBytes > 0 {
+			encoded, err := json.Marshal(candidate)
+			if err != nil {
+				return operationSourceAdapterResult{}, err
+			}
+			metadataBytes += len(encoded)
+			if metadataBytes > maxMetadataBytes {
+				return operationSourceAdapterResult{}, fmt.Errorf("catalog artifact candidates exceed metadata byte budget")
+			}
+		}
 		result.candidates = append(result.candidates, candidate)
 	}
 	result.capabilities = openAPISourceCapabilities()
-	if err != nil {
-		return result, err
+	if inventoryErr != nil {
+		return result, inventoryErr
 	}
 	if diagnostics := errorDiagnostics(inventory.Diagnostics); len(diagnostics) > 0 {
 		return result, DiagnosticError{Diagnostics: diagnostics}

@@ -528,6 +528,19 @@ No API operation execution is part of either flow.
 
 ## Public Contracts
 
+M81.3 supplies a private registered-artifact index parser, not a new direct
+parser entry point. It confines and verifies a registration's exact bytes and
+SHA-256 before adapting metadata. The OpenAPI index path accepts up to 128 MiB,
+4,000,000 JSON tokens/YAML nodes, depth 100, 100,000 operations and 256 MiB
+inventory/candidate metadata. A 45-second context deadline is checked during
+structural traversal and extraction; decode/normalization phases are
+cooperative and this is not a hard process CPU or RSS guarantee. Other source
+families retain their 20-MiB direct-parser limit. Shared inventory/candidate
+conversion and explicit internal sourceguard limits avoid a second parser or
+changed direct-parser defaults. Summary omissions remain diagnostics and
+unexamined coverage; a large artifact is not automatically complete evidence.
+M81.4 must consume these helpers and preserve that distinction in its index.
+
 M81.2 adds `catalog.RootOptions`/`ResolveRoot` for explicit root, registry and
 index path configuration. No root selects no implicit directory; future M80
 discovery must return metadata-only leads and insufficient evidence. The

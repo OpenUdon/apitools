@@ -165,6 +165,19 @@ verification, per the user's confirmed scope:
 
 ## Harnesses
 
+M81.3 keeps all existing direct parser and `BuildOperationCandidates` limits at
+20 MiB. Focused registered-index checks are `go test . ./internal/sourceguard
+-run 'Test(RegisteredCatalogArtifactLargeAndIdentity|CatalogOpenAPIStructuralRefusal|ExplicitIndexLimitsRemainBounded)'`.
+The explicitly invoked local-only measurement is
+`APITOOLS_CATALOG_MEASURE_ROOT=/absolute/registered/root go test . -run
+TestCatalogRegisteredArtifactMeasurement -v -count=1`; it reads existing
+Cloudflare/Graph registrations and source bytes without network or provider
+credentials. Default tests skip it. The 2026-09-30 runs measured 5.727 seconds /
+430,364 KiB peak process RSS for Cloudflare (21,930,908 bytes), and 40.111
+seconds / 870,608 KiB for Graph (37,110,274 bytes). GNU time measured the
+largest process in each Go test invocation, not a guaranteed RSS ceiling.
+Both exposed incomplete operation summaries rather than suppressing gaps.
+
 M81.2's focused root/registration gate is `go test ./catalog ./sqlitecache`.
 `go run testdata/catalog-root/prepare.go /absolute/new/directory` creates an
 explicit new disposable synthetic root without fetching documents. No new

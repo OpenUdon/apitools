@@ -1,9 +1,30 @@
 package sourceguard
 
 import (
+	"context"
+	"errors"
 	"strings"
 	"testing"
 )
+
+func TestExplicitIndexLimitsRemainBounded(t *testing.T) {
+	limits := Limits{MaxDocumentBytes: 128 << 20, MaxStructuralItems: 4, MaxNestingDepth: 100}
+	if err := CheckJSONWithLimits(context.Background(), "index", []byte("[0,1,2,3]"), limits); err == nil {
+		t.Fatal("accepted structural overflow")
+	}
+	if _, err := YAMLDocument(context.Background(), "index", []byte("a: b\nc: d\n"), limits); err == nil {
+		t.Fatal("accepted YAML structural overflow")
+	}
+	limits.MaxStructuralItems = 0
+	if err := CheckJSONWithLimits(context.Background(), "index", []byte("{}"), limits); err == nil {
+		t.Fatal("accepted unbounded limits")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := CheckJSONWithLimits(ctx, "index", []byte("{}"), DefaultLimits()); !errors.Is(err, context.Canceled) {
+		t.Fatalf("cancellation: %v", err)
+	}
+}
 
 func TestCheckJSONUsesStructuralBudgetSeparateFromSemanticWork(t *testing.T) {
 	data := []byte("[" + strings.Repeat("0,", MaxWorkItems) + "0]")
