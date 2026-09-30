@@ -384,6 +384,28 @@ Generation has a three-minute cooperative deadline, 10,000 registrations,
 metadata limits, not a hard process RSS ceiling. Malformed or incomplete
 indexes fail closed; they cannot prove that no qualifying API exists.
 
+### Selected artifact export
+
+`ExportCatalogArtifacts(ctx, CatalogArtifactExportOptions{...})` accepts
+`CatalogArtifactReference` values from the discovery/index contract and an
+installation-selected `CatalogIndexOptions`. It verifies catalog/provider/spec
+linkage and exact raw SHA-256/byte count. It exports only selected sources,
+provider-wide and matching spec-scoped security overlays, and a relative-path
+provenance manifest. Shared bytes are copied once without dropping any selected
+provider/operation links. Source bytes and native selectors remain unchanged;
+OpenUdon checks selectors during binding. Advisory artifacts remain labeled.
+No fetching, credentials, operation execution or implicit overlay application
+occurs. Registry private metadata and URL userinfo/query/fragment are excluded.
+
+The workflow directory must exist. `ArtifactDir` defaults to `api-artifacts`,
+is confined beneath it, and cannot overlap the catalog source root or use
+symlink ancestors. All selected sources and overlays pass before the directory
+transaction publishes. Identical output is reused; different output requires
+`Force`. Failure preserves any old output without a partial replacement.
+Requests are limited to 64 references, 128 MiB per raw source, 512 MiB aggregate
+export and a three-minute cooperative deadline. Existing provider-level export
+functions and option shapes keep their behavior.
+
 ## Go Usage
 
 ```go

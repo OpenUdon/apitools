@@ -1,7 +1,7 @@
 # Status M81 — Catalog discovery foundations
 
 **State:** Execution started, 2026-09-30, under the confirmed Kinet Stage 5
-goal with `COMMIT_POLICY: task`. M81.1–M81.4 are complete; M81.5–M81.6 pending. Closing review has not started.
+goal with `COMMIT_POLICY: task`. M81.1–M81.5 are complete; M81.6 pending. Closing review has not started.
 
 **Specification:** [M81](milestone.md#m81--catalog-discovery-foundations).
 
@@ -46,7 +46,7 @@ and ID, so neither is required.
 | M81.2 — Catalog root contract and fixture root | `[+]` | Owns the implementation part of P2-3. Depends on M81.1. Add a caller-supplied root option (cache directory, artifact registrations, index location) and the documented no-root behavior. Document how an operator prepares a root (refresh, then index). Commit a synthetic, redistributable fixture root with no third-party provider specs, usable by APItools tests and later consumer conformance fixtures. |
 | M81.3 — Large registered artifact limits | `[+]` | Owns P2-2. Depends on M81.2. Allow the index path only to read and parse catalog-registered, digest-verified artifacts up to 128 MiB, with separately reviewed time, memory, and structural budgets. Keep the 20 MiB default for every existing parser entry point and `BuildOperationCandidates`. Record measurements from an opt-in, provider-free local check against `microsoft-graph-v1-openapi` and `cloudflare-api-openapi`; CI uses synthetic large fixtures. Over-limit artifacts fail closed as unexamined scope. |
 | M81.4 — Digest-bound operation index | `[+]` | Owns P2-1 and L1. Depends on M81.3. Add a `catalog index` command and library builder that digest-verify registered artifacts and store sanitized, source-backed operation metadata under catalog-stable identity with no absolute paths. Index shared artifacts once with every provider link. Record the catalog identity and per-artifact coverage (indexed, missing, digest mismatch, oversize, parse failure, unsupported). Rebuilds are byte-identical and root relocation leaves the index unchanged. Readers verify the index version and registration digests and report stale entries as unexamined. No network; existing cache readers keep working without migration. |
-| M81.5 — Artifact-scoped export | `[ ]` | Owns P2-4. Depends on M81.2. Add a new function or options type that exports or materializes selected artifacts by reference, verifies expected digests, includes provider- or spec-scoped security overlays and provenance, handles shared artifacts, and fails closed on a mismatch. Existing exported struct shapes, unkeyed composite literals, and provider-level export behavior stay unchanged. |
+| M81.5 — Artifact-scoped export | `[+]` | Owns P2-4. Depends on M81.2. Add a new function or options type that exports or materializes selected artifacts by reference, verifies expected digests, includes provider- or spec-scoped security overlays and provenance, handles shared artifacts, and fails closed on a mismatch. Existing exported struct shapes, unkeyed composite literals, and provider-level export behavior stay unchanged. |
 | M81.6 — Documentation and compatibility verification | `[ ]` | Depends on M81.1-M81.5. Update README and architecture for the delivered behavior. Run the verification below and pass the persisted ten-iteration review gate with no open P1/P2-or-higher findings. No separate publication; M80's authorized publication carries M81. |
 
 ## Dependencies and ownership
@@ -188,6 +188,30 @@ modfile at `/tmp/udon-m81-4-standalone-i0or7vo4`; its recorded delta resolves
 local replacements' testify 1.12.1 and YAML 3.0.5 requirements. Udon go.mod,
 go.sum and all sibling worktrees were left unchanged. Repeat this qualification
 at final review and retain the distinction from literal readonly success.
+
+### M81.5 execution evidence — 2026-09-30
+
+Delivered additive `CatalogArtifactReference`, `CatalogArtifactExportOptions`
+and `ExportCatalogArtifacts` with no legacy exported shape changes. Selection
+joins canonical provider/spec/artifact registrations and verifies catalog
+identity plus actual raw digest/bytes. Shared bytes copy once while every
+selected operation/provider link retains native-selector provenance. Only
+provider-wide and matching spec-scoped security overlays are emitted, keeping
+OR-of-AND alternatives unchanged. Advisory sources remain explicitly labeled;
+registry private metadata and URL userinfo/query/fragment are excluded.
+Atomic directory transactions preserve collision/reuse/Force semantics and
+refuse partial publication, source-root overlap, symlink ancestors, unsafe
+paths, cancellation, mismatched sources and registration drift. The downstream
+OpenUdon binder still checks native selectors. No network/parser/execution or
+credential handling was added. Fixed bounds are documented in README.
+
+Focused tests prove selected-only export despite extra provider registrations,
+shared physical copy, retained provider provenance, overlay scope/alternatives,
+private metadata exclusion, identical reuse, collision/no partial Force,
+integrity/binding failure, cancellation, registry drift and confinement.
+APItools workspace/standalone tests and vet and diff checks pass. OpenUdon and
+Udon full workspace consumer suites pass against the additive implementation.
+Full final standalone qualification and closing review belong to M81.6.
 
 **Review iterations started:** 0 of at most 10; closing gate not started.
 This is ordinary approved intake, not a bounded-gate pass. Persist the count

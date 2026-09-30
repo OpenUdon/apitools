@@ -331,3 +331,17 @@ without re-reading source bytes. Registration drift marks the whole saved
 generation stale and strips candidates. Operator-owned indexes are derived
 metadata, not signatures or approval records. The byte/depth/work limits and
 cooperative deadlines are documented in README; no hard RSS claim is made.
+
+### Delivered selected-artifact export (M81.5)
+
+`CatalogArtifactReference`, `CatalogArtifactExportOptions` and
+`ExportCatalogArtifacts` implement the selected-reference round trip. Export
+uses the configured catalog/root/read-only registration adapter, preserves
+native selectors and raw bytes, verifies raw integrity and registration links,
+and copies one physical file per shared family/digest. Every selected provider
+link retains provenance and advisory labeling. Only provider-wide and matching
+spec-scoped security overlays are emitted without transforming auth
+alternatives or source documents. The index is not parsed during export.
+The confined workflow output uses existing transaction/collision/reuse/force
+semantics. Invalid sources, cancellation or registration drift leave no
+partial output. The README documents fixed bounds and source-root exclusion.

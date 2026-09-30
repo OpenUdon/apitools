@@ -222,3 +222,8 @@ module dependency is used. The operation index command is pending M81.4.
   500,000 candidates and 512 MiB serialized metadata. Reader/writer JSON
   preflight uses depth 100 and 32 million tokens; these limits do not claim
   a hard process RSS ceiling. Unknown coverage remains explicit.
+
+- Selected catalog export reuses `artifactio` confined reads and directory
+  transactions. Bounds: 64 references, 128 MiB per raw source, 512 MiB total,
+  three-minute cooperative deadline. No index parser, network call or new
+  dependency is used by export.

@@ -552,7 +552,7 @@ pruning or access-time updates, including legacy registry schemas 1–3; newer
 schemas refuse. Snapshot bounds are five seconds, 10,000 rows and 32 MiB
 aggregate registration text before decoding. Missing registry/index remains
 missing evidence. Indexing/discovery and artifact-scoped export are still
-pending M80/M81.5 work; M81.4 index generation/read/publication is delivered. The synthetic two-provider shared-artifact fixture
+pending M80 work; M81.4 index generation/read/publication is delivered. The synthetic two-provider shared-artifact fixture
 is under `testdata/catalog-root` with an explicit disposable preparation recipe.
 
 - Go module path: `github.com/OpenUdon/apitools`.
@@ -685,3 +685,18 @@ coverage stale/unexamined. This is installation-owned derived metadata, not
 signed provider evidence or execution authority. See README for operator
 commands and budgets. Missing, unsupported or partially summarized sources
 never become definitive negative API evidence.
+
+### Selected catalog artifact provisioning (M81.5)
+
+`CatalogArtifactReference` records catalog/provider/spec/artifact identity,
+source family, raw digest/bytes and optional unchanged native selector.
+`ExportCatalogArtifacts` joins only selected read-only registrations, verifies
+actual source bytes, copies each shared raw family/digest once, and preserves
+all selected links in relative-path provenance. It includes only provider-wide
+and matching spec-scoped security overlays, preserving auth alternatives
+without modifying sources. A read-only registration recheck precedes atomic
+directory publication. Invalid binding/digest, unsafe paths, cancellation,
+collision or drift publishes no partial tree. Private registration metadata
+and URL secrets are omitted; advisory source kind remains labeled. Native
+selector validation and approvals belong to the downstream OpenUdon binder.
+Legacy provider-level materialization/export APIs and struct shapes are intact.
