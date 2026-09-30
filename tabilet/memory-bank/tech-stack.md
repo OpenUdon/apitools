@@ -59,15 +59,14 @@ go run ./cmd/apitools catalog overlay-view github
 go run ./cmd/apitools catalog security-audit
 ```
 
-When exported APIs change, run dependent checks in sibling consumers when
-available:
+When exported APIs change, run dependent checks in OpenUdon and Udon when
+available. Ramen is a separate project and is excluded from APItools downstream
+verification, per the user's confirmed scope:
 
 ```bash
 (cd ../openudon && go test ./...)
-(cd ../ramen && go test ./...)
 (cd ../udon && go test ./...)
 (cd ../openudon && GOWORK=off go test ./...)
-(cd ../ramen && GOWORK=off go test ./...)
 (cd ../udon && GOWORK=off go test ./...)
 ```
 

@@ -1,0 +1,96 @@
+# Status M81 — Catalog discovery foundations
+
+**State:** Approved plan, 2026-09-30. All six implementation rows are pending;
+no implementation or closing review has started.
+
+**Specification:** [M81](milestone.md#m81--catalog-discovery-foundations).
+
+**Provenance:** Review "APItools M80 — Catalog discovery API for step
+contracts" (`apitools-m80-review.md`, 2026-09-30). The review's own finding
+IDs are used below. Review baseline `8580ff2`; revalidated at
+`8580ff2485a3faff139b17bdc0b8e78d2af4ce18`, with the uncommitted M80 planning
+files (the reviewed plan) as part of the evidence and no uncommitted code.
+Source priorities are the review's stated severities; local severities were
+classified independently under milestone.md's review severity definitions.
+The user approved every disposition, the six design decisions in the
+specification, this milestone, the M80 amendments, and the planning-file
+actions on 2026-09-30. Execution and release authority remain separate.
+
+**Lineage:** Builds on the retired
+[M77](../docs/history/status-M77.md), [M78](../docs/history/status-M78.md),
+and [M79](../docs/history/status-M79.md) operation-metadata foundations
+without reopening them. M80 depends on this milestone.
+
+## Findings owned here
+
+| Finding | Source priority | Local severity | Disposition | Evidence | Owner |
+|---|---|---|---|---|---|
+| P2-1 Catalog scale exceeds the reused ranking budgets | P2 | P2 | confirmed | `inventory.go:11` (10,000 operations); `operation_rank.go:51-60`; `operation_candidates.go:58-61,182-192`; local cache of about 222 MB and roughly 40,000 operations | M81.4; M80.2 reads the index |
+| P2-2 Oversized official specs cannot become candidates | P2 | P2 | confirmed | `client.go:19` (20 MiB); `operation_candidates.go:49-51`; `microsoft-graph-v1-openapi` 35.4 MiB, used by `microsoft-graph` and `microsoft-outlook`; `internal/artifactio` bound is 128 MiB | M81.3 |
+| P2-3 Consumers have no defined artifact root | P2 | P2 | confirmed; default settled by decision 3 | `.gitignore` excludes cached specs and `cache.sqlite`; `catalog/builtin_data.go:10` embeds only catalog metadata; iCoT defaults to a sibling checkout (OpenUdon `internal/icot/elicitor/catalog.go`) | M81.1, M81.2 |
+| P2-4 Returned artifact references have no provisioning path | P2 | P2 | confirmed | `catalog/materialize.go:204-345` exports per provider only; one artifact can serve two providers | M81.5; M80.1 reference |
+| P2-5 "Match" is undefined and lexical matching over-matches | P2 | P2 | confirmed | `operation_rank.go:276-297` (one shared term makes purpose compatible); `operation_rank.go:803-826` | Rule in M81.1; implemented in M80.3 |
+| P2-6 No provider constraint for iCoT parity | P2 | P2 | confirmed | OpenUdon `internal/icot/elicitor/catalog.go` matches named providers; `catalog_plan.go` limits the model to 16 artifacts; `FindProvider` already resolves multi-word keys | Decision in M81.1; M80.1, M80.3 |
+| P2-7 Consumer drafts expect a single "no API" result | P2 | P2 | confirmed | Kinet stage 5 draft plan (OpenUdon M94 and Kinet W10 drafts); `docs/catalog-upgrade-2026-09.md` §9 | M81.1 checkpoint |
+| L1 Ties broken by machine path | Lower | Lower | confirmed; required by M80's determinism acceptance | `operation_rank.go:845-846` | M81.4 identity; M80.3 relocation fixture |
+| L2 License-filter default unstated | Lower | Lower | confirmed; required by M80's filter acceptance | `catalog/provider.go:68` (free-text `LicenseNote`); 124 of 181 machine-readable references say only "terms apply" | M81.1; M80.1 |
+
+Findings L3-L5 (planning citations and provenance) were fixed directly in the
+M80 planning text. Existing candidates C3 and C4 stay in Candidate Directions:
+the approved design resolves provider constraints and references by exact key
+and ID, so neither is required.
+
+| Item | State | Notes |
+|---|---|---|
+| M81.1 — Design record and contract checkpoint | `[ ]` | Owns P2-7, the decision parts of P2-3/P2-5/P2-6, and L2. Write `docs/catalog-discovery.md`: request with optional provider constraints; the five outcomes; the qualification rule separating a match from a weak or ambiguous result; the outcome-to-consumer-action table (only a scoped no-match is browser-routable; curated catalog facts are evidence only); license defaults (unknowns included and labeled, `license_note` verbatim, no inferred permission); the catalog-stable reference and its round trip into M81.5; the root contract; the index approach; and the changes the proposed OpenUdon M94 and Kinet W10 drafts must absorb. Complete only after the user approves the record. No sibling edits. |
+| M81.2 — Catalog root contract and fixture root | `[ ]` | Owns the implementation part of P2-3. Depends on M81.1. Add a caller-supplied root option (cache directory, artifact registrations, index location) and the documented no-root behavior. Document how an operator prepares a root (refresh, then index). Commit a synthetic, redistributable fixture root with no third-party provider specs, usable by APItools tests and later consumer conformance fixtures. |
+| M81.3 — Large registered artifact limits | `[ ]` | Owns P2-2. Depends on M81.2. Allow the index path only to read and parse catalog-registered, digest-verified artifacts up to 128 MiB, with separately reviewed time, memory, and structural budgets. Keep the 20 MiB default for every existing parser entry point and `BuildOperationCandidates`. Record measurements from an opt-in, provider-free local check against `microsoft-graph-v1-openapi` and `cloudflare-api-openapi`; CI uses synthetic large fixtures. Over-limit artifacts fail closed as unexamined scope. |
+| M81.4 — Digest-bound operation index | `[ ]` | Owns P2-1 and L1. Depends on M81.3. Add a `catalog index` command and library builder that digest-verify registered artifacts and store sanitized, source-backed operation metadata under catalog-stable identity with no absolute paths. Index shared artifacts once with every provider link. Record the catalog identity and per-artifact coverage (indexed, missing, digest mismatch, oversize, parse failure, unsupported). Rebuilds are byte-identical and root relocation leaves the index unchanged. Readers verify the index version and registration digests and report stale entries as unexamined. No network; existing cache readers keep working without migration. |
+| M81.5 — Artifact-scoped export | `[ ]` | Owns P2-4. Depends on M81.2. Add a new function or options type that exports or materializes selected artifacts by reference, verifies expected digests, includes provider- or spec-scoped security overlays and provenance, handles shared artifacts, and fails closed on a mismatch. Existing exported struct shapes, unkeyed composite literals, and provider-level export behavior stay unchanged. |
+| M81.6 — Documentation and compatibility verification | `[ ]` | Depends on M81.1-M81.5. Update README and architecture for the delivered behavior. Run the verification below and pass the persisted ten-iteration review gate with no open P1/P2-or-higher findings. No separate publication; M80's authorized publication carries M81. |
+
+## Dependencies and ownership
+
+The APItools active order is M81 then M80. Task order is
+M81.1 -> M81.2 -> M81.3 -> M81.4 -> M81.5 -> M81.6; M81.5 depends only on
+M81.2 but stays sequential under one execution owner. No parallel
+implementation or sibling write scope is approved. M81 has no upstream
+prerequisite. M80 starts after every M81 row is complete and its review gate
+has closed.
+
+Kinet's stage 5 draft plan lists only APItools M80 in its cross-package order;
+adding M81 before M80 there is outside this repository and was reported, not
+applied.
+
+## Acceptance and verification
+
+Every row's outcome holds, and existing exported APIs, JSON shapes, and
+`BuildOperationCandidates` behavior and ordering are unchanged.
+
+Required verification:
+
+```bash
+go test ./...
+GOWORK=off go test ./...
+go vet ./...
+GOWORK=off go vet ./...
+go run ./cmd/cataloggen -check
+go run ./cmd/apitools catalog check
+go run ./cmd/apitools catalog index --help
+git diff --check
+```
+
+Run OpenUdon and Udon compatibility checks in workspace and standalone modes
+per tech-stack.md, with Ramen excluded. Default checks stay provider-free and
+offline; the large-artifact measurements are opt-in local checks.
+
+## Review and planning evidence
+
+**Review iterations started:** 0 of at most 10; closing gate not started.
+This is ordinary approved intake, not a bounded-gate pass. Persist the count
+once implementation reaches review and never reset it. An unresolved blocking
+finding at iteration 10 requires user direction.
+
+Assessment used read-only inspection of the code and local cache named above
+and a read-only harness validation of the planning files. No implementation
+verification or milestone review is claimed.
