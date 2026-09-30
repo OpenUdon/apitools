@@ -5,8 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/OpenUdon/apitools"
@@ -54,7 +56,7 @@ func alterDiscoveryNotes(t *testing.T, options *apitools.CatalogDiscoveryOptions
 }
 
 func TestCatalogDiscoveryQualifiedOutcomes(t *testing.T) {
-	for _, name := range []string{"match", "one-term", "weak-overlap", "identity-only", "effect-conflict", "output-conflict", "output-unknown", "unknown-effect", "ambiguous", "ambiguous-limit", "unused-input", "missing-auth", "nullable-output", "field-loss", "actual-effect-unknown"} {
+	for _, name := range []string{"match", "one-term", "weak-overlap", "identity-only", "effect-conflict", "output-conflict", "output-unknown", "unknown-effect", "ambiguous", "ambiguous-limit", "unused-input", "missing-auth", "nullable-output", "field-loss", "actual-effect-unknown", "selected-field-loss"} {
 		t.Run(name, func(t *testing.T) {
 			options := preparedCatalogDiscovery(t)
 			want, count := apitools.CatalogDiscoveryMatch, 1
@@ -63,7 +65,7 @@ func TestCatalogDiscoveryQualifiedOutcomes(t *testing.T) {
 				required := true
 				options.Request.Contract.Inputs = map[string]apitools.ContractValue{"invoice": {Type: "string", Required: &required}}
 				want, count = apitools.CatalogDiscoveryInsufficientEvidence, 0
-			case "missing-auth", "nullable-output", "field-loss", "actual-effect-unknown":
+			case "missing-auth", "nullable-output", "field-loss", "actual-effect-unknown", "selected-field-loss":
 				alterDiscoveryNotes(t, &options, func(doc map[string]any) {
 					op := doc["paths"].(map[string]any)["/notes"].(map[string]any)["get"].(map[string]any)
 					switch name {
@@ -79,9 +81,16 @@ func TestCatalogDiscoveryQualifiedOutcomes(t *testing.T) {
 							properties["notes"].(map[string]any)["nullable"] = true
 						} else {
 							properties["api_key"] = map[string]any{"type": "string"}
+							if name == "selected-field-loss" {
+								schema["required"] = []any{"api_key"}
+							}
 						}
 					}
 				})
+				if name == "selected-field-loss" {
+					required := true
+					options.Request.Contract.Outputs = map[string]apitools.ContractValue{"api_key": {Type: "string", Required: &required}}
+				}
 				if name == "nullable-output" {
 					required := false
 					options.Request.Contract.Outputs = map[string]apitools.ContractValue{"notes": {Type: "array", Required: &required}}
@@ -163,5 +172,50 @@ func TestCatalogDiscoveryPositiveMatchKeepsCoverageGaps(t *testing.T) {
 	report, err = apitools.DiscoverCatalogOperations(context.Background(), options)
 	if err != nil || report.Outcome != apitools.CatalogDiscoveryInsufficientEvidence {
 		t.Fatal("work limit proved absence")
+	}
+}
+
+func TestCatalogDiscoveryRankedOperationPromptBudget(t *testing.T) {
+	options := preparedCatalogDiscovery(t)
+	inputs := map[string]apitools.ContractValue{}
+	alterDiscoveryNotes(t, &options, func(doc map[string]any) {
+		op := doc["paths"].(map[string]any)["/notes"].(map[string]any)["get"].(map[string]any)
+		var parameters []any
+		for i := 0; i < 27; i++ {
+			name := fmt.Sprintf("field%02d", i) + strings.Repeat("x", 193)
+			parameters = append(parameters, map[string]any{"name": name, "in": "query", "required": false, "description": strings.Repeat("x", 50), "schema": map[string]any{"type": "string"}})
+			required := true
+			inputs[name] = apitools.ContractValue{Type: "string", Required: &required}
+		}
+		op["parameters"] = parameters
+	})
+	index, err := apitools.ReadCatalogOperationIndex(context.Background(), options.Index)
+	if err != nil || len(index.Artifacts[0].Operations) != 2 {
+		t.Fatal("source fixture did not produce complete native metadata")
+	}
+	before, _ := json.Marshal(index.Artifacts[0].Operations[0])
+	t.Logf("source-backed operation metadata before contract comparison: %d bytes", len(before))
+	options.Request.Contract.Inputs = inputs
+	report, err := apitools.DiscoverCatalogOperations(context.Background(), options)
+	if err != nil || report.Outcome != apitools.CatalogDiscoveryInsufficientEvidence || report.QualifiedOperations != 0 || !report.Incomplete {
+		t.Fatal("oversized ranked operation qualified or established absence")
+	}
+	found := false
+	for _, diagnostic := range report.Diagnostics {
+		found = found || diagnostic.Code == "discovery.operation_budget"
+	}
+	if !found {
+		t.Fatal("ranked prompt-budget loss missing")
+	}
+	for _, item := range report.Candidates {
+		data, _ := json.Marshal(item.Candidate)
+		if len(data) > apitools.DefaultPromptOperationBytes {
+			t.Fatal("oversized operation reached consumer metadata")
+		}
+	}
+	for _, lead := range report.Leads {
+		if lead.Reference != nil && lead.Reference.Selector != "" {
+			t.Fatal("budget-limited source lead fabricated operation selection")
+		}
 	}
 }

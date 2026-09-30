@@ -10,13 +10,17 @@ import (
 // only the dimension statuses establish qualification.
 func rankCatalogDiscovery(ctx context.Context, evidence catalogDiscoveryLocalEvidence, request CatalogDiscoveryRequest) (CatalogDiscoveryReport, error) {
 	report := evidence.report
-	contract, inputs, outputs, _ := prepareStepContract(request.Contract, resolvedPromptBudget(PromptBudget{}))
+	budget := resolvedPromptBudget(PromptBudget{})
+	budgetLeads := map[string]bool{}
+	operationLimited := false
+	contract, inputs, outputs, _ := prepareStepContract(request.Contract, budget)
 	unresolved := report.Incomplete || len(evidence.candidates) == 0
 	for _, item := range evidence.candidates {
 		if err := ctx.Err(); err != nil {
 			return catalogDiscoveryInterrupted(report, err).report, err
 		}
 		candidate := &item.Candidate
+		metadataLoss := len(item.QualificationGaps) > 0
 		candidate.Match = compareCandidateToContract(*candidate, contract, inputs, outputs)
 		purpose := &candidate.Match.Purpose
 		query := purposeTokens(contract.contract.Purpose)
@@ -56,23 +60,53 @@ func rankCatalogDiscovery(ctx context.Context, evidence catalogDiscoveryLocalEvi
 		}
 		for _, issue := range candidate.Operation.ReadinessIssues {
 			if issue.Code == "prompt.operation_budget" {
+				metadataLoss = true
 				item.QualificationGaps = append(item.QualificationGaps, "operation metadata was compacted; review the source")
 			}
 		}
 		for _, gap := range candidate.Summary.Gaps {
 			if strings.Contains(gap, "omitted") || strings.Contains(gap, "no usable") {
+				metadataLoss = true
 				item.QualificationGaps = append(item.QualificationGaps, "source fields were omitted or lack usable identity; review the source")
 				break
 			}
 		}
 		item.QualificationGaps = uniqueSortedStrings(item.QualificationGaps)
+		if size, err := marshalSize(*candidate); err != nil || size > budget.MaxOperationBytes {
+			unresolved, operationLimited = true, true
+			report.Incomplete, report.Truncated, report.Scope.Complete = true, true, false
+			for _, source := range item.Sources {
+				key := source.ProviderID + "\x00" + source.SpecRefID + "\x00" + source.ArtifactID + "\x00" + candidate.Source.SHA256
+				if budgetLeads[key] {
+					continue
+				}
+				budgetLeads[key] = true
+				lead := CatalogDiscoveryLead{ProviderID: source.ProviderID, SpecRefID: source.SpecRefID, Kind: string(candidate.Source.Kind), Evidence: source, Remote: item.Remote, Reason: "ranked operation exceeds the 32-KiB prompt operation budget; narrow the contract or review the exact source"}
+				for _, ref := range item.References {
+					if ref.ProviderID == source.ProviderID && ref.SpecRefID == source.SpecRefID && ref.ArtifactID == source.ArtifactID {
+						ref.Selector = "" // reference-only source, never an operation selection
+						lead.Reference = &ref
+						break
+					}
+				}
+				report.Leads = append(report.Leads, lead)
+			}
+			continue
+		}
 		item.Qualified = len(item.QualificationGaps) == 0
+		if metadataLoss {
+			unresolved = true
+			report.Incomplete, report.Scope.Complete = true, false
+		}
 		if item.Qualified {
 			report.QualifiedOperations++
 		} else if !hasIncompatibleDimension(candidate.Match) {
 			unresolved = true
 		}
 		report.Candidates = append(report.Candidates, item)
+	}
+	if operationLimited {
+		report.Diagnostics = append(report.Diagnostics, Diagnostic{Severity: "warning", Code: "discovery.operation_budget", Message: "ranked operations exceed the existing prompt operation budget; source evidence remains unexamined"})
 	}
 	sort.Slice(report.Candidates, func(i, j int) bool {
 		left, right := report.Candidates[i], report.Candidates[j]

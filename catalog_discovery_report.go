@@ -5,6 +5,8 @@ import (
 	"sort"
 )
 
+const maxCatalogDiscoveryLinks = 32
+
 // Bound each projection before constructing the complete serialized report.
 // Native metadata is not silently changed to fit a prompt. Omitted evidence
 // makes the scope incomplete; qualification must remain explicit.
@@ -51,16 +53,18 @@ func boundCatalogDiscoveryReport(report CatalogDiscoveryReport) CatalogDiscovery
 			report.Diagnostics = append(report.Diagnostics, item)
 		}
 	}
+	shown := map[int]int{}
 	for i, item := range candidates {
 		if i >= maxResults {
 			report.Truncated = true
 			break
 		}
-		if len(item.References) > 32 || len(item.Sources) > 32 {
+		if len(item.References) > maxCatalogDiscoveryLinks || len(item.Sources) > maxCatalogDiscoveryLinks {
 			loss = true
 			continue
 		}
 		if fit(item) {
+			shown[i] = len(report.Candidates)
 			report.Candidates = append(report.Candidates, item)
 		}
 	}
@@ -95,11 +99,15 @@ func boundCatalogDiscoveryReport(report CatalogDiscoveryReport) CatalogDiscovery
 			report.Exclusions = append(report.Exclusions, item)
 		}
 	}
-	if !loss && len(report.Candidates) == len(candidates) {
-		for _, item := range ties {
-			if fit(item) {
-				report.Ties = append(report.Ties, item)
+	for _, item := range ties {
+		visible := CatalogDiscoveryTie{Score: item.Score}
+		for _, index := range item.CandidateIndexes {
+			if mapped, ok := shown[index]; ok {
+				visible.CandidateIndexes = append(visible.CandidateIndexes, mapped)
 			}
+		}
+		if len(visible.CandidateIndexes) > 1 && fit(visible) {
+			report.Ties = append(report.Ties, visible)
 		}
 	}
 	if loss {

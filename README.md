@@ -433,7 +433,10 @@ constraints and evidence filters narrow scope with named exclusions.
 
 Reports preserve relative native references, auth alternatives and effect
 metadata. A displayed candidate permits at most 32 source/provider links;
-larger projections are omitted with an incomplete-evidence diagnostic. Work-limited coverage is labeled `work_limit`; report omissions
+larger shared groups become reference-only leads and `link_limit` coverage
+before per-operation reference allocation. Narrow provider constraints recover
+supported lookup. Ranked operation metadata retains the existing 32-KiB prompt
+bound; larger operations become source leads with incomplete evidence. Work-limited coverage is labeled `work_limit`; report omissions
 remain incomplete evidence. Raw license notes above 64 KiB are omitted with
 an explicit evidence gap rather than changed and called verbatim. Query
 metadata limits do not imply source/parser failure or negative API evidence.
@@ -447,7 +450,9 @@ limits stay unchanged. JSON bounds/deadlines do not claim hard process RSS.
 Multiple qualified operations remain ambiguous even with a one-result display
 limit. A no-match requires complete scope and definitive conflicts for every
 examined operation. Weak wording, omitted fields, incomplete authentication,
-nullable selected outputs or unknown constrained effects remain insufficient.
+nullable selected outputs or unknown constrained effects remain insufficient. Selected-field sanitation
+loss never establishes an absent field. A selected provider without catalog
+references remains a provider-level lead and unexamined coverage.
 Scores rank evidence without selecting or approving operations. Sorting uses
 canonical provider/spec/artifact/native identity, never host paths.
 Remote lookup needs `request.RemoteLookup` and installation `RemoteEnabled`.
@@ -462,6 +467,28 @@ Remote bytes are ephemeral and need separately approved registration before loca
 export. Provider-constrained remote sources require an exact catalog URL link;
 public catalog labels cannot broaden the selection. Empty/partial remote results
 never establish API absence. No discovery result grants routing or action authority.
+
+### Opt-in local discovery benchmark
+
+Default tests skip the scale benchmark. Select an existing prepared/indexed root
+explicitly; no raw source parsing, network refresh or writes occur during queries.
+`APITOOLS_CATALOG_BENCHMARK_CATALOG=catalog.json` selects a confined custom catalog
+when the index uses one (omit it for the built-in catalog).
+
+```bash
+go run testdata/catalog-root/prepare.go /absolute/new/root --operations 12000
+go run ./cmd/apitools catalog index --root /absolute/new/root --catalog catalog.json
+APITOOLS_CATALOG_BENCHMARK_ROOT=/absolute/new/root \
+APITOOLS_CATALOG_BENCHMARK_CATALOG=catalog.json \
+go test . -run '^$' -bench '^BenchmarkCatalogDiscoveryLocalRoot$' -benchtime=1x
+```
+
+A disposable 12,000-operation synthetic root measured 2.718 seconds/query,
+12,000 examined/qualified operations and 95,668 returned JSON bytes on the
+qualification host. Peak process RSS was 237,792 KiB; Go reported 844,918,144
+cumulative allocated bytes/query. These are observations, not memory or latency
+guarantees. Source, registry and index digests remained unchanged. Large real
+sources' incomplete summaries remain explicit as documented in the M81 evidence.
 
 ## Go Usage
 

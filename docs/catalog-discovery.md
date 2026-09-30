@@ -1,8 +1,8 @@
 # Catalog discovery design
 
 **Status:** M81.1 design approved by the user on 2026-09-30. This document
-specifies future M81/M80 behavior; it does not claim those APIs or commands
-already exist. Baseline: `fdc0a3f2647a0c4488f0c0a6334fb2647aa73447`.
+records the approved design and delivered M81/M80 implementation below;
+M81 is retired and M80 publication qualification is in progress. Design baseline: `fdc0a3f2647a0c4488f0c0a6334fb2647aa73447`.
 
 Owners: [M81 foundations](../tabilet/docs/history/status-M81.md) and
 [M80 discovery](../tabilet/memory-bank/status-M80.md). APItools implements
@@ -15,7 +15,7 @@ rank, license note or discovery outcome grants execution authority.
 Add a separate `apitools.catalog-discovery/v1` request/report contract using
 the existing `StepContract`. Existing candidate requests, exported struct
 shapes, JSON wires, parser defaults and ranking behavior remain unchanged.
-New names below are proposed contract names, not existing Go declarations.
+The additive Go declarations and delivered behavior are documented below.
 
 Request fields:
 
@@ -416,3 +416,25 @@ before downloading source documents. Empty, failed, timed-out or partially parse
 remote results remain insufficient unless other operations qualify. Unsafe
 URLs/transports/redirects block; caller cancellation clears positive results.
 Local HTTP fixtures verify these paths without network/provider/model operations.
+
+### Scale and projection qualification (M80.5)
+
+The opt-in root benchmark and synthetic preparation recipe are in README.
+Qualification used a complete 12,000-operation index (one shared artifact, no
+unexamined entries), exceeding the older whole-source ranking count limit.
+The query reported all qualification counts before projecting 20 displayed
+candidates; ambiguity stayed explicit. Visible tied indexes are remapped to the
+returned candidate array, even when a larger candidate cannot fit. Projection
+loss never fabricates uniqueness or turns partial comparisons into absence.
+The measured evidence is a baseline, not a general throughput or RSS guarantee.
+
+Iteration 1 qualification tightened metadata-loss handling: removed selected
+fields never establish absence; providers without references retain explicit
+unexamined coverage rather than borrowing another provider's completeness.
+Discovery canonicalizes validated index arrays before bounded traversal, so
+input order cannot change checked operations or shared reference order. Wrapped
+remote timeouts retain their explicit classification. Shared groups beyond 32
+allowed links become reference-only leads with `link_limit` coverage before
+per-operation allocation; a narrower provider constraint can recover lookup.
+The existing 32-KiB operation prompt budget is reapplied after rank evidence is
+added, with oversized operations replaced by source leads/incomplete evidence.

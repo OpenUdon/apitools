@@ -105,7 +105,7 @@ func TestCatalogDiscoveryRemoteOptInAndProvenance(t *testing.T) {
 }
 
 func TestCatalogDiscoveryRemoteFailureScopeAndSafety(t *testing.T) {
-	for _, name := range []string{"empty", "invalid-spec", "oversize", "timeout", "cancel", "unsafe-list", "unsafe-source", "userinfo", "redirect", "constrained", "filtered"} {
+	for _, name := range []string{"empty", "invalid-spec", "oversize", "timeout", "cancel", "unsafe-list", "unsafe-source", "userinfo", "redirect", "constrained", "filtered", "transport-timeout"} {
 		t.Run(name, func(t *testing.T) {
 			var sourceCalls atomic.Int32
 			var server *httptest.Server
@@ -130,6 +130,10 @@ func TestCatalogDiscoveryRemoteFailureScopeAndSafety(t *testing.T) {
 					return
 				}
 				sourceCalls.Add(1)
+				if name == "transport-timeout" {
+					<-r.Context().Done()
+					return
+				}
 				if name == "redirect" {
 					http.Redirect(w, r, "file:///private/spec.json", 302)
 					return
@@ -154,6 +158,8 @@ func TestCatalogDiscoveryRemoteFailureScopeAndSafety(t *testing.T) {
 				want = apitools.CatalogDiscoveryBlocked
 			case "oversize":
 				options.RemoteClient.MaxBytes = 1024
+			case "transport-timeout":
+				options.RemoteClient.HTTPClient = &http.Client{Timeout: 20 * time.Millisecond}
 			case "timeout":
 				options.Request.Limits.TimeoutMillis = 20
 			case "constrained":
@@ -180,6 +186,15 @@ func TestCatalogDiscoveryRemoteFailureScopeAndSafety(t *testing.T) {
 			}
 			if (name == "constrained" || name == "filtered") && (sourceCalls.Load() != 0 || len(report.Exclusions) == 0) {
 				t.Fatal("remote lookup broadened constrained scope or bypassed filters")
+			}
+			if name == "transport-timeout" {
+				found := false
+				for _, diagnostic := range report.Diagnostics {
+					found = found || diagnostic.Code == "discovery.remote_timeout"
+				}
+				if !found {
+					t.Fatal("wrapped transport timeout lost explicit timeout evidence")
+				}
 			}
 			if name == "invalid-spec" && (len(report.Leads) == 0 || report.Leads[0].Remote == nil) {
 				t.Fatal("unparsed source identity lost")

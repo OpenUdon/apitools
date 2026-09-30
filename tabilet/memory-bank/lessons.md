@@ -35,11 +35,17 @@ need no journal entry or separate archive run.
 - **Applies when:** Building indexed discovery over heterogeneous or large
   registered API specifications.
 - **Lesson:** Bind derived operations to verified raw identity and record every
-  reference's coverage separately. Preserve positive metadata from partially
+  reference's coverage separately. Selected providers with no references also
+  remain unexamined; curated availability is not absence proof. Preserve
+  positive metadata from partially
   summarized sources while keeping their scope unexamined. Missing/stale or
-  unsupported sources cannot establish that no qualifying API exists.
+  unsupported sources cannot establish that no qualifying API exists. Apply
+  query link and per-operation prompt bounds before multiplicative allocation
+  or publication; removed selected fields cannot become known absence.
 - **Why it matters:** A valid large source can exceed schema-summary budgets
   even when it fits a raised byte limit. Counting retained candidates as full
   coverage would silently authorize downstream fallback on missing evidence.
 - **Evidence:** [M81 task/review record](../docs/history/status-M81.md), including local large
-  artifact measurements and index coverage, drift and failure regressions.
+  artifact measurements and index coverage, drift and failure regressions;
+  [M80 review findings](status-M80.md) and the source-backed field-loss,
+  no-reference provider, shared-link and prompt-budget regressions.

@@ -182,7 +182,7 @@ Both exposed incomplete operation summaries rather than suppressing gaps.
 M81.2's focused root/registration gate is `go test ./catalog ./sqlitecache`.
 `go run testdata/catalog-root/prepare.go /absolute/new/directory` creates an
 explicit new disposable synthetic root without fetching documents. No new
-module dependency is used. The operation index command is pending M81.4.
+module dependency is used. The offline operation index command is delivered by M81.4.
 
 | Harness | Command | What it proves | Requirements |
 |---|---|---|---|
@@ -244,3 +244,19 @@ module dependency is used. The operation index command is pending M81.4.
   independently of evaluated-operation work. Raw license notes are retained up
   to 64 KiB, otherwise emitted as a named evidence gap. Query work limits use
   `work_limit` report coverage; stale registrations remove indexed candidates.
+
+- The explicitly selected `BenchmarkCatalogDiscoveryLocalRoot` skips unless
+  `APITOOLS_CATALOG_BENCHMARK_ROOT` names a populated/indexed root. Optional
+  `APITOOLS_CATALOG_BENCHMARK_CATALOG` is one confined root-relative filename.
+  The synthetic preparation recipe supports `--operations 12000` (1–100,000
+  generated operations) in a new directory; it updates exact registrations.
+  The benchmark reads metadata only. The 12,000-operation qualification run
+  measured 2.718 seconds/query and 237,792 KiB peak process RSS; observations
+  are not hard performance/memory bounds. Source/registry/index digests were
+  unchanged. README has the exact command and allocation/report-size evidence.
+
+- Discovery applies its 32-link shared-source limit before per-operation
+  reference allocation, emits `link_limit` coverage and supports narrowing via
+  exact provider constraints. The existing 32-KiB operation prompt budget is
+  reapplied after typed rank evidence; oversized operations stay source leads.
+  Registered source/index parser ceilings are unchanged by these query limits.

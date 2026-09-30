@@ -87,8 +87,8 @@ by OpenUdon M89. OpenUdon M89's published implementation at
 check and is retired in published closure commit
 `0c7c5d33da2ba7b190954b9eb402cc14b5ec1f73`. M80 is active approved work (2026-09-30). Prerequisite M81 completed and retired
 after review iteration 3 at qualified source
-`8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6`. M80 is reconciled and ready to
-start under the confirmed Stage 5 goal. Latest completed milestone: M81; see
+`8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6`. M80 is reconciled to that source; its discovery implementation and review
+are qualified under the confirmed Stage 5 goal, with publication pending. Latest completed milestone: M81; see
 the history index below. M81 publication is carried by M80, not a separate gate.
 Apitools and Authoring are published, and OpenUdon passes standalone test/vet
 against its pinned APItools revision.
@@ -125,7 +125,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M80 | [status-M80.md](status-M80.md) | In progress; M80.1–M80.2 complete, ranking/remote/qualification pending. |
+| M80 | [status-M80.md](status-M80.md) | In progress; M80.1–M80.4 complete; qualification review passed, publication pending. |
 
 Closed milestones are recorded in the history index.
 

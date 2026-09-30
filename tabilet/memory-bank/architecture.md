@@ -542,8 +542,8 @@ unexamined coverage; a large artifact is not automatically complete evidence.
 M81.4 consumes these helpers and preserves that distinction in its index.
 
 M81.2 adds `catalog.RootOptions`/`ResolveRoot` for explicit root, registry and
-index path configuration. No root selects no implicit directory; future M80
-discovery must return metadata-only leads and insufficient evidence. The
+index path configuration. No root selects no implicit directory; M80
+discovery returns metadata-only leads and insufficient evidence. The
 selected root rejects symlinks at or below it while resolving symlinked
 ancestors. Relative registry/index paths cannot overlap or escape the root.
 Resolution creates no files. `sqlitecache.ReadCatalogArtifacts` uses a
@@ -551,8 +551,8 @@ read-only SQLite transaction and shared row validation without migration,
 pruning or access-time updates, including legacy registry schemas 1–3; newer
 schemas refuse. Snapshot bounds are five seconds, 10,000 rows and 32 MiB
 aggregate registration text before decoding. Missing registry/index remains
-missing evidence. Discovery is pending M80; M81 index generation/read/publication
-and selected-artifact export are delivered. The synthetic shared-artifact fixture
+missing evidence. M80 discovery and M81 index generation/read/publication
+and selected-artifact export are delivered; release publication is pending. The synthetic shared-artifact fixture
 is under `testdata/catalog-root` with an explicit disposable preparation recipe.
 
 - Go module path: `github.com/OpenUdon/apitools`.
@@ -753,3 +753,13 @@ duplicates count once. Constrained providers need an exact catalog URL link;
 filters exclude named evidence before source fetching. Partial/empty/failing
 remote lookup never proves absence. Unsafe configuration/URLs block; caller
 cancellation clears positives. No remote bytes are registered or persisted.
+
+Discovery canonicalizes equivalent validated index arrays before bounded
+traversal and source-reference selection. Query coverage includes selected
+providers without catalog references as unsupported provider-level evidence,
+unless an explicit evidence filter excludes them. Critical metadata loss cannot
+turn a sanitized absent field into complete negative evidence. Shared groups
+above 32 allowed links become leads/`link_limit` coverage before multiplying
+references across operations. Ranking reapplies the existing 32-KiB operation
+prompt budget after comparison, replacing oversized operations with exact source
+leads and incomplete evidence. Wrapped remote timeout diagnostics remain explicit.

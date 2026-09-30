@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"strings"
 	"time"
 
@@ -183,7 +184,9 @@ func catalogDiscoveryRemoteFailure(evidence catalogDiscoveryLocalEvidence, err e
 		}
 	}
 	code := "discovery.remote_failed"
-	if err == context.Canceled || err == context.DeadlineExceeded {
+	if errors.Is(err, context.DeadlineExceeded) {
+		code = "discovery.remote_timeout"
+	} else if errors.Is(err, context.Canceled) {
 		code = "discovery.remote_interrupted"
 	}
 	evidence.report.Diagnostics = append(evidence.report.Diagnostics, Diagnostic{Severity: "warning", Code: code, Message: "bounded remote lookup did not complete; no absence claim is supported"})

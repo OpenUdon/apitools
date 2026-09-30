@@ -3,7 +3,7 @@
 **State:** Execution started, 2026-09-30, under the confirmed Stage 5 goal.
 M81 is retired at closure `d32995f628b9bdf91b6963d566fbac9c16fe6afe`
 (qualified source `8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6`). M80.1 is
-complete; M80.2–M80.3 are complete; M80.4 is complete; M80.5 is pending. No publication or closing review started.
+complete; M80.2–M80.3 are complete; M80.4 is complete; M80.5 is in progress. No publication started; closing review iteration 2 passed; exact-source consumer requalification and publication checkpoint remain.
 
 **Specification:** [M80](milestone.md#m80--catalog-discovery-api-for-step-contracts).
 
@@ -58,7 +58,7 @@ recorded at the first intake are marked as such.
 | M80.2 — Local catalog retrieval | `[+]` | Owns F01, F02's retrieval part, F04's local part, and the M80 part of P2-1. Depends on M80.1. Read the M81 operation index under an explicitly supplied root, with no per-call parsing of catalog artifacts. Verify the index version and registration digests; report stale, oversized, missing, invalid, or unsupported artifacts as unexamined scope. Without a root, return metadata-only provider leads and insufficient evidence naming what would resolve it. Return authority, license/redistribution evidence or explicit unknowns, authentication needs, effect, and source-qualified ranking inputs. Keep artifacts without indexed operations as reference-only leads; record coverage, exclusions, missing evidence, and limits; bound local time and memory. Evidence: `operation_candidates.go` requires explicit sources; M81.4 supplies the index. |
 | M80.3 — Contract ranking and outcomes | `[+]` | Owns F03 and the M80 parts of P2-5, P2-6, and L1. Depends on M80.2. Reuse `prepareStepContract` and dimension matching over index entries with exact digests and native selectors. Apply the approved qualification rule so one shared purpose term cannot make a match; report ambiguity; break ties on catalog-stable identity, never machine paths. Distinguish match, ambiguous, no qualifying API within the checked scope, insufficient evidence, and blocked; only a scoped no-match is browser-routable, and curated catalog facts are evidence only. Add iCoT `CatalogPlan`-parity fixtures for named providers and a small labeled relevance set derived from OpenUdon `examples/eval` step shapes (no user data), recording precision@k as a baseline. Evidence: `operation_rank.go:276-297,803-826,845-846`. Browser routing, provisioning, account choices, approval, and execution remain downstream. |
 | M80.4 — Opt-in remote lookup | `[+]` | Owns F04's remote part. Depends on M80.3. Default to offline with no lookup or implicit provisioning; explicitly configured lookup initially uses APIs.guru through existing guarded search/download. Bound total network time to eight seconds, fetched source documents to three, and each document to 20 MiB, matching iCoT's remote lookup (OpenUdon `internal/icot/elicitor/remote_sources.go`). Report each remote result's fetched digest and final URL. Preserve safe URL/redirect/dial-time checks and parser/prompt limits; report cancellation, timeout, empty results, and partial evidence. Keep remote/public-catalog provenance distinct from reviewed official or docs-derived sources. Evidence: `client.go`, `download.go`, `remote_discovery.go`, and `operation_candidates.go`. Use local-server fixtures only; no general crawling, credentials, or provider operations. |
-| M80.5 — Qualification and publication handoff | `[ ]` | Owns F05. Depends on M80.1-M80.4. Run the verification below, including an opt-in, provider-free scale benchmark over a populated local root; document the additive contract and evidence limitations; and pass the persisted ten-iteration review gate with no open P1/P2-or-higher findings. Qualify existing OpenUdon/Udon consumers without depending on future M94 implementation; Ramen is excluded. The handoff states that consumers supply the catalog root explicitly and must not rely on iCoT's sibling-checkout default. Publication remains a required handoff but requires separate explicit commit/push/publication authority; it carries M81's changes. Record the actual accepted full revision and module version once authorized and published. OpenUdon's proposed M94 owns exact-pin adoption; APItools does not edit sibling ledgers or code. Evidence: the Kinet stage 5 draft plan's OpenUdon M94 status waits for accepted, published M80. Do not complete the publication portion without authority and observed evidence. |
+| M80.5 — Qualification and publication handoff | `[~]` | Owns F05. Depends on M80.1-M80.4. Run the verification below, including an opt-in, provider-free scale benchmark over a populated local root; document the additive contract and evidence limitations; and pass the persisted ten-iteration review gate with no open P1/P2-or-higher findings. Qualify existing OpenUdon/Udon consumers without depending on future M94 implementation; Ramen is excluded. The handoff states that consumers supply the catalog root explicitly and must not rely on iCoT's sibling-checkout default. Publication remains a required handoff but requires separate explicit commit/push/publication authority; it carries M81's changes. Record the actual accepted full revision and module version once authorized and published. OpenUdon's proposed M94 owns exact-pin adoption; APItools does not edit sibling ledgers or code. Evidence: the Kinet stage 5 draft plan's OpenUdon M94 status waits for accepted, published M80. Do not complete the publication portion without authority and observed evidence. |
 
 ## Dependencies and ownership
 
@@ -122,7 +122,7 @@ actions; planning approval and a status marker grant none.
 
 ## Review and planning evidence
 
-**Review iterations started:** 0 of at most 10; closing gate not started.
+**Review iterations started:** 2 of at most 10; iteration 1 findings fixed and verified; iteration 2 passed with no open P1/P2 findings.
 Both intakes are ordinary approved intake, not bounded-gate passes. Persist
 and resume the count once implementation reaches review, including any
 qualification, publication, and closure review passes; never reset it. An
@@ -283,3 +283,147 @@ unsafe lists/sources/userinfo/redirects, provider constraints and filtering.
 APItools full workspace/standalone tests/vet and OpenUdon/Udon full workspace
 consumer tests pass; diff checks pass. No external network, models, provider
 operations, credentials or sibling changes. Closing review remains 0/10.
+
+### M80.5 qualification and review — iteration 1 started, 2026-09-30
+
+All prior task rows are committed. Qualification includes the new opt-in scale
+benchmark, visible-tie projection remapping and associated evidence below.
+Required APItools workspace/standalone tests and vet, catalog generator/quality,
+search/import help and diff checks pass. Existing OpenUdon/Udon workspace suites
+pass. OpenUdon literal standalone tests and standalone actual-current-APItools
+adoption tests pass (`/tmp/openudon-m80-final-adoption-p222qx85/test.log`). Udon
+standalone actual adoption passes via a disposable modfile, preserving its
+original modules (`/tmp/udon-m80-final-standalone-8zsa5dqr/test.log`); its preexisting
+literal module-update requirement is unchanged, as recorded at M81. This does
+not claim future M94 discovery/adoption qualification. No sibling module or
+ledger was changed by the producer checks.
+
+The explicitly invoked provider-free populated-root benchmark prepared a new
+12,000-operation synthetic artifact with exact registrations and a complete M81
+index (one shared artifact, zero unexamined entries). It measured 2.724309939
+seconds/query, 12,000 examined/qualified operations, 95,668 JSON report bytes,
+787,978,664 total allocated bytes/query and 237,676 KiB maximum process RSS.
+Source, registry and index digests were byte-identical before/after querying.
+Evidence: `/tmp/apitools-m80-scale-rqhtf1mj/{index.json,query.txt,query-memory.txt,before.json}`.
+These are observations, not throughput or RSS guarantees. Default tests skip
+this benchmark unless the operator selects an existing indexed root. The fixture
+preparation recipe optionally generates 1–100,000 operations in a new directory.
+
+Iteration 1 now reviews all M80 implementation and uncommitted qualification
+changes against the full scope, safety/compatibility/failure semantics, tests,
+documentation and precise upstream contract. Publication and retirement are
+still incomplete; M80.5 remains the sole in-progress row.
+
+#### Review iteration 1 findings — recorded before fixes
+
+- P2 R80-1: Selected field removal can become a false scoped no-match. Existing
+  summaries omit credential-shaped fields; the output comparator can then call
+  the requested removed field definitively absent. Qualification rejects the
+  lossy candidate, but no-match evaluation still trusts that incompatible
+  dimension. Owner: M80.5. Require unresolved metadata loss to remain insufficient
+  rather than proving absence, with a raw-source-backed selected-field fixture.
+- P2 R80-2: Wrapped remote timeout/cancellation errors use equality rather than
+  `errors.Is`, losing the explicit timeout classification despite incomplete
+  scope. Owner: M80.5. Preserve wrapped cancellation/timeout diagnostics and
+  verify a local-server transport-timeout path.
+- Review of stable ordering, work-limit traversal and scope documentation is
+  still in progress at iteration 1; do not advance or reset the counter.
+
+- P2 R80-3: The M81 reader accepts equivalent index arrays in any order, but
+  discovery uses their stored operation/link order for work-limit traversal
+  and shared references. A valid permuted index changes report ordering and
+  potentially outcomes under a work cap. Owner: M80.5. Canonicalize discovery's
+  traversal/reference order without altering M81 storage and verify equivalent
+  arrays with and without a work cap.
+
+- P2 R80-4: A valid catalog provider may have no source references (unknown or
+  unavailable availability). M81 correctly covers catalog references, but
+  discovery omits that selected provider's unexamined scope. Alongside complete
+  conflicting operations from another provider, it can incorrectly report a
+  complete no-match. Owner: M80.5. Retain a provider-level lead/unsupported
+  coverage or an explicit filter exclusion; curated unavailability never proves
+  API absence. Verify an indexed mixed-provider scope and no-root leads.
+
+- P2 R80-5: Discovery's global context projection does not reapply the existing
+  32-KiB per-operation prompt bound after typed comparison adds rank evidence.
+  A candidate can fit the global report but exceed the existing operation
+  budget. Owner: M80.5. Keep oversized ranked operations as reference-only
+  source leads with incomplete evidence; never expose an oversized operation
+  or turn its omission into a no-match. Verify a contract-expanded candidate.
+- P2 R80-6: Retrieval copies all shared provider references for every operation
+  before the 32-link display guard runs. A valid large shared group can multiply
+  reference memory far beyond the query's intended bounds. Owner: M80.5. Apply
+  the existing 32-link limit before per-operation allocation, retain all allowed
+  source links as leads with named unexamined coverage, and allow an explicit
+  narrower provider constraint to recover supported operation retrieval.
+
+#### Review iteration 1 fixes applied — required verification passed
+
+R80-1 now treats critical metadata loss as incomplete evidence even when retained
+comparisons look incompatible; the raw required `api_key` output regression
+reproduced false no-match before the fix and now passes. R80-2 uses wrapped error
+classification and a dedicated remote-timeout diagnostic, exercised with a local
+transport timeout. R80-3 canonicalizes index link, operation and artifact order
+before query traversal; permuted arrays reproduced report differences before
+fixing, and now serialize identically with and without a work cap. R80-4 retains
+provider-level unsupported coverage/leads (or named exclusions), including
+no-root lookup; the mixed-scope no-reference regression reproduced the issue.
+R80-5 reapplies the 32-KiB ranked-operation bound, replacing oversized operations
+with reference-only leads rather than publishing oversized prompt metadata or
+negative evidence. R80-6 applies the 32-link limit before per-operation reference
+copies; a 33-provider source stays unexamined with all links as leads, and a
+single-provider constraint recovers the supported query. Current product,
+architecture, technical docs, README/design and durable coverage lesson match
+these contracts. Focused verification passes; the required full checks and
+iteration-2 whole-milestone review remain before qualification.
+
+#### Review iteration 1 verification complete; iteration 2 started
+
+All six recorded P2 findings have fixes and focused regressions. The operation
+budget fixture is source-backed and measures 27,609 bytes before comparison;
+rank evidence crosses the existing 32-KiB limit, so no oversized operation is
+published. Full workspace/standalone APItools tests/vet, catalog generator/quality
+and diff checks pass after these fixes. The repeated populated-root benchmark
+still examines/qualifies 12,000 operations and preserves source/registry/index
+digests. After fixes: 2.717633410 seconds/query, 95,668 report bytes, 844,918,144
+cumulative allocation bytes/query and 237,792 KiB maximum process RSS.
+Evidence: `/tmp/apitools-m80-scale-rqhtf1mj/query-review-fixes{,-memory}.txt`.
+The earlier measurements are retained, not overwritten or relabeled. Iteration
+2 now reviews the complete M80 implementation, source-backed coverage, prompt
+and work bounds, and all iteration-1 fixes. Publication remains unstarted.
+
+#### Review iteration 2 passed — publication remains pending
+
+Reviewed the full additive request/decoder, local retrieval and registration
+identity checks, dimension ranking and scoped outcomes, guarded opt-in remote
+lookup, bounded projection/ties, selected-artifact round trip, offline/default
+safety, all source-backed fixtures, consumer compatibility, resource observations
+and documentation. All six iteration-1 P2 findings remain fixed with regressions.
+No open P1/P2-or-higher finding remains. Corrected stale introductory descriptions
+that still called the delivered APIs pending; historical design baseline remains.
+This is qualified implementation review, not publication or milestone acceptance.
+M80.5 remains in progress until the exact outgoing diff checkpoint, authorized
+fast-forward publication, observed full revision/module version, and closure.
+Evolution v25 already records this approved direction; no boundary or target
+change requires another snapshot.
+
+#### Final qualified-source verification — before publication checkpoint
+
+APItools full tests and vet pass in workspace and standalone modes after all
+review fixes. Catalog generation is current; catalog quality reports zero
+errors/warnings; unchanged search/import help and `git diff --check` pass.
+OpenUdon full workspace, literal standalone published-pin, and actual APItools
+worktree adoption through a disposable replacement modfile pass. Udon full
+workspace and standalone current-source adoption through its disposable modfile
+pass. Its existing standalone module-metadata gap is confined to that temporary
+modfile; no consumer go.mod/go.sum or tracked source/ledger changed. Udon's
+untracked `cmd/udon/tmp/` test output is preserved and excluded from all commits.
+Final logs: `/tmp/apitools-m80-review2-{workspace,standalone}.log`,
+`/tmp/openudon-m80-review2-{workspace,published-pin,adoption}.log`, and
+`/tmp/udon-m80-review2-{workspace,adoption}.log`. All checks are provider/model-free.
+No live remote lookup, sibling implementation, publication or launch occurred.
+
+The qualification source commit is the prerequisite artifact for the required
+publication task: it does not close M80.5. Its observed full revision will be
+shown with the exact outgoing diff at the human checkpoint. Publication, module
+identity, downstream handoff and retirement remain incomplete.

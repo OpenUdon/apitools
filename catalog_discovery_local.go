@@ -122,15 +122,35 @@ func retrieveCatalogDiscovery(ctx context.Context, options CatalogDiscoveryOptio
 		}
 		return catalogDiscoveryRefusal(report, "discovery.index_invalid", "catalog operation index or registration identity is invalid"), nil
 	}
+	// Equivalent validated index arrays must yield the same checked prefix
+	// under a work limit and the same catalog reference ordering.
+	for i := range index.Artifacts {
+		artifact := &index.Artifacts[i]
+		sort.Slice(artifact.Links, func(i, j int) bool {
+			left, right := artifact.Links[i], artifact.Links[j]
+			return left.ProviderID+"\x00"+left.SpecRefID+"\x00"+left.ArtifactID < right.ProviderID+"\x00"+right.SpecRefID+"\x00"+right.ArtifactID
+		})
+		sort.Slice(artifact.Operations, func(i, j int) bool {
+			return artifact.Operations[i].Source.Selector < artifact.Operations[j].Source.Selector
+		})
+	}
+	sort.Slice(index.Artifacts, func(i, j int) bool {
+		left, right := index.Artifacts[i], index.Artifacts[j]
+		return left.ArtifactID+"\x00"+string(left.Kind)+"\x00"+left.SHA256+fmt.Sprint(left.Bytes) < right.ArtifactID+"\x00"+string(right.Kind)+"\x00"+right.SHA256+fmt.Sprint(right.Bytes)
+	})
 	scope := map[string]bool{}
 	for _, id := range ids {
 		scope[id] = true
 	}
 	allowed := map[string]bool{}
 	workLimited := map[string]bool{}
+	linkLimited := map[string]bool{}
 	providerByID := map[string]catalog.Provider{}
 	for _, provider := range cat.ListProviders() {
 		providerByID[provider.ID] = provider
+		if scope[provider.ID] && len(provider.SpecReferences) == 0 {
+			report = catalogDiscoveryUnreferencedProvider(report, provider, options.Request.Filters)
+		}
 	}
 	for _, artifact := range index.Artifacts {
 		if err := ctx.Err(); err != nil {
@@ -163,6 +183,14 @@ func retrieveCatalogDiscovery(ctx context.Context, options CatalogDiscoveryOptio
 			}
 		}
 		if len(refs) == 0 {
+			continue
+		}
+		if len(refs) > maxCatalogDiscoveryLinks {
+			report.Incomplete, report.Truncated = true, true
+			for i, ref := range refs {
+				linkLimited[ref.ProviderID+"\x00"+ref.SpecRefID+"\x00"+ref.ArtifactID] = true
+				report.Leads = append(report.Leads, CatalogDiscoveryLead{ProviderID: ref.ProviderID, SpecRefID: ref.SpecRefID, Kind: string(ref.Kind), Reference: &refs[i], Evidence: sources[i], Reason: "shared source exceeds the 32-link query limit; narrow the provider constraint"})
+			}
 			continue
 		}
 		sanitized := map[string]bool{}
@@ -222,6 +250,10 @@ func retrieveCatalogDiscovery(ctx context.Context, options CatalogDiscoveryOptio
 			coverage.State = "work_limit"
 			coverage.Reason = "operation work limit left this registered scope unexamined"
 		}
+		if linkLimited[key] {
+			coverage.State = "link_limit"
+			coverage.Reason = "shared source provider links exceed the query projection limit"
+		}
 		report.Coverage = append(report.Coverage, coverage)
 		if coverage.State != "indexed" {
 			report.Incomplete = true
@@ -231,8 +263,11 @@ func retrieveCatalogDiscovery(ctx context.Context, options CatalogDiscoveryOptio
 		report.Incomplete = true
 		report.Diagnostics = append(report.Diagnostics, Diagnostic{Severity: "warning", Code: "discovery.operations_unexamined", Message: "no selected source-backed operations were examined"})
 	}
-	if report.Truncated {
+	if len(workLimited) > 0 {
 		report.Diagnostics = append(report.Diagnostics, Diagnostic{Severity: "warning", Code: "discovery.work_limit", Message: "the operation work limit left relevant scope unexamined"})
+	}
+	if len(linkLimited) > 0 {
+		report.Diagnostics = append(report.Diagnostics, Diagnostic{Severity: "warning", Code: "discovery.link_limit", Message: "shared sources exceed 32 provider links; constrain providers before operation comparison"})
 	}
 	report.Scope.Complete = !report.Incomplete
 	sortCatalogCoverage(report.Coverage)
@@ -293,6 +328,9 @@ func missingCatalogDiscoveryEvidence(report CatalogDiscoveryReport, cat catalog.
 		if !scope[provider.ID] {
 			continue
 		}
+		if len(provider.SpecReferences) == 0 {
+			report = catalogDiscoveryUnreferencedProvider(report, provider, filters)
+		}
 		for _, ref := range provider.SpecReferences {
 			evidence := catalogDiscoverySourceEvidence(provider, ref.ID, "", false)
 			if reason := catalogDiscoveryFilterExclusion(evidence, filters); reason != "" {
@@ -306,6 +344,19 @@ func missingCatalogDiscoveryEvidence(report CatalogDiscoveryReport, cat catalog.
 	report.Incomplete = true
 	report.Scope.Complete = false
 	report.Diagnostics = append(report.Diagnostics, Diagnostic{Severity: "warning", Code: code, Message: message})
+	return report
+}
+
+func catalogDiscoveryUnreferencedProvider(report CatalogDiscoveryReport, provider catalog.Provider, filters CatalogDiscoveryFilters) CatalogDiscoveryReport {
+	evidence := catalogDiscoverySourceEvidence(provider, "", "", false)
+	if reason := catalogDiscoveryFilterExclusion(evidence, filters); reason != "" {
+		report.Exclusions = append(report.Exclusions, CatalogDiscoveryExclusion{ProviderID: provider.ID, Reason: reason})
+		return report
+	}
+	reason := "provider has no catalog source references; supply reviewed source metadata rather than infer API absence"
+	report.Leads = append(report.Leads, CatalogDiscoveryLead{ProviderID: provider.ID, DisplayName: provider.DisplayName, Reason: reason, Evidence: evidence})
+	report.Coverage = append(report.Coverage, CatalogIndexCoverage{ProviderID: provider.ID, State: "unsupported", Reason: reason})
+	report.Incomplete, report.Scope.Complete = true, false
 	return report
 }
 

@@ -23,7 +23,9 @@ execution.
 - **Explicit catalog root**: operator configuration identifying the local
   artifact registry and deterministic offline operation index. Metadata reads never select a
   sibling checkout implicitly and never migrate, prune or update registrations.
-  No-root discovery remains pending M80 and must report insufficient evidence.
+  Local no-root lookup returns metadata-only leads and insufficient evidence.
+  An explicitly enabled remote tier may add independent source evidence while
+  coverage remains incomplete.
 
 - **OpenAPI document**: an OpenAPI 3.x or Swagger 2.0 document loaded from a
   URL, public catalog, cache, or local file.
@@ -44,6 +46,14 @@ execution.
   only when the caller supplies a provider URL or hostname. Catalog results
   remain unvalidated until the original source document is downloaded through
   the normal import validator.
+- **Catalog step discovery**: an advisory, versioned query over the offline
+  operation index for documented purpose, typed inputs/outputs and effects.
+  It reports match, ambiguity, scoped no-match, insufficient evidence or a
+  blocker. Scores do not select or approve an operation. Native references
+  bind registered local sources; ephemeral remote evidence requires separate
+  provisioning. Unknown licenses, redistribution and unsupported semantics
+  remain explicit. Only complete negative evidence permits downstream automatic
+  browser routing; this package performs no routing or execution.
 - **Operation inventory**: deterministic summaries of documents, operations,
   parameters, request bodies, response fields, and security requirements.
 - **Step-candidate metadata contract**: a versioned, source-qualified record

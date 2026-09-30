@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -186,5 +187,118 @@ func TestCatalogDiscoveryFiltersAndWorkReportBounds(t *testing.T) {
 				t.Fatal("oversized raw evidence altered or hidden")
 			}
 		}
+	}
+}
+
+func TestCatalogDiscoveryIndexPermutationAndBoundedTraversal(t *testing.T) {
+	for _, limit := range []int{0, 1} {
+		options := preparedCatalogDiscovery(t)
+		options.Request.Limits.MaxOperations = limit
+		before, err := apitools.DiscoverCatalogOperations(context.Background(), options)
+		if err != nil {
+			t.Fatal(err)
+		}
+		index, err := apitools.ReadCatalogOperationIndex(context.Background(), options.Index)
+		if err != nil {
+			t.Fatal(err)
+		}
+		artifact := &index.Artifacts[0]
+		artifact.Links[0], artifact.Links[1] = artifact.Links[1], artifact.Links[0]
+		artifact.Operations[0], artifact.Operations[1] = artifact.Operations[1], artifact.Operations[0]
+		index.Coverage[0], index.Coverage[1] = index.Coverage[1], index.Coverage[0]
+		if err := apitools.WriteCatalogOperationIndex(context.Background(), options.Index, index); err != nil {
+			t.Fatal(err)
+		}
+		after, err := apitools.DiscoverCatalogOperations(context.Background(), options)
+		if err != nil {
+			t.Fatal(err)
+		}
+		a, _ := json.Marshal(before)
+		b, _ := json.Marshal(after)
+		if !bytes.Equal(a, b) {
+			t.Fatalf("valid index permutation changed discovery under operation limit %d", limit)
+		}
+	}
+}
+
+func TestCatalogDiscoveryProviderWithoutReferencesRemainsUnexamined(t *testing.T) {
+	options := preparedCatalogDiscovery(t)
+	provider := options.Index.Catalog.Providers[0]
+	provider.ID, provider.DisplayName, provider.CandidateID = "unreferenced", "Unreferenced Service", "unreferenced"
+	provider.SpecReferences = nil
+	provider.OfficialOpenAPIAvailability = catalog.SpecAvailabilityUnavailable
+	options.Index.Catalog.Providers = append(options.Index.Catalog.Providers, provider)
+	index, err := apitools.BuildCatalogOperationIndex(context.Background(), options.Index)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := apitools.WriteCatalogOperationIndex(context.Background(), options.Index, index); err != nil {
+		t.Fatal(err)
+	}
+	options.Request.Contract.Effect = apitools.OperationEffectWrite
+	report, err := apitools.DiscoverCatalogOperations(context.Background(), options)
+	if err != nil || report.Outcome != apitools.CatalogDiscoveryInsufficientEvidence || !report.Incomplete || report.Scope.Complete {
+		t.Fatal("curated no-reference provider established complete API absence")
+	}
+	found := false
+	for _, item := range report.Coverage {
+		found = found || item.ProviderID == provider.ID && item.State == "unsupported"
+	}
+	if !found {
+		t.Fatal("provider-level unexamined coverage missing")
+	}
+	options.Index.Root = catalog.RootOptions{}
+	options.Request.ProviderKeys = []string{provider.DisplayName}
+	report, err = apitools.DiscoverCatalogOperations(context.Background(), options)
+	if err != nil || len(report.Leads) != 1 || report.Leads[0].ProviderID != provider.ID || report.Outcome != apitools.CatalogDiscoveryInsufficientEvidence {
+		t.Fatal("no-reference metadata lead missing")
+	}
+}
+
+func TestCatalogDiscoverySharedLinkLimitBeforeOperationAllocation(t *testing.T) {
+	options := preparedCatalogDiscovery(t)
+	reader := options.Index.ReadRegistrations
+	options.Index.ReadRegistrations = func(ctx context.Context, root catalog.RootOptions) ([]catalog.CatalogSpecArtifact, error) {
+		rows, err := reader(ctx, root)
+		if err != nil {
+			return nil, err
+		}
+		for _, provider := range options.Index.Catalog.Providers[2:] {
+			row := rows[0]
+			row.ProviderID = provider.ID
+			rows = append(rows, row)
+		}
+		return rows, nil
+	}
+	for i := 0; i < 31; i++ {
+		provider := options.Index.Catalog.Providers[0]
+		provider.ID = fmt.Sprintf("shared-%02d", i)
+		provider.CandidateID = provider.ID
+		provider.DisplayName = fmt.Sprintf("Shared Notes %02d", i)
+		options.Index.Catalog.Providers = append(options.Index.Catalog.Providers, provider)
+	}
+	index, err := apitools.BuildCatalogOperationIndex(context.Background(), options.Index)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := apitools.WriteCatalogOperationIndex(context.Background(), options.Index, index); err != nil {
+		t.Fatal(err)
+	}
+	report, err := apitools.DiscoverCatalogOperations(context.Background(), options)
+	if err != nil || report.Outcome != apitools.CatalogDiscoveryInsufficientEvidence || len(report.Candidates) != 0 || report.ExaminedOperations != 0 || !report.Incomplete || !report.Truncated {
+		t.Fatal("shared references were allocated/evaluated before the query link limit")
+	}
+	if len(report.Leads) != 33 || len(report.Coverage) != 33 {
+		t.Fatal("shared provider provenance was discarded")
+	}
+	for _, coverage := range report.Coverage {
+		if coverage.State != "link_limit" {
+			t.Fatal("link-limited scope was not labeled")
+		}
+	}
+	options.Request.ProviderKeys = []string{"Example Notes"}
+	report, err = apitools.DiscoverCatalogOperations(context.Background(), options)
+	if err != nil || report.Outcome != apitools.CatalogDiscoveryMatch || len(report.Candidates[0].References) != 1 {
+		t.Fatal("narrow provider scope did not recover supported retrieval")
 	}
 }
