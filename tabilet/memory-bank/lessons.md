@@ -29,3 +29,17 @@ need no journal entry or separate archive run.
 - **Lesson:** HTTP method alone is not enough to label a POST as create. Respect explicit update/create semantics named on the operation itself before path shape, and known action routes; on a path whose *trailing* segment is a parameter (a POST directly against an item ID), keep an otherwise ambiguous POST generic rather than treating a finite action-name list as exhaustive. A parameter earlier in the path only scopes a parent resource (for example `{projectId}` in a nested-collection create) and must not by itself suppress a create classification.
 - **Why it matters:** Custom verbs such as `renew` or `reprocess` can mutate an existing resource without creating it, and checking every path segment for a parameter (not just the trailing one) misclassifies ordinary nested-collection creates as actions. A false classification either way can distort a generated lifecycle proposal.
 - **Evidence:** [S03 - Operation Lifecycle Ranking Correctness](../docs/history/status-S03.md), especially review iteration 1's `renewInvoice` regression and iteration 3's `newChild`/nested-collection regression (U4).
+
+## Keep incomplete catalog coverage distinct from negative evidence
+
+- **Applies when:** Building indexed discovery over heterogeneous or large
+  registered API specifications.
+- **Lesson:** Bind derived operations to verified raw identity and record every
+  reference's coverage separately. Preserve positive metadata from partially
+  summarized sources while keeping their scope unexamined. Missing/stale or
+  unsupported sources cannot establish that no qualifying API exists.
+- **Why it matters:** A valid large source can exceed schema-summary budgets
+  even when it fits a raised byte limit. Counting retained candidates as full
+  coverage would silently authorize downstream fallback on missing evidence.
+- **Evidence:** [M81 task/review record](status-M81.md), including local large
+  artifact measurements and index coverage, drift and failure regressions.

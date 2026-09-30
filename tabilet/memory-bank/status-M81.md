@@ -1,7 +1,7 @@
 # Status M81 — Catalog discovery foundations
 
 **State:** Execution started, 2026-09-30, under the confirmed Kinet Stage 5
-goal with `COMMIT_POLICY: task`. M81.1–M81.5 are complete; M81.6 pending. Closing review has not started.
+goal with `COMMIT_POLICY: task`. All six task rows are complete. Closing review passed in iteration 3; downstream reconciliation and retirement follow the task commit.
 
 **Specification:** [M81](milestone.md#m81--catalog-discovery-foundations).
 
@@ -47,7 +47,7 @@ and ID, so neither is required.
 | M81.3 — Large registered artifact limits | `[+]` | Owns P2-2. Depends on M81.2. Allow the index path only to read and parse catalog-registered, digest-verified artifacts up to 128 MiB, with separately reviewed time, memory, and structural budgets. Keep the 20 MiB default for every existing parser entry point and `BuildOperationCandidates`. Record measurements from an opt-in, provider-free local check against `microsoft-graph-v1-openapi` and `cloudflare-api-openapi`; CI uses synthetic large fixtures. Over-limit artifacts fail closed as unexamined scope. |
 | M81.4 — Digest-bound operation index | `[+]` | Owns P2-1 and L1. Depends on M81.3. Add a `catalog index` command and library builder that digest-verify registered artifacts and store sanitized, source-backed operation metadata under catalog-stable identity with no absolute paths. Index shared artifacts once with every provider link. Record the catalog identity and per-artifact coverage (indexed, missing, digest mismatch, oversize, parse failure, unsupported). Rebuilds are byte-identical and root relocation leaves the index unchanged. Readers verify the index version and registration digests and report stale entries as unexamined. No network; existing cache readers keep working without migration. |
 | M81.5 — Artifact-scoped export | `[+]` | Owns P2-4. Depends on M81.2. Add a new function or options type that exports or materializes selected artifacts by reference, verifies expected digests, includes provider- or spec-scoped security overlays and provenance, handles shared artifacts, and fails closed on a mismatch. Existing exported struct shapes, unkeyed composite literals, and provider-level export behavior stay unchanged. |
-| M81.6 — Documentation and compatibility verification | `[ ]` | Depends on M81.1-M81.5. Update README and architecture for the delivered behavior. Run the verification below and pass the persisted ten-iteration review gate with no open P1/P2-or-higher findings. No separate publication; M80's authorized publication carries M81. |
+| M81.6 — Documentation and compatibility verification | `[+]` | Depends on M81.1-M81.5. Update README and architecture for the delivered behavior. Run the verification below and pass the persisted ten-iteration review gate with no open P1/P2-or-higher findings. No separate publication; M80's authorized publication carries M81. |
 
 ## Dependencies and ownership
 
@@ -213,11 +213,81 @@ APItools workspace/standalone tests and vet and diff checks pass. OpenUdon and
 Udon full workspace consumer suites pass against the additive implementation.
 Full final standalone qualification and closing review belong to M81.6.
 
-**Review iterations started:** 0 of at most 10; closing gate not started.
-This is ordinary approved intake, not a bounded-gate pass. Persist the count
-once implementation reaches review and never reset it. An unresolved blocking
-finding at iteration 10 requires user direction.
+**Review iterations started:** 3 of at most 10. Iteration 1 started on
+2026-09-30 against `c79d94b30a2ca1798dcd851f083b77432b65a5e3` plus this
+selection note. Review the full M81 design/root/parser/index/export change and
+resume this same iteration after any interruption. Findings are not yet final;
+the milestone is not accepted. An unresolved blocking finding at iteration 10
+requires user direction.
 
-Assessment used read-only inspection of the code and local cache named above
+Original planning assessment used read-only inspection of the code and local cache named above
 and a read-only harness validation of the planning files. No implementation
 verification or milestone review is claimed.
+
+### Closing review iteration 1 — findings persisted before fixes
+
+Full milestone review at `c79d94b30a2ca1798dcd851f083b77432b65a5e3`:
+
+- P2 R1: read-only registry aggregate accounting omits selected `updated_at`.
+  SQLite accepts oversized nonnumeric timestamp text even in an INTEGER column,
+  allowing a malformed registry to exceed the documented pre-decode text bound.
+  Owner: M81.6; include timestamp bytes and add a refusal regression.
+- P2 R2: the index CLI compares untrimmed `--index` against `--catalog`, while
+  root/artifact confinement normalizes whitespace. A whitespace-padded output
+  spelling can bypass the custom-catalog input overwrite check. Owner: M81.6;
+  compare the same normalized paths and test the dispatched CLI refusal.
+- Lower R3: builder cancellation at an empty registry can be ignored by a
+  custom installation callback; add an explicit final context check. Fix here.
+
+The gate has not passed. Fix these findings and rerun affected verification
+before starting iteration 2. No sibling work or new product scope is needed.
+
+### Closing review iteration 2 — started 2026-09-30
+
+R1 now counts timestamp bytes before decoding; the oversized SQLite timestamp
+regression passes. R2 compares normalized CLI paths and its dispatched
+whitespace-overwrite refusal passes. R3 has an explicit final context check
+and the cancellation regression with an empty custom snapshot passes. Focused
+registry/index/CLI checks pass after fixes. Iteration 2 reviews the entire M81
+range plus these uncommitted corrections, not only the findings patch.
+No acceptance is claimed until the full gate and final checks finish.
+
+### Closing review iteration 2 — finding persisted before fix
+
+R1–R3 remain resolved. P2 R4: an installation-selected registration callback
+can supply a whitespace-padded source path. Artifact I/O trims it, while the
+index destination overlap guard compares the raw spelling, permitting an
+input overwrite for that malformed callback snapshot. SQLite's default adapter
+normalizes paths already, but the additive library must refuse this ambiguity.
+Owner: M81.6. Reject noncanonical whitespace-padded relative source/output
+paths and test the library guard before starting iteration 3. No gate pass yet.
+
+### Closing review iteration 3 — started 2026-09-30
+
+R4 rejects whitespace-padded noncanonical source paths before indexing or
+publication; the library input-preservation regression passes. Focused index,
+export, registry and CLI checks pass after all fixes. Iteration 3 reviews the
+full M81 range plus the persisted corrections; final verification is running.
+
+### Closing review iteration 3 — passed; M81.6 complete
+
+Full M81 review found no remaining P1/P2-or-higher findings or Lower findings
+requiring carry-forward. R1–R4 are resolved with focused regressions. Rechecked
+shared legacy helper extraction, parser defaults/exported wires, deterministic
+identity and coverage, missing/partial/stale semantics, bounded work,
+confinement and atomic failure, private metadata omission, selector ownership,
+fixture redistribution and operator documentation.
+
+Final APItools workspace/standalone full tests and vet, generator freshness,
+catalog check, index help and diff checks pass after corrections. OpenUdon
+workspace/standalone suites pass, and isolated standalone adoption explicitly
+replacing APItools with the M81 worktree also passes at
+`/tmp/openudon-m81-final-adoption-457mg5y_`. Udon workspace suite passes;
+standalone passes with disposable module metadata at
+`/tmp/udon-m81-final-standalone-ffwnbp0t`, preserving its documented preexisting
+module-update distinction. No sibling file changed and Ramen is excluded.
+No new evolution version: V25 already records the approved public contract,
+boundaries and M81→M80 direction; implementation refines that same scope.
+M80 must now reconcile to the actual M81 task commit before starting.
+No separate M81 publication; authorized M80 publication carries the reviewed
+sources and ordinary closure record. The approved global sequence is unchanged.

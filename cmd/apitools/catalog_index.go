@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 
 	"github.com/OpenUdon/apitools"
 	"github.com/OpenUdon/apitools/catalog"
@@ -34,7 +35,7 @@ func runCatalogIndex(args []string, out, errOut io.Writer) int {
 	}
 	options := apitools.CatalogIndexOptions{Root: catalog.RootOptions{Directory: *root, RegistryPath: *registry, IndexPath: *indexPath}, ReadRegistrations: sqlitecache.ReadCatalogSpecArtifacts}
 	if *catalogPath != "" {
-		if filepath.Clean(*catalogPath) == filepath.Clean(*indexPath) {
+		if filepath.Clean(strings.TrimSpace(*catalogPath)) == filepath.Clean(strings.TrimSpace(*indexPath)) {
 			fmt.Fprintln(errOut, "catalog input and index output overlap")
 			return exitUsage
 		}

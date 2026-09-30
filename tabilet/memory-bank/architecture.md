@@ -551,8 +551,8 @@ read-only SQLite transaction and shared row validation without migration,
 pruning or access-time updates, including legacy registry schemas 1–3; newer
 schemas refuse. Snapshot bounds are five seconds, 10,000 rows and 32 MiB
 aggregate registration text before decoding. Missing registry/index remains
-missing evidence. Indexing/discovery and artifact-scoped export are still
-pending M80 work; M81.4 index generation/read/publication is delivered. The synthetic two-provider shared-artifact fixture
+missing evidence. Discovery is pending M80; M81 index generation/read/publication
+and selected-artifact export are delivered. The synthetic shared-artifact fixture
 is under `testdata/catalog-root` with an explicit disposable preparation recipe.
 
 - Go module path: `github.com/OpenUdon/apitools`.

@@ -196,6 +196,40 @@ func TestCatalogIndexDigestFailureAndCoverage(t *testing.T) {
 	}
 }
 
+func TestCatalogIndexEmptySnapshotCancellation(t *testing.T) {
+	options := syntheticCatalogIndex(t)
+	options.ReadRegistrations = func(context.Context, catalog.RootOptions) ([]catalog.CatalogSpecArtifact, error) { return nil, nil }
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := apitools.BuildCatalogOperationIndex(ctx, options); err == nil {
+		t.Fatal("ignored cancellation with empty snapshot")
+	}
+}
+
+func TestCatalogIndexRejectsWhitespaceRegistrationPath(t *testing.T) {
+	options := syntheticCatalogIndex(t)
+	reader := options.ReadRegistrations
+	options.ReadRegistrations = func(ctx context.Context, root catalog.RootOptions) ([]catalog.CatalogSpecArtifact, error) {
+		rows, err := reader(ctx, root)
+		for i := range rows {
+			rows[i].Path = " " + rows[i].Path + " "
+		}
+		return rows, err
+	}
+	options.Root.IndexPath = "openapi/notes.json"
+	before, err := os.ReadFile(filepath.Join(options.Root.Directory, "openapi/notes.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := apitools.BuildCatalogOperationIndex(context.Background(), options); err == nil {
+		t.Fatal("accepted aliased registration path")
+	}
+	after, err := os.ReadFile(filepath.Join(options.Root.Directory, "openapi/notes.json"))
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatal("changed source")
+	}
+}
+
 func TestCatalogIndexRejectsCorruptMetadata(t *testing.T) {
 	options := syntheticCatalogIndex(t)
 	ctx := context.Background()

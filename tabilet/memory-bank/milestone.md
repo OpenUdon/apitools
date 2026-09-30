@@ -86,7 +86,7 @@ by OpenUdon M89. OpenUdon M89's published implementation at
 `2e2ecedb32add53e10d6d81d4b2528ca2bdfdcc8` passed Kinet W04.6's exact consumer
 check and is retired in published closure commit
 `0c7c5d33da2ba7b190954b9eb402cc14b5ec1f73`. Two milestones are active, both
-approved on 2026-09-30. M81.1–M81.5 are complete under the confirmed Stage 5 goal.
+approved on 2026-09-30. All M81 task rows are complete and review passed in iteration 3 under the confirmed Stage 5 goal.
 Prerequisite M81 (catalog discovery foundations) runs first, then M80 (the catalog discovery
 API). Latest completed milestone: M79. M78 and all earlier milestones through M77
 are retired; see the history index below.

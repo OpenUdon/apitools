@@ -29,3 +29,20 @@ func TestCatalogIndexDispatchHelpAndRootRequired(t *testing.T) {
 		t.Fatalf("missing registry: %d", code)
 	}
 }
+
+func TestCatalogIndexRefusesWhitespaceInputOverwrite(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "catalog.json")
+	before := []byte(`{"providers":[]}`)
+	if err := os.WriteFile(path, before, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var out, errOut bytes.Buffer
+	if code := run([]string{"catalog", "index", "--root", dir, "--catalog", "catalog.json", "--index", " catalog.json "}, &out, &errOut); code != exitUsage || !strings.Contains(errOut.String(), "overlap") {
+		t.Fatalf("overwrite guard: %d %s", code, errOut.String())
+	}
+	after, err := os.ReadFile(path)
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatal("changed input metadata")
+	}
+}

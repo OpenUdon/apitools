@@ -9,10 +9,32 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/OpenUdon/apitools/catalog"
 )
+
+func TestReadCatalogArtifactsBoundsTimestampText(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "spec.json"), []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cache, err := Open(filepath.Join(dir, catalog.DefaultRegistryPath))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	if err := cache.StoreCatalogArtifact(context.Background(), CatalogArtifact{ProviderID: "example", ArtifactID: "example", Kind: "openapi", Path: "spec.json"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := cache.db.Exec("UPDATE catalog_artifacts SET updated_at = ?", strings.Repeat("x", MaxCatalogRegistrationBytes+1)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ReadCatalogArtifacts(context.Background(), catalog.RootOptions{Directory: dir}); err == nil || !strings.Contains(err.Error(), "snapshot bounds") {
+		t.Fatalf("oversized timestamp bypassed aggregate bound: %v", err)
+	}
+}
 
 func TestReadCatalogArtifactsDoesNotCreateMissingRoot(t *testing.T) {
 	rows, err := ReadCatalogArtifacts(context.Background(), catalog.RootOptions{})

@@ -141,7 +141,7 @@ func catalogRegistrationIdentity(rows []catalog.CatalogSpecArtifact) (string, er
 		if _, err := hex.DecodeString(row.SHA256); err != nil || row.SHA256 != strings.ToLower(row.SHA256) {
 			return "", fmt.Errorf("invalid catalog registration digest")
 		}
-		if !filepath.IsLocal(filepath.FromSlash(row.Path)) || filepath.Clean(filepath.FromSlash(row.Path)) == "." {
+		if !catalogIndexRelativePath(row.Path) {
 			return "", fmt.Errorf("unsafe catalog artifact path")
 		}
 		for _, part := range strings.Split(filepath.FromSlash(row.Path), string(filepath.Separator)) {
@@ -338,6 +338,9 @@ func BuildCatalogOperationIndex(ctx context.Context, options CatalogIndexOptions
 	currentDigest, err := catalogRegistrationIdentity(current)
 	if err != nil || currentDigest != registryDigest {
 		return CatalogOperationIndex{}, fmt.Errorf("catalog registrations changed during indexing")
+	}
+	if err := ctx.Err(); err != nil {
+		return CatalogOperationIndex{}, err
 	}
 	return index, nil
 }

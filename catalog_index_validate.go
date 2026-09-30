@@ -55,6 +55,9 @@ func catalogIndexDigest(value string) bool {
 }
 
 func catalogIndexRelativePath(value string) bool {
+	if value != strings.TrimSpace(value) {
+		return false
+	}
 	if !filepath.IsLocal(filepath.FromSlash(value)) {
 		return false
 	}

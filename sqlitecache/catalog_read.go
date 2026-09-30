@@ -82,7 +82,8 @@ func ReadCatalogArtifacts(ctx context.Context, options catalog.RootOptions) ([]C
  COALESCE(length(CAST(kind AS BLOB)), 0) + COALESCE(length(CAST(path AS BLOB)), 0) +
  COALESCE(length(CAST(source_url AS BLOB)), 0) + COALESCE(length(CAST(overlay_path AS BLOB)), 0) +
  COALESCE(length(CAST(builder_path AS BLOB)), 0) + COALESCE(length(CAST(sha256 AS BLOB)), 0) +
- COALESCE(length(CAST(metadata_json AS BLOB)), 0)), 0) FROM catalog_artifacts`).Scan(&count, &bytes); err != nil {
+ COALESCE(length(CAST(metadata_json AS BLOB)), 0) +
+ COALESCE(length(CAST(updated_at AS BLOB)), 0)), 0) FROM catalog_artifacts`).Scan(&count, &bytes); err != nil {
 		return nil, err
 	}
 	if count > DefaultMaxCatalogArtifacts || bytes > MaxCatalogRegistrationBytes {
