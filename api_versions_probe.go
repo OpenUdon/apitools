@@ -85,7 +85,7 @@ func (c *Client) probeAPIVersion(ctx context.Context, budget *apiVersionBudget, 
 		if _, err := c.versionURLSyntax(raw); err != nil {
 			return err
 		}
-		if source {
+		if source || len(scopes) > 0 {
 			if err := c.versionScopeAllows(raw, scopes); err != nil {
 				return err
 			}

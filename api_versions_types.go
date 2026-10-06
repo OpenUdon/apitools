@@ -84,6 +84,7 @@ type APIVersionOperationDiff struct {
 }
 
 type APIVersionRecord struct {
+	SourceKind     OperationSourceKind      `json:"source_kind,omitempty"`
 	CatalogUpdated *time.Time               `json:"catalog_updated,omitempty"`
 	ID             string                   `json:"id"`
 	Locator        APIVersionLocator        `json:"locator"`
