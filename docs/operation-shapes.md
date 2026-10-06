@@ -17,18 +17,29 @@ from an explicitly unconstrained schema. No external reference is loaded.
 
 | Family | Projection and current limits |
 |---|---|
-| OpenAPI/Swagger | Native path/method pointer plus operation-ID alias; inherited/overridden parameters and local request/response schemas. Multiple media types or successful response alternatives remain unknown. |
-| Google Discovery | Method ID/pointer, inherited native parameters and local referenced body schemas. Scope/media/server completeness remains pending. |
+| OpenAPI/Swagger | Native path/method pointer plus operation-ID alias; inherited/overridden parameters, local request/response/header schemas and symbolic security. Supported explicit HTTP contracts can be complete. Multiple media types/successful response alternatives, undeclared security, unresolved schemes, unsupported dialects or transport details remain incomplete. |
+| Google Discovery | Method ID/pointer, inherited native parameters, declared server and local referenced body schemas. Parser-normalized schemas and OAuth scope alternatives remain partial; no default endpoint or complete account/auth policy is inferred. |
 | AWS Smithy | Absolute operation shape ID/pointer, native AWS protocol and input-member locations. Compound/member schemas and authorization remain partial. No synthetic generic HTTP server/method is emitted. |
 | AsyncAPI | Operation ID/pointer and send/receive payload direction. A single local message schema can be projected; multiple messages, bindings and auth remain partial. |
 | GraphQL | Native operation/root-field pointer, variables/arguments and selected outputs. Scalar types are partial; schema selection, custom scalars, lists and auth remain unproved. |
 | OpenRPC | Native method ID/pointer, ordered parameter descriptors and local result schemas. Positional parameters preserve declaration order; transport/auth remains unproved. |
-| gRPC/protobuf | Native service/method pointer and request/response message identities. Message projections remain partial; streams are unknown. No RPC connection/reflection occurs. |
+| gRPC/protobuf | Native service/method pointer/full-method aliases and request/response message identities with available top-level field shapes. Wire presence, numeric encoding, nested messages, enums and streams remain partial. No RPC connection/reflection occurs. |
 | OData | Native resource/action/function/import/navigation identities and declared parameters/results. Facets, response presence, resource HTTP selection and auth remain partial. |
 
-At M82.1, operations retain `complete: false` and `security.known: false`.
-M82.2 owns exact identity verification, symbolic security alternatives and
-incomplete-evidence qualification. M82.3 owns deterministic wire/limit fixtures;
+M82.2 adds `VerifyOperationShapeTable`, which reproduces claims from the exact
+local source set and compares deterministic UWS bytes. It rejects structurally
+valid forged fields, omitted operations and stale raw identities. This is
+independent reproduction, not a signature or execution approval.
+
+OpenAPI security preserves declaration-order OR alternatives and sorted AND
+requirements inside each alternative. Explicit empty security is anonymous;
+missing declarations/definitions remain unknown, with symbolic alternatives
+retained. Operation security overrides root security. Scope symbols never load
+tokens or contact token URLs. Complete schemas are checked with the existing
+JSON Schema compiler and a loader that always refuses external resources.
+Native-family projections with unsupported dialect/presence/transport/auth
+evidence remain incomplete, even when a shallow type is available.
+M82.3 owns deterministic wire/limit fixtures;
 M82.4 owns consumer qualification, whole review and publication. A caller must
 not interpret partial native type hints as a complete schema or authority.
 Effects are not a ShapeTable field; this producer never infers execution effects

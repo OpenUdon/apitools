@@ -43,7 +43,7 @@ func TestOperationShapesEveryNativeFamily(t *testing.T) {
 		if operation.Source.Kind != "openapi" && operation.Source.Kind != "google-discovery" && (operation.Method != "" || operation.Path != "" || len(operation.Servers) > 0) {
 			t.Fatalf("invented HTTP contract: %+v", operation)
 		}
-		if operation.Security.Known || operation.Complete {
+		if operation.Source.Kind != "openapi" && operation.Security.Known || operation.Complete {
 			t.Fatal("unqualified completeness or security")
 		}
 		if operation.Selector.Kind != "ref" || operation.Selector.Value == "" {

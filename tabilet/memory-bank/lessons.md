@@ -50,6 +50,21 @@ need no journal entry or separate archive run.
   [M80 review findings](../docs/history/status-M80.md) and the source-backed field-loss,
   no-reference provider, shared-link and prompt-budget regressions.
 
+## Keep trust projections independent of prompt summaries
+
+- **Applies when:** Producing schemas for advisory binding or verifying cached
+  producer metadata against raw API sources.
+- **Lesson:** Reproduce claims from exact source bytes and native selectors.
+  Prompt summaries and parser-normalized subsets can lose constraints, presence,
+  protocol details or numeric precision. A useful partial type is not a complete
+  schema. Keep unknown security distinct from anonymous and retain OR-of-AND
+  requirement grouping without credential resolution.
+- **Why it matters:** Structurally valid forged/stale metadata and lossily
+  summarized schemas must not become execution authority or a positive proof.
+- **Evidence:** [M82.1/M82.2](status-M82.md), public UWS binding checks,
+  forged/stale identity, symbolic-security and no-network regressions in
+  `operation_shapes_identity_test.go`.
+
 ## Bind version evidence to an exact publisher and native identity
 
 - **Applies when:** Discovering versions across shared hosting and native source families.

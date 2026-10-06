@@ -1,6 +1,7 @@
 package apitools
 
 import (
+	"bytes"
 	"context"
 	"strings"
 
@@ -36,24 +37,42 @@ func sourceOperationShapes(ctx context.Context, kind OperationSourceKind, data [
 			return asyncShapes(ctx, root, source)
 		}
 	case OperationSourceOpenRPC:
+		if _, err := decodeShapeDocument(ctx, data); err != nil {
+			return nil, err
+		}
 		model, err := openrpc.Parse(data)
 		if err != nil {
 			return nil, err
 		}
 		return openRPCShapes(ctx, model, source)
 	case OperationSourceGraphQL:
+		if bytes.HasPrefix(bytes.TrimSpace(data), []byte("{")) {
+			if _, err := decodeShapeDocument(ctx, data); err != nil {
+				return nil, err
+			}
+		}
 		model, err := graphql.Parse(data)
 		if err != nil {
 			return nil, err
 		}
 		return graphQLShapes(ctx, model, source)
 	case OperationSourceGRPCProtobuf:
+		if bytes.HasPrefix(bytes.TrimSpace(data), []byte("{")) {
+			if _, err := decodeShapeDocument(ctx, data); err != nil {
+				return nil, err
+			}
+		}
 		model, err := grpcproto.Parse(data)
 		if err != nil {
 			return nil, err
 		}
 		return grpcShapes(ctx, model, source)
 	case OperationSourceOData:
+		if bytes.HasPrefix(bytes.TrimSpace(data), []byte("{")) {
+			if _, err := decodeShapeDocument(ctx, data); err != nil {
+				return nil, err
+			}
+		}
 		model, err := odata.Parse(data)
 		if err != nil {
 			return nil, err
@@ -72,7 +91,11 @@ func discoveryShapes(ctx context.Context, root map[string]any, source binding.So
 		return nil, err
 	}
 	var out []binding.OperationShape
-	resolver := func(ref string) (map[string]any, bool) { target, ok := model.Schemas[ref]; return target, ok }
+	resolver := func(ref string) (map[string]any, bool) {
+		ref = strings.TrimPrefix(ref, "#/components/schemas/")
+		target, ok := model.Schemas[ref]
+		return target, ok
+	}
 	for _, native := range model.Operations {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -82,6 +105,14 @@ func discoveryShapes(ctx context.Context, root map[string]any, source binding.So
 		}
 		shape := nativeShape(source, native.ID, "#/methods/"+escapeJSONPointer(native.ID), "http")
 		shape.Method, shape.Path = native.HTTPMethod, native.Path
+		shape.Security = discoveryShapeSecurity(native.Scopes)
+		// Only declared provenance is emitted; the parser's default Google
+		// endpoint is not new source evidence.
+		if root["rootUrl"] != nil || root["baseUrl"] != nil {
+			if server, redacted, err := sanitizeOperationSourceURL(model.ServerURL); err == nil && !redacted {
+				shape.Servers = []string{server}
+			}
+		}
 		for _, parameter := range native.Parameters {
 			if parameter == nil {
 				return nil, ErrOperationShapeTable
@@ -93,6 +124,14 @@ func discoveryShapes(ctx context.Context, root map[string]any, source binding.So
 		}
 		if native.ResponseRef != "" {
 			shape.Outputs = append(shape.Outputs, binding.Output{Location: "body", Name: "body", Schema: projectedShapeSchema(model.Schemas[native.ResponseRef], resolver)})
+		}
+		// The Discovery parser normalizes a dialect-specific schema subset.
+		// Do not label that lossy projection a complete JSON Schema contract.
+		for i := range shape.Inputs {
+			shape.Inputs[i].Schema.Known = false
+		}
+		for i := range shape.Outputs {
+			shape.Outputs[i].Schema.Known = false
 		}
 		sortShapeInputs(shape.Inputs)
 		out = append(out, shape)
@@ -219,6 +258,7 @@ func graphQLShapes(ctx context.Context, model *graphql.Model, source binding.Sou
 			return nil, ErrOperationShapeTable
 		}
 		shape := nativeShape(source, native.ID, native.Selector, "graphql")
+		addShapeAliases(&shape, []string{native.Name, "operation:" + native.ID, native.SourceRef})
 		for _, variable := range native.Variables {
 			if variable == nil {
 				return nil, ErrOperationShapeTable
@@ -267,7 +307,9 @@ func grpcShapes(ctx context.Context, model *grpcproto.Model, source binding.Sour
 			return nil, err
 		}
 		shape := nativeShape(source, native.SourceOperationID, native.Selector, "grpc-protobuf")
-		inputSchema, outputSchema := partialTypeSchema("object", false), partialTypeSchema("object", false)
+		addShapeAliases(&shape, []string{native.FullMethod, "rpc:" + native.SourceOperationID, native.SourceOperationRef})
+		inputSchema := grpcPartialMessageSchema(findProtoMessage(model, native.RequestType, native.Package))
+		outputSchema := grpcPartialMessageSchema(findProtoMessage(model, native.ResponseType, native.Package))
 		if native.ClientStreaming {
 			inputSchema = binding.Schema{}
 		}
@@ -288,12 +330,15 @@ func odataShapes(ctx context.Context, model *odata.Model, source binding.Source)
 			return nil, err
 		}
 		shape := nativeShape(source, native.SourceOperationID, native.Selector, "odata")
+		addShapeAliases(&shape, []string{native.Name, "odata:" + native.ID, native.SourceOperationRef})
 		for _, parameter := range native.Parameters {
 			typeName, _ := odataContractType(parameter.Type)
 			if parameter.Collection {
 				typeName = "array"
 			}
-			shape.Inputs = append(shape.Inputs, binding.Input{Location: "param", Name: parameter.Name, Required: true, Schema: partialTypeSchema(typeName, parameter.Nullable)})
+			// CSDL nullability does not prove call-argument requiredness. The
+			// operation stays incomplete, so false cannot become absence proof.
+			shape.Inputs = append(shape.Inputs, binding.Input{Location: "param", Name: parameter.Name, Schema: partialTypeSchema(typeName, parameter.Nullable)})
 		}
 		if native.ReturnType != "" || native.EntityType != "" {
 			typeName, _ := odataContractType(firstNonEmpty(native.ReturnType, native.EntityType))
@@ -309,4 +354,59 @@ func odataShapes(ctx context.Context, model *odata.Model, source binding.Source)
 		out = append(out, shape)
 	}
 	return out, nil
+}
+
+func addShapeAliases(shape *binding.OperationShape, values []string) {
+	seen := map[string]bool{shape.Selector.Kind + "\x00" + shape.Selector.Value: true}
+	for _, alias := range shape.Aliases {
+		seen[alias.Kind+"\x00"+alias.Value] = true
+	}
+	for _, value := range values {
+		if value == "" {
+			continue
+		}
+		kind := "id"
+		if strings.HasPrefix(value, "#/") {
+			kind = "ref"
+		}
+		if !seen[kind+"\x00"+value] {
+			shape.Aliases = append(shape.Aliases, binding.Selector{Kind: kind, Value: value, Key: shape.Selector.Key})
+			seen[kind+"\x00"+value] = true
+		}
+	}
+}
+
+func grpcPartialMessageSchema(message *grpcproto.Message) binding.Schema {
+	if message == nil {
+		return binding.Schema{}
+	}
+	properties := map[string]any{}
+	var required []string
+	for _, field := range message.Fields {
+		if field == nil {
+			return binding.Schema{}
+		}
+		name := firstNonEmpty(field.JSONName, field.Name)
+		typeName, _ := grpcType(field.Type, field.TypeName)
+		child := map[string]any{}
+		if typeName != "" {
+			child["type"] = typeName
+		}
+		if field.Repeated {
+			child = map[string]any{"type": "array", "items": child}
+		}
+		properties[name] = child
+		if field.Required {
+			required = append(required, name)
+		}
+	}
+	value := map[string]any{"type": "object", "properties": properties}
+	if len(required) > 0 {
+		value["required"] = required
+	}
+	schema := projectedShapeSchema(value, nil)
+	// Proto JSON wire presence, integer/string encodings, oneof, custom
+	// options and nested/enum types are not all represented by the parser.
+	schema.Known = false
+	return schema
 }

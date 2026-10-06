@@ -1,14 +1,18 @@
 # Architecture
 
-## Stage 11 implementation progress — M82.1
+## Stage 11 implementation progress — M82.1/M82.2
 
 `operation_shapes*.go` adds an independent metadata projection over the existing
 native parsers and public UWS binding types. Explicit source IDs plus bounded
 local bytes/files produce raw SHA-256 identities, native selector aliases,
 schema projections and visible incompleteness. The producer returns no partial
 table on malformed input or limits; URLs are sanitized provenance only. Existing
-inventory/candidate contracts are preserved. Exact claim verification/security,
-wire qualification and consumer publication remain M82.2–M82.4 work.
+inventory/candidate contracts are preserved. `VerifyOperationShapeTable`
+independently reproduces exact claims against the source bytes. OpenAPI symbolic
+security preserves OR-of-AND grouping; absent/unresolved security never becomes
+anonymous. Complete projected schemas compile with an always-refusing resource
+loader; unsupported native dialect/wire/requiredness evidence remains partial.
+Wire qualification and consumer publication remain M82.3–M82.4 work.
 
 ## Approved Stage 11 architecture target — not implemented
 

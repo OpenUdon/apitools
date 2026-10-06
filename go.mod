@@ -8,6 +8,7 @@ require (
 	github.com/OpenUdon/googlediscovery v0.0.0-20260520203137-c02129a009fc
 	github.com/OpenUdon/oas v0.0.0-20260507023120-7fb319711323
 	github.com/OpenUdon/uws v0.0.0-20261006181058-6a267306032e
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.50.0
 )
@@ -33,7 +34,6 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1 // indirect
 	github.com/theory/jsonpath v0.12.0 // indirect
 	github.com/zclconf/go-cty v1.17.0 // indirect
 	github.com/zclconf/go-cty-yaml v1.1.0 // indirect

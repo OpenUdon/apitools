@@ -13,6 +13,10 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 	if !swagger && !strings.HasPrefix(version, "3.0.") && !strings.HasPrefix(version, "3.1.") {
 		return nil, ErrOperationShapeTable
 	}
+	info, ok := root["info"].(map[string]any)
+	if !ok || stringValue(info["title"]) == "" || stringValue(info["version"]) == "" {
+		return nil, ErrOperationShapeTable
+	}
 	paths, ok := root["paths"].(map[string]any)
 	if !ok {
 		return nil, ErrOperationShapeTable
@@ -37,7 +41,22 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 			ref := openAPIOperationSelector(method, path)
 			shape := nativeShape(source, stringValue(native["operationId"]), ref, "http")
 			shape.Method, shape.Path = strings.ToUpper(method), path
-			shape.Servers, _ = shapeHTTPServers(root, pathItem, native)
+			var serversKnown bool
+			shape.Servers, serversKnown = shapeHTTPServers(root, pathItem, native)
+			var err error
+			shape.Security, err = openAPIShapeSecurity(root, native)
+			if err != nil {
+				return nil, err
+			}
+			complete := serversKnown && shape.Security.Known && strings.HasPrefix(path, "/")
+			dialectUnknown := false
+			if _, present := root["jsonSchemaDialect"]; present {
+				complete = false
+				dialectUnknown = true
+			}
+			if _, present := native["callbacks"]; present {
+				complete = false
+			}
 			inputs := map[string]binding.Input{}
 			for _, owner := range []map[string]any{pathItem, native} {
 				value, declared := owner["parameters"]
@@ -70,9 +89,26 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 						}
 						value = projection
 					}
-					required, _ := parameter["required"].(bool)
+					if swagger && location == "formData" {
+						complete = false
+					}
+					if _, present := parameter["content"]; present {
+						complete = false
+					}
+					if _, present := parameter["style"]; present {
+						complete = false
+					}
+					if _, present := parameter["allowReserved"]; present {
+						complete = false
+					}
+					required, isBool := parameter["required"].(bool)
+					if _, declared := parameter["required"]; declared && !isBool {
+						return nil, ErrOperationShapeTable
+					}
 					if location == "path" {
-						required = true
+						if !required {
+							return nil, ErrOperationShapeTable
+						}
 					}
 					inputs[key] = binding.Input{Location: location, Name: name, Required: required, Schema: projectedShapeSchema(value, shapeLocalResolver(root))}
 				}
@@ -86,7 +122,10 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 					return nil, ErrOperationShapeTable
 				}
 				schema, _ := shapeBodyContent(root, body)
-				required, _ := body["required"].(bool)
+				required, isBool := body["required"].(bool)
+				if _, declared := body["required"]; declared && !isBool {
+					return nil, ErrOperationShapeTable
+				}
 				shape.Inputs = append(shape.Inputs, binding.Input{Location: "body", Name: "body", Required: required, Schema: schema})
 			}
 			sortShapeInputs(shape.Inputs)
@@ -109,12 +148,39 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 				schema, hasBody := shapeBodyContent(root, success[0])
 				if hasBody {
 					shape.Outputs = append(shape.Outputs, binding.Output{Location: "body", Name: "body", Schema: schema})
+				} else {
+					complete = false
+				}
+				for _, name := range sortedMapKeys(mapValue(success[0]["headers"])) {
+					header, resolved := shapeLocalObject(root, mapValue(success[0]["headers"])[name])
+					if !resolved {
+						return nil, ErrOperationShapeTable
+					}
+					value := header["schema"]
+					if swagger {
+						value = header
+					}
+					shape.Outputs = append(shape.Outputs, binding.Output{Location: "header", Name: name, Schema: projectedShapeSchema(value, shapeLocalResolver(root))})
 				}
 			} else if len(success) > 1 {
 				shape.Outputs = append(shape.Outputs, binding.Output{Location: "body", Name: "body"})
+				complete = false
+			} else {
+				complete = false
 			}
-			// Full transport/security completeness is qualified separately from
-			// source-native operation and schema projection.
+			for i := range shape.Inputs {
+				if dialectUnknown {
+					shape.Inputs[i].Schema.Known = false
+				}
+				complete = complete && shape.Inputs[i].Schema.Known
+			}
+			for i := range shape.Outputs {
+				if dialectUnknown {
+					shape.Outputs[i].Schema.Known = false
+				}
+				complete = complete && shape.Outputs[i].Schema.Known
+			}
+			shape.Complete = complete
 			out = append(out, shape)
 			if len(out) > binding.MaxOperations {
 				return nil, ErrOperationShapeTable

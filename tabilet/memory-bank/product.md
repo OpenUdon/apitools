@@ -1,11 +1,14 @@
 # Product
 
-## Stage 11 implementation progress — M82.1
+## Stage 11 implementation progress — M82.1/M82.2
 
 The additive local `BuildOperationShapeTable` producer projects all eight
 existing API source families into public UWS metadata. Native selectors and
-explicit incomplete schemas/protocol evidence remain visible; operations and
-security are not yet qualified complete. This implementation is under M82,
+explicit incomplete schemas/protocol evidence remain visible. Supported explicit
+OpenAPI contracts can prove metadata compatibility; exact independent reproduction
+refuses forged/stale claims, while unsupported native details stay partial.
+Symbolic security preserves OR-of-AND structure without resolving credentials.
+This implementation is under M82,
 whose acceptance, exact verification and publication remain pending. It performs
 no fetching, credential resolution or execution; see [contract](../../docs/operation-shapes.md).
 

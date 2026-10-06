@@ -114,6 +114,25 @@ func BuildOperationShapeTable(ctx context.Context, options OperationShapeOptions
 	return binding.ParseTable(data)
 }
 
+// VerifyOperationShapeTable independently reproduces a claimed table against
+// the caller's exact local source set. Structural validity or a matching digest
+// alone cannot establish producer correctness. Reproduction grants no authority.
+func VerifyOperationShapeTable(ctx context.Context, options OperationShapeOptions, claimed binding.ShapeTable) error {
+	data, err := claimed.Marshal()
+	if err != nil {
+		return ErrOperationShapeTable
+	}
+	reproduced, err := BuildOperationShapeTable(ctx, options)
+	if err != nil {
+		return err
+	}
+	expected, err := reproduced.Marshal()
+	if err != nil || !bytes.Equal(data, expected) {
+		return ErrOperationShapeTable
+	}
+	return nil
+}
+
 func shapeText(value string, max int) bool {
 	if value == "" || len(value) > max || !utf8.ValidString(value) {
 		return false

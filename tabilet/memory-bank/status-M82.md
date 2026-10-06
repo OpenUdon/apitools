@@ -1,7 +1,7 @@
 # M82 — Shape production
 
 **Stage:** Kinet STG-11, Phase A. **Owner:** APItools.
-**State:** Confirmed Stage 11 execution; M82.1 complete, M82.2–M82.4 pending; review 0/10 not started.
+**State:** Confirmed Stage 11 execution; M82.1/M82.2 complete, M82.3–M82.4 pending; review 0/10 not started.
 **Source baseline:** `9364afac98c97b79c9e6b9335bd9c71d4e8722d5` (clean at planning).
 **Coordinator:** [Stage 11 contract](../../../kinet/docs/stage11.md); the package-local milestone/status owns acceptance.
 
@@ -17,7 +17,7 @@ The serial predecessor is a scheduling gate; direct contract and regression impa
 | Item | State | Notes |
 |---|---|---|
 | M82.1 — Project supported source metadata | `[+]` | Additive BuildOperationShapeTable projects all eight existing parser families, native selectors/ID aliases and raw SHA-256 into bounded UWS shapes; RPC/event/AWS/OData projections never invent generic HTTP details. Explicit partial schemas/security remain unqualified. Eight-family/public-API fixtures, standalone full tests/vet, focused race checks and workspace OpenUdon/Udon full regression suites passed. See execution evidence below and docs/operation-shapes.md. |
-| M82.2 — Preserve identity and incomplete evidence | `[ ]` | Bind raw source digests and symbolic security alternatives without flattening OR/AND requirements. Preserve unknown schemas, effects and capability limitations; URLs are provenance, not permission to fetch. |
+| M82.2 — Preserve identity and incomplete evidence | `[+]` | VerifyOperationShapeTable independently reproduces exact local claims and refuses forged/stale fields, omitted operations and changed raw bytes. Explicit OpenAPI security preserves OR-of-AND symbols/scopes; undeclared/unresolved security remains unknown. Complete supported HTTP metadata proves advisory compatibility, while unsupported native/dialect/wire/requiredness/schema evidence remains partial. Identity, symbolic-security, type/refusal, canary and no-network fixtures passed with standalone full tests/vet, focused races and workspace OpenUdon/Udon regressions. |
 | M82.3 — Serialize and test shape tables | `[ ]` | Emit deterministic UWS ShapeTable bytes from bounded local inputs. Exercise every source family, malformed references, collisions, security alternatives and forged/stale identity; no credential resolution, execution or implicit network access. Record the planned UWS module dependency and its retained Horizon/HashiCorp HCL transitive closure; do not claim APItools or UWS core becomes HCL-free in Stage 11. |
 | M82.4 — Qualify consumers and publish | `[ ]` | Run owner and affected OpenUdon/Udon checks against exact UWS source, record the public API/fixture release, and publish only under named authority before adoption. |
 
@@ -48,7 +48,7 @@ UWS:C09 is accepted and independently observed on origin/main at `6a267306032edc
 - Closing-review findings: none; the whole-milestone review has not started. Approved intake requirements above remain pending.
 - Accepted revision: not available.
 - Published revision / artifact evidence: not available.
-- Verification: pending implementation; no test result is claimed by this planning record.
+- Verification: whole-milestone qualification remains pending; completed task verification is recorded below.
 
 After all tasks finish, perform the whole-milestone review with persisted iteration/finding state and fix every P1/P2 before acceptance. Resume an interrupted pass at the same counter. Consolidate current facts, reconcile downstream work and retire under this package’s normal procedure.
 
@@ -71,3 +71,23 @@ and `GOPROXY=off go test ./...` in both OpenUdon and Udon using the existing
 operator-owned workspace. `git diff --check` and focused gofmt checks passed.
 M82.2–M82.4, the closing review, consumer acceptance and publication remain
 pending; no M82 acceptance or new consumer pin is claimed.
+
+## Execution evidence — M82.2, 2026-10-06
+
+Independent reproduction compares exact deterministic UWS tables, not only raw
+digests or structurally valid producer claims. Security symbols retain explicit
+anonymous alternatives and unknown missing definitions. JSON Schema compilation
+uses the existing exact `jsonschema/v6 v6.0.1` pin with an external loader that
+always refuses; native parser losses cannot claim known schemas. Full native
+RPC/GraphQL/OData aliases and protobuf field hints remain metadata only. CSDL
+nullability does not establish call-argument requiredness; incomplete operation
+evidence cannot establish absence or supported transport/auth.
+
+Passed: standalone offline full APItools tests and vet; focused shape races;
+workspace offline full OpenUdon and Udon regressions; final focused tests/races
+and vet after stricter requiredness/Swagger-server checks; `git diff --check`.
+Supported compatibility and mismatches were checked through the public UWS
+binding consumer, alongside structurally valid forgeries/stale raw identity,
+OR/AND requirements, unknown definitions/schema/dialect and no-network canaries.
+The remaining wire/source-family edge fixtures and whole consumer/publication
+gate stay with M82.3/M82.4. No new acceptance or publication is claimed.

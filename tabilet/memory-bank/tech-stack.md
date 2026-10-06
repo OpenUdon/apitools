@@ -8,6 +8,8 @@ The local shape producer now directly imports UWS C09 at
 `v1.14.5` and HashiCorp HCL `v2.24.0`; no HCL-free claim is made. Exact dependency
 acquisition/tidy used `GOWORK=off`; offline tests use `GOPROXY=off`. Focused shape
 checks are `go test . -run '^TestOperationShapes'` and the `-race` variant.
+The same pinned `jsonschema/v6 v6.0.1` dependency is directly used to check
+projected schemas with external loading disabled; no dependency version changed.
 M82 whole qualification and consumer publication remain pending.
 
 ## Approved Stage 11 tooling target — not implemented

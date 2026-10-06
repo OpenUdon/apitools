@@ -2,9 +2,11 @@ package apitools
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 
 	"github.com/OpenUdon/uws/binding"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
 // Shape schemas retain validation constraints, never examples/defaults or
@@ -20,7 +22,23 @@ func projectedShapeSchema(value any, resolver nativeSchemaResolver) binding.Sche
 	if err != nil || len(data) > binding.MaxSchemaBytes {
 		return binding.Schema{}
 	}
+	if known {
+		compiler := jsonschema.NewCompiler()
+		compiler.UseLoader(shapeSchemaLoader{})
+		compiler.AssertFormat()
+		if err := compiler.AddResource("https://apitools.invalid/shape", projected); err != nil {
+			known = false
+		} else if _, err := compiler.Compile("https://apitools.invalid/shape"); err != nil {
+			known = false
+		}
+	}
 	return binding.Schema{Known: known, JSON: data}
+}
+
+type shapeSchemaLoader struct{}
+
+func (shapeSchemaLoader) Load(string) (any, error) {
+	return nil, errors.New("external schema resources are unavailable")
 }
 
 func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[string]bool, depth int, work *int) (any, bool) {
@@ -40,8 +58,12 @@ func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[str
 	for _, key := range sortedMapKeys(schema) {
 		child := schema[key]
 		switch key {
-		case "description", "title", "examples", "example", "default", "$comment", "deprecated", "readOnly", "writeOnly", "id":
+		case "description", "title", "examples", "example", "default", "$comment", "deprecated":
 			// Annotation values are outside the binding projection.
+		case "readOnly", "writeOnly":
+			if child != false {
+				known = false
+			}
 		case "$ref":
 			ref, ok := child.(string)
 			if !ok || resolver == nil || active[ref] {
@@ -124,7 +146,9 @@ func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[str
 				known = false
 			}
 		case "$schema":
-			if child != "https://json-schema.org/draft/2020-12/schema" && child != "http://json-schema.org/draft-07/schema#" {
+			// The binding compiler's default is 2020-12. Other dialects may
+			// assign different meaning to otherwise familiar keywords.
+			if child != "https://json-schema.org/draft/2020-12/schema" {
 				known = false
 			}
 		default:
@@ -194,6 +218,31 @@ func shapeBodyContent(root map[string]any, object map[string]any) (binding.Schem
 }
 
 func shapeHTTPServers(root map[string]any, pathItem, operation map[string]any) ([]string, bool) {
+	if root["swagger"] == "2.0" {
+		host := stringValue(root["host"])
+		value, declared := operation["schemes"]
+		if !declared {
+			value = root["schemes"]
+		}
+		schemes, _ := value.([]any)
+		if host == "" || strings.ContainsAny(host, "/?#@") || len(schemes) == 0 {
+			return nil, false
+		}
+		var servers []string
+		for _, scheme := range schemes {
+			value, ok := scheme.(string)
+			if !ok || value != "https" && value != "http" {
+				return nil, false
+			}
+			raw := value + "://" + host + stringValue(root["basePath"])
+			clean, redacted, err := sanitizeOperationSourceURL(raw)
+			if err != nil || redacted {
+				return nil, false
+			}
+			servers = append(servers, clean)
+		}
+		return servers, true
+	}
 	value, exists := operation["servers"]
 	if !exists {
 		value, exists = pathItem["servers"]
