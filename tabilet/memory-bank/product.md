@@ -1,5 +1,14 @@
 # Product
 
+## Stage 11 implementation progress — M82.1
+
+The additive local `BuildOperationShapeTable` producer projects all eight
+existing API source families into public UWS metadata. Native selectors and
+explicit incomplete schemas/protocol evidence remain visible; operations and
+security are not yet qualified complete. This implementation is under M82,
+whose acceptance, exact verification and publication remain pending. It performs
+no fetching, credential resolution or execution; see [contract](../../docs/operation-shapes.md).
+
 ## Approved Stage 11 product direction — not implemented
 
 [Stage 11](../../../kinet/docs/stage11.md) and [local milestones](milestone.md#stage-11-cross-package-refactoring) define the approved target. APItools will produce source-neutral UWS operation shapes from its existing eight source families. It still performs no credential resolution, workflow approval or runtime execution. Kinet and OpenUdon consume exact published metadata contracts through isolated parsing paths.

@@ -1,5 +1,15 @@
 # Architecture
 
+## Stage 11 implementation progress — M82.1
+
+`operation_shapes*.go` adds an independent metadata projection over the existing
+native parsers and public UWS binding types. Explicit source IDs plus bounded
+local bytes/files produce raw SHA-256 identities, native selector aliases,
+schema projections and visible incompleteness. The producer returns no partial
+table on malformed input or limits; URLs are sanitized provenance only. Existing
+inventory/candidate contracts are preserved. Exact claim verification/security,
+wire qualification and consumer publication remain M82.2–M82.4 work.
+
 ## Approved Stage 11 architecture target — not implemented
 
 [Stage 11](../../../kinet/docs/stage11.md) and [local milestones](milestone.md#stage-11-cross-package-refactoring) define the approved target. APItools will produce source-neutral UWS operation shapes from its existing eight source families. It still performs no credential resolution, workflow approval or runtime execution. Kinet and OpenUdon consume exact published metadata contracts through isolated parsing paths.

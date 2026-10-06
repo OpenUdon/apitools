@@ -1,7 +1,7 @@
 # M82 — Shape production
 
 **Stage:** Kinet STG-11, Phase A. **Owner:** APItools.
-**State:** Approved planning on 2026-10-06; 4 pending rows, no implementation or acceptance.
+**State:** Confirmed Stage 11 execution; M82.1 complete, M82.2–M82.4 pending; review 0/10 not started.
 **Source baseline:** `9364afac98c97b79c9e6b9335bd9c71d4e8722d5` (clean at planning).
 **Coordinator:** [Stage 11 contract](../../../kinet/docs/stage11.md); the package-local milestone/status owns acceptance.
 
@@ -16,7 +16,7 @@ The serial predecessor is a scheduling gate; direct contract and regression impa
 
 | Item | State | Notes |
 |---|---|---|
-| M82.1 — Project supported source metadata | `[ ]` | Use existing parsers for OpenAPI/Swagger, Google Discovery, AWS Smithy, AsyncAPI, GraphQL, OpenRPC, gRPC/protobuf and OData. Preserve source-native selectors and protocol-specific limits rather than forcing every source into HTTP. |
+| M82.1 — Project supported source metadata | `[+]` | Additive BuildOperationShapeTable projects all eight existing parser families, native selectors/ID aliases and raw SHA-256 into bounded UWS shapes; RPC/event/AWS/OData projections never invent generic HTTP details. Explicit partial schemas/security remain unqualified. Eight-family/public-API fixtures, standalone full tests/vet, focused race checks and workspace OpenUdon/Udon full regression suites passed. See execution evidence below and docs/operation-shapes.md. |
 | M82.2 — Preserve identity and incomplete evidence | `[ ]` | Bind raw source digests and symbolic security alternatives without flattening OR/AND requirements. Preserve unknown schemas, effects and capability limitations; URLs are provenance, not permission to fetch. |
 | M82.3 — Serialize and test shape tables | `[ ]` | Emit deterministic UWS ShapeTable bytes from bounded local inputs. Exercise every source family, malformed references, collisions, security alternatives and forged/stale identity; no credential resolution, execution or implicit network access. Record the planned UWS module dependency and its retained Horizon/HashiCorp HCL transitive closure; do not claim APItools or UWS core becomes HCL-free in Stage 11. |
 | M82.4 — Qualify consumers and publish | `[ ]` | Run owner and affected OpenUdon/Udon checks against exact UWS source, record the public API/fixture release, and publish only under named authority before adoption. |
@@ -51,3 +51,23 @@ UWS:C09 is accepted and independently observed on origin/main at `6a267306032edc
 - Verification: pending implementation; no test result is claimed by this planning record.
 
 After all tasks finish, perform the whole-milestone review with persisted iteration/finding state and fix every P1/P2 before acceptance. Resume an interrupted pass at the same counter. Consolidate current facts, reconcile downstream work and retire under this package’s normal procedure.
+
+## Execution evidence — M82.1, 2026-10-06
+
+Resumed the previously selected row after the old execution session's token
+revocation; its saved dependency/status changes were retained. No initial
+planning commit or completed prerequisite was replayed. Exact accepted UWS C09
+`v0.0.0-20261006181058-6a267306032e` is now a direct dependency; standalone
+`GOWORK=off go mod tidy` recorded its existing Horizon/HCL transitive closure.
+The producer reads only explicit local bytes/files and returns no partial table
+on source, identity, resource or cancellation errors. Numeric/schema projections
+remain independent of prompt-sanitized summaries. No old API/wire change,
+credential/provider operation or workflow execution is added.
+
+Passed with Go1.26.6: `GOWORK=off GOPROXY=off go test ./...`,
+`GOWORK=off GOPROXY=off go vet ./...`,
+`GOWORK=off GOPROXY=off go test -race . -run '^TestOperationShapes'`,
+and `GOPROXY=off go test ./...` in both OpenUdon and Udon using the existing
+operator-owned workspace. `git diff --check` and focused gofmt checks passed.
+M82.2–M82.4, the closing review, consumer acceptance and publication remain
+pending; no M82 acceptance or new consumer pin is claimed.

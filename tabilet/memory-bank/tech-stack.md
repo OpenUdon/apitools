@@ -1,5 +1,15 @@
 # Tech Stack
 
+## Stage 11 implementation progress — M82.1
+
+The local shape producer now directly imports UWS C09 at
+`v0.0.0-20261006181058-6a267306032e`, accepted source
+`6a267306032edc687a298cefc8bba7019d3ad059`. Its module closure includes Horizon
+`v1.14.5` and HashiCorp HCL `v2.24.0`; no HCL-free claim is made. Exact dependency
+acquisition/tidy used `GOWORK=off`; offline tests use `GOPROXY=off`. Focused shape
+checks are `go test . -run '^TestOperationShapes'` and the `-race` variant.
+M82 whole qualification and consumer publication remain pending.
+
 ## Approved Stage 11 tooling target — not implemented
 
 [Stage 11](../../../kinet/docs/stage11.md) and [local milestones](milestone.md#stage-11-cross-package-refactoring) define the approved target. Exact published module revisions, frozen build closures and standalone verification are acceptance gates. Planned APItools:M82 will depend on UWS; while UWS core retains legacy HCL support, the module closure includes Horizon and HashiCorp HCL. This is a future adoption consequence, not a claim that current go.mod already imports UWS. go test ./...; go vet ./...; affected race/API/source-family fixtures and OpenUdon/Udon consumer checks; git diff --check. Use bounded local artifacts, not remote discovery.
