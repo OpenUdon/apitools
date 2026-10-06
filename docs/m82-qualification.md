@@ -24,7 +24,9 @@ normal push from prior origin/main `9364afac98c97b79c9e6b9335bd9c71d4e8722d5`.
 The destination remains `git@github.com-tabilet:OpenUdon/apitools.git`, main.
 The configured registry independently resolves
 `v0.0.0-20261006210844-54583f9b2f45` with origin hash equal to accepted source.
-Retirement closure publication is recorded separately before downstream execution.
+Retirement closure `fae9982e42d6b16fe7a5ebfd342a016613a62adb` was independently
+observed on authorized origin/main; accepted implementation is its ancestor.
+[Publication evidence](m82-publication.md) records the satisfied consumer gate.
 
 The frozen eight-family fixture is 9,829 bytes, SHA-256
 `dc20d2287322a4b20d5d92b1a0d1ec8036f1bec853b642d7df8797ed096c3ba1`.
