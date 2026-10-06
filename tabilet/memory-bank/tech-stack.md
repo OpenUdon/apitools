@@ -264,3 +264,9 @@ module dependency is used. The offline operation index command is delivered by M
   exact provider constraints. The existing 32-KiB operation prompt budget is
   reapplied after typed rank evidence; oversized operations stay source leads.
   Registered source/index parser ceilings are unchanged by these query limits.
+
+- API version probe defaults are 5 s total, 3 s per request, four concurrent
+  requests, twelve HTTP requests and three source bodies at 8 MiB each.
+  JSON state/list helpers use artifactio and the shared structural checks;
+  there is no new dependency or SQLite migration. Focused foundations gate:
+  `go test . -run '^TestAPIVersion'` and its `-race` variant.

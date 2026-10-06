@@ -776,3 +776,14 @@ above 32 allowed links become leads/`link_limit` coverage before multiplying
 references across operations. Ranking reapplies the existing 32-KiB operation
 prompt budget after comparison, replacing oversized operations with exact source
 leads and incomplete evidence. Wrapped remote timeout diagnostics remain explicit.
+
+### API version check foundations (S05.2)
+
+Additive v1 request/report/hint types and private probe/state helpers support
+the approved version-check design. The probe reuses guarded DNS/dial/ports,
+adds conditional GET and early HTML refusal, and shares twelve requests,
+three API-source body slots and four concurrent fetches. Owned clients discard
+cookie jars, caches and redirect callbacks; every source hop must match explicit
+official path/repository scope. State/list metadata writes are confined,
+atomic and opt-in outside source checkouts. The public discovery orchestration
+is supplied by S05.3; these helpers do not execute provider operations.
