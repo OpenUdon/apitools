@@ -7,7 +7,7 @@
 
 ## Dependencies and handoff
 
-[UWS:C09](../../../uws/tabilet/memory-bank/status-C09.md).
+[UWS:C09](../../../uws/tabilet/docs/history/status-C09.md).
 The serial predecessor is a scheduling gate; direct contract and regression impacts are also listed. Every prerequisite must pass its whole review, and required publication must be independently verified before adoption. Record exact accepted/published sources and fixture/build hashes; no Stage 11 acceptance or future pin is claimed yet.
 
 **Downstream:** [UWS:M08](../../../uws/tabilet/memory-bank/status-M08.md), [Kinet:M46](../../../kinet/tabilet/memory-bank/status-M46.md), [OpenUdon:P09](../../../openudon/tabilet/memory-bank/status-P09.md). Reconcile every affected consumer against the accepted prerequisite revision before advancing.
@@ -37,6 +37,10 @@ One execution owner, serial execution and task commits under the later confirmed
 Source: **Stage 11 planning review — cross-package refactoring** (2026-10-06). Review baseline and full local revalidation HEAD: `9364afac98c97b79c9e6b9335bd9c71d4e8722d5`; relevant uncommitted Stage 11 planning changes were included. The review covers the five owner baselines recorded in the coordinator. This is approved intake, not a closing review iteration; the persisted counter remains 0/10.
 
 - **P3-8** — source P3; local Lower; partially confirmed. Evidence: go.mod; ../uws/go.mod; status-M82.md M82.3. Ownership/lineage: M82.3 records the planned transitive closure; Udon:M48.2 verifies it before adoption.
+
+## Accepted binding prerequisite — 2026-10-06
+
+UWS:C09 is accepted and independently observed on origin/main at `6a267306032edc687a298cefc8bba7019d3ad059`, whole review 3/10. [Public contract](../../../uws/docs/binding-reference.md) and [qualification](../../../uws/docs/c09-qualification.md) pin source-neutral ShapeTable/Resolver APIs, metadata-only binding checks and deterministic flow observations. Known/unknown evidence remains explicit; nested/typed templates use exact projections and unproved constraints stay indeterminate. Metadata producer claims are independently reproduced/verified before authority. No APItools/private-runtime import, source parser, credential/provider I/O, ordinary-validator/schema change or execution permission is supplied by C09. Retirement closure `8e5be730aa68aa4cb4f6c591a3a9425c6b8bd55c` was independently observed on authorized origin/main, satisfying the prerequisite publication gate. [Publication evidence](../../../uws/docs/c09-publication.md) records accepted-source ancestry.
 
 ## Persisted review
 

@@ -611,7 +611,7 @@ One execution owner, serial execution and task commits under the later confirmed
 ## M82 — Shape production
 
 **Stage/owner.** STG-11 Phase A; APItools. **Priority.** Serial position 4/18, not a review severity.
-**Dependencies.** [UWS:C09](../../../uws/tabilet/memory-bank/status-C09.md); exact accepted/published contract closure recorded before adoption. Serial gates and direct contract/regression dependencies are reconciled in the coordinator.
+**Dependencies.** [UWS:C09](../../../uws/tabilet/docs/history/status-C09.md); exact accepted/published contract closure recorded before adoption. Serial gates and direct contract/regression dependencies are reconciled in the coordinator.
 **Scope.** Project supported source metadata; Preserve identity and incomplete evidence; Serialize and test shape tables; Qualify consumers and publish.
 **Acceptance.** All existing source families produce honest, deterministic metadata with explicit incompleteness. The package remains source tooling, not a workflow or credential runtime.
 **Verification.** go test ./...; go vet ./...; affected race/API/source-family fixtures and OpenUdon/Udon consumer checks; git diff --check. Use bounded local artifacts, not remote discovery.
