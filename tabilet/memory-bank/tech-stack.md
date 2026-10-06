@@ -85,6 +85,10 @@ verification, per the user's confirmed scope:
   supplies a hostname. RFC 9727 discovery defaults to at most 100 inspected
   `service-desc` links and never follows nested catalogs.
 - Local scans use bounded reads and reject unsafe path shapes.
+- Public-apis list parsing uses the standard library for Markdown and JSON,
+  with the shared JSON preflight: 20 MiB response, 10,000 entries, 64 KiB per
+  row/JSON entry. Limits, malformed input and cancellation expose a diagnostic
+  without probing a partial list; legacy empty JSON arrays remain supported.
 - Refresh, materialization, export, and cache artifact paths share the internal
   `artifactio` confinement layer for regular-file reads, digest checks,
   synchronized atomic writes, collision handling, and directory transactions.

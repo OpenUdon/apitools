@@ -169,6 +169,14 @@ decoded bytes to `Client.MaxBytes`; unsupported content encodings fail closed.
 `AllowUnsafeHosts` is reserved for local fixtures and custom transports and
 does not permit URL userinfo or unbounded bodies.
 
+Public-apis lists accept both configured legacy JSON mirrors and Markdown
+API tables with category headings. Parsing uses a 20-MiB response bound,
+10,000-entry bound and 64-KiB row/JSON-entry bound. JSON also receives the
+shared depth/token preflight. Malformed tables, cancellation and limits return
+no searchable partial list; diagnostics identify the list URL. A valid empty
+JSON entries array remains an empty result. Linked hosts enter the existing
+guarded well-known-path probes only after list parsing succeeds.
+
 `DiscoverLocalSources` walks only caller-provided roots. It resolves symlinked
 ancestors of each selected root once, then rejects a symlink at that root or
 beneath it. It counts every visited entry, rejects non-regular candidates,

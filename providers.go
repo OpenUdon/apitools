@@ -77,12 +77,14 @@ func (c *Client) searchPublicAPIs(ctx context.Context, query string, limit, prob
 	if finalURL != nil {
 		attempts[0].URL = finalURL.String()
 	}
-	var catalog publicAPIsResponse
-	if err := json.Unmarshal(body, &catalog); err != nil {
-		return nil, attempts, fmt.Errorf("parse public-apis catalog: %w", err)
+	entries, err := parsePublicAPIsCatalog(ctx, body, sourceURL)
+	if err != nil {
+		attempts[0].Status = "fail"
+		attempts[0].Detail = err.Error()
+		return nil, attempts, err
 	}
-	matches := make([]publicAPIEntry, 0, len(catalog.Entries))
-	for _, entry := range catalog.Entries {
+	matches := make([]publicAPIEntry, 0, len(entries))
+	for _, entry := range entries {
 		score := scoreText(query, entry.API+" "+entry.Description+" "+entry.Category+" "+entry.Link)
 		if score == 0 || strings.TrimSpace(entry.Link) == "" {
 			continue
@@ -217,10 +219,6 @@ func (a apisGuruAPI) preferred() (string, apisGuruVersion) {
 	}
 	key := keys[len(keys)-1]
 	return key, a.Versions[key]
-}
-
-type publicAPIsResponse struct {
-	Entries []publicAPIEntry `json:"entries"`
 }
 
 type publicAPIEntry struct {
