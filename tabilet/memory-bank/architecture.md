@@ -172,6 +172,8 @@ does not permit URL userinfo or unbounded bodies.
 Public-apis lists accept both configured legacy JSON mirrors and Markdown
 API tables with category headings. The default list is the public-apis
 repository's README on GitHub raw, replacing the retired hosted JSON endpoint.
+The upstream list is MIT-licensed (README attributes the public-apis
+contributors); it is read at runtime and is not vendored into the module.
 Parsing uses a 20-MiB response bound,
 10,000-entry bound and 64-KiB row/JSON-entry bound. JSON also receives the
 shared depth/token preflight. Malformed tables, cancellation and limits return

@@ -83,6 +83,21 @@ does not recurse into nested catalogs, and rejects unsafe hosts and catalogs
 over the service-description link bound. Swagger Catalog and Scalar Registry
 are not queried as unauthenticated global catalogs.
 
+The public-apis fallback reads the
+[public-apis README](https://raw.githubusercontent.com/public-apis/public-apis/master/README.md)
+at runtime through the guarded downloader. The list is maintained by
+[public-apis contributors under MIT](https://github.com/public-apis/public-apis/blob/master/LICENSE).
+It supplies names, descriptions and documentation links; those links seed
+well-known OpenAPI path probes, rather than asserting a spec exists. No copy of
+the list is bundled here. `Client.PublicAPIsURL` may select a JSON mirror using
+the legacy `{"entries": [...]}` shape, including a valid empty entries array.
+Markdown and JSON are selected by content, with a 20-MiB response limit,
+10,000 entries and 64 KiB per row/JSON entry. Malformed or over-limit lists
+fail with their source URL before any partial list is probed. Probing retains
+its seven default paths, 50-candidate ceiling, five-second request timeout and
+30-second overall probe budget. A valid list with no matching entries returns
+an empty result; a failed list fetch or parse remains an error.
+
 Imported documents are treated as untrusted data.
 This package never executes API operations, resolves credentials, or exchanges
 tokens. OAuth consent and token refresh belong to Udon's trusted runtime; the

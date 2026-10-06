@@ -2,7 +2,8 @@
 
 **State:** Approved plan, 2026-10-01, amended on 2026-10-01, 2026-10-02,
 and 2026-10-06;
-it runs after [S06](status-S06.md). All six implementation rows are pending; no implementation, publication, or closing
+S06 is complete in the isolated branch and retained in
+[history](../docs/history/status-S06.md). All six implementation rows are pending; no implementation, publication, or closing
 review has started.
 
 **Specification:** [S05](milestone.md#s05--official-source-api-version-discovery).
@@ -109,7 +110,7 @@ existing remote-discovery and guarded-download code without reopening them.
 
 ## Third-intake findings (conversation, 2026-10-02)
 
-F01 (the dead public-apis endpoint) is owned by [S06](status-S06.md). The rest
+F01 (the dead public-apis endpoint) is owned by [S06](../docs/history/status-S06.md). The rest
 retain their original approval provenance below; the fourth intake qualifies
 F12's original "verified latest" wording with checked scope.
 
@@ -139,7 +140,7 @@ F12's original "verified latest" wording with checked scope.
 | F06 Guarded-client reuse alone is not origin/credential isolation | not supplied | P1 | confirmed acceptance gap, not a demonstrated production exploit | `download.go:redirectSafeClient` retains cookies/callbacks and accepts other safe public hosts; `catalog_discovery_remote.go` strips them for M80 | S05.2 owns isolated client and every-hop official-scope guard; S05.3/S05.4 reuse it |
 | F07 Prefix sniffing may reject valid late-marked documents | not supplied | P2 | confirmed planning gap | Earlier S05.2 rejects non-spec first bytes without distinguishing ambiguous JSON/YAML prefixes | S05.2 rejects only definite non-spec responses early; S05.3 fixtures cover late identifying keys |
 
-F08-F10 are owned by [S06](status-S06.md#consistency-intake-findings-2026-10-06).
+F08-F10 are owned by [S06](../docs/history/status-S06.md).
 S05.6 reuses F08's isolated consumer checks and the F09 dependency correction;
 neither creates another owner row. All work fits untouched pending rows, with
 no new milestone or promoted candidate.
@@ -155,8 +156,8 @@ no new milestone or promoted candidate.
 
 ## Dependencies and ownership
 
-The APItools active order is S06 then S05, by priority, under one execution
-owner; S05's task order is S05.1 -> S05.2 -> S05.3 -> S05.4 -> S05.5 -> S05.6.
+S06 completed review and retirement on 2026-10-06. The remaining active order
+is S05 under the same execution owner; S05's task order is S05.1 -> S05.2 -> S05.3 -> S05.4 -> S05.5 -> S05.6.
 S05 has no technical dependency on S06; both execute serially on the same
 isolated branch/worktree, carrying S06's changes into S05 after its review.
 No upstream prerequisite applies, and no sibling write scope is approved.
@@ -235,7 +236,7 @@ git diff --check
 
 Run OpenUdon and Udon compatibility checks in workspace and standalone modes
 per tech-stack.md, with Ramen excluded. Follow
-[S06's isolated consumer verification](status-S06.md#acceptance-and-verification):
+[S06's isolated consumer verification](../docs/history/status-S06.md):
 disposable workspace/modfile configuration binds both consumers to the
 candidate worktree; check the resolved APItools directory before test/vet.
 Do not edit sibling manifests/pins or the shared workspace. Ordinary unchanged-
@@ -258,10 +259,22 @@ APIs.guru and public-apis data named above. No implementation verification or
 milestone review is claimed.
 
 Fourth-intake verification (2026-10-06): the four existing public-apis tests
-named in [S06](status-S06.md#review-and-planning-evidence) passed in workspace
+named in [S06](../docs/history/status-S06.md) passed in workspace
 and standalone modes; `git diff --check` passed. These validate the unchanged
 baseline, not the planned features. All nine pending rows, both zero review
 counters, retired history, code and current-truth documents are preserved.
 The approved six-file amendment clarifies v26 rather than creating a new
 direction version; no commit, execution loop, merge or publication is authorized
 by this planning action.
+
+## Reconciliation after S06 completion (2026-10-06)
+
+S06's bounded Markdown/legacy JSON list and repaired default are accepted in
+the isolated branch, with full APItools and candidate-bound OpenUdon/Udon
+checks and review 1 passed. S05's six rows remain pending: its new conditional/
+concurrent probe and official-version metadata are not implemented by S06.
+Reuse S06's disposable consumer-test setup and verify candidate module identity
+before testing; recorded Udon retries also explain the lower-concurrency
+verification choice. The detailed S05.1 design still needs separate approval
+before S05.2. No consumer pin, source registration, catalog index or SQLite
+schema changes; no merge or publication performed.

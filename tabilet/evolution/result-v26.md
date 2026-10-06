@@ -4,10 +4,9 @@
 and 2026-10-06;
 not implemented or accepted.
 [S05](../memory-bank/milestone.md#s05--official-source-api-version-discovery)
-has six pending rows in [status-S05.md](../memory-bank/status-S05.md) and runs
-after [S06](../memory-bank/milestone.md#s06--public-apis-source-repair), a
-separate P2 defect fix for the dead public-apis endpoint that is not part of
-this direction. No closing review gate has started, and the plan grants no
+has six pending rows in [status-S05.md](../memory-bank/status-S05.md) and follows
+[retired S06](../docs/history/status-S06.md), completed on 2026-10-06 in the
+isolated branch. That source repair is separate from this planned direction. No closing review gate has started, and the plan grants no
 implementation, merge, or release authority.
 
 The material direction change is that APItools will discover versions from
@@ -70,7 +69,7 @@ files and no code changes; source priorities and separate review baseline were
 not supplied. It amends the existing nine pending rows and preserves both zero
 review counters. Findings and owners are recorded in
 [S05](../memory-bank/status-S05.md#consistency-intake-findings-2026-10-06)
-and [S06](../memory-bank/status-S06.md#consistency-intake-findings-2026-10-06).
+and [S06](../docs/history/status-S06.md).
 
 Shared limits now explicitly cover conditional checks, revalidation, redirects,
 recipe replay and integrated hint verification, without resets. Up to eight
@@ -97,3 +96,8 @@ modes, and the patch check passed; no new feature acceptance is claimed.
 Live measurements were not repeated. S05.1's detailed design approval remains
 a checkpoint. No evolution bump is needed: this clarifies v26 rather than
 changing direction.
+
+S06 completed its three tasks and review in one iteration on 2026-10-06,
+with the live list smoke and candidate-bound full consumer verification.
+It is retired in the isolated branch; merge/publication remain separate.
+S05's design approval checkpoint and pending implementation remain intact.

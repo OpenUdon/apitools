@@ -3,20 +3,17 @@
 # Delete it after launching the goal, or whenever it becomes stale.
 # Creating this reference does not start execution, merge, or publication.
 # Approved planning reconciliation: 2026-10-06; no execution has started.
-# Run both milestones on one branch in one worktree outside ~/Workspace/go.work.
+# S06 is complete/retired on work/s06-s05; resume S05 in that isolated worktree.
 
 Using tabilet/GOAL.md, execute this loop.
 
 STATUS_ORDER:
-S06 -> S05
+S05
 
 STATUS_FILE_MAP:
-S06 = tabilet/memory-bank/status-S06.md
 S05 = tabilet/memory-bank/status-S05.md
 
 DOWNSTREAM_IMPACTS:
-S06 -> S05 (priority only; carry reviewed S06 changes forward in the same isolated branch/worktree)
-S06 -> OpenUdon and Udon compatibility (preserve existing APIs; Udon plumbs PublicAPIsURL; candidate-bound verification)
 S05 -> OpenUdon and Udon exported-API compatibility (additive; no adoption; reuse S06's candidate-bound verification)
 # Kinet's Stage 5 is complete, not a pending dependency or merge gate.
 # Consumer adoption is reconciled separately.
@@ -25,7 +22,7 @@ S05 -> OpenUdon and Udon exported-API compatibility (additive; no adoption; reus
 COMMIT_POLICY: task
 EXTERNAL_MUTATIONS: none
 
-Completion condition: S06's and S05's required rows, verification (including
+Completion condition: S05's required rows, verification (including
 S05's timing and save fixtures and go test -race over its new concurrent
 paths), and persisted review gates are complete. S05.1 completes only after
 the user separately approves its detailed design record, including the shared
@@ -38,7 +35,7 @@ the shared SQLite schema, and consumer pins, and exclude Ramen from downstream
 checks.
 
 Bind OpenUdon and Udon checks explicitly to the candidate APItools worktree
-using disposable workspace/modfile configuration outside tracked repositories;
+using the disposable workspace/modfile configuration qualified by retired S06;
 verify the resolved module directory before workspace and standalone test/vet.
 Do not edit shared go.work or sibling manifests. Record ordinary standalone
 checks against unchanged pins/replacements separately as baseline evidence,

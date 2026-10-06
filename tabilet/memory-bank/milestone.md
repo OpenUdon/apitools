@@ -90,13 +90,13 @@ and retired. M81 foundations qualified at
 `8d67aef2dce565aa9ac8e8b2c56a9100dcf9a5a6`; M80 discovery qualified and
 published at `fb132631c9827eae5f2ec4503d03f21eabfb4113`
 (`v0.0.0-20260930205753-fb132631c982`), carrying M81 publication. The latest
-completed milestone is M80; its whole-milestone review passed in 3 iterations.
-Two milestones are active, both approved for planning with every row pending
-and independent of Kinet's completed Stage 5: S06 (public-apis source repair, a P2
-defect fix) runs first, then S05 (official-source API version discovery, an
-opt-in additive feature). The approved 2026-10-06 consistency reconciliation
-clarifies acceptance and isolated verification without starting implementation
-or either review gate. Other unnumbered candidates require fresh approval.
+completed milestone is S06, accepted on the isolated `work/s06-s05` branch
+after one review iteration; merge/publication remain separately authorized.
+S05 is the sole active milestone, with its six rows pending and independent
+of Kinet's completed Stage 5. S06's source repair and candidate-bound consumer
+verification are retained in its frozen history record. The 2026-10-06
+consistency reconciliation clarifies S05 acceptance without changing its
+design approval checkpoint. Other unnumbered candidates require fresh approval.
 Exact history and observed publication evidence resolve through the history index.
 Apitools and Authoring are published, and OpenUdon passes standalone test/vet
 against its pinned APItools revision.
@@ -133,94 +133,11 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| S06 | [status-S06.md](status-S06.md) | Pending; approved defect fix, runs first, implementation not started. |
-| S05 | [status-S05.md](status-S05.md) | Pending; approved plan, runs after S06, implementation not started. |
+| S05 | [status-S05.md](status-S05.md) | Pending; approved plan, S06 complete; design approval checkpoint remains. |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
-
-## S06 — Public-apis source repair
-
-Restore the documented `public-apis` search source and the `auto` fallback
-that ends in it. The default source host `api.publicapis.org` has no DNS
-record (observed 2026-10-02): `apitools search --source public-apis` fails
-with "no such host" and exits 1, and `--source auto` with a query that no
-other source matches exits 1 with the same error instead of returning an empty
-result. Both are documented behaviors (`README.md`, the CLI help), so this is
-a confirmed P2 defect in a supported scenario. It was found while evaluating
-the public-apis repository as a lead source, in this conversation's findings
-of 2026-10-02 (source priority `not supplied`), and revalidated at
-`8a52c3f602988b945a4b5c1960bce8c04170c63d` with no relevant uncommitted code.
-Lineage: the source was added by retired M70
-([M70 record](../docs/history/status-M70.md)); it is not reopened. The user
-approved this milestone, its order before S05, and its rows on 2026-10-02.
-The approved "S06/S05 plan consistency review, 2026-10-06" amends its pending
-acceptance only; source priority and separate review baseline are `not supplied`.
-Revalidation remains at the full commit above, including the six uncommitted
-planning files and no code changes. Status S06 owns this intake's F08-F10.
-The dead-endpoint finding remains the original S06 work, not a new milestone;
-its live evidence is dated 2026-10-02 and was not fetched again.
-
-**Approach.** The public-apis project is an MIT-licensed, actively maintained
-list: one Markdown `README.md` of about 88 KB with roughly 1,970 entries in 52
-categories, each with a name, description, docs link, and auth type. It has no
-spec URLs. The default source becomes that README, read at runtime from
-GitHub's raw host through the existing guarded transport. Nothing from the
-list is vendored into this repository.
-
-**Scope and acceptance.**
-
-- **List parsing.** Parse the Markdown table (`###` category headings and
-  `| [Name](link) | description | auth | https | cors |` rows) into the
-  existing entry fields. Define and test explicit response-size, entry-count,
-  and row-length bounds, with diagnostics naming the list URL for malformed
-  or limit-exceeded input; never treat a truncated list as complete. Reject
-  unrecognized or empty Markdown, but preserve a valid legacy JSON
-  `{"entries": []}` as an empty result. Keep accepting the JSON
-  `{"entries": [...]}` shape from a configured `PublicAPIsURL`, selecting the
-  parser by content rather than by URL, so existing fixtures and mirrors work.
-- **Default and wiring.** `DefaultPublicAPIsURL` points at the repository's
-  README on GitHub raw. `Client`, `SearchOptions`, `Result`, and
-  `SearchReport` shapes, the `PublicAPIsURL` field (which Udon passes
-  through), the probe paths, the 5 s per-candidate timeout, the 30 s budget,
-  the 50-candidate cap, and `auto`'s fallback order and error semantics are
-  unchanged. When the final fallback cannot read its list, `auto` still
-  reports that error, which is correct because nothing was checked.
-- **Tests and documentation.** Synthetic Markdown and JSON fixtures served by
-  local servers; a test that the default is not the dead host; no default test
-  touches the network. README and architecture document the list source and
-  its MIT attribution. A manual, opt-in check against live GitHub raw confirms
-  `search --source public-apis` works, and is not part of default
-  verification.
-- **Verification.** `go test ./...`, `GOWORK=off go test ./...`, `go vet ./...`,
-  `GOWORK=off go vet ./...`, `go run ./cmd/cataloggen -check`,
-  `go run ./cmd/apitools catalog check`, `go run ./cmd/apitools search --help`,
-  `git diff --check`, and OpenUdon/Udon compatibility checks in workspace and
-  standalone modes per tech-stack.md, with Ramen excluded.
-
-**Dependencies and execution.** No upstream prerequisite and no technical
-dependency on S05; the order is by priority. No consumer adoption is required:
-OpenUdon does not use the source, and Udon only plumbs the `PublicAPIsURL`
-field and uses `Import`, so that field must stay. Udon builds against the local
-`../apitools` checkout through a `replace` directive. Implement S06 then S05
-on one branch in one separate worktree outside `~/Workspace/go.work`, with
-one ledger owner; preserve the main workspace checkout and consumer pins.
-Kinet's current ledger records Stage 5 complete (rechecked 2026-10-06), so it
-is not a pending dependency or merge gate. Isolation still protects shared
-workspace builds and accepted evidence. Merging and publishing each need
-separate approval. Probe efficiency (parallel probing, conditional requests)
-is not in scope; S05's new probe primitive owns that work.
-
-**Isolated consumer verification (S06.3; reused by S05.6).** Use disposable
-workspace/modfile configuration outside tracked repositories to bind OpenUdon
-and Udon explicitly to the candidate APItools worktree. Resolve relative paths
-without editing their tracked manifests or the shared `go.work`; verify the
-resolved APItools module directory before testing. Run candidate-bound tests
-in both workspace and standalone modes. Record ordinary standalone checks
-against unchanged pins/replacements separately as baseline evidence, never as
-proof of candidate compatibility. Ramen is excluded. No sibling write or
-consumer adoption is authorized.
 
 ## S05 — Official-source API version discovery
 
@@ -526,13 +443,13 @@ version is the baseline and the product; the check is advisory.
   workspace and standalone modes per tech-stack.md, with Ramen excluded.
 
 **Dependencies and execution.** No upstream prerequisite; retired M80 and the
-existing remote-discovery and guarded-download code are foundations. S05 runs
-after S06 by priority only, with no technical dependency on it; both sequence
-under one execution owner in the same isolated branch/worktree, carrying S06's
-changes into S05. Kinet's Stage 5 is complete, not a pending dependency.
+existing remote-discovery and guarded-download code are foundations. S06 is complete and retired; S05 now follows it under one execution owner
+in the same isolated branch/worktree. It has no technical dependency on S06's
+new list parser; its probe primitive remains separate. Kinet's Stage 5 is complete, not a pending dependency.
 Keep the branch outside `~/Workspace/go.work` so normal consumer builds retain
 current workspace behavior; merging and publishing each need separate
-approval. S05.6 reuses S06.3's isolated candidate-bound verification procedure,
+approval. S05.6 reuses the isolated candidate-bound verification procedure in
+[retired S06](../docs/history/status-S06.md),
 with ordinary pinned standalone checks labeled separately. No consumer adopts
 S05 in this milestone; OpenUdon or Kinet adoption is reconciled separately in
 its own ledger. Curating GoDaddy into the
