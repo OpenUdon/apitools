@@ -1,7 +1,7 @@
 # M82 — Shape production
 
 **Stage:** Kinet STG-11, Phase A. **Owner:** APItools.
-**State:** Confirmed Stage 11 execution; M82.1/M82.2 complete, M82.3–M82.4 pending; review 0/10 not started.
+**State:** Confirmed Stage 11 execution; M82.1–M82.3 complete, M82.4 pending; review 0/10 not started.
 **Source baseline:** `9364afac98c97b79c9e6b9335bd9c71d4e8722d5` (clean at planning).
 **Coordinator:** [Stage 11 contract](../../../kinet/docs/stage11.md); the package-local milestone/status owns acceptance.
 
@@ -18,7 +18,7 @@ The serial predecessor is a scheduling gate; direct contract and regression impa
 |---|---|---|
 | M82.1 — Project supported source metadata | `[+]` | Additive BuildOperationShapeTable projects all eight existing parser families, native selectors/ID aliases and raw SHA-256 into bounded UWS shapes; RPC/event/AWS/OData projections never invent generic HTTP details. Explicit partial schemas/security remain unqualified. Eight-family/public-API fixtures, standalone full tests/vet, focused race checks and workspace OpenUdon/Udon full regression suites passed. See execution evidence below and docs/operation-shapes.md. |
 | M82.2 — Preserve identity and incomplete evidence | `[+]` | VerifyOperationShapeTable independently reproduces exact local claims and refuses forged/stale fields, omitted operations and changed raw bytes. Explicit OpenAPI security preserves OR-of-AND symbols/scopes; undeclared/unresolved security remains unknown. Complete supported HTTP metadata proves advisory compatibility, while unsupported native/dialect/wire/requiredness/schema evidence remains partial. Identity, symbolic-security, type/refusal, canary and no-network fixtures passed with standalone full tests/vet, focused races and workspace OpenUdon/Udon regressions. |
-| M82.3 — Serialize and test shape tables | `[ ]` | Emit deterministic UWS ShapeTable bytes from bounded local inputs. Exercise every source family, malformed references, collisions, security alternatives and forged/stale identity; no credential resolution, execution or implicit network access. Record the planned UWS module dependency and its retained Horizon/HashiCorp HCL transitive closure; do not claim APItools or UWS core becomes HCL-free in Stage 11. |
+| M82.3 — Serialize and test shape tables | `[+]` | Reuse public UWS Marshal/ParseTable and freeze eight-source/twelve-operation bytes at testdata/operation-shapes/v1/eight-families.json. Source-order, exact JSON/YAML numeric lexemes, resolver isolation, bounded wire, missing/cyclic refs, native collision/overload, ambiguous IDs and streaming/list/message-alternative fixtures passed. OData/AsyncAPI summary deduplication cannot select a contract silently. Legacy candidate wire fixtures are unchanged; standalone full tests/vet, focused races, dependency closure and patch checks passed. Retained Horizon/HCL remains explicit; no credential resolution/execution/network behavior is added. |
 | M82.4 — Qualify consumers and publish | `[ ]` | Run owner and affected OpenUdon/Udon checks against exact UWS source, record the public API/fixture release, and publish only under named authority before adoption. |
 
 ## Acceptance and verification
@@ -91,3 +91,22 @@ binding consumer, alongside structurally valid forgeries/stale raw identity,
 OR/AND requirements, unknown definitions/schema/dialect and no-network canaries.
 The remaining wire/source-family edge fixtures and whole consumer/publication
 gate stay with M82.3/M82.4. No new acceptance or publication is claimed.
+
+## Execution evidence — M82.3, 2026-10-06
+
+The independently inspected synthetic golden contains eight exact raw source
+identities and twelve native operations, 9,829 bytes with SHA-256
+`dc20d2287322a4b20d5d92b1a0d1ec8036f1bec853b642d7df8797ed096c3ba1`.
+All prior candidate v1 wire files and source artifacts are unchanged. Exact
+large-integer, decimal and exponent lexemes survive JSON/YAML schema projection;
+no float64/JCS equality oracle is used. Missing/cyclic schema references remain
+unknown; duplicate/trailing/alias encodings and colliding native contracts
+refuse. Unique OpenAPI refs retain ambiguous duplicate ID aliases. Message,
+stream/list and multiple response/media evidence stays incomplete. The 8 MiB
+serialized-table limit and aggregate operation bound return no partial table.
+
+Passed: `GOWORK=off GOPROXY=off go test ./...`, `go vet ./...` under the same
+standalone/offline environment, focused shape races, `go list -m all`, gofmt
+and `git diff --check`. UWS remains pinned to accepted/published C09; Horizon
+`v1.14.5` / HCL `v2.24.0` remain in the module closure. M82.4 owns the final
+consumer qualification, publication and whole review; review remains 0/10.

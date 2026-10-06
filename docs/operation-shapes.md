@@ -62,6 +62,15 @@ source bytes before deriving authority. UWS structure validation alone is not
 proof of producer correctness.
 
 Focused gate: `go test . -run '^TestOperationShapes'` and its `-race` variant.
+The public UWS `ShapeTable.Marshal` method supplies deterministic serialization;
+`ParseTable` checks the bounded closed wire before independent reproduction.
+The [eight-family fixture](../testdata/operation-shapes/v1/README.md) freezes
+exact bytes with independent semantic/refusal tests, source-order independence
+and resolver isolation. JSON/YAML lexeme tests do not use float64 or JCS equality
+as their oracle. Native IDs that the legacy parsers deduplicate ambiguously
+(including OData overloads and repeated AsyncAPI IDs) refuse rather than silently
+choosing one contract; duplicate OpenAPI IDs keep distinct native pointers and
+resolve as ambiguous by ID.
 Standalone qualification uses `GOWORK=off` and the exact published UWS C09 pin.
 The UWS module retains its Horizon/HashiCorp HCL transitive dependency closure;
 this API does not make UWS or APItools HCL-free.

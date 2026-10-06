@@ -12,6 +12,12 @@ The same pinned `jsonschema/v6 v6.0.1` dependency is directly used to check
 projected schemas with external loading disabled; no dependency version changed.
 M82 whole qualification and consumer publication remain pending.
 
+M82.3 freezes the UWS eight-family table at 9,829 bytes, SHA-256
+`dc20d2287322a4b20d5d92b1a0d1ec8036f1bec853b642d7df8797ed096c3ba1`.
+The public UWS Marshal/ParseTable pair is reused; no duplicate serializer or CLI
+is introduced. Standalone `go list -m all` confirms the exact UWS, schema-compiler
+and retained Horizon/HCL closure; legacy candidate v1 wire fixtures are unchanged.
+
 ## Approved Stage 11 tooling target — not implemented
 
 [Stage 11](../../../kinet/docs/stage11.md) and [local milestones](milestone.md#stage-11-cross-package-refactoring) define the approved target. Exact published module revisions, frozen build closures and standalone verification are acceptance gates. Planned APItools:M82 will depend on UWS; while UWS core retains legacy HCL support, the module closure includes Horizon and HashiCorp HCL. This is a future adoption consequence, not a claim that current go.mod already imports UWS. go test ./...; go vet ./...; affected race/API/source-family fixtures and OpenUdon/Udon consumer checks; git diff --check. Use bounded local artifacts, not remote discovery.

@@ -193,6 +193,21 @@ func asyncShapes(ctx context.Context, root map[string]any, source binding.Source
 	if err != nil {
 		return nil, err
 	}
+	if !strings.HasPrefix(model.Version, "2.") && !strings.HasPrefix(model.Version, "3.") {
+		return nil, ErrOperationShapeTable
+	}
+	count := len(mapValue(root["operations"]))
+	for _, rawChannel := range mapValue(root["channels"]) {
+		channel := mapValue(rawChannel)
+		for _, action := range []string{"publish", "subscribe"} {
+			if _, present := channel[action]; present {
+				count++
+			}
+		}
+	}
+	if count != len(model.Operations) {
+		return nil, ErrOperationShapeTable
+	}
 	var out []binding.OperationShape
 	for _, native := range model.Operations {
 		if err := ctx.Err(); err != nil {
@@ -207,6 +222,9 @@ func asyncShapes(ctx context.Context, root map[string]any, source binding.Source
 			target, ok := model.ResolveSelector(native.MessageRefs[0])
 			if ok && target.Message != nil {
 				schema = projectedShapeSchema(target.Message.Payload, shapeLocalResolver(root))
+				if _, declared := target.Message.Raw["schemaFormat"]; declared {
+					schema.Known = false
+				}
 			}
 		}
 		switch native.Action {
@@ -325,7 +343,29 @@ func grpcShapes(ctx context.Context, model *grpcproto.Model, source binding.Sour
 
 func odataShapes(ctx context.Context, model *odata.Model, source binding.Source) ([]binding.OperationShape, error) {
 	var out []binding.OperationShape
-	for _, native := range model.OperationSummaries() {
+	summaries := model.OperationSummaries()
+	// The legacy summary API deduplicates native IDs. Shape reproduction must
+	// refuse ambiguous/overloaded identity rather than accept a chosen survivor.
+	count := 0
+	for _, schema := range model.Schemas {
+		if schema == nil {
+			return nil, ErrOperationShapeTable
+		}
+		count += len(schema.Actions) + len(schema.Functions)
+		if container := schema.EntityContainer; container != nil {
+			count += len(container.EntitySets) + len(container.Singletons) + len(container.ActionImports) + len(container.FunctionImports)
+		}
+		for _, entity := range schema.EntityTypes {
+			if entity == nil {
+				return nil, ErrOperationShapeTable
+			}
+			count += len(entity.NavigationProperties)
+		}
+	}
+	if count != len(summaries) {
+		return nil, ErrOperationShapeTable
+	}
+	for _, native := range summaries {
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
