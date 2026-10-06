@@ -144,7 +144,7 @@ query
   -> APIs.guru global directory
   -> experimental LAP Registry targeted search when APIs.guru has no match
   -> one RFC 9727 /.well-known/api-catalog lookup when a provider URL exists
-  -> legacy public-apis well-known-path probe
+  -> public-apis Markdown list and well-known-path probe
   -> untrusted Result candidates
   -> selected original source URL enters the existing bounded import validator
 ```
@@ -170,7 +170,9 @@ decoded bytes to `Client.MaxBytes`; unsupported content encodings fail closed.
 does not permit URL userinfo or unbounded bodies.
 
 Public-apis lists accept both configured legacy JSON mirrors and Markdown
-API tables with category headings. Parsing uses a 20-MiB response bound,
+API tables with category headings. The default list is the public-apis
+repository's README on GitHub raw, replacing the retired hosted JSON endpoint.
+Parsing uses a 20-MiB response bound,
 10,000-entry bound and 64-KiB row/JSON-entry bound. JSON also receives the
 shared depth/token preflight. Malformed tables, cancellation and limits return
 no searchable partial list; diagnostics identify the list URL. A valid empty

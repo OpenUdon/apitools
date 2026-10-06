@@ -1,8 +1,8 @@
 # Status S06 — Public-apis source repair
 
 **State:** Execution started, 2026-10-06, after confirmation of the S06 -> S05
-goal with task commits and no external mutations. S06.1 is complete on
-branch `work/s06-s05` in the isolated worktree; the other rows remain pending.
+goal with task commits and no external mutations. S06.1-S06.2 are complete on
+branch `work/s06-s05` in the isolated worktree; S06.3 remains pending.
 The approved planning amendments and the main workspace checkout are preserved.
 No merge, publication, or closing review has started.
 
@@ -70,7 +70,7 @@ No duplicate task or milestone is allocated.
 | Item | State | Notes |
 |---|---|---|
 | S06.1 — Markdown list parser and bounds | `[+]` | Owns the 2026-10-02 F01 parsing and consistency-intake F10. Parse the public-apis README table (`###` headings and `\| [Name](link) \| description \| auth \| https \| cors \|` rows) into existing entry fields. Define and test explicit response-size, entry-count, and row-length bounds; malformed/limit-exceeded diagnostics name the list URL and never present a partial list as complete. Reject unrecognized/empty Markdown, but preserve valid legacy JSON, including `{"entries":[]}` as an empty result. Select the parser by content, not URL. Use synthetic Markdown/JSON fixtures only; commit no copy of the list. |
-| S06.2 — Default source switch and wiring | `[ ]` | Owns F01's default. Depends on S06.1. Point `DefaultPublicAPIsURL` at the repository's README on GitHub raw, read through the existing guarded transport. Leave `Client`, `SearchOptions`, `Result`, and `SearchReport` shapes, the `PublicAPIsURL` field, the probe paths, the 5 s and 30 s budgets, the 50-candidate cap, and `auto`'s fallback order and error semantics unchanged. Add tests that the default is not the dead host, that `auto` and `--source public-apis` work against local fixtures, and that no default test touches the network. |
+| S06.2 — Default source switch and wiring | `[+]` | Owns F01's default. Depends on S06.1. Point `DefaultPublicAPIsURL` at the repository's README on GitHub raw, read through the existing guarded transport. Leave `Client`, `SearchOptions`, `Result`, and `SearchReport` shapes, the `PublicAPIsURL` field, the probe paths, the 5 s and 30 s budgets, the 50-candidate cap, and `auto`'s fallback order and error semantics unchanged. Add tests that the default is not the dead host, that `auto` and `--source public-apis` work against local fixtures, and that no default test touches the network. |
 | S06.3 — Documentation, compatibility, and verification | `[ ]` | Depends on S06.1-S06.2. Owns consistency-intake F08-F09. Document the list source and MIT attribution in README and architecture. Run the verification below against the candidate worktree, recording ordinary unchanged-pin/replacement checks separately. Keep the live GitHub-raw smoke check separately opt-in, not a default test. Preserve worktree isolation without treating completed Kinet Stage 5 as a pending gate. Pass the persisted ten-iteration review gate with no open P1/P2-or-higher findings. Merging and publication each need separate approval. |
 
 ## Dependencies and ownership
@@ -150,3 +150,9 @@ S06/S05 behavior. The previous live observations were not repeated.
   Focused public-apis/search tests and their race run passed with Go 1.26.6;
   `git diff --check` passed. The first task commit also carries the six
   explicitly approved planning files into the isolated branch.
+- S06.2 completed 2026-10-06: the default now selects
+  `https://raw.githubusercontent.com/public-apis/public-apis/master/README.md`.
+  Local transport/server fixtures prove the unconfigured source URL and CLI
+  `public-apis`/`auto` paths, including no-match success. Legacy JSON and probe
+  budgets/order remain intact. Focused root/CLI tests and the default/CLI race
+  fixtures passed with Go 1.26.6; patch check passed.

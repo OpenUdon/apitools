@@ -12,7 +12,7 @@ import (
 const (
 	DefaultAPIsGuruListURL   = "https://api.apis.guru/v2/list.json"
 	DefaultLAPSearchURL      = "https://registry.lap.sh/v1/search"
-	DefaultPublicAPIsURL     = "https://api.publicapis.org/entries"
+	DefaultPublicAPIsURL     = "https://raw.githubusercontent.com/public-apis/public-apis/master/README.md"
 	DefaultAPICatalogPath    = "/.well-known/api-catalog"
 	DefaultRFC9727LinkLimit  = 100
 	DefaultTimeout           = 30 * time.Second
