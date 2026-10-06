@@ -1,15 +1,15 @@
-# M82 consumer qualification — in progress
+# M82 consumer qualification
 
-M82.1–M82.3 are committed. M82.4 is selected and in progress. This record does
-not establish whole-milestone acceptance or source publication. The closing
-whole code review passed at 3/10. Publication and final milestone acceptance
-remain pending. The confirmed Stage 11 goal remains active.
+M82's four tasks are complete and whole review passed at 3/10. Accepted source
+`54583f9b2f452b7cc522360c5aeeff29ca22f96c` was published by normal fast-forward
+to the exact authorized origin/main and independently observed there. The
+remaining Stage 11 goal remains active; consuming milestones own their adoption.
 
 ## Source and public contract
 
-Implementation baseline: `18fdf1fc8063384e637143d2c39a322f404463f6`, with
-uncommitted reviewed M82.4 HTTP completeness, aggregate resource and source-dialect/ref-sibling guards plus
-their negative fixtures. That baseline does not contain the later guard changes.
+Accepted implementation: `54583f9b2f452b7cc522360c5aeeff29ca22f96c`, including
+the reviewed HTTP completeness, aggregate resource and source-dialect/ref-sibling
+guards and negative fixtures. Later closure/docs changes do not change that code.
 The producer/verifier APIs and public UWS wire are documented in
 [operation-shapes.md](operation-shapes.md).
 
@@ -19,10 +19,12 @@ UWS C09 is pinned to accepted source
 `8e5be730aa68aa4cb4f6c591a3a9425c6b8bd55c` are ancestors of independently
 observed authorized UWS origin/main
 `0e1e10d0e3e39b20768f1b4862c51bbb1c6cf9cf`. Observed APItools origin/main is
-still `9364afac98c97b79c9e6b9335bd9c71d4e8722d5`; no M82 source was published.
+`54583f9b2f452b7cc522360c5aeeff29ca22f96c`, independently observed after its
+normal push from prior origin/main `9364afac98c97b79c9e6b9335bd9c71d4e8722d5`.
 The destination remains `git@github.com-tabilet:OpenUdon/apitools.git`, main.
-Publication must follow final qualification/review and use the existing normal
-fast-forward grant; consumers must wait for exact accepted publication evidence.
+The configured registry independently resolves
+`v0.0.0-20261006210844-54583f9b2f45` with origin hash equal to accepted source.
+Retirement closure publication is recorded separately before downstream execution.
 
 The frozen eight-family fixture is 9,829 bytes, SHA-256
 `dc20d2287322a4b20d5d92b1a0d1ec8036f1bec853b642d7df8797ed096c3ba1`.
@@ -44,7 +46,7 @@ retained staticcheck2026.2.1 reported six pre-existing diagnostics: four SA1019
 Discovery-wrapper uses in api_versions.go/api_versions_compare.go, one ST1013
 status literal in catalog_discovery_remote_test.go, and one ST1005 error string
 in operation_source_native.go. All four files are byte-identical to the pre-M82
-baseline `ab2e944`; no diagnostic concerns the new shape files. This is not a
+baseline `ab2e944ca99e44426f9ae47753fa30c403cee018`; no diagnostic concerns the new shape files. This is not a
 zero-diagnostic result. APItools's required milestone commands do not mandate
 zero staticcheck; no suppression, waiver or unrelated legacy cleanup was added.
 
@@ -65,13 +67,11 @@ changed only that UWS require to
 Actual consumer dependency adoption remains with the pending owning milestone;
 this qualification does not silently change it.
 
-## Remaining acceptance work
+## Consumer and deployment boundaries
 
-Finish M82.4 evidence/verification, persist and perform the full bounded closing
-review, fix every blocking finding, publish/independently verify exact accepted
-source, reconcile UWS:M08/Kinet:M46/OpenUdon:P09 and retire the complete local
-record. Preserve all frozen history and consumer/browser pins. No downstream
-milestone may start from this draft evidence. Deployment and live migration/
+UWS:M08/Kinet:M46/OpenUdon:P09 consume the exact published producer/verifier,
+preserving explicit limitations and worker isolation. Existing consumer/browser
+pins and frozen history are unchanged by qualification. Deployment and live migration/
 provider/model/mail/registration operations remain outside the confirmed goal.
 
 ## Whole code review
@@ -82,5 +82,5 @@ OpenAPI 3.0 boolean/union/null evidence; review 3 found no remaining P1/P2.
 The final full standalone APItools tests/vet and focused races passed, as did
 current full workspace OpenUdon/Udon regression suites. The frozen fixture and
 earlier candidate/source bytes remain unchanged. No evolution bump: implementation
-follows the approved Stage 11 direction. Exact source publication and completed
-task/retirement metadata remain necessary before downstream execution.
+follows the approved Stage 11 direction. Accepted publication is independently
+verified; final retirement closure and consumer reconciliation precede advancement.

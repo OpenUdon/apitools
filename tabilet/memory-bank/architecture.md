@@ -1,23 +1,20 @@
 # Architecture
 
-## Stage 11 implementation progress — M82.1/M82.2
+## Qualified Stage 11 source metadata — M82
 
-`operation_shapes*.go` adds an independent metadata projection over the existing
-native parsers and public UWS binding types. Explicit source IDs plus bounded
-local bytes/files produce raw SHA-256 identities, native selector aliases,
-schema projections and visible incompleteness. The producer returns no partial
-table on malformed input or limits; URLs are sanitized provenance only. Existing
-inventory/candidate contracts are preserved. `VerifyOperationShapeTable`
-independently reproduces exact claims against the source bytes. OpenAPI symbolic
-security preserves OR-of-AND grouping; absent/unresolved security never becomes
-anonymous. Complete projected schemas compile with an always-refusing resource
-loader; unsupported native dialect/wire/requiredness evidence remains partial.
-Wire qualification and consumer publication remain M82.3–M82.4 work.
-
-## Approved Stage 11 architecture target — not implemented
-
-[Stage 11](../../../kinet/docs/stage11.md) and [local milestones](milestone.md#stage-11-cross-package-refactoring) define the approved target. APItools will produce source-neutral UWS operation shapes from its existing eight source families. It still performs no credential resolution, workflow approval or runtime execution. Kinet and OpenUdon consume exact published metadata contracts through isolated parsing paths.
-Both phases belong to one stage. Current facts below remain the observed implementation; no new acceptance, publication or installed behavior is claimed. The installed Kinet M44 service remains unchanged, and Stage 12 owns the browser-dependent removal gates.
+The accepted M82 producer/verifier uses existing native parsers and public UWS
+binding types. Explicit source IDs and local bytes/files reproduce exact SHA-256,
+native selectors, schema projections and security symbols. Unknown source/dialect/
+transport/presence/auth evidence stays explicit. HTTP metadata is emitted only
+for declared HTTP leaves; schema compilation never loads external resources.
+One invocation charges source/operation serialization and aggregate projected
+schema work/bytes incrementally; over-limit or malformed inputs return no partial
+table. Independent reproduction checks claimed tables before trust; hard CPU/RSS/
+deadline/mount/network isolation belongs to consuming workers. Existing inventory/
+candidate APIs and wires are unchanged; this package never approves or executes.
+Exact public source and consumer evidence are in
+[qualification](../../docs/m82-qualification.md). Kinet/OpenUdon worker adoption
+and Stage 12 browser migration remain separately owned work.
 
 ## Repository Boundary
 

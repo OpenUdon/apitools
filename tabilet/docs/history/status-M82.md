@@ -1,7 +1,40 @@
+# Retired milestone M82 - Shape production
+
+**Milestone.** M82
+**Outcome.** completed
+**Retired.** 2026-10-06
+**Source status.** tabilet/memory-bank/status-M82.md
+**Source specification.** tabilet/memory-bank/milestone.md#m82--shape-production
+**Evidence.** 54583f9b2f452b7cc522360c5aeeff29ca22f96c
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 3
+**Verification.** Standalone/offline full APItools tests/vet, affected shape races, current workspace OpenUdon/Udon regression suites, retained-pin OpenUdon and disposable-modfile Udon qualification, source-family/identity/security/dialect/number/wire/resource/privacy/refusal fixtures, catalog freshness, gofmt, patch and exact upstream/publication checks passed. Six byte-identical pre-existing staticcheck observations are recorded without suppression or a zero-result claim. Accepted source independently observed on authorized origin/main; closure publication precedes downstream execution.
+**Consolidated into.** [product](../../memory-bank/product.md), [architecture](../../memory-bank/architecture.md), [stack](../../memory-bank/tech-stack.md), [lessons](../../memory-bank/lessons.md), [contract](../../../docs/operation-shapes.md), [qualification](../../../docs/m82-qualification.md) and exact pending consumer records.
+
+## Milestone specification
+
+``````markdown
+## M82 — Shape production
+
+**Stage/owner.** STG-11 Phase A; APItools. **Priority.** Serial position 4/18, not a review severity.
+**Dependencies.** [UWS:C09](../../../uws/tabilet/docs/history/status-C09.md); exact accepted/published contract closure recorded before adoption. Serial gates and direct contract/regression dependencies are reconciled in the coordinator.
+**Scope.** Project supported source metadata; Preserve identity and incomplete evidence; Serialize and test shape tables; Qualify consumers and publish.
+**Acceptance.** All existing source families produce honest, deterministic metadata with explicit incompleteness. The package remains source tooling, not a workflow or credential runtime.
+**Verification.** go test ./...; go vet ./...; affected race/API/source-family fixtures and OpenUdon/Udon consumer checks; git diff --check. Use bounded local artifacts, not remote discovery.
+Use only disposable roots and fixtures. Preserve published schemas/wires, historic evidence, current runtime capability restrictions and the installed M44 service. Changed v3/package/worker identities require fresh approval; they do not preserve old grants.
+**Downstream.** [UWS:M08](../../../uws/tabilet/memory-bank/status-M08.md), [Kinet:M46](../../../kinet/tabilet/memory-bank/status-M46.md), [OpenUdon:P09](../../../openudon/tabilet/memory-bank/status-P09.md). Reconcile exact accepted/publication revisions before advancing.
+**Tasks/review.** [status-M82.md](status-M82.md), all 4 task units complete; whole review passed 3/10. Accepted source `54583f9b2f452b7cc522360c5aeeff29ca22f96c` is independently observed on authorized origin/main as `v0.0.0-20261006210844-54583f9b2f45`. Qualification, fixed findings and preserved consumer/runtime boundaries are recorded in the status.
+
+``````
+
+## Status record
+
+``````markdown
 # M82 — Shape production
 
 **Stage:** Kinet STG-11, Phase A. **Owner:** APItools.
-**State:** Confirmed Stage 11 execution; M82.1–M82.3 complete, M82.4 in progress; whole code review passed 3/10, publication/acceptance pending.
+**State:** All four tasks complete; whole review passed 3/10; accepted and independently observed published source `54583f9b2f452b7cc522360c5aeeff29ca22f96c`; reconciliation/retirement in progress.
 **Source baseline:** `9364afac98c97b79c9e6b9335bd9c71d4e8722d5` (clean at planning).
 **Coordinator:** [Stage 11 contract](../../../kinet/docs/stage11.md); the package-local milestone/status owns acceptance.
 
@@ -19,7 +52,7 @@ The serial predecessor is a scheduling gate; direct contract and regression impa
 | M82.1 — Project supported source metadata | `[+]` | Additive BuildOperationShapeTable projects all eight existing parser families, native selectors/ID aliases and raw SHA-256 into bounded UWS shapes; RPC/event/AWS/OData projections never invent generic HTTP details. Explicit partial schemas/security remain unqualified. Eight-family/public-API fixtures, standalone full tests/vet, focused race checks and workspace OpenUdon/Udon full regression suites passed. See execution evidence below and docs/operation-shapes.md. |
 | M82.2 — Preserve identity and incomplete evidence | `[+]` | VerifyOperationShapeTable independently reproduces exact local claims and refuses forged/stale fields, omitted operations and changed raw bytes. Explicit OpenAPI security preserves OR-of-AND symbols/scopes; undeclared/unresolved security remains unknown. Complete supported HTTP metadata proves advisory compatibility, while unsupported native/dialect/wire/requiredness/schema evidence remains partial. Identity, symbolic-security, type/refusal, canary and no-network fixtures passed with standalone full tests/vet, focused races and workspace OpenUdon/Udon regressions. |
 | M82.3 — Serialize and test shape tables | `[+]` | Reuse public UWS Marshal/ParseTable and freeze eight-source/twelve-operation bytes at testdata/operation-shapes/v1/eight-families.json. Source-order, exact JSON/YAML numeric lexemes, resolver isolation, bounded wire, missing/cyclic refs, native collision/overload, ambiguous IDs and streaming/list/message-alternative fixtures passed. OData/AsyncAPI summary deduplication cannot select a contract silently. Legacy candidate wire fixtures are unchanged; standalone full tests/vet, focused races, dependency closure and patch checks passed. Retained Horizon/HCL remains explicit; no credential resolution/execution/network behavior is added. |
-| M82.4 — Qualify consumers and publish | `[~]` | Run owner and affected OpenUdon/Udon checks against exact UWS source, record the public API/fixture release, and publish only under named authority before adoption. |
+| M82.4 — Qualify consumers and publish | `[+]` | Owner and exact-source/retained-consumer checks passed, with value-free/privacy/identity/resource/dialect/wire fixtures and whole review 3/10. Accepted source 54583f9b2f452b7cc522360c5aeeff29ca22f96c was pushed normally to the exact authorized APItools origin/main and independently observed with git ls-remote. Go registry resolved v0.0.0-20261006210844-54583f9b2f45 to that full source hash. Final qualification records scope and preserved consumer pins; no live workflow or deployment authority is supplied. |
 
 ## Acceptance and verification
 
@@ -44,11 +77,11 @@ UWS:C09 is accepted and independently observed on origin/main at `6a267306032edc
 
 ## Persisted review
 
-- Review iteration: **3/10**; whole code review passed on 2026-10-06 after all fixes and required owner/consumer verification. Final acceptance still waits for required publication/evidence and terminal task state.
+- Review iteration: **3/10**; whole milestone review passed on 2026-10-06 after all fixes, required owner/consumer verification, terminal task/publication evidence and final closure audit. No remaining P1/P2.
 - Closing-review findings: review 1 M82-R1-1/R1-2 and review 2 M82-R2-1 are resolved below; review 3 found no remaining P1/P2. Six unchanged pre-existing staticcheck observations do not change the required gate or producer behavior.
-- Accepted revision: not available.
-- Published revision / artifact evidence: not available.
-- Verification: whole-milestone qualification remains pending; completed task verification is recorded below.
+- Accepted revision: `54583f9b2f452b7cc522360c5aeeff29ca22f96c`.
+- Published revision / artifact evidence: exact accepted source independently observed on authorized origin/main; `v0.0.0-20261006210844-54583f9b2f45` registry origin hash matches. Fixture dc20d2287322a4b20d5d92b1a0d1ec8036f1bec853b642d7df8797ed096c3ba1 remains unchanged; closure publication follows retirement.
+- Verification: required standalone full tests/vet, affected shape races, workspace consumer suites, retained-pin/disposable-modfile qualification, catalog freshness, format/patch and exact upstream/publication checks passed; six byte-identical baseline staticcheck observations are recorded without a zero-diagnostic claim.
 
 After all tasks finish, perform the whole-milestone review with persisted iteration/finding state and fix every P1/P2 before acceptance. Resume an interrupted pass at the same counter. Consolidate current facts, reconcile downstream work and retire under this package’s normal procedure.
 
@@ -204,3 +237,13 @@ remain the selected M82.4 operation, not authority supplied by these markers.
 The reviewed source must be committed before the named fast-forward publication;
 the source commit is the required artifact for that operation. Its exact observed
 hash/publication and substantive closure evidence follow in this same task.
+
+Final closure audit: all four required task rows are terminal and every M82
+acceptance/verification/publication requirement is satisfied. Normal publication
+of accepted source `54583f9b2f452b7cc522360c5aeeff29ca22f96c` to the unchanged
+authorized origin/main succeeded; an independent ls-remote returned that exact
+hash and the configured Go registry resolved the same origin revision. Downstream
+UWS:M08/Kinet:M46/OpenUdon:P09 consume this exact producer contract, its limitations
+and independently reproduced claims; consumer pin changes still belong to their
+own task units. Closure records will be published before any downstream execution.
+``````

@@ -1,21 +1,18 @@
 # Product
 
-## Stage 11 implementation progress — M82.1/M82.2
+## Qualified Stage 11 source metadata — M82
 
-The additive local `BuildOperationShapeTable` producer projects all eight
-existing API source families into public UWS metadata. Native selectors and
-explicit incomplete schemas/protocol evidence remain visible. Supported explicit
-OpenAPI contracts can prove metadata compatibility; exact independent reproduction
-refuses forged/stale claims, while unsupported native details stay partial.
-Symbolic security preserves OR-of-AND structure without resolving credentials.
-This implementation is under M82,
-whose acceptance, exact verification and publication remain pending. It performs
-no fetching, credential resolution or execution; see [contract](../../docs/operation-shapes.md).
-
-## Approved Stage 11 product direction — not implemented
-
-[Stage 11](../../../kinet/docs/stage11.md) and [local milestones](milestone.md#stage-11-cross-package-refactoring) define the approved target. APItools will produce source-neutral UWS operation shapes from its existing eight source families. It still performs no credential resolution, workflow approval or runtime execution. Kinet and OpenUdon consume exact published metadata contracts through isolated parsing paths.
-Both phases belong to one stage. Current facts below remain the observed implementation; no new acceptance, publication or installed behavior is claimed. The installed Kinet M44 service remains unchanged, and Stage 12 owns the browser-dependent removal gates.
+M82's accepted/public source `54583f9b2f452b7cc522360c5aeeff29ca22f96c`
+provides the additive BuildOperationShapeTable/VerifyOperationShapeTable APIs
+for all eight existing source families. Whole review passed at iteration 3.
+Raw identity/native selectors, symbolic OR-of-AND security, independent claim
+reproduction and explicit schema/protocol incompleteness are qualified. This
+is source tooling; it supplies no credential, workflow approval or execution
+permission. Consumers adopt exact published contracts inside their approved
+isolated boundaries; Kinet/OpenUdon adoption remains package-local pending work.
+Installed M44 and the separately retained browser path are unchanged.
+See [contract](../../docs/operation-shapes.md) and
+[qualification](../../docs/m82-qualification.md).
 
 `apitools` is a Go library and CLI for OpenAPI/Swagger document tooling and
 provider API-source metadata. It helps downstream OpenUdon projects find

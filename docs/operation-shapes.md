@@ -4,8 +4,9 @@
 `github.com/OpenUdon/uws/binding` contract. Supply `OperationShapeOptions` with
 explicit `ShapeSourceInput` IDs and local `OperationSourceInput` bytes or files.
 It returns a UWS ShapeTable, without changing the existing inventory/candidate
-APIs or their wire bytes. This is M82 work in progress, not milestone acceptance
-or a published consumer release.
+APIs or their wire bytes. M82 is accepted after whole review 3 at public source
+`54583f9b2f452b7cc522360c5aeeff29ca22f96c`;
+`v0.0.0-20261006210844-54583f9b2f45` resolves to that exact revision.
 
 The producer preserves raw SHA-256, family-native operation selectors and
 symbolic IDs. It uses the existing native parsers. Direct JSON Schema numeric
@@ -41,8 +42,8 @@ tokens or contact token URLs. Complete schemas are checked with the existing
 JSON Schema compiler and a loader that always refuses external resources.
 Native-family projections with unsupported dialect/presence/transport/auth
 evidence remain incomplete, even when a shallow type is available.
-M82.3 owns deterministic wire/limit fixtures;
-M82.4 owns consumer qualification, whole review and publication. A caller must
+M82 qualified deterministic wire/limit fixtures, consumer compatibility, whole
+review and publication. Each consuming worker/package owns its adoption. A caller must
 not interpret partial native type hints as a complete schema or authority.
 Effects are not a ShapeTable field; this producer never infers execution effects
 from HTTP methods. Existing effect/candidate evidence remains separately advisory.

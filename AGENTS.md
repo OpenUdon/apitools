@@ -1,9 +1,17 @@
 # AGENTS.md
 
-## Approved Stage 11 planning
+## Stage 11 source metadata
 
-[Stage 11](../kinet/docs/stage11.md) coordinates both refactoring phases across five package-local ledgers. Read the local [milestones](tabilet/memory-bank/milestone.md) before selecting work. APItools will produce source-neutral UWS operation shapes from its existing eight source families. It still performs no credential resolution, workflow approval or runtime execution. Kinet and OpenUdon consume exact published metadata contracts through isolated parsing paths.
-Planning is approved; implementation and named publication/deployment authority are separate. One serial execution owner, offline fixtures, exact upstream reconciliation and persisted milestone reviews apply. Completed records and frozen consumer pins stay preserved.
+[Stage 11](../kinet/docs/stage11.md) coordinates both refactoring phases across
+five owner ledgers. APItools M82 is accepted and published at
+`54583f9b2f452b7cc522360c5aeeff29ca22f96c`, whole review 3. It produces and
+independently verifies source-neutral UWS operation shapes from eight existing
+source families with explicit incompleteness and bounded local parsing. It
+performs no credential resolution, workflow approval or runtime execution.
+Kinet/OpenUdon adoption remains separately owned, against exact accepted/public
+contracts inside isolated parsing paths. Preserve frozen evidence and consumer
+pins. One serial execution owner and offline fixtures remain required; source
+publication/deployment authority stays separate from planning/status markers.
 
 Requested features, candidate promotions, and future direction changes after
 initialization follow the requested-change procedure in

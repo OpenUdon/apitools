@@ -95,3 +95,4 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 | M80 | completed | 2026-09-30 | [M80](status-M80.md) | Versioned catalog step discovery, evidence-based outcomes, guarded opt-in remote lookup; qualified source/module published, review passed in 3 iterations. |
 | S06 | completed | 2026-10-06 | [S06](status-S06.md) | Restored the public-apis default with bounded Markdown/legacy JSON lists, isolated consumer verification and review 1 passed. |
 | S05 | completed | 2026-10-06 | [S05](status-S05.md) | Official version discovery, bounded hints/state/saves, native comparisons and versions CLI; review passed in two iterations. |
+| M82 | completed | 2026-10-06 | [M82](status-M82.md) | Source-neutral shapes, independent claim reproduction and bounded dialect/privacy/wire qualification; review 3, exact accepted/public source 54583f9b2f452b7cc522360c5aeeff29ca22f96c. |

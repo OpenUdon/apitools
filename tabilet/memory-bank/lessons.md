@@ -61,7 +61,7 @@ need no journal entry or separate archive run.
   requirement grouping without credential resolution.
 - **Why it matters:** Structurally valid forged/stale metadata and lossily
   summarized schemas must not become execution authority or a positive proof.
-- **Evidence:** [M82.1/M82.2](status-M82.md), public UWS binding checks,
+- **Evidence:** [M82](../docs/history/status-M82.md), public UWS binding checks,
   forged/stale identity, symbolic-security and no-network regressions in
   `operation_shapes_identity_test.go`.
 
