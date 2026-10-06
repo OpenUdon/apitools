@@ -1,5 +1,9 @@
 # Milestones
 
+## Stage 11 active horizon
+
+Approved 2026-10-06: both phases of [Kinet STG-11](../../../kinet/docs/stage11.md), with one serial execution owner across Kinet, UWS, APItools, Udon and OpenUdon. This package owns M82; all rows are pending and each review is 0/10. [Specifications](#stage-11-cross-package-refactoring) below are the current horizon. Earlier completed horizons and records remain historical; planning grants no implementation or external authority.
+
 Milestones are listed in priority order across long-lived domain lanes. Each
 item lists scope and acceptance criteria. This file owns the roadmap, lane
 meanings, active milestones, status-file index, dependencies, candidate
@@ -93,7 +97,7 @@ published at `fb132631c9827eae5f2ec4503d03f21eabfb4113`
 completed milestone is S05. The confirmed S06 -> S05 goal completed on the
 isolated `work/s06-s05` branch: S06 passed review in one iteration and S05
 in two, with required APItools and candidate-bound OpenUdon/Udon verification.
-No active implementation milestone remains. Merge/publication and consumer
+That earlier horizon is complete; Stage 11 M82 is now planned and unimplemented. Merge/publication and consumer
 adoption are separately authorized; the main workspace and consumer pins are
 unchanged. Candidate directions remain unnumbered and require fresh approval.
 Exact history and observed publication evidence resolve through the history index.
@@ -132,13 +136,15 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
+| M82 | [status-M82.md](status-M82.md) | UWS:C09 |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
 
-No active milestone. Completed source repair and version discovery are retained
-in the history index. Promote a candidate only through fresh reconciliation.
+Stage 11 M82 is the active planned milestone; its specification is below.
+Completed source repair and version discovery remain in the history index.
+Other candidates still require fresh reconciliation and approval.
 
 ## Requested Changes After Initialization
 
@@ -593,3 +599,26 @@ the final task or a substantive closure commit. The API harness still requires
 a commit per run. Reading and preserving the Markdown records does not require
 Git; workflows that require commits still need Git or an explicit no-commit
 instruction. Never initialize Git merely to make retirement possible.
+
+## Stage 11 cross-package refactoring
+
+Approved review-intake amendment, 2026-10-06: 18 required milestones / 87 pending rows across the five owners. Scope and milestone IDs are unchanged; the coordinator records the approved publication proposal, which needs a separate execution-time grant. Full local source baseline remains `9364afac98c97b79c9e6b9335bd9c71d4e8722d5`, including the reviewed uncommitted planning state. This intake does not start a closing review or authorize implementation.
+
+**Approved source.** User-approved complete proposal, 2026-10-06; source baseline `9364afac98c97b79c9e6b9335bd9c71d4e8722d5`. [Coordinated contract](../../../kinet/docs/stage11.md) defines both phases, cross-package order, compatibility and acceptance. The request to implement the proposal authorizes its planning files only.
+
+One execution owner, serial execution and task commits under the later confirmed goal. Planning authorizes no code execution, commit, publication or external operation. Source publication requires separately named authority; a status marker or local build is not publication. Consumers must record exact accepted and published prerequisites before adoption. Default checks are offline, credential-free and model-free. No deployment, live ledger migration, real API/model/mail action or registration change.
+
+## M82 — Shape production
+
+**Stage/owner.** STG-11 Phase A; APItools. **Priority.** Serial position 4/18, not a review severity.
+**Dependencies.** [UWS:C09](../../../uws/tabilet/memory-bank/status-C09.md); exact accepted/published contract closure recorded before adoption. Serial gates and direct contract/regression dependencies are reconciled in the coordinator.
+**Scope.** Project supported source metadata; Preserve identity and incomplete evidence; Serialize and test shape tables; Qualify consumers and publish.
+**Acceptance.** All existing source families produce honest, deterministic metadata with explicit incompleteness. The package remains source tooling, not a workflow or credential runtime.
+**Verification.** go test ./...; go vet ./...; affected race/API/source-family fixtures and OpenUdon/Udon consumer checks; git diff --check. Use bounded local artifacts, not remote discovery.
+Use only disposable roots and fixtures. Preserve published schemas/wires, historic evidence, current runtime capability restrictions and the installed M44 service. Changed v3/package/worker identities require fresh approval; they do not preserve old grants.
+**Downstream.** [UWS:M08](../../../uws/tabilet/memory-bank/status-M08.md), [Kinet:M46](../../../kinet/tabilet/memory-bank/status-M46.md), [OpenUdon:P09](../../../openudon/tabilet/memory-bank/status-P09.md). Reconcile exact accepted/publication revisions before advancing.
+**Tasks/review.** [status-M82.md](status-M82.md), 4 pending task commit units; review 0/10, not started. Approved intake provenance and consumer requirements are in that status. No implementation, acceptance or publication yet.
+
+## Stage 11 candidate dispositions
+
+M82 is new source-tooling work with a shared public UWS contract, so it uses the cross-cutting M lane. It promotes no catalog/provider expansion, remote discovery, credential/runtime behavior or unrelated hardening candidate.

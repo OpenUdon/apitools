@@ -1,5 +1,10 @@
 # Architecture
 
+## Approved Stage 11 architecture target — not implemented
+
+[Stage 11](../../../kinet/docs/stage11.md) and [local milestones](milestone.md#stage-11-cross-package-refactoring) define the approved target. APItools will produce source-neutral UWS operation shapes from its existing eight source families. It still performs no credential resolution, workflow approval or runtime execution. Kinet and OpenUdon consume exact published metadata contracts through isolated parsing paths.
+Both phases belong to one stage. Current facts below remain the observed implementation; no new acceptance, publication or installed behavior is claimed. The installed Kinet M44 service remains unchanged, and Stage 12 owns the browser-dependent removal gates.
+
 ## Repository Boundary
 
 `apitools` owns a focused OpenAPI and provider API-source metadata boundary:

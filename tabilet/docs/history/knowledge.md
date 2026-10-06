@@ -73,3 +73,28 @@ record is not rewritten. Replacement evidence is this correction and
   known test artifacts were moved into disposable verification storage.
   Both sibling Git worktrees are clean and their tracked files/pins unchanged.
 ````
+
+## Stage 11 approved target provenance — 2026-10-06
+
+Source: `AGENTS.md` at `9364afac98c97b79c9e6b9335bd9c71d4e8722d5` (clean). The following literal prior boundary remains evidence for existing behavior. The approved Stage 11 proposal adds a scoped target/transition; it does not claim that code has already moved. Replacement target: [Stage 11](../../../../kinet/docs/stage11.md) and the active milestone specifications. No retired record is changed.
+
+````markdown
+## Boundary
+
+- `../apitools` owns API source discovery, download safety, validation, import,
+  local file scanning, operation inventories, prompt-safe summaries,
+  auth/security summaries, deterministic operation ranking, optional caching,
+  provider catalog metadata, OpenAPI/Swagger, Google Discovery, and AWS Smithy
+  protocol classification, and docs-derived endpoint overlay assets when no
+  official OpenAPI exists but official API docs support a reviewed subset.
+- `../openudon` consumes `apitools` metadata for authoring, review, package
+  evidence, and trusted-runner handoff. OpenUdon owns workflow behavior,
+  approval state, release gates, examples, and credential binding policy.
+- `../uws` owns public workflow semantics and Go model definitions.
+- `../udon` owns private UWS/OpenAPI lowering and runtime execution.
+- `../tfconfig` owns static Terraform/OpenTofu configuration parsing only.
+
+Rule of thumb: if a change helps find, validate, import, summarize, classify,
+or rank API documents, it belongs here. If it executes workflows or decides
+runtime credential/account behavior, it belongs downstream.
+````

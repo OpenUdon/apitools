@@ -1,5 +1,10 @@
 # Tech Stack
 
+## Approved Stage 11 tooling target — not implemented
+
+[Stage 11](../../../kinet/docs/stage11.md) and [local milestones](milestone.md#stage-11-cross-package-refactoring) define the approved target. Exact published module revisions, frozen build closures and standalone verification are acceptance gates. Planned APItools:M82 will depend on UWS; while UWS core retains legacy HCL support, the module closure includes Horizon and HashiCorp HCL. This is a future adoption consequence, not a claim that current go.mod already imports UWS. go test ./...; go vet ./...; affected race/API/source-family fixtures and OpenUdon/Udon consumer checks; git diff --check. Use bounded local artifacts, not remote discovery.
+Both phases belong to one stage. Current facts below remain the observed implementation; no new acceptance, publication or installed behavior is claimed. The installed Kinet M44 service remains unchanged, and Stage 12 owns the browser-dependent removal gates.
+
 ## Language And Runtime
 
 - **Language/runtime**: Go, using the version declared in `go.mod`.

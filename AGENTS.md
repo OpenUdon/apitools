@@ -1,5 +1,10 @@
 # AGENTS.md
 
+## Approved Stage 11 planning
+
+[Stage 11](../kinet/docs/stage11.md) coordinates both refactoring phases across five package-local ledgers. Read the local [milestones](tabilet/memory-bank/milestone.md) before selecting work. APItools will produce source-neutral UWS operation shapes from its existing eight source families. It still performs no credential resolution, workflow approval or runtime execution. Kinet and OpenUdon consume exact published metadata contracts through isolated parsing paths.
+Planning is approved; implementation and named publication/deployment authority are separate. One serial execution owner, offline fixtures, exact upstream reconciliation and persisted milestone reviews apply. Completed records and frozen consumer pins stay preserved.
+
 Requested features, candidate promotions, and future direction changes after
 initialization follow the requested-change procedure in
 [tabilet/memory-bank/milestone.md](tabilet/memory-bank/milestone.md). A planning proposal needs
