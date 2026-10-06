@@ -1,12 +1,14 @@
 # Status S05 — Official-source API version discovery
 
-**State:** Approved plan, 2026-10-01, amended on 2026-10-01, 2026-10-02,
-and 2026-10-06;
-S06 is complete in the isolated branch and retained in
-[history](../docs/history/status-S06.md). All six implementation rows are pending; no implementation, publication, or closing
-review has started.
+**State:** S05.1 complete, 2026-10-06, following explicit user approval of
+its detailed design record. Execution continues on isolated branch
+`work/s06-s05`; S05.2-S05.6 remain pending. No feature code,
+merge or publication has started. The prior planning approvals remain below.
 
 **Specification:** [S05](milestone.md#s05--official-source-api-version-discovery).
+
+**Design record:** [api-version-discovery.md](../../docs/api-version-discovery.md).
+Approved by the user on 2026-10-06; S05.1 is complete.
 
 **Provenance (first intake):** Requested feature from "APItools official-source
 API version discovery handoff" (`apitools-search.md`, 2026-10-01). It is not
@@ -147,7 +149,7 @@ no new milestone or promoted candidate.
 
 | Item | State | Notes |
 |---|---|---|
-| S05.1 — Design record and checkpoint | `[ ]` | Owns the original design checkpoint for P2-1/P2-2, P2-3/P2-5/P2-6/P2-7 decisions, L1/L4, and third-intake F02/F04/F05/F06/F07/F08/F12. Write `docs/api-version-discovery.md` for proposed `apitools.api-version-discovery/v1`: known baseline plus optional already-built inventory; five-second shared check, three-second requests, four concurrent requests, twelve requests, three document bodies and 8 MiB per checked document; baseline-independent availability and partial reports; tier order; `newer_found`/`none_found_in_scope`/`unexamined`/`conflicting` with `checked_at`; catalog-preferred/catalog-highest/official-candidate/official-verified evidence. Record all consistency-intake F01-F07 decisions in the specification, including origin/repository scope, no authority from shared hosting alone, scoped `preferred`, complete-read-only digest, separate metadata/document write permissions, and family eligibility. Retain locator kinds (`direct`, `github`, `pointer`, `pattern`, `template`, `gated`), recipe/replay order, resolved URL, digest when verified, `checked_at`, `ok`/`moved`/`dead`/`gated`, list-compatible `x-apitools-*` fields, baseline-age/stale-after-12-months evidence, natural ordering and version conflicts, bounded standard-library docs scanner, and adapter contract. Consumer notes keep baseline use independent of network/adapter work, and keep OpenUdon's `catalog import-openapi` and `step source add` ownership unchanged. Treat 2026-10-02 measurements as dated evidence; verify whether a provider-scoped APIs.guru endpoint exists before relying on it. Adjust starting values only with measured evidence and user approval. Complete only after separate user approval of the detailed design record; later rows cannot start first. |
+| S05.1 — Design record and checkpoint | `[+]` | Owns the original design checkpoint for P2-1/P2-2, P2-3/P2-5/P2-6/P2-7 decisions, L1/L4, and third-intake F02/F04/F05/F06/F07/F08/F12. Write `docs/api-version-discovery.md` for proposed `apitools.api-version-discovery/v1`: known baseline plus optional already-built inventory; five-second shared check, three-second requests, four concurrent requests, twelve requests, three document bodies and 8 MiB per checked document; baseline-independent availability and partial reports; tier order; `newer_found`/`none_found_in_scope`/`unexamined`/`conflicting` with `checked_at`; catalog-preferred/catalog-highest/official-candidate/official-verified evidence. Record all consistency-intake F01-F07 decisions in the specification, including origin/repository scope, no authority from shared hosting alone, scoped `preferred`, complete-read-only digest, separate metadata/document write permissions, and family eligibility. Retain locator kinds (`direct`, `github`, `pointer`, `pattern`, `template`, `gated`), recipe/replay order, resolved URL, digest when verified, `checked_at`, `ok`/`moved`/`dead`/`gated`, list-compatible `x-apitools-*` fields, baseline-age/stale-after-12-months evidence, natural ordering and version conflicts, bounded standard-library docs scanner, and adapter contract. Consumer notes keep baseline use independent of network/adapter work, and keep OpenUdon's `catalog import-openapi` and `step source add` ownership unchanged. Treat 2026-10-02 measurements as dated evidence; verify whether a provider-scoped APIs.guru endpoint exists before relying on it. Adjust starting values only with measured evidence and user approval. Complete only after separate user approval of the detailed design record; later rows cannot start first. |
 | S05.2 — Probe primitive, catalog evidence, and freshness state | `[ ]` | Owns P2-3/P2-4/P2-6, L3's probe part, third-intake F02/F03/F04/F06 state, and consistency-intake F06/F07. Depends on approved S05.1. Add an unexported probe using existing URL/redirect/dial guards without changing `downloadBounded` or existing callers. Isolate cookies/caller redirect callbacks and enforce declared official origin/repository scope on every request and redirect, including replay. Support conditional GET, per-request caps, tool identification, and early rejection only for definite non-spec responses; ambiguous JSON/YAML prefixes continue bounded parsing. Treat 404 as a miss, 429/5xx as unexamined without retry, recording `Retry-After`. Tier 0 reads catalog and caller-supplied cached APIs.guru list locally, parses `x-origin` and `updated`, orders versions naturally and labels catalog preferred separately. After 24 h, optional network revalidation consumes shared budget; use a provider-scoped endpoint only if verified. Add optional versioned JSON state/previous-report reuse with a 24 h TTL for none-found and locator/recipe/resolved URL/digest/status/time evidence. State and list-cache persistence require separate explicit paths/permission, not `--save-dir`; cached records cannot expand current origin policy. Preserve search output and SQLite schema. |
 | S05.3 — Deterministic upgrade check | `[ ]` | Owns P2-1/P2-2/P2-4/P2-7 implementation, L1/L2 fixtures, third-intake F02/F06/F07, and consistency-intake F01/F03/F04/F05. Depends on S05.2. Run tiers 1-3 concurrently under one shared deadline and request/body limits; charge revalidation, conditional requests, redirects, replay and integrated hint checks without resets. A fetched unchanged or invalid source body consumes a document slot. Probe upward from integer/dotted tokens, stop after two consecutive misses, prefer known comparable newer candidates, and preserve deterministic report order. Record source/final URL, observed versus declared bytes, time, validation status, and verified full digest only after a complete bounded read. Timeouts/rate limits produce partial reports with the baseline intact. Scan one supplied official docs page within size/link caps and report no static links honestly. Record locator/recipe and replay then re-read pointers before hints. Compute scoped highest verified comparable preference; conflicts do not create one. Save only fully fetched newer Import-valid OpenAPI/Swagger bytes into an explicit confined directory, preserving naming/idempotence without relying on the existing helper for confinement. Never save baseline, invalid, partial, oversize or merely parsed Discovery content; never overwrite differing content. No save directory means no source writes, independently of metadata persistence. Unsafe paths and failed saves remain visible warnings, never failed checks; do not extend the budget. Add all specification timing, trust and save fixtures. |
 | S05.4 — Hint verification and optional adapter | `[ ]` | Owns P2-5 and integrates consistency-intake F01/F06. Depends on S05.3. Add APItools-owned `VerifyHints` and versioned size-bounded JSON hints (at most eight); deduplicate and order deterministically, fetch budget-selected URLs at most once, and explicitly mark excess unexamined. A standalone call uses the same caps; an integrated call uses remaining budget, never a reset. Reuse every-hop origin/credential isolation; accept no supplied spec bytes, credentials, cookies or authority upgrades. Keep provenance and locator/recipe for verified hints (third-intake F06). The optional pull wrapper runs only after deterministic tiers leave the question open and with caller opt-in/deadline (15 s default, 60 s ceiling); adapter failure, timeout or garbage is a tier status and never changes a verified result. Test with a fake adapter; add no LLM/browser dependency. |
@@ -278,3 +280,40 @@ before testing; recorded Udon retries also explain the lower-concurrency
 verification choice. The detailed S05.1 design still needs separate approval
 before S05.2. No consumer pin, source registration, catalog index or SQLite
 schema changes; no merge or publication performed.
+
+## Execution checkpoint
+
+The confirmed goal completed and retired S06 in task commits
+`ae7f393`, `c379ffb`, and `828dd85`. S05.1 now has the concrete
+[design record](../../docs/api-version-discovery.md) ready for separate approval;
+it is not complete and no S05 feature code has started. All five later rows
+are pending and the S05 review counter stays zero.
+
+The record keeps the approved five-second/shared limits, optional prebuilt
+baseline inventory, scoped preference, separate persistence permissions and
+official-scope/credential isolation. It fixes wire/API names, tier scheduling,
+locator replay, bounded hints, failure semantics, save eligibility and CLI
+opt-in. Its source-body cap explicitly applies to API-description bodies;
+lookup metadata has separate bounded reads under the same HTTP/deadline cap.
+S05.2 cannot begin until the user approves the record.
+
+S05.1 verified the documented provider-scoped APIs.guru contract through the
+official repository's 2.2.0 OpenAPI definition: `GET /{provider}.json` has the
+same APIs map shape as list.json. Live probes of the provider endpoints
+returned HTTP 403 here; this records unexamined availability rather than a
+nonexistent endpoint or empty directory. Exact provider keys may use the
+documented scoped URL; local cached evidence is preserved on failure.
+Earlier 2026-10-02 size/age/GoDaddy measurements remain dated observations,
+not newly measured facts.
+
+S06's final consumer artifact cleanup completed after its closure commit.
+Two additional synthetic output directories were found and moved to disposable
+verification storage; the [knowledge correction](../docs/history/knowledge.md#2026-10-06--s06-consumer-artifact-cleanup-timing-correction)
+preserves the timing correction without rewriting the frozen S06 record.
+Both consumer Git status checks are now clean; source/manifests/pins stayed
+unchanged. No merge or publication has occurred.
+
+The user approved S05's detailed design record on 2026-10-06. S05.1 is
+complete after structural/link/patch verification; the separate design gate
+is satisfied. All implementation rows now follow the approved record, and
+no launch confirmation is required again for this continuing goal.

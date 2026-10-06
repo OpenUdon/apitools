@@ -2,7 +2,7 @@
 # Reconcile this suggestion against milestone.md and the current status files.
 # Delete it after launching the goal, or whenever it becomes stale.
 # Creating this reference does not start execution, merge, or publication.
-# Approved planning reconciliation: 2026-10-06; no execution has started.
+# Confirmed goal began 2026-10-06; S06 is complete and S05.1 awaits design approval.
 # S06 is complete/retired on work/s06-s05; resume S05 in that isolated worktree.
 
 Using tabilet/GOAL.md, execute this loop.

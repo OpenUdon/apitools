@@ -92,7 +92,8 @@ published at `fb132631c9827eae5f2ec4503d03f21eabfb4113`
 (`v0.0.0-20260930205753-fb132631c982`), carrying M81 publication. The latest
 completed milestone is S06, accepted on the isolated `work/s06-s05` branch
 after one review iteration; merge/publication remain separately authorized.
-S05 is the sole active milestone, with its six rows pending and independent
+S05 is the sole active milestone, with S05.1's detailed design awaiting
+approval and five later rows pending. It is independent
 of Kinet's completed Stage 5. S06's source repair and candidate-bound consumer
 verification are retained in its frozen history record. The 2026-10-06
 consistency reconciliation clarifies S05 acceptance without changing its
@@ -133,7 +134,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| S05 | [status-S05.md](status-S05.md) | Pending; approved plan, S06 complete; design approval checkpoint remains. |
+| S05 | [status-S05.md](status-S05.md) | In progress; S05.1 design ready for approval, S06 complete; five later rows pending. |
 
 Closed milestones are recorded in the history index.
 

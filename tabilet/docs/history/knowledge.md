@@ -49,3 +49,27 @@ available:
 (cd ../udon && GOWORK=off go test ./...)
 ```
 ````
+
+## 2026-10-06 — S06 consumer artifact cleanup timing correction
+
+**Original source.** [Retired S06](status-S06.md), retained status section
+`Whole-milestone review and closure`.
+
+**Correction and evidence.** S06's candidate-bound consumer checks passed.
+After the closure commit, a final Udon status check found two further untracked
+test-output directories under `pkg/runner/home` and `spider/home`, in addition
+to the already moved CLI test artifacts. They contained only the observed
+synthetic test outputs from the task-owned build-temp path and were moved into
+disposable verification storage. Subsequent Git status is clean in both
+consumers. Thus the retained clean-worktree statement was premature in timing;
+tracked manifests, pins and source files were unchanged throughout. The frozen
+record is not rewritten. Replacement evidence is this correction and
+[S05's execution notes](../../memory-bank/status-S05.md#execution-checkpoint).
+
+**Original wording.**
+
+````markdown
+- Udon tests generated an untracked directory under its CLI package; the
+  known test artifacts were moved into disposable verification storage.
+  Both sibling Git worktrees are clean and their tracked files/pins unchanged.
+````
