@@ -674,6 +674,13 @@ func (s *apiVersionSession) finish() APIVersionDiscoveryReport {
 		s.report.DirectoryRecords = map[string]any{key: entry}
 	}
 	count, bodies := s.budget.counts()
+	kept := s.report.Tiers[:0]
+	for _, t := range s.report.Tiers {
+		if t.Tier != "network" {
+			kept = append(kept, t)
+		}
+	}
+	s.report.Tiers = kept
 	s.report.Tiers = append(s.report.Tiers, APIVersionTier{Tier: "network", Status: s.report.Status, RequestCount: count, SourceBodyCount: bodies, CheckedAt: s.report.CheckedAt})
 	sort.Slice(s.report.Tiers, func(i, j int) bool { return s.report.Tiers[i].Tier < s.report.Tiers[j].Tier })
 	sort.Slice(s.report.Diagnostics, func(i, j int) bool {
