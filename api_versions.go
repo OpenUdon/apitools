@@ -609,6 +609,7 @@ func (s *apiVersionSession) finish() APIVersionDiscoveryReport {
 	if s.reused {
 		return s.report
 	}
+	s.compareVersions()
 	sort.Slice(s.report.Versions, func(i, j int) bool {
 		a, b := s.report.Versions[i], s.report.Versions[j]
 		av := firstNonEmpty(a.VersionClaims.URLToken, a.VersionClaims.InfoVersion)

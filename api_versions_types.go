@@ -78,9 +78,10 @@ type APIVersionClaims struct {
 }
 
 type APIVersionOperationDiff struct {
-	Added    []string `json:"added,omitempty"`
-	Removed  []string `json:"removed,omitempty"`
-	Retained []string `json:"retained,omitempty"`
+	ChangedOperationIDs []string `json:"changed_operation_ids,omitempty"`
+	Added               []string `json:"added,omitempty"`
+	Removed             []string `json:"removed,omitempty"`
+	Retained            []string `json:"retained,omitempty"`
 }
 
 type APIVersionRecord struct {
