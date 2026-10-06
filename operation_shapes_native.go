@@ -16,7 +16,8 @@ import (
 	"github.com/OpenUdon/uws/binding"
 )
 
-func sourceOperationShapes(ctx context.Context, kind OperationSourceKind, data []byte, source binding.Source) ([]binding.OperationShape, error) {
+func sourceOperationShapes(ctx context.Context, kind OperationSourceKind, data []byte, source binding.Source, budget *operationShapeBudget) ([]binding.OperationShape, error) {
+	budget.schemaDialect = shapeSchemaDraft7
 	if sourceguard.CheckDocument(string(kind), data) != nil {
 		return nil, ErrOperationShapeTable
 	}
@@ -28,13 +29,18 @@ func sourceOperationShapes(ctx context.Context, kind OperationSourceKind, data [
 		}
 		switch kind {
 		case OperationSourceOpenAPI:
-			return openAPIShapes(ctx, root, source)
+			if strings.HasPrefix(stringValue(root["openapi"]), "3.1.") {
+				budget.schemaDialect = shapeSchema2020
+			} else {
+				budget.schemaDialect = shapeSchemaOpenAPI30
+			}
+			return openAPIShapes(ctx, root, source, budget)
 		case OperationSourceGoogleDiscovery:
-			return discoveryShapes(ctx, root, source)
+			return discoveryShapes(ctx, root, source, budget)
 		case OperationSourceAWSSmithy:
-			return smithyShapes(ctx, root, source)
+			return smithyShapes(ctx, root, source, budget)
 		case OperationSourceAsyncAPI:
-			return asyncShapes(ctx, root, source)
+			return asyncShapes(ctx, root, source, budget)
 		}
 	case OperationSourceOpenRPC:
 		if _, err := decodeShapeDocument(ctx, data); err != nil {
@@ -44,7 +50,7 @@ func sourceOperationShapes(ctx context.Context, kind OperationSourceKind, data [
 		if err != nil {
 			return nil, err
 		}
-		return openRPCShapes(ctx, model, source)
+		return openRPCShapes(ctx, model, source, budget)
 	case OperationSourceGraphQL:
 		if bytes.HasPrefix(bytes.TrimSpace(data), []byte("{")) {
 			if _, err := decodeShapeDocument(ctx, data); err != nil {
@@ -55,7 +61,7 @@ func sourceOperationShapes(ctx context.Context, kind OperationSourceKind, data [
 		if err != nil {
 			return nil, err
 		}
-		return graphQLShapes(ctx, model, source)
+		return graphQLShapes(ctx, model, source, budget)
 	case OperationSourceGRPCProtobuf:
 		if bytes.HasPrefix(bytes.TrimSpace(data), []byte("{")) {
 			if _, err := decodeShapeDocument(ctx, data); err != nil {
@@ -66,7 +72,7 @@ func sourceOperationShapes(ctx context.Context, kind OperationSourceKind, data [
 		if err != nil {
 			return nil, err
 		}
-		return grpcShapes(ctx, model, source)
+		return grpcShapes(ctx, model, source, budget)
 	case OperationSourceOData:
 		if bytes.HasPrefix(bytes.TrimSpace(data), []byte("{")) {
 			if _, err := decodeShapeDocument(ctx, data); err != nil {
@@ -77,12 +83,12 @@ func sourceOperationShapes(ctx context.Context, kind OperationSourceKind, data [
 		if err != nil {
 			return nil, err
 		}
-		return odataShapes(ctx, model, source)
+		return odataShapes(ctx, model, source, budget)
 	}
 	return nil, ErrOperationShapeTable
 }
 
-func discoveryShapes(ctx context.Context, root map[string]any, source binding.Source) ([]binding.OperationShape, error) {
+func discoveryShapes(ctx context.Context, root map[string]any, source binding.Source, budget *operationShapeBudget) ([]binding.OperationShape, error) {
 	if root["discoveryVersion"] != "v1" {
 		return nil, ErrOperationShapeTable
 	}
@@ -117,13 +123,13 @@ func discoveryShapes(ctx context.Context, root map[string]any, source binding.So
 			if parameter == nil {
 				return nil, ErrOperationShapeTable
 			}
-			shape.Inputs = append(shape.Inputs, binding.Input{Location: parameter.Location, Name: firstNonEmpty(parameter.OriginalName, parameter.Name), Required: parameter.Required, Schema: projectedShapeSchema(parameter.Schema, resolver)})
+			shape.Inputs = append(shape.Inputs, binding.Input{Location: parameter.Location, Name: firstNonEmpty(parameter.OriginalName, parameter.Name), Required: parameter.Required, Schema: budget.schema(parameter.Schema, resolver)})
 		}
 		if native.RequestRef != "" {
-			shape.Inputs = append(shape.Inputs, binding.Input{Location: "body", Name: "body", Required: true, Schema: projectedShapeSchema(model.Schemas[native.RequestRef], resolver)})
+			shape.Inputs = append(shape.Inputs, binding.Input{Location: "body", Name: "body", Required: true, Schema: budget.schema(model.Schemas[native.RequestRef], resolver)})
 		}
 		if native.ResponseRef != "" {
-			shape.Outputs = append(shape.Outputs, binding.Output{Location: "body", Name: "body", Schema: projectedShapeSchema(model.Schemas[native.ResponseRef], resolver)})
+			shape.Outputs = append(shape.Outputs, binding.Output{Location: "body", Name: "body", Schema: budget.schema(model.Schemas[native.ResponseRef], resolver)})
 		}
 		// The Discovery parser normalizes a dialect-specific schema subset.
 		// Do not label that lossy projection a complete JSON Schema contract.
@@ -134,12 +140,14 @@ func discoveryShapes(ctx context.Context, root map[string]any, source binding.So
 			shape.Outputs[i].Schema.Known = false
 		}
 		sortShapeInputs(shape.Inputs)
-		out = append(out, shape)
+		if err := budget.append(&out, shape); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }
 
-func smithyShapes(ctx context.Context, root map[string]any, source binding.Source) ([]binding.OperationShape, error) {
+func smithyShapes(ctx context.Context, root map[string]any, source binding.Source, budget *operationShapeBudget) ([]binding.OperationShape, error) {
 	model, err := smithyparser.ParseMap(root)
 	if err != nil {
 		return nil, err
@@ -172,7 +180,9 @@ func smithyShapes(ctx context.Context, root map[string]any, source binding.Sourc
 			shape.Outputs = append(shape.Outputs, binding.Output{Location: "body", Name: "body", Schema: smithyMemberSchema(model, native.Output)})
 		}
 		sortShapeInputs(shape.Inputs)
-		out = append(out, shape)
+		if err := budget.append(&out, shape); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }
@@ -188,7 +198,7 @@ func smithyMemberSchema(model *smithyparser.Model, target string) binding.Schema
 	return partialTypeSchema(typeName, false)
 }
 
-func asyncShapes(ctx context.Context, root map[string]any, source binding.Source) ([]binding.OperationShape, error) {
+func asyncShapes(ctx context.Context, root map[string]any, source binding.Source, budget *operationShapeBudget) ([]binding.OperationShape, error) {
 	model, err := asyncparser.ParseMap(root)
 	if err != nil {
 		return nil, err
@@ -221,7 +231,7 @@ func asyncShapes(ctx context.Context, root map[string]any, source binding.Source
 		if len(native.MessageRefs) == 1 {
 			target, ok := model.ResolveSelector(native.MessageRefs[0])
 			if ok && target.Message != nil {
-				schema = projectedShapeSchema(target.Message.Payload, shapeLocalResolver(root))
+				schema = budget.schema(target.Message.Payload, shapeLocalResolver(root))
 				if _, declared := target.Message.Raw["schemaFormat"]; declared {
 					schema.Known = false
 				}
@@ -233,12 +243,14 @@ func asyncShapes(ctx context.Context, root map[string]any, source binding.Source
 		case "receive", "subscribe":
 			shape.Outputs = []binding.Output{{Location: "payload", Name: "payload", Schema: schema}}
 		}
-		out = append(out, shape)
+		if err := budget.append(&out, shape); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }
 
-func openRPCShapes(ctx context.Context, model *openrpc.Model, source binding.Source) ([]binding.OperationShape, error) {
+func openRPCShapes(ctx context.Context, model *openrpc.Model, source binding.Source, budget *operationShapeBudget) ([]binding.OperationShape, error) {
 	var out []binding.OperationShape
 	for _, native := range model.Methods {
 		if err := ctx.Err(); err != nil {
@@ -254,19 +266,21 @@ func openRPCShapes(ctx context.Context, model *openrpc.Model, source binding.Sou
 			}
 			descriptor := openrpcDescriptor(model, parameter)
 			name := firstNonEmpty(descriptor.Name, parameter.Name, localReferenceName(parameter.Ref))
-			shape.Inputs = append(shape.Inputs, binding.Input{Location: "param", Name: name, Required: descriptor.Required, Schema: projectedShapeSchema(descriptor.Schema, shapeLocalResolver(model.Raw))})
+			shape.Inputs = append(shape.Inputs, binding.Input{Location: "param", Name: name, Required: descriptor.Required, Schema: budget.schema(descriptor.Schema, shapeLocalResolver(model.Raw))})
 		}
 		if native.Result != nil {
 			descriptor := openrpcDescriptor(model, native.Result)
-			shape.Outputs = []binding.Output{{Location: "result", Name: firstNonEmpty(descriptor.Name, "result"), Schema: projectedShapeSchema(descriptor.Schema, shapeLocalResolver(model.Raw))}}
+			shape.Outputs = []binding.Output{{Location: "result", Name: firstNonEmpty(descriptor.Name, "result"), Schema: budget.schema(descriptor.Schema, shapeLocalResolver(model.Raw))}}
 		}
 		// Positional JSON-RPC parameters retain declaration order.
-		out = append(out, shape)
+		if err := budget.append(&out, shape); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }
 
-func graphQLShapes(ctx context.Context, model *graphql.Model, source binding.Source) ([]binding.OperationShape, error) {
+func graphQLShapes(ctx context.Context, model *graphql.Model, source binding.Source, budget *operationShapeBudget) ([]binding.OperationShape, error) {
 	var out []binding.OperationShape
 	for _, native := range model.Operations {
 		if err := ctx.Err(); err != nil {
@@ -306,7 +320,9 @@ func graphQLShapes(ctx context.Context, model *graphql.Model, source binding.Sou
 			}
 		}
 		sortShapeInputs(shape.Inputs)
-		out = append(out, shape)
+		if err := budget.append(&out, shape); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }
@@ -318,7 +334,7 @@ func graphQLTypeSchema(ref graphql.TypeRef) binding.Schema {
 	return partialTypeSchema(typeName, !ref.Required)
 }
 
-func grpcShapes(ctx context.Context, model *grpcproto.Model, source binding.Source) ([]binding.OperationShape, error) {
+func grpcShapes(ctx context.Context, model *grpcproto.Model, source binding.Source, budget *operationShapeBudget) ([]binding.OperationShape, error) {
 	var out []binding.OperationShape
 	for _, native := range model.MethodSummaries() {
 		if err := ctx.Err(); err != nil {
@@ -326,8 +342,8 @@ func grpcShapes(ctx context.Context, model *grpcproto.Model, source binding.Sour
 		}
 		shape := nativeShape(source, native.SourceOperationID, native.Selector, "grpc-protobuf")
 		addShapeAliases(&shape, []string{native.FullMethod, "rpc:" + native.SourceOperationID, native.SourceOperationRef})
-		inputSchema := grpcPartialMessageSchema(findProtoMessage(model, native.RequestType, native.Package))
-		outputSchema := grpcPartialMessageSchema(findProtoMessage(model, native.ResponseType, native.Package))
+		inputSchema := grpcPartialMessageSchema(findProtoMessage(model, native.RequestType, native.Package), budget)
+		outputSchema := grpcPartialMessageSchema(findProtoMessage(model, native.ResponseType, native.Package), budget)
 		if native.ClientStreaming {
 			inputSchema = binding.Schema{}
 		}
@@ -336,12 +352,14 @@ func grpcShapes(ctx context.Context, model *grpcproto.Model, source binding.Sour
 		}
 		shape.Inputs = []binding.Input{{Location: "message", Name: native.RequestType, Required: true, Schema: inputSchema}}
 		shape.Outputs = []binding.Output{{Location: "message", Name: native.ResponseType, Schema: outputSchema}}
-		out = append(out, shape)
+		if err := budget.append(&out, shape); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }
 
-func odataShapes(ctx context.Context, model *odata.Model, source binding.Source) ([]binding.OperationShape, error) {
+func odataShapes(ctx context.Context, model *odata.Model, source binding.Source, budget *operationShapeBudget) ([]binding.OperationShape, error) {
 	var out []binding.OperationShape
 	summaries := model.OperationSummaries()
 	// The legacy summary API deduplicates native IDs. Shape reproduction must
@@ -391,7 +409,9 @@ func odataShapes(ctx context.Context, model *odata.Model, source binding.Source)
 			shape.Outputs = []binding.Output{{Location: "body", Name: "body", Schema: partialTypeSchema(typeName, true)}}
 		}
 		sortShapeInputs(shape.Inputs)
-		out = append(out, shape)
+		if err := budget.append(&out, shape); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }
@@ -416,7 +436,7 @@ func addShapeAliases(shape *binding.OperationShape, values []string) {
 	}
 }
 
-func grpcPartialMessageSchema(message *grpcproto.Message) binding.Schema {
+func grpcPartialMessageSchema(message *grpcproto.Message, budget *operationShapeBudget) binding.Schema {
 	if message == nil {
 		return binding.Schema{}
 	}
@@ -444,7 +464,7 @@ func grpcPartialMessageSchema(message *grpcproto.Message) binding.Schema {
 	if len(required) > 0 {
 		value["required"] = required
 	}
-	schema := projectedShapeSchema(value, nil)
+	schema := budget.schema(value, nil)
 	// Proto JSON wire presence, integer/string encodings, oneof, custom
 	// options and nested/enum types are not all represented by the parser.
 	schema.Known = false

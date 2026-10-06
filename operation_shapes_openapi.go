@@ -7,7 +7,7 @@ import (
 	"github.com/OpenUdon/uws/binding"
 )
 
-func openAPIShapes(ctx context.Context, root map[string]any, source binding.Source) ([]binding.OperationShape, error) {
+func openAPIShapes(ctx context.Context, root map[string]any, source binding.Source, budget *operationShapeBudget) ([]binding.OperationShape, error) {
 	version := stringValue(root["openapi"])
 	swagger := stringValue(root["swagger"]) == "2.0"
 	if !swagger && !strings.HasPrefix(version, "3.0.") && !strings.HasPrefix(version, "3.1.") {
@@ -30,6 +30,9 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 		for _, method := range sortedMapKeys(pathItem) {
 			if !isHTTPMethod(method) {
 				continue
+			}
+			if method != strings.ToLower(method) {
+				return nil, ErrOperationShapeTable
 			}
 			if err := ctx.Err(); err != nil {
 				return nil, err
@@ -78,6 +81,19 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 					if name == "" || location == "" || seen[key] {
 						return nil, ErrOperationShapeTable
 					}
+					switch location {
+					case "path", "query", "header":
+					case "cookie":
+						if swagger {
+							return nil, ErrOperationShapeTable
+						}
+					case "body", "formData":
+						if !swagger {
+							return nil, ErrOperationShapeTable
+						}
+					default:
+						return nil, ErrOperationShapeTable
+					}
 					seen[key] = true
 					value := parameter["schema"]
 					if swagger && location != "body" {
@@ -110,18 +126,48 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 							return nil, ErrOperationShapeTable
 						}
 					}
-					inputs[key] = binding.Input{Location: location, Name: name, Required: required, Schema: projectedShapeSchema(value, shapeLocalResolver(root))}
+					inputs[key] = binding.Input{Location: location, Name: name, Required: required, Schema: budget.schema(value, shapeLocalResolver(root))}
 				}
 			}
 			for _, in := range inputs {
 				shape.Inputs = append(shape.Inputs, in)
+			}
+			pathNames := map[string]bool{}
+			for remaining := path; remaining != ""; {
+				start := strings.IndexAny(remaining, "{}")
+				if start < 0 {
+					break
+				}
+				if remaining[start] != '{' {
+					return nil, ErrOperationShapeTable
+				}
+				end := strings.IndexByte(remaining[start+1:], '}')
+				if end < 0 {
+					return nil, ErrOperationShapeTable
+				}
+				name := remaining[start+1 : start+1+end]
+				if name == "" || strings.ContainsAny(name, "{}") {
+					return nil, ErrOperationShapeTable
+				}
+				pathNames[name] = true
+				remaining = remaining[start+end+2:]
+			}
+			for name := range pathNames {
+				if _, declared := inputs["path\x00"+name]; !declared {
+					return nil, ErrOperationShapeTable
+				}
+			}
+			for _, in := range inputs {
+				if in.Location == "path" && !pathNames[in.Name] {
+					return nil, ErrOperationShapeTable
+				}
 			}
 			if raw, exists := native["requestBody"]; exists {
 				body, resolved := shapeLocalObject(root, raw)
 				if !resolved {
 					return nil, ErrOperationShapeTable
 				}
-				schema, _ := shapeBodyContent(root, body)
+				schema, _ := shapeBodyContent(root, body, budget)
 				required, isBool := body["required"].(bool)
 				if _, declared := body["required"]; declared && !isBool {
 					return nil, ErrOperationShapeTable
@@ -145,7 +191,7 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 				success = append(success, response)
 			}
 			if len(success) == 1 {
-				schema, hasBody := shapeBodyContent(root, success[0])
+				schema, hasBody := shapeBodyContent(root, success[0], budget)
 				if hasBody {
 					shape.Outputs = append(shape.Outputs, binding.Output{Location: "body", Name: "body", Schema: schema})
 				} else {
@@ -160,7 +206,7 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 					if swagger {
 						value = header
 					}
-					shape.Outputs = append(shape.Outputs, binding.Output{Location: "header", Name: name, Schema: projectedShapeSchema(value, shapeLocalResolver(root))})
+					shape.Outputs = append(shape.Outputs, binding.Output{Location: "header", Name: name, Schema: budget.schema(value, shapeLocalResolver(root))})
 				}
 			} else if len(success) > 1 {
 				shape.Outputs = append(shape.Outputs, binding.Output{Location: "body", Name: "body"})
@@ -181,7 +227,9 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 				complete = complete && shape.Outputs[i].Schema.Known
 			}
 			shape.Complete = complete
-			out = append(out, shape)
+			if err := budget.append(&out, shape); err != nil {
+				return nil, err
+			}
 			if len(out) > binding.MaxOperations {
 				return nil, ErrOperationShapeTable
 			}

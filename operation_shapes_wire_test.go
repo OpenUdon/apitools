@@ -223,3 +223,37 @@ func TestOperationShapesBoundSerializedMetadata(t *testing.T) {
 		t.Fatal("aggregate operation limit returned partial positives", err)
 	}
 }
+
+func TestOperationShapesBoundCompactReferenceAmplification(t *testing.T) {
+	fixture := completeShapeFixture()
+	fixture["components"] = map[string]any{"schemas": map[string]any{"Shared": map[string]any{"type": "string", "enum": []any{strings.Repeat("x", 80000)}}}}
+	paths := map[string]any{}
+	for i := 0; i < 1000; i++ {
+		paths[fmt.Sprintf("/item/%d", i)] = map[string]any{"get": map[string]any{"responses": map[string]any{"200": map[string]any{"description": "Shared fixture", "content": map[string]any{"application/json": map[string]any{"schema": map[string]any{"$ref": "#/components/schemas/Shared"}}}}}}}
+	}
+	fixture["paths"] = paths
+	options := optionsForShapeFixture(t, fixture)
+	if len(options.Sources[0].Content) > 512<<10 {
+		t.Fatal("fixture is not a compact amplification vector")
+	}
+	table, err := BuildOperationShapeTable(context.Background(), options)
+	if !errors.Is(err, ErrOperationShapeTable) || len(table.Operations) > 0 {
+		t.Fatal("amplified schema table was accumulated or returned", err)
+	}
+	// The verifier must also reject an already-decoded amplified claim before
+	// its marshaler traverses/allocates the complete encoded representation.
+	good, err := BuildOperationShapeTable(context.Background(), optionsForShapeFixture(t, completeShapeFixture()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	shape := good.Operations[0]
+	large := json.RawMessage(`{"type":"string","enum":["` + strings.Repeat("x", 200000) + `"]}`)
+	shape.Inputs = nil
+	for i := 0; i < 1000; i++ {
+		shape.Inputs = append(shape.Inputs, binding.Input{Location: "query", Name: fmt.Sprintf("p%d", i), Schema: binding.Schema{Known: true, JSON: large}})
+	}
+	good.Operations = []binding.OperationShape{shape}
+	if err := VerifyOperationShapeTable(context.Background(), optionsForShapeFixture(t, completeShapeFixture()), good); !errors.Is(err, ErrOperationShapeTable) {
+		t.Fatal("amplified decoded claim was marshaled/accepted", err)
+	}
+}

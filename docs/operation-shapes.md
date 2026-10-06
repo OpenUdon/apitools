@@ -8,12 +8,14 @@ APIs or their wire bytes. This is M82 work in progress, not milestone acceptance
 or a published consumer release.
 
 The producer preserves raw SHA-256, family-native operation selectors and
-symbolic IDs. It uses the existing native parsers. JSON numeric constraints
-retain their lexemes; YAML uses guarded nodes with exact JSON-compatible numeric
+symbolic IDs. It uses the existing native parsers. Direct JSON Schema numeric
+constraints retain their lexemes; YAML uses guarded nodes with exact JSON-compatible numeric
 scalars. Non-JSON YAML scalar tags and numeric spellings refuse. Annotations,
 examples and defaults are omitted from schema projections. Missing, recursive,
 external or unsupported schema evidence has `known: false`; absence is distinct
 from an explicitly unconstrained schema. No external reference is loaded.
+Native-parser normalized subsets retain explicit unknownness rather than
+claiming complete schema or lossless numeric semantics.
 
 | Family | Projection and current limits |
 |---|---|
@@ -48,7 +50,12 @@ from HTTP methods. Existing effect/candidate evidence remains separately advisor
 Defaults and maximums are 32 sources, 20 MiB per source, 64 MiB aggregate raw
 bytes, 10,000 operations, UWS 8 MiB serialized table and 256 KiB per schema.
 Optional byte/operation limits only tighten these bounds. Structural guards
-limit depth and semantic work. Malformed input, duplicate source IDs, unsafe
+limit depth and semantic work. One invocation also charges schema projection
+work (100,000 nodes total, 10,000 per schema, depth 50) and projected schema
+bytes (8 MiB total) before further compilation/accumulation. Source and operation
+serialization are checked incrementally, including decoded claimed tables;
+compact repeated references cannot grow a whole oversized table before refusal.
+Malformed input, duplicate source IDs, unsafe
 local leaves, cancellation and limits return no partial table. Parser and file
 errors use the value-free `ErrOperationShapeTable`; context cancellation remains
 identifiable. Cooperative parsing is not a hard CPU/RSS/deadline boundary.
@@ -71,6 +78,11 @@ as their oracle. Native IDs that the legacy parsers deduplicate ambiguously
 (including OData overloads and repeated AsyncAPI IDs) refuse rather than silently
 choosing one contract; duplicate OpenAPI IDs keep distinct native pointers and
 resolve as ambiguous by ID.
+Schema keyword knownness follows the source dialect: OpenAPI 3.0's supported
+subset, OpenAPI 3.1's default 2020-12 context, or the common draft-07 subset for
+OpenRPC/AsyncAPI. Unsupported modern keywords remain unknown; a supported
+explicit 2020-12 schema can establish its modern semantics. Reference siblings,
+legacy exclusive bounds and unresolved dialect overrides remain conservative.
 Standalone qualification uses `GOWORK=off` and the exact published UWS C09 pin.
 The UWS module retains its Horizon/HashiCorp HCL transitive dependency closure;
 this API does not make UWS or APItools HCL-free.

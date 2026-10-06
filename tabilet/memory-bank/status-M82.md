@@ -1,7 +1,7 @@
 # M82 — Shape production
 
 **Stage:** Kinet STG-11, Phase A. **Owner:** APItools.
-**State:** Confirmed Stage 11 execution; M82.1–M82.3 complete, M82.4 pending; review 0/10 not started.
+**State:** Confirmed Stage 11 execution; M82.1–M82.3 complete, M82.4 in progress; whole code review passed 3/10, publication/acceptance pending.
 **Source baseline:** `9364afac98c97b79c9e6b9335bd9c71d4e8722d5` (clean at planning).
 **Coordinator:** [Stage 11 contract](../../../kinet/docs/stage11.md); the package-local milestone/status owns acceptance.
 
@@ -19,7 +19,7 @@ The serial predecessor is a scheduling gate; direct contract and regression impa
 | M82.1 — Project supported source metadata | `[+]` | Additive BuildOperationShapeTable projects all eight existing parser families, native selectors/ID aliases and raw SHA-256 into bounded UWS shapes; RPC/event/AWS/OData projections never invent generic HTTP details. Explicit partial schemas/security remain unqualified. Eight-family/public-API fixtures, standalone full tests/vet, focused race checks and workspace OpenUdon/Udon full regression suites passed. See execution evidence below and docs/operation-shapes.md. |
 | M82.2 — Preserve identity and incomplete evidence | `[+]` | VerifyOperationShapeTable independently reproduces exact local claims and refuses forged/stale fields, omitted operations and changed raw bytes. Explicit OpenAPI security preserves OR-of-AND symbols/scopes; undeclared/unresolved security remains unknown. Complete supported HTTP metadata proves advisory compatibility, while unsupported native/dialect/wire/requiredness/schema evidence remains partial. Identity, symbolic-security, type/refusal, canary and no-network fixtures passed with standalone full tests/vet, focused races and workspace OpenUdon/Udon regressions. |
 | M82.3 — Serialize and test shape tables | `[+]` | Reuse public UWS Marshal/ParseTable and freeze eight-source/twelve-operation bytes at testdata/operation-shapes/v1/eight-families.json. Source-order, exact JSON/YAML numeric lexemes, resolver isolation, bounded wire, missing/cyclic refs, native collision/overload, ambiguous IDs and streaming/list/message-alternative fixtures passed. OData/AsyncAPI summary deduplication cannot select a contract silently. Legacy candidate wire fixtures are unchanged; standalone full tests/vet, focused races, dependency closure and patch checks passed. Retained Horizon/HCL remains explicit; no credential resolution/execution/network behavior is added. |
-| M82.4 — Qualify consumers and publish | `[ ]` | Run owner and affected OpenUdon/Udon checks against exact UWS source, record the public API/fixture release, and publish only under named authority before adoption. |
+| M82.4 — Qualify consumers and publish | `[~]` | Run owner and affected OpenUdon/Udon checks against exact UWS source, record the public API/fixture release, and publish only under named authority before adoption. |
 
 ## Acceptance and verification
 
@@ -44,8 +44,8 @@ UWS:C09 is accepted and independently observed on origin/main at `6a267306032edc
 
 ## Persisted review
 
-- Review iteration: **0/10**; not started.
-- Closing-review findings: none; the whole-milestone review has not started. Approved intake requirements above remain pending.
+- Review iteration: **3/10**; whole code review passed on 2026-10-06 after all fixes and required owner/consumer verification. Final acceptance still waits for required publication/evidence and terminal task state.
+- Closing-review findings: review 1 M82-R1-1/R1-2 and review 2 M82-R2-1 are resolved below; review 3 found no remaining P1/P2. Six unchanged pre-existing staticcheck observations do not change the required gate or producer behavior.
 - Accepted revision: not available.
 - Published revision / artifact evidence: not available.
 - Verification: whole-milestone qualification remains pending; completed task verification is recorded below.
@@ -110,3 +110,97 @@ standalone/offline environment, focused shape races, `go list -m all`, gofmt
 and `git diff --check`. UWS remains pinned to accepted/published C09; Horizon
 `v1.14.5` / HCL `v2.24.0` remain in the module closure. M82.4 owns the final
 consumer qualification, publication and whole review; review remains 0/10.
+
+## Execution evidence — M82.4 continuation, 2026-10-06
+
+M82.4 is the sole in-progress row. [Draft qualification](../../docs/m82-qualification.md)
+records exact source/fixture/upstream reachability and consumer evidence.
+Prepublication checks exposed overly strong completeness for malformed HTTP
+path parameters and unproved schema dialect/reference-sibling/exclusive-bound
+semantics. The new negative fixtures reproduced these cases; M82.4 guards now
+refuse malformed HTTP metadata or keep schema evidence unknown. Final standalone
+full tests/vet, focused races, catalog freshness and patch/format checks passed.
+OpenUdon's standalone retained-pin suite passed. Udon's original readonly
+standalone check needs the UWS metadata update; its disposable-modfile suite
+passed with only the exact accepted C09 require changed, without tracked consumer
+changes. The source publication destination and fast-forward baseline are
+verified; no M82 push occurred. Closing review remains 0/10, not started.
+Compatible retained staticcheck reported six diagnostics, all in four files
+byte-identical to pre-M82; none concerns the new shape implementation. No zero
+staticcheck result is claimed, and no unrelated baseline cleanup or suppression
+was introduced. The original Udon modfile/sum were preserved and the temporary
+qualification copies removed.
+Resume this row through final review, publication, reconciliation and retirement;
+do not restart M82.1–M82.3 or accepted prerequisites.
+
+## Closing review 1 — findings resolved, 2026-10-06
+
+Full scope: producer/verifier boundaries, every native adapter, schema/security
+projection, source identity/refusal, determinism/resource/cancellation behavior,
+legacy API/wire preservation, consumer closure and documentation/publication.
+
+- **M82-R1-1 (P2):** Serialized-table and aggregate-operation limits are checked
+  after a whole source's shapes have been accumulated. Compact documents can
+  reuse large local schemas across many operations/parameters, multiplying
+  projection/compilation work and resident metadata before the final 8 MiB
+  refusal. Per-schema work/byte limits do not bound their aggregate expansion.
+  Own in M82 before acceptance: charge schema/projection work and serialized
+  operations incrementally against one invocation budget; stop at the first
+  exceeded bound with no partial table. Add a compact shared-ref amplification
+  regression. Worker hard CPU/RSS/deadline isolation remains separately owned.
+- **M82-R1-2 (P2):** The schema projector recognizes modern JSON Schema
+  keywords without tying them to the source's schema dialect. An OpenAPI 3.0
+  or default draft-07 OpenRPC/AsyncAPI schema could incorrectly claim known
+  semantics for an unsupported modern keyword. Own in M82: retain useful known
+  common constraints, but mark unsupported dialect keywords unknown, including
+  within resolved schemas; only the supported explicit/default 2020-12 context
+  can prove modern semantics. Add dialect regressions before acceptance.
+
+Resolution: one invocation now charges projected schema bytes/work and validates/
+accounts source/operation serialization incrementally; the claim verifier checks
+amplification before marshaling. Compact shared-ref and decoded-claim amplification
+vectors refuse without a partial table. Source-specific dialect knowledge keeps
+modern constraints unknown outside supported contexts and retains known common/
+explicit-2020 semantics. The unchanged golden and all focused tests passed;
+standalone full APItools tests/vet, shape races and full workspace OpenUdon/Udon
+regressions passed after both fixes. Both findings are resolved in the current
+uncommitted M82.4 implementation. No existing API/wire/source fixture changed.
+
+## Closing review 2 — finding resolved, 2026-10-06
+
+Review the full implementation, source/parser/worker boundaries, projection/
+verification/cancellation/resource failures, fixtures, metadata/privacy, legacy
+contracts, exact dependency closure, consumer results and public documentation.
+Source publication, acceptance and retirement remain pending this gate.
+
+- **M82-R2-1 (P2):** The review-1 dialect guard covers unsupported keyword
+  names but not boolean schema values or union/null `type` values in OpenAPI
+  3.0. The neutral JSON Schema compiler accepts them, so this unsupported source
+  evidence can still claim Known. Own in M82: keep these projections unknown
+  under the OpenAPI 3.0 profile, including nested/ref-resolved schemas, while
+  retaining valid draft-07/2020 schemas. Add explicit positive/negative vectors.
+
+Resolution: boolean and union/null schemas cannot claim known OpenAPI 3.0
+semantics; nested and resolved projections inherit the same profile. Supported
+OpenAPI 3.1/draft-07/explicit-2020 projections retain their positive proofs.
+Focused shape tests/races and full vet passed; the frozen wire is unchanged.
+
+## Closing review 3 — whole code gate passed, 2026-10-06
+
+Re-review the complete M82 change and tests, source/native/parser boundaries,
+all schema dialect/ref/number/security cases, identity/serialization/claims,
+resource/cancellation/privacy failures, unchanged APIs/wires/dependencies,
+consumer qualification, documentation and the named publication/retirement gates.
+
+Result: no remaining P1/P2. The whole producer/verifier implementation, all native
+families and negative/positive fixtures, source-specific schema evidence,
+incremental bounds, exact numeric/wire identity, value-free failures, symbolic
+security, privacy/cancellation and unchanged legacy behavior satisfy M82's code
+acceptance. Required full APItools tests/vet and affected races passed; current
+workspace OpenUdon/Udon suites passed, with retained-pin/disposable-module
+qualification recorded. Evolution decision: no bump; this implements the already
+approved Stage 11 target. Publication and the final acceptance/retirement evidence
+remain the selected M82.4 operation, not authority supplied by these markers.
+The reviewed source must be committed before the named fast-forward publication;
+the source commit is the required artifact for that operation. Its exact observed
+hash/publication and substantive closure evidence follow in this same task.

@@ -60,6 +60,7 @@ func BuildOperationShapeTable(ctx context.Context, options OperationShapeOptions
 		maxOperations = binding.MaxOperations
 	}
 	table := binding.ShapeTable{Version: binding.TableVersion}
+	budget := newOperationShapeBudget(ctx, maxOperations)
 	ids := map[string]bool{}
 	var totalBytes int64
 	for _, input := range options.Sources {
@@ -94,7 +95,10 @@ func BuildOperationShapeTable(ctx context.Context, options OperationShapeOptions
 		}
 		digest := sha256.Sum256(content)
 		source := binding.Source{ID: input.ID, Kind: string(input.Kind), SHA256: hex.EncodeToString(digest[:]), URL: provenance}
-		operations, err := sourceOperationShapes(ctx, input.Kind, content, source)
+		if err := budget.source(source); err != nil {
+			return binding.ShapeTable{}, err
+		}
+		operations, err := sourceOperationShapes(ctx, input.Kind, content, source, budget)
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return binding.ShapeTable{}, ctxErr
 		}
@@ -118,8 +122,14 @@ func BuildOperationShapeTable(ctx context.Context, options OperationShapeOptions
 // the caller's exact local source set. Structural validity or a matching digest
 // alone cannot establish producer correctness. Reproduction grants no authority.
 func VerifyOperationShapeTable(ctx context.Context, options OperationShapeOptions, claimed binding.ShapeTable) error {
-	data, err := claimed.Marshal()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	data, err := boundedShapeTableBytes(ctx, claimed)
 	if err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		return ErrOperationShapeTable
 	}
 	reproduced, err := BuildOperationShapeTable(ctx, options)

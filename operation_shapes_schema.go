@@ -12,16 +12,30 @@ import (
 // Shape schemas retain validation constraints, never examples/defaults or
 // descriptions. Unsupported keywords/dialects and recursive/external refs
 // make the projection unknown rather than silently weakening the contract.
-func projectedShapeSchema(value any, resolver nativeSchemaResolver) binding.Schema {
+func (budget *operationShapeBudget) schema(value any, resolver nativeSchemaResolver) binding.Schema {
+	if budget.err != nil {
+		return binding.Schema{}
+	}
+	if err := budget.ctx.Err(); err != nil {
+		budget.err = err
+		return binding.Schema{}
+	}
 	work := 0
-	projected, known := projectShapeSchema(value, resolver, map[string]bool{}, 0, &work)
+	projected, known := projectShapeSchema(value, resolver, map[string]bool{}, 0, &work, budget.schemaDialect)
+	budget.schemaWork += work
+	if work > 10000 || budget.schemaWork > 100000 {
+		budget.err = ErrOperationShapeTable
+		return binding.Schema{}
+	}
 	if projected == nil {
 		return binding.Schema{}
 	}
 	data, err := json.Marshal(projected)
-	if err != nil || len(data) > binding.MaxSchemaBytes {
+	if err != nil || len(data) > binding.MaxSchemaBytes || len(data) > binding.MaxTableBytes-budget.schemaBytes {
+		budget.err = ErrOperationShapeTable
 		return binding.Schema{}
 	}
+	budget.schemaBytes += len(data)
 	if known {
 		compiler := jsonschema.NewCompiler()
 		compiler.UseLoader(shapeSchemaLoader{})
@@ -41,13 +55,14 @@ func (shapeSchemaLoader) Load(string) (any, error) {
 	return nil, errors.New("external schema resources are unavailable")
 }
 
-func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[string]bool, depth int, work *int) (any, bool) {
+func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[string]bool, depth int, work *int, dialect int) (any, bool) {
 	*work++
 	if depth > 50 || *work > 10000 {
+		*work = 10001
 		return nil, false
 	}
 	if boolean, ok := value.(bool); ok {
-		return boolean, true
+		return boolean, dialect != shapeSchemaOpenAPI30
 	}
 	schema, ok := value.(map[string]any)
 	if !ok || schema == nil {
@@ -55,8 +70,29 @@ func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[str
 	}
 	out := map[string]any{}
 	known := true
+	if dialect != shapeSchemaOpenAPI30 && schema["$schema"] == "https://json-schema.org/draft/2020-12/schema" {
+		dialect = shapeSchema2020
+	}
 	for _, key := range sortedMapKeys(schema) {
 		child := schema[key]
+		if dialect != shapeSchema2020 {
+			switch key {
+			case "prefixItems", "dependentSchemas", "$defs":
+				known = false
+			}
+		}
+		if dialect == shapeSchemaOpenAPI30 {
+			if key == "type" {
+				kind, ok := child.(string)
+				if !ok || kind == "null" {
+					known = false
+				}
+			}
+			switch key {
+			case "const", "contains", "if", "then", "else", "propertyNames", "patternProperties", "definitions", "$schema":
+				known = false
+			}
+		}
 		switch key {
 		case "description", "title", "examples", "example", "default", "$comment", "deprecated":
 			// Annotation values are outside the binding projection.
@@ -65,6 +101,11 @@ func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[str
 				known = false
 			}
 		case "$ref":
+			// Reference sibling meaning differs across retained OpenAPI/schema
+			// dialects. Preserve a projection without claiming containment proof.
+			if len(schema) > 1 {
+				known = false
+			}
 			ref, ok := child.(string)
 			if !ok || resolver == nil || active[ref] {
 				known = false
@@ -76,7 +117,7 @@ func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[str
 				continue
 			}
 			active[ref] = true
-			resolved, complete := projectShapeSchema(target, resolver, active, depth+1, work)
+			resolved, complete := projectShapeSchema(target, resolver, active, depth+1, work, dialect)
 			delete(active, ref)
 			if resolved != nil {
 				out["allOf"] = []any{resolved}
@@ -86,6 +127,7 @@ func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[str
 			out[key] = child
 		case "exclusiveMinimum", "exclusiveMaximum":
 			if flag, ok := child.(bool); ok {
+				known = false
 				if flag {
 					bound := "minimum"
 					if key == "exclusiveMaximum" {
@@ -108,7 +150,7 @@ func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[str
 			}
 			items := map[string]any{}
 			for _, name := range sortedMapKeys(children) {
-				projected, complete := projectShapeSchema(children[name], resolver, active, depth+1, work)
+				projected, complete := projectShapeSchema(children[name], resolver, active, depth+1, work, dialect)
 				if projected == nil {
 					projected = map[string]any{}
 				}
@@ -117,7 +159,7 @@ func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[str
 			}
 			out[key] = items
 		case "items", "additionalProperties", "not", "contains", "if", "then", "else", "propertyNames":
-			projected, complete := projectShapeSchema(child, resolver, active, depth+1, work)
+			projected, complete := projectShapeSchema(child, resolver, active, depth+1, work, dialect)
 			if projected != nil {
 				out[key] = projected
 			}
@@ -130,7 +172,7 @@ func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[str
 			}
 			items := []any{}
 			for _, v := range children {
-				projected, complete := projectShapeSchema(v, resolver, active, depth+1, work)
+				projected, complete := projectShapeSchema(v, resolver, active, depth+1, work, dialect)
 				if projected != nil {
 					items = append(items, projected)
 				}
@@ -199,9 +241,9 @@ func partialTypeSchema(typeName string, nullable bool) binding.Schema {
 	return binding.Schema{JSON: data}
 }
 
-func shapeBodyContent(root map[string]any, object map[string]any) (binding.Schema, bool) {
+func shapeBodyContent(root map[string]any, object map[string]any, budget *operationShapeBudget) (binding.Schema, bool) {
 	if schema, exists := object["schema"]; exists {
-		return projectedShapeSchema(schema, shapeLocalResolver(root)), true
+		return budget.schema(schema, shapeLocalResolver(root)), true
 	}
 	content := mapValue(object["content"])
 	if len(content) != 1 {
@@ -212,7 +254,7 @@ func shapeBodyContent(root map[string]any, object map[string]any) (binding.Schem
 		if !ok {
 			return binding.Schema{}, false
 		}
-		return projectedShapeSchema(item["schema"], shapeLocalResolver(root)), true
+		return budget.schema(item["schema"], shapeLocalResolver(root)), true
 	}
 	return binding.Schema{}, false
 }

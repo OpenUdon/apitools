@@ -136,7 +136,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M82 | [status-M82.md](status-M82.md) | in progress; review 0/10 |
+| M82 | [status-M82.md](status-M82.md) | in progress; review 3/10 |
 
 Closed milestones are recorded in the history index.
 
@@ -617,7 +617,7 @@ One execution owner, serial execution and task commits under the later confirmed
 **Verification.** go test ./...; go vet ./...; affected race/API/source-family fixtures and OpenUdon/Udon consumer checks; git diff --check. Use bounded local artifacts, not remote discovery.
 Use only disposable roots and fixtures. Preserve published schemas/wires, historic evidence, current runtime capability restrictions and the installed M44 service. Changed v3/package/worker identities require fresh approval; they do not preserve old grants.
 **Downstream.** [UWS:M08](../../../uws/tabilet/memory-bank/status-M08.md), [Kinet:M46](../../../kinet/tabilet/memory-bank/status-M46.md), [OpenUdon:P09](../../../openudon/tabilet/memory-bank/status-P09.md). Reconcile exact accepted/publication revisions before advancing.
-**Tasks/review.** [status-M82.md](status-M82.md), M82.1–M82.3 complete and 1 pending task commit unit; review 0/10, not started. The local eight-family producer, exact claim reproduction, symbolic security and deterministic wire fixtures are implemented; final consumer qualification, whole acceptance and publication remain pending.
+**Tasks/review.** [status-M82.md](status-M82.md), M82.1–M82.3 complete and M82.4 in progress; review 3/10 started. The local eight-family producer, exact claim reproduction, symbolic security and deterministic wire fixtures are implemented; final whole acceptance and publication remain pending.
 
 ## Stage 11 candidate dispositions
 
