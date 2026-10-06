@@ -136,7 +136,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M82 | [status-M82.md](status-M82.md) | UWS:C09 |
+| M82 | [status-M82.md](status-M82.md) | pending; review 0/10 |
 
 Closed milestones are recorded in the history index.
 
