@@ -46,6 +46,9 @@ func versionCatalogReferences(req APIVersionDiscoveryRequest, opts APIVersionDis
 	}
 	var out []APIVersionRecord
 	for _, ref := range provider.SpecReferences {
+		if req.Known.SourceURL != "" && !versionReferenceMatchesBaseline(ref.URL, req.Known.SourceURL) {
+			continue
+		}
 		kind := "direct"
 		if ref.Kind == catalog.SpecKindHumanDocs || ref.Kind == catalog.SpecKindOpenAPIIndex {
 			kind = "pointer"
@@ -86,48 +89,40 @@ func versionListRecords(ctx context.Context, data []byte, req APIVersionDiscover
 		if req.Known.ProviderKey != "" && key != req.Known.ProviderKey {
 			continue
 		}
+		if req.Known.ProviderKey == "" {
+			matched := false
+			for _, candidate := range entry.Versions {
+				raw, err := apiVersionGuruOrigin(candidate.Info, firstNonEmpty(candidate.SwaggerURL, candidate.SwaggerYAMLURL))
+				if err != nil {
+					return nil, err
+				}
+				if raw == req.Known.SourceURL {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				continue
+			}
+		}
 		var versions []string
 		for k := range entry.Versions {
 			versions = append(versions, k)
 		}
 		sort.Slice(versions, func(i, j int) bool {
-			if n, ok := compareAPIVersions(versions[i], versions[j]); ok && n != 0 {
-				return n > 0
-			}
-			return versions[i] < versions[j]
+			return apiVersionLess(versions[i], versions[j])
 		})
 		if len(versions) > 100 {
 			return nil, fmt.Errorf("provider version budget exceeded")
 		}
 		for _, v := range versions {
 			e := entry.Versions[v]
-			var info struct {
-				Origin json.RawMessage `json:"x-origin"`
-			}
-			if err := json.Unmarshal(e.Info, &info); err != nil {
-				continue
-			}
-			var origins []struct {
-				URL string `json:"url"`
-			}
-			if len(info.Origin) > 0 && info.Origin[0] == '[' {
-				_ = json.Unmarshal(info.Origin, &origins)
-			} else {
-				var origin struct {
-					URL string `json:"url"`
-				}
-				_ = json.Unmarshal(info.Origin, &origin)
-				origins = append(origins, origin)
-			}
-			raw := firstNonEmpty(e.SwaggerURL, e.SwaggerYAMLURL)
-			if len(origins) > 0 && origins[0].URL != "" {
-				raw = origins[0].URL
-			}
-			if req.Known.ProviderKey == "" && raw != req.Known.SourceURL {
-				continue
+			raw, err := apiVersionGuruOrigin(e.Info, firstNonEmpty(e.SwaggerURL, e.SwaggerYAMLURL))
+			if err != nil {
+				return nil, err
 			}
 			if len(raw) > 2048 {
-				continue
+				return nil, fmt.Errorf("directory URL exceeds its metadata budget")
 			}
 			l := APIVersionLocator{Kind: "direct", URL: raw}
 			evidence := "catalog-highest"
@@ -143,6 +138,35 @@ func versionListRecords(ctx context.Context, data []byte, req APIVersionDiscover
 		}
 	}
 	return out, nil
+}
+
+func apiVersionGuruOrigin(data json.RawMessage, fallback string) (string, error) {
+	var info struct {
+		Origin json.RawMessage `json:"x-origin"`
+	}
+	if err := json.Unmarshal(data, &info); err != nil {
+		return "", err
+	}
+	var origins []struct {
+		URL string `json:"url"`
+	}
+	if len(info.Origin) > 0 && info.Origin[0] == '[' {
+		if err := json.Unmarshal(info.Origin, &origins); err != nil {
+			return "", err
+		}
+	} else if len(info.Origin) > 0 {
+		var origin struct {
+			URL string `json:"url"`
+		}
+		if err := json.Unmarshal(info.Origin, &origin); err != nil {
+			return "", err
+		}
+		origins = append(origins, origin)
+	}
+	if len(origins) > 0 && origins[0].URL != "" {
+		return origins[0].URL, nil
+	}
+	return fallback, nil
 }
 
 func readVersionList(file string) (apiVersionListCache, error) {

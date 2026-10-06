@@ -270,3 +270,9 @@ module dependency is used. The offline operation index command is delivered by M
   JSON state/list helpers use artifactio and the shared structural checks;
   there is no new dependency or SQLite migration. Focused foundations gate:
   `go test . -run '^TestAPIVersion'` and its `-race` variant.
+
+- Delivered API version CLI: `go run ./cmd/apitools versions --help`.
+  `versions --request FILE` uses local evidence by default; `--network`
+  enables bounded lookup. State/list-cache/save/inventory flags are independent.
+  Library network tests use local servers; focused gate is
+  `go test -race . ./cmd/apitools -run 'TestAPIVersion|TestVersionsCLI'`.

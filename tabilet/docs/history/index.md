@@ -94,3 +94,4 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 | M81 | completed | 2026-09-30 | [M81](status-M81.md) | Explicit catalog roots, bounded registered parsing, digest-bound operation index and selected artifact export; review passed in 3 iterations. |
 | M80 | completed | 2026-09-30 | [M80](status-M80.md) | Versioned catalog step discovery, evidence-based outcomes, guarded opt-in remote lookup; qualified source/module published, review passed in 3 iterations. |
 | S06 | completed | 2026-10-06 | [S06](status-S06.md) | Restored the public-apis default with bounded Markdown/legacy JSON lists, isolated consumer verification and review 1 passed. |
+| S05 | completed | 2026-10-06 | [S05](status-S05.md) | Official version discovery, bounded hints/state/saves, native comparisons and versions CLI; review passed in two iterations. |

@@ -19,7 +19,7 @@ var apiVersionInURL = regexp.MustCompile(`(?i)(?:^|[/_\-])v([0-9]+(?:\.[0-9]+)*)
 var apiVersionDate = regexp.MustCompile(`^[0-9]{4}[.\-][0-9]{2}[.\-][0-9]{2}$`)
 
 func numericAPIVersion(value string) ([]uint64, bool) {
-	if !apiVersionNumeric.MatchString(value) || apiVersionDate.MatchString(value) {
+	if !apiVersionNumeric.MatchString(value) || apiVersionDate.MatchString(strings.TrimPrefix(strings.ToLower(value), "v")) {
 		return nil, false
 	}
 	var parts []uint64
@@ -63,6 +63,18 @@ func compareAPIVersions(a, b string) (int, bool) {
 	return 0, true
 }
 
+func apiVersionLess(a, b string) bool {
+	_, an := numericAPIVersion(a)
+	_, bn := numericAPIVersion(b)
+	if an != bn {
+		return an
+	}
+	if n, ok := compareAPIVersions(a, b); ok && n != 0 {
+		return n > 0
+	}
+	return a < b
+}
+
 func nextAPIVersion(value string) (string, bool) {
 	if _, ok := numericAPIVersion(value); !ok {
 		return "", false
@@ -87,9 +99,9 @@ func versionTokenURL(raw string) string {
 	if err != nil {
 		return ""
 	}
-	m := apiVersionInURL.FindStringSubmatch(u.Path)
-	if len(m) > 1 {
-		return "v" + m[1]
+	all := apiVersionInURL.FindAllStringSubmatch(u.Path, -1)
+	if len(all) > 0 {
+		return "v" + all[len(all)-1][1]
 	}
 	return ""
 }
@@ -123,8 +135,15 @@ func (c *Client) versionURLSyntax(raw string) (*url.URL, error) {
 			return nil, fmt.Errorf("URL path escape is not permitted")
 		}
 	}
-	for k := range u.Query() {
-		key := strings.ToLower(k)
+	query, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return nil, fmt.Errorf("invalid source URL query")
+	}
+	for k := range query {
+		key := strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(k), "-", ""), "_", "")
+		if key == "key" {
+			return nil, fmt.Errorf("credential-bearing source URL is not permitted")
+		}
 		for _, s := range []string{"token", "secret", "password", "credential", "signature", "api_key", "apikey", "authorization"} {
 			if strings.Contains(key, s) {
 				return nil, fmt.Errorf("credential-bearing source URL is not permitted")
@@ -180,6 +199,26 @@ func scopeForVersionURL(raw string) APIVersionOfficialScope {
 	return s
 }
 
+func versionReferenceMatchesBaseline(raw, known string) bool {
+	a, e := url.Parse(raw)
+	if e != nil {
+		return false
+	}
+	b, e := url.Parse(known)
+	if e != nil || versionOrigin(a) != versionOrigin(b) {
+		return false
+	}
+	normalize := func(p string) string {
+		all := apiVersionInURL.FindAllStringSubmatchIndex(p, -1)
+		if len(all) > 0 {
+			m := all[len(all)-1]
+			return p[:m[2]] + "{version}" + p[m[3]:]
+		}
+		return p
+	}
+	return normalize(a.Path) == normalize(b.Path)
+}
+
 func validateVersionRequest(c *Client, req APIVersionDiscoveryRequest, opts APIVersionDiscoveryOptions) ([]APIVersionOfficialScope, error) {
 	data, err := json.Marshal(req)
 	if err != nil || len(data) > 64<<10 {
@@ -195,6 +234,17 @@ func validateVersionRequest(c *Client, req APIVersionDiscoveryRequest, opts APIV
 	if req.Known.SourceKind == "" {
 		return nil, fmt.Errorf("known source_kind is required")
 	}
+	switch req.Known.SourceKind {
+	case OperationSourceOpenAPI, OperationSourceGoogleDiscovery, OperationSourceAWSSmithy, OperationSourceAsyncAPI, OperationSourceGraphQL, OperationSourceOpenRPC, OperationSourceGRPCProtobuf, OperationSourceOData:
+	default:
+		return nil, fmt.Errorf("unknown source_kind")
+	}
+	if req.Contract != nil {
+		_, _, _, diagnostics := prepareStepContract(*req.Contract, DefaultPromptBudget())
+		if errors := errorDiagnostics(diagnostics); len(errors) > 0 {
+			return nil, DiagnosticError{Diagnostics: errors}
+		}
+	}
 	if opts.Timeout < 0 || opts.Timeout > DefaultAPIVersionTimeout || opts.AdapterTimeout < 0 || opts.AdapterTimeout > 60*1e9 {
 		return nil, fmt.Errorf("invalid API version timeout")
 	}
@@ -202,7 +252,8 @@ func validateVersionRequest(c *Client, req APIVersionDiscoveryRequest, opts APIV
 		return nil, fmt.Errorf("at most eight official scopes and locators are supported")
 	}
 	for _, v := range []string{req.Known.Version, req.Known.ETag, req.Known.LastModified} {
-		if len(v) > 256 || strings.ContainsAny(v, "\r\n") {
+		_, changed := sanitizePromptString(v, 256)
+		if len(v) > 256 || changed {
 			return nil, fmt.Errorf("invalid baseline text or validator")
 		}
 	}
@@ -267,7 +318,7 @@ func validateVersionRequest(c *Client, req APIVersionDiscoveryRequest, opts APIV
 	if req.Known.ProviderKey != "" {
 		if provider, ok := cat.FindProvider(req.Known.ProviderKey); ok {
 			for _, ref := range provider.SpecReferences {
-				if strings.HasPrefix(string(ref.SourceAuthority), "official-") {
+				if (ref.SourceAuthority == catalog.SourceAuthorityOfficialProvider || ref.SourceAuthority == catalog.SourceAuthorityOfficialGitHub || ref.SourceAuthority == catalog.SourceAuthorityOfficialDocs) && (req.Known.SourceURL == "" || versionReferenceMatchesBaseline(ref.URL, req.Known.SourceURL)) {
 					if _, e := c.versionURLSyntax(ref.URL); e == nil {
 						scopes = append(scopes, scopeForVersionURL(ref.URL))
 					}

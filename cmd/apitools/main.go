@@ -31,6 +31,8 @@ func run(args []string, out, errOut io.Writer) int {
 	switch args[0] {
 	case "search":
 		return runSearch(args[1:], out, errOut)
+	case "versions":
+		return runVersions(args[1:], out, errOut)
 	case "import":
 		return runImport(args[1:], out, errOut)
 	case "catalog":
@@ -50,6 +52,7 @@ func usage(out io.Writer) {
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "Commands:")
 	fmt.Fprintln(out, "  search   search APIs.guru with bounded LAP, RFC 9727, and public-apis fallbacks")
+	fmt.Fprintln(out, "  versions check official API versions against a held baseline")
 	fmt.Fprintln(out, "  import   download and validate an OpenAPI document")
 	fmt.Fprintln(out, "  catalog  inspect built-in provider catalog metadata")
 }

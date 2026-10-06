@@ -99,6 +99,18 @@ its seven default paths, 50-candidate ceiling, five-second request timeout and
 an empty result; a failed list fetch or parse remains an error.
 
 Imported documents are treated as untrusted data.
+
+For an opt-in freshness check of a version already held, use
+`apitools versions --request request.json --network --json`. The request names
+the held version/digest and approved official source scopes; without `--network`
+the command reads local evidence only. Checks share a five-second deadline,
+twelve HTTP requests and three API-source bodies; timeouts and incomplete
+evidence return an advisory report with the baseline intact. A 304 means only
+that source unchanged. `--state` and `--list-cache` explicitly opt into metadata
+persistence; `--save-dir` separately saves only newly fetched newer Import-valid
+OpenAPI/Swagger bytes. No default location or provider operation is used.
+See [API version discovery](docs/api-version-discovery.md) for the request,
+locator, hint, comparison, safety and cache contracts.
 This package never executes API operations, resolves credentials, or exchanges
 tokens. OAuth consent and token refresh belong to Udon's trusted runtime; the
 operator entry point is `udon oauth google login`. See

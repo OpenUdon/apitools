@@ -1,13 +1,10 @@
 # Result V26 - Official-source API version discovery
 
-**State:** Approved plan, 2026-10-01, amended on 2026-10-01, 2026-10-02,
-and 2026-10-06;
-not implemented or accepted.
-[S05](../memory-bank/milestone.md#s05--official-source-api-version-discovery)
-has six pending rows in [status-S05.md](../memory-bank/status-S05.md) and follows
-[retired S06](../docs/history/status-S06.md), completed on 2026-10-06 in the
-isolated branch. That source repair is separate from this planned direction. No closing review gate has started, and the plan grants no
-implementation, merge, or release authority.
+**State:** Delivered and verified in isolated branch `work/s06-s05`,
+2026-10-06. [S05](../docs/history/status-S05.md) completed six tasks and
+passed review in two iterations after [S06](../docs/history/status-S06.md).
+Required APItools and candidate-bound OpenUdon/Udon checks passed. Merge,
+publication and consumer adoption remain separate; no active goal rows remain.
 
 The material direction change is that APItools will discover versions from
 official publisher sources, not only from catalogs, and will accept LLM or
@@ -22,18 +19,18 @@ schema defect.
 The amended plan makes the check cheap by contract. The held version is the
 baseline, available independently of network completion; a timeout, rate
 limit, or bad response gives a
-partial report and never an error or a "latest" claim. Starting values are 5 s
+partial report and never an error or a "latest" claim. Delivered defaults are 5 s
 total for the deterministic tiers, 3 s per request, at most 4 concurrent
 requests, 12 requests, and 3 fetched document bodies, with 8 MiB per checked
-document. Existing primitives would not
-meet this on their own: the client timeout is 30 s, downloads read whole
-bodies, no code reads response headers, and nothing uses concurrency. S05 adds
+document. The unchanged shared downloader retains its 30-second default and full-body
+reads. S05's dedicated primitive adds conditional validator handling and a
+shared deadline/counter layer for concurrent version checks. S05 adds
 an unexported probe primitive, zero-network evidence including APIs.guru's
 `x-origin`, an opt-in freshness state file, and a push-first adapter whose
 verify step is cheap while the consumer runs slow LLM or browser work in the
 background.
 
-S05 first records an approved design, then adds the probe primitive and
+S05's approved design and implementation provide the probe primitive and
 catalog evidence, the deterministic upgrade check, hint verification, a
 capability-relevant diff against the local baseline, and an opt-in
 `apitools versions` command. Existing search, catalog data, registrations,
@@ -68,7 +65,7 @@ The approved "S06/S05 plan consistency review, 2026-10-06" revalidated
 files and no code changes; source priorities and separate review baseline were
 not supplied. It amends the existing nine pending rows and preserves both zero
 review counters. Findings and owners are recorded in
-[S05](../memory-bank/status-S05.md#consistency-intake-findings-2026-10-06)
+[S05](../docs/history/status-S05.md)
 and [S06](../docs/history/status-S06.md).
 
 Shared limits now explicitly cover conditional checks, revalidation, redirects,
@@ -93,11 +90,10 @@ standalone checks remain separate baseline evidence. Ramen stays excluded;
 sibling files, consumer pins, merge and publication authority remain unchanged.
 The four existing public-apis baseline tests passed in workspace and standalone
 modes, and the patch check passed; no new feature acceptance is claimed.
-Live measurements were not repeated. S05.1's detailed design approval remains
-a checkpoint. No evolution bump is needed: this clarifies v26 rather than
+Live measurements were not repeated. S05.1's detailed design approval was obtained before implementation. No evolution bump is needed: this clarifies v26 rather than
 changing direction.
 
 S06 completed its three tasks and review in one iteration on 2026-10-06,
 with the live list smoke and candidate-bound full consumer verification.
 It is retired in the isolated branch; merge/publication remain separate.
-S05's design approval checkpoint and pending implementation remain intact.
+S05 subsequently completed its approved implementation and review.

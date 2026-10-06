@@ -1,8 +1,8 @@
 # API version discovery design
 
-State: S05.1 design approved by the user on 2026-10-06. Implementation of
-S05.2-S05.6 follows this record. The governing specification
-is [S05](../tabilet/memory-bank/milestone.md#s05--official-source-api-version-discovery).
+State: implemented and verified on 2026-10-06 in isolated branch
+`work/s06-s05`, following the approved S05.1 design. The complete task and
+two-iteration review evidence is retained in [S05](../tabilet/docs/history/status-S05.md).
 
 ## Outcome and boundaries
 

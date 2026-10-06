@@ -16,21 +16,25 @@ import (
 )
 
 type apiVersionSession struct {
-	ctx        context.Context
-	cancel     context.CancelFunc
-	client     *Client
-	req        APIVersionDiscoveryRequest
-	opts       APIVersionDiscoveryOptions
-	scopes     []APIVersionOfficialScope
-	budget     *apiVersionBudget
-	mu         sync.Mutex
-	report     APIVersionDiscoveryReport
-	seen       map[string]bool
-	contents   map[string][]byte
-	incomplete bool
-	conflict   bool
-	examined   bool
-	reused     bool
+	ctx          context.Context
+	cancel       context.CancelFunc
+	client       *Client
+	req          APIVersionDiscoveryRequest
+	opts         APIVersionDiscoveryOptions
+	scopes       []APIVersionOfficialScope
+	budget       *apiVersionBudget
+	mu           sync.Mutex
+	report       APIVersionDiscoveryReport
+	seen         map[string]bool
+	contents     map[string][]byte
+	compared     map[string]bool
+	incomplete   bool
+	conflict     bool
+	examined     bool
+	reused       bool
+	docsRead     bool
+	catalogRead  bool
+	repositories map[string]bool
 }
 
 // DiscoverAPIVersions performs an explicitly enabled, bounded advisory check.
@@ -77,6 +81,12 @@ func newAPIVersionSession(ctx context.Context, c *Client, req APIVersionDiscover
 	client.AllowedPorts = append([]int(nil), c.AllowedPorts...)
 	s := &apiVersionSession{ctx: ctx, cancel: cancel, client: &client, req: req, opts: opts, scopes: scopes, budget: &apiVersionBudget{sem: make(chan struct{}, 4)}, seen: map[string]bool{}, contents: map[string][]byte{}}
 	s.report = APIVersionDiscoveryReport{QueryIdentity: versionRequestIdentity(req, opts), SchemaVersion: APIVersionDiscoverySchemaVersion, Known: req.Known, Status: "unexamined", CheckedAt: time.Now().UTC(), CheckedScope: append([]APIVersionOfficialScope(nil), scopes...)}
+	fingerprint, _ := json.Marshal(struct {
+		Base     string
+		Scopes   []APIVersionOfficialScope
+		Endpoint string
+	}{s.report.QueryIdentity, scopes, versionCatalogURL(&client, req)})
+	s.report.QueryIdentity = versionRecordID(string(fingerprint))
 	return s, nil
 }
 
@@ -142,6 +152,26 @@ func (s *apiVersionSession) discover() {
 		}
 	}
 	s.tier("local", "examined")
+	var families []string
+	for _, lead := range leads {
+		matched := false
+		for _, family := range families {
+			if versionReferenceMatchesBaseline(lead.SourceURL, family) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			families = append(families, lead.SourceURL)
+		}
+	}
+	if s.req.Known.SourceURL == "" && len(families) > 1 {
+		for _, r := range leads {
+			s.add(r)
+		}
+		s.gap("version.service_ambiguous", "Provider has multiple API sources; supply the held source URL to keep version comparison service-specific.")
+		return
+	}
 	for _, lead := range leads {
 		if lead.CatalogUpdated != nil && lead.CatalogUpdated.Before(time.Now().AddDate(-1, 0, 0)) {
 			s.report.Diagnostics = append(s.report.Diagnostics, versionDiagnostic("version.catalog_stale", "Directory evidence is older than twelve months; consider explicitly supplied hints."))
@@ -251,8 +281,8 @@ func (s *apiVersionSession) refreshList(cache apiVersionListCache) {
 func (s *apiVersionSession) fetchLeads(rows []APIVersionRecord) {
 	copyRows := append([]APIVersionRecord(nil), rows...)
 	sort.Slice(copyRows, func(i, j int) bool {
-		if n, ok := compareAPIVersions(copyRows[i].VersionClaims.URLToken, copyRows[j].VersionClaims.URLToken); ok && n != 0 {
-			return n > 0
+		if copyRows[i].VersionClaims.URLToken != copyRows[j].VersionClaims.URLToken {
+			return apiVersionLess(copyRows[i].VersionClaims.URLToken, copyRows[j].VersionClaims.URLToken)
 		}
 		return copyRows[i].SourceURL < copyRows[j].SourceURL
 	})
@@ -269,7 +299,11 @@ func (s *apiVersionSession) fetchLeads(rows []APIVersionRecord) {
 			s.pointer(row.Locator)
 			continue
 		}
-		s.fetchSource(raw, row.Locator, row.VersionClaims.URLToken, "", "")
+		recipe := row.Locator
+		if row.Recipe.Kind != "" {
+			recipe = row.Recipe
+		}
+		s.fetchSource(raw, recipe, row.VersionClaims.URLToken, "", "")
 	}
 }
 
@@ -338,6 +372,9 @@ func (s *apiVersionSession) fetchSource(raw string, l APIVersionLocator, claim, 
 	row := APIVersionRecord{ID: versionRecordID(raw), SourceKind: s.req.Known.SourceKind, Locator: l, Recipe: l, Evidence: "official-candidate", SourceURL: publicVersionURL(raw), FinalURL: publicVersionURL(p.finalURL), SHA256: p.digest, BytesObserved: p.bytes, BytesDeclared: p.declared, CheckedAt: s.report.CheckedAt, VersionClaims: APIVersionClaims{URLToken: claim}, Validation: "unexamined", Comparison: "unexamined", LocatorStatus: "ok", ETag: p.etag, LastModified: p.modified}
 	if p.status == 404 {
 		row.LocatorStatus = "dead"
+		if raw == s.req.Known.SourceURL {
+			s.gap("version.source_dead", "The held source URL is unavailable; replay its recipe or supply an official pointer.")
+		}
 		s.add(row)
 		return 404
 	}
@@ -405,6 +442,13 @@ func (s *apiVersionSession) fetchSource(raw string, l APIVersionLocator, claim, 
 	}
 	row.Validation = "valid"
 	row.Evidence = "official-verified"
+	if p.finalURL != "" && p.finalURL != raw {
+		row.LocatorStatus = "moved"
+		if token := versionTokenURL(p.finalURL); token != "" {
+			claim = token
+			row.VersionClaims.URLToken = token
+		}
+	}
 	version := firstNonEmpty(claim, info)
 	n, comparable := compareAPIVersions(version, s.req.Known.Version)
 	if comparable && n > 0 {
@@ -448,7 +492,26 @@ func (s *apiVersionSession) pointer(l APIVersionLocator) {
 		s.gap("version.pointer_scope", err.Error())
 		return
 	}
+	u, _ := url.Parse(l.URL)
+	isCatalog := strings.HasSuffix(strings.TrimSuffix(u.Path, "/"), "/.well-known/api-catalog")
+	s.mu.Lock()
+	used := s.docsRead
+	if isCatalog {
+		used = s.catalogRead
+		s.catalogRead = true
+	} else {
+		s.docsRead = true
+	}
+	s.mu.Unlock()
+	if used {
+		s.gap("version.pointer_budget", "Only one documentation page and one publisher catalog may be inspected.")
+		return
+	}
 	p := s.client.probeAPIVersion(s.ctx, s.budget, l.URL, s.scopes, false, "", "")
+	if p.finalURL != "" && p.finalURL != l.URL && versionTokenURL(p.finalURL) != "" {
+		s.fetchSource(p.finalURL, l, versionTokenURL(p.finalURL), "", "")
+		return
+	}
 	if p.err != nil || p.status < 200 || p.status >= 300 || len(p.content) > 1<<20 {
 		s.gap("version.pointer", "Pointer could not be examined within its bounds.")
 		return
@@ -478,6 +541,9 @@ func (s *apiVersionSession) pointer(l APIVersionLocator) {
 				}
 			}
 		}
+	} else if strings.Contains(p.contentType, "application/json") {
+		s.gap("version.pointer_format", "Unrecognized JSON pointer is not complete static-link evidence; supply a direct locator or hints.")
+		return
 	} else {
 		links = versionDocsLinks(string(p.content))
 		if len(links) > 32 {
@@ -506,8 +572,8 @@ func (s *apiVersionSession) pointer(l APIVersionLocator) {
 		rows = append(rows, APIVersionRecord{SourceURL: raw, Locator: APIVersionLocator{Kind: "direct", URL: raw}, Recipe: locator, VersionClaims: APIVersionClaims{URLToken: versionTokenURL(raw)}})
 	}
 	sort.Slice(rows, func(i, j int) bool {
-		if n, ok := compareAPIVersions(rows[i].VersionClaims.URLToken, rows[j].VersionClaims.URLToken); ok && n != 0 {
-			return n > 0
+		if rows[i].VersionClaims.URLToken != rows[j].VersionClaims.URLToken {
+			return apiVersionLess(rows[i].VersionClaims.URLToken, rows[j].VersionClaims.URLToken)
 		}
 		return rows[i].SourceURL < rows[j].SourceURL
 	})
@@ -563,10 +629,22 @@ func versionDocsLinks(text string) []string {
 }
 
 func (s *apiVersionSession) github(l APIVersionLocator) {
+	s.mu.Lock()
+	if s.repositories == nil {
+		s.repositories = map[string]bool{}
+	}
+	done := s.repositories[l.Repository]
+	s.repositories[l.Repository] = true
+	s.mu.Unlock()
+	if done {
+		s.gap("version.github_budget", "Only one tree listing per declared repository is supported.")
+		return
+	}
 	prefix := "https://raw.githubusercontent.com/" + l.Repository + "/"
 	authorized := false
 	for _, scope := range s.scopes {
-		if strings.Contains(scope.Origin, "raw.githubusercontent.com") && scope.Repository == l.Repository {
+		origin, err := url.Parse(scope.Origin)
+		if err == nil && strings.EqualFold(origin.Hostname(), "raw.githubusercontent.com") && scope.Repository == l.Repository {
 			authorized = true
 		}
 	}
@@ -614,8 +692,8 @@ func (s *apiVersionSession) finish() APIVersionDiscoveryReport {
 		a, b := s.report.Versions[i], s.report.Versions[j]
 		av := firstNonEmpty(a.VersionClaims.URLToken, a.VersionClaims.InfoVersion)
 		bv := firstNonEmpty(b.VersionClaims.URLToken, b.VersionClaims.InfoVersion)
-		if n, ok := compareAPIVersions(av, bv); ok && n != 0 {
-			return n > 0
+		if av != bv {
+			return apiVersionLess(av, bv)
 		}
 		if a.ID != b.ID {
 			return a.ID < b.ID
@@ -661,9 +739,11 @@ func (s *apiVersionSession) finish() APIVersionDiscoveryReport {
 				item["x-apitools-native-url"] = r.FinalURL
 				item["x-apitools-source-kind"] = r.SourceKind
 			}
-			if _, exists := versions[v]; exists {
-				s.report.Status = "conflicting"
-				s.report.Preferred = ""
+			if prior, exists := versions[v]; exists {
+				if prior.(map[string]any)["x-apitools-sha256"] != r.SHA256 {
+					s.report.Status = "conflicting"
+					s.report.Preferred = ""
+				}
 			} else {
 				versions[v] = item
 			}

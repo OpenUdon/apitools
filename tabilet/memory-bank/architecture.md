@@ -787,3 +787,21 @@ cookie jars, caches and redirect callbacks; every source hop must match explicit
 official path/repository scope. State/list metadata writes are confined,
 atomic and opt-in outside source checkouts. The public discovery orchestration
 is supplied by S05.3; these helpers do not execute provider operations.
+
+### Official API version discovery (S05)
+
+DiscoverAPIVersions, VerifyHints and the optional cooperative adapter wrapper
+emit additive v1 advisory reports preserving the held baseline. Local evidence
+precedes opt-in guarded conditional/sibling/pointer/tree checks; all workers
+join before return. Numeric versions, provider scope, source identity and
+strict validation remain separate evidence. A lone 304 cannot establish
+absence. Request/source/report bounds and every-hop origin checks fail visibly.
+Shared-host scopes include repository paths. Catalog x-origin remains a lead.
+
+State and list-cache paths permit bounded metadata persistence outside a
+checkout; SaveDir separately permits confined newer Import-valid OpenAPI/
+Swagger writes. Discovery remains native metadata and is not saved as OpenAPI.
+Digest-matched prebuilt inventory enables operation diffs; absent/partial
+inventory remains unexamined without reading the baseline source. Candidate
+ranking reuses existing native summaries/effects/auth alternatives. No source
+adoption, credential resolution, account selection or operation execution occurs.

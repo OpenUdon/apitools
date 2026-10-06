@@ -49,3 +49,10 @@ need no journal entry or separate archive run.
   artifact measurements and index coverage, drift and failure regressions;
   [M80 review findings](../docs/history/status-M80.md) and the source-backed field-loss,
   no-reference provider, shared-link and prompt-budget regressions.
+
+## Bind version evidence to an exact publisher and native identity
+
+- **Applies when:** Discovering versions across shared hosting and native source families.
+- **Lesson:** Compare exact origins and repository paths, then preserve the recipe and native selector that produced source evidence. An unchanged known URL cannot establish absence of later versions; a provider aggregate cannot stand in for the selected service.
+- **Why it matters:** A hostname substring can authorize the wrong origin, and an HTTP display projection can conceal native operation changes. Both undermine an otherwise bounded advisory check.
+- **Evidence:** [Retired S05](../docs/history/status-S05.md), review R1/R2 and exact-host, service-family, conditional and native Discovery regressions.

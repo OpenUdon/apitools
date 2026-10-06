@@ -54,6 +54,13 @@ execution.
   provisioning. Unknown licenses, redistribution and unsupported semantics
   remain explicit. Only complete negative evidence permits downstream automatic
   browser routing; this package performs no routing or execution.
+- **Official API version check**: additive advisory discovery over a held
+  baseline, explicit publisher scopes and optional local state. Guarded network
+  lookup is opt-in and bounded; failure preserves the baseline, and a source's
+  unchanged response is not evidence that no newer API exists. Native validated
+  version evidence, capability comparisons, unresolved hints and metadata/source
+  persistence permissions remain separate. No version is adopted automatically.
+
 - **Operation inventory**: deterministic summaries of documents, operations,
   parameters, request bodies, response fields, and security requirements.
 - **Step-candidate metadata contract**: a versioned, source-qualified record

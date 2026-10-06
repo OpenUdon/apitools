@@ -1,9 +1,345 @@
+# Retired milestone S05 - Official-source API version discovery
+
+**Milestone.** S05
+**Outcome.** completed
+**Retired.** 2026-10-06
+**Source status.** tabilet/memory-bank/status-S05.md
+**Source specification.** tabilet/memory-bank/milestone.md#s05--official-source-api-version-discovery
+**Evidence.** 515663f8bf14793dcdd335dd67fadf79de7a1984
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 2
+**Verification.** APItools full workspace/standalone tests and vet; full race tests; catalog generator/quality (zero findings); search/versions CLI help; patch/structural/link checks; candidate-bound OpenUdon/Udon full tests/vet in workspace and standalone modes; local-server deadline, budget, state, source-family/service, origin/repository, recipe/hint, native diff/rank and save regressions. Go 1.26.6; Ramen excluded. S05.6 implementation/closure remains uncommitted at this recorded observation; the evidence commit includes S05.1-S05.5. Live provider endpoint availability is explicitly unexamined (403); default verification uses fixtures only.
+**Consolidated into.** README.md, docs/api-version-discovery.md, tabilet/memory-bank/product.md, tabilet/memory-bank/architecture.md, tabilet/memory-bank/tech-stack.md and tabilet/memory-bank/lessons.md.
+
+## Milestone specification
+
+````markdown
+## S05 — Official-source API version discovery
+
+Add opt-in discovery of the API versions a publisher actually offers, from
+official sources beyond catalog results, without changing existing search.
+This is a requested feature, not review remediation, so it carries no review
+severity. It was requested in "APItools official-source API version discovery
+handoff" (`apitools-search.md`, 2026-10-01) and planned against
+`8a52c3f602988b945a4b5c1960bce8c04170c63d` (published source
+`fb132631c9827eae5f2ec4503d03f21eabfb4113`) with a clean worktree. The user
+approved the scope, external-adapter integration, lane S, the new `versions`
+command, and this plan on 2026-10-01.
+
+A second approved intake the same day applied review "APItools S05 —
+Official-source API version discovery" (`apitools-s05-review.md`), revalidated
+at the same commit with these uncommitted planning files as evidence. It made
+a version check cheap by contract: the version already held is the baseline,
+and a check can never delay or fail it. It rewrote the six pending rows in
+place (same IDs and count) and added the latency and cost contract below. The
+review's per-finding dispositions are in S05's status file.
+
+A third approved intake on 2026-10-02 applied this conversation's findings
+(F01-F12 in S05's status file), revalidated at the same commit. It records
+measured APIs.guru and public-apis facts, corrects the GoDaddy example, adds
+the locator-and-recipe model for specs without a static URL, adds a cached
+APIs.guru list as tier 0, decides what the explicit save writes, and runs
+after new milestone S06. No intake starts the closing review counter.
+
+The fourth approved intake, "S06/S05 plan consistency review, 2026-10-06",
+revalidates the same full commit with all six uncommitted planning files and
+no uncommitted code. Source priorities and a separate review baseline are
+`not supplied`. S05 owns F01-F07; S06 owns F08-F10. These are planning gaps,
+not newly demonstrated production exploits. The user selected shared caps,
+an optional baseline inventory, and a scope-qualified preference, then
+approved all ten dispositions and six-file actions. Existing live measurements
+remain dated historical evidence; no remote fetch was made in this intake.
+The nine row identities and both zero review counters remain unchanged.
+
+**Observed problem.** For a GoDaddy query, `search` returned an older Domains
+spec. APIs.guru search keeps each entry's `preferred` version and otherwise
+sorts version keys lexicographically (`providers.go`); `auto` stops at the
+first source with matches (`client.go`); and only the experimental RFC 9727
+path, when a provider URL is supplied, consults a publisher. GoDaddy is not in
+the built-in catalog. Its official Domains specs show why "latest" needs
+evidence: v1 and v2 both declare `info.version` 1.0.0 while v3 declares 3.1.0;
+v3 has 14 operations and none of the transfer operations that v1 (23
+operations) and v2 (30) carry; and v1 and v2 fail strict parsing because their
+`JsonSchema` component sets `properties.type` to the string `"object"`, a
+publisher defect.
+
+Measured on 2026-10-02: the APIs.guru baseline for that query is the entry
+`ote-godaddy.com:domains`, a Swagger 2.0 file whose recorded origin is
+`https://developer.godaddy.com/swagger/swagger_domains.json` (updated
+2023-03-06). That URL has no version token and sits under a different path from
+the newer `https://developer.godaddy.com/openapi/domains-v1.json` through
+`-v3.json`, so sibling probing from the APIs.guru origin cannot reach them; a
+pointer (a docs page) or the opt-in LLM tier is needed. Sibling probing helps
+only publishers whose spec URLs carry a version token (57 of 178 official
+machine-readable catalog references). APIs.guru itself is frozen: the newest
+`updated` timestamp across its 3,992 specs is 2023-04-21 and none changed in
+the last 12 months, so a baseline taken from it is old by construction. Every
+APIs.guru entry carries `info.x-origin` (the publisher's original URL); its
+`list.json` is 907 KB on the wire (0.43 s) and answers a conditional GET with a
+304 in 0.31 s; and its repository (about 766 MB with history) does not contain
+`list.json`, so a clone would not replace it.
+
+**Boundaries.** Discovery is metadata only: no account operation, credential,
+token, cookie, or signed request. Existing `Client.Search`, `apitools search`,
+wire shapes, built-in catalog data, artifact registrations, catalog index
+inputs, and consumer pins stay unchanged. There is no general crawling:
+network access happens only when a request opts in, and only inside official
+origins named by the caller or by catalog spec references with official
+source authority. APItools adds no LLM client or browser dependency; LLM or
+browser help arrives through an external adapter whose output is untrusted
+hints. Optional freshness state is a versioned JSON file at a caller-supplied
+path; it holds no secrets, is never committed, and adds no SQLite schema
+change, because older readers reject a registry whose schema version is higher
+than their own. APItools holds no spec bytes by default: the source of truth
+for a version is its locator (where it was found and how), the digest records
+what was verified, and bytes are saved only on an explicit request into a
+caller-named directory that is not part of the repository. Fixtures are
+synthetic, and no third-party provider spec is committed.
+
+**Latency and cost contract.** The user's requirement is that searching for a
+later version of an API already held must not take long or time out. The held
+version is the baseline and the product; the check is advisory.
+
+- The caller's baseline remains available independently of network completion;
+  initialize the report from local evidence before network work. A timeout, rate
+  limit, unreachable host, or bad response yields a partial report with
+  `unexamined` entries, never an error that drops the baseline. Errors are
+  reserved for invalid requests. A check never claims the "latest" version.
+  Its statuses are `newer_found`, `none_found_in_scope`, `unexamined`, and
+  `conflicting`, each with `checked_at`.
+- The request carries the known baseline (provider key or spec URL, version,
+  digest, and an optional already-built operation inventory; local bytes or a
+  registration may identify existing evidence but do not authorize reparsing).
+  The baseline is never refetched or reparsed for comparison. Without its
+  inventory, capability comparison is `unexamined`, not an invalid request.
+  A conditional source check is separate from the held baseline and never
+  replaces it. Discovery looks upward only: order known comparable newer
+  candidates newest first within the shared document budget; older versions
+  are listed as unfetched candidates with URLs.
+- Tiers run cheapest first. Tier 0 uses no network: a fresh prior check
+  inside its time to live (24 hours), the catalog reference, and a locally
+  cached APIs.guru `list.json` (at a caller-supplied path outside the
+  repository) supplying the entry's `x-origin` URL, version map, and `updated`
+  age. Any ETag revalidation after 24 hours is network work charged to the
+  shared budget, not zero-network tier 0; a 304 costs no body. Tier 1 is one
+  conditional GET (`If-None-Match` or `If-Modified-Since`) on the known
+  official URL, so 304 means only that resource is unchanged, not that no
+  newer version exists; a changed full-content digest means an in-place
+  revision. Tier 2 is bounded same-host sibling probing from the known version
+  token (for example `v1` to `v2`, `v3`), upward only, stopping after two
+  consecutive misses. Tier 3 is the RFC 9727 publisher catalog and one
+  supplied official documentation page. Tiers 1-3 start together under one
+  shared wall-clock budget rather than receiving separate deadlines. Tier 4,
+  adapter hints, runs only afterwards, only when the question is still open,
+  and only when the caller opted in.
+- Not every spec has a static URL, so a record stores a locator and the recipe
+  that found it, not only a URL. Locator kinds are `direct` (a fixed spec
+  URL), `github` (repository, path pattern, and ref), `pointer` (a docs page,
+  RFC 9727 catalog, or `latest` alias that yields the current spec URL),
+  `pattern` (a URL with a version slot), `template` (tenant-specific, recorded
+  for guidance and never verified generally), and `gated` (login-only, or only
+  human docs, which falls back to docs-derived overlays). A record also holds
+  the last resolved URL, the digest, `checked_at`, and a status of `ok`,
+  `moved`, `dead`, or `gated`. Repair order when a link breaks: replay the
+  recipe, then re-read the pointer, then the opt-in LLM tier; `github` locators
+  are verified with one tree listing per repository. The record is shaped to
+  be compatible with APIs.guru's `list.json` (`preferred`, spec URLs,
+  `info.x-origin`, `updated`, with APItools additions under `x-apitools-*`
+  keys) so a future directory can aggregate it. `preferred` names only the
+  highest verified comparable version found within the recorded checked scope,
+  never the publisher's globally latest version; conflicting or incomparable
+  evidence cannot establish a new preference.
+- A baseline taken from APIs.guru is labeled with its entry's `updated` age
+  and marked stale by source when older than 12 months. The report then
+  suggests the opt-in LLM tier; it never runs it unasked.
+- Starting values, which S05.1 may adjust only with measured evidence and the
+  user's approval of its record: 5 s total for tiers 1-3, 3 s per request, at
+  most 4 concurrent requests, 12 requests, 3 fetched document bodies, and 8 MiB
+  per checked document. Conditional fetches, directory-cache revalidation,
+  redirects, locator repair, and hint verification consume the applicable
+  shared request/time/body budget; integrated tiers never reset it. A completed
+  source-body fetch consumes a document slot even if validation fails or it
+  proves unchanged. Oversized or partial bodies remain `unexamined`: distinguish
+  observed bytes from declared length and omit a verified full-content digest
+  unless the complete bounded document was read. The consumer may fetch a large
+  document separately. The 30 s client timeout is not inherited.
+- The adapter is push-first. A verify call (`VerifyHints`) accepts at most eight
+  size-bounded hints, deduplicates and orders them deterministically, and fetches
+  selected URLs at most once within the available shared caps. Excess hints
+  remain `unexamined`, not silently dropped or verified. A standalone call uses
+  the same bounds; integrated verification consumes the remaining budget, not
+  a fresh allocation. The consumer runs slow LLM or browser work in the
+  background and calls verify when hints arrive. An optional
+  pull wrapper may call a consumer-supplied adapter, only after the
+  deterministic tiers left the question open and only when the caller opted
+  in, under a caller deadline (default 15 s, ceiling 60 s). Adapter timeout,
+  error, or garbage never fails the check or changes a verified result; it is
+  reported as a tier status.
+
+**Scope and acceptance.**
+
+- **Design record and checkpoint.** `docs/api-version-discovery.md` records
+  the versioned request (with the known baseline) and report (proposed
+  `apitools.api-version-discovery/v1`); the latency and cost contract above,
+  with its starting values; the baseline-first and partial-report semantics;
+  the tier order; the status vocabulary; the evidence labels
+  (catalog-preferred, catalog-highest, official-candidate, official-verified);
+  the official-origin policy, naming three sources of an origin (a caller
+  declaration, a catalog reference with `official-*` authority, and APIs.guru's
+  `x-origin`) and treating `x-origin` as a lead that becomes official-verified
+  only when the caller declares the official scope or it matches a catalog
+  reference's `official-*` scope. A shared hosting domain alone never establishes
+  publisher ownership; repository/path identity must remain within that scope.
+  Also record version identity and ordering, comparing URL version
+  tokens, `info.version`, and documentation claims and reporting conflicts
+  rather than resolving them silently; capability relevance; the adapter
+  contract; the documentation-scanner decision (a bounded standard-library
+  scanner, not a new dependency); and consumer notes (interactive consumers
+  run tiers 0-3 inline within the budget and treat everything else as a
+  background advisory that never gates authoring), plus the locator kinds,
+  recipe, and status fields above, shaped to be `list.json`-compatible; the
+  baseline-age label; and the save semantics below. It records the facts
+  measured on 2026-10-02 (above) and verifies the one APIs.guru fact still
+  unchecked: whether a provider-scoped endpoint exists. Its consumer notes
+  also say that OpenUdon keeps its `catalog import-openapi` wrapper and its
+  package installation (`step source add`), and that any relocation of the
+  wrapper is OpenUdon's decision. The user approves the record before later
+  rows are implemented.
+- **Probe primitive, catalog evidence, and freshness state.**
+  - A new unexported probe primitive reuses the existing URL, redirect, and
+    dial guards and leaves `downloadBounded` and every existing caller
+    unchanged. Its isolated client strips cookie jars and caller redirect
+    callbacks, as M80's discovery client does, and enforces approved origins on
+    every request and redirect, including recipe replay. Safe public hosts
+    alone do not satisfy the official-origin policy. It supports conditional
+    GET, a first-bytes sniff that abandons definite non-spec responses such as
+    HTML, a per-request cap, and a stable tool identifier. Ambiguous JSON/YAML
+    prefixes continue to bounded parsing; a missing early OpenAPI, Swagger, or
+    Discovery marker is not grounds for rejection. Treat 404 as a miss;
+    treat 429 and 5xx as `unexamined`, with no retry inside the
+    budget and `Retry-After` recorded.
+  - Zero-network evidence from catalog spec references and the locally cached
+    APIs.guru `list.json` (network revalidation after the 24 hour time to live
+    consumes the shared budget; no clone), parsing `x-origin` and the entry's
+    `updated` age and, if S05.1 verifies it, using a provider-scoped fetch
+    instead of the whole list. Versions are ordered by a natural comparison
+    rather than lexicographically, with the catalog's
+    preferred version labeled separately from the highest found. A catalog
+    result never becomes official-verified.
+  - Opt-in freshness state as the versioned JSON file described above, or a
+    `previous` report passed back in, holding each record's locator, recipe,
+    resolved URL, digest, status, and `checked_at`. A fresh state costs zero
+    network. State and directory-cache persistence each need explicit caller
+    paths/permission, independently of the document save directory; no paths
+    means no writes. Cached evidence cannot expand the current official scope.
+- **Deterministic upgrade check.** Tiers 1-3 under one shared budget with
+  bounded parallelism, upward-only from the known baseline, with the gap rule,
+  the request cap, and the shared three-document-body cap. Candidates are
+  generated only from integer or dotted version tokens; date-style tokens are
+  not guessed. Each version records its source URL, final URL, byte evidence,
+  fetch time, and parse/validation status; a verified digest is present only
+  for a complete bounded read. A version that fails strict parsing is reported
+  with its diagnostic, not dropped. A bounded
+  standard-library scanner reads at most one supplied official documentation
+  page within a size cap and link cap and matches only spec-like paths. A page
+  that exposes no static spec links is reported as examined with none found,
+  and the check stops. Each version found records the locator kind and recipe
+  of the tier that found it, and a `moved` or `dead` result replays that
+  recipe, then re-reads the pointer, before any LLM tier. Report order does
+  not depend on completion order.
+- **Explicit save of fetched documents.** Opt-in through a caller-supplied
+  save directory (library option and `--save-dir`); without it no source
+  document is written, and there is no default location. Explicit metadata
+  state/cache persistence is a separate permission. It writes only a newer
+  version that was fetched during the check and passed the same validation `Import`
+  applies, byte for byte, so the saved file is importable by `step source add`
+  and matches the digest in the report. Current Import validation accepts
+  OpenAPI/Swagger; Discovery metadata is not automatically eligible for saving.
+  It never writes the baseline (already held), a document that failed validation
+  (reported with a digest only if fully read, diagnostics, and locator), or one
+  over the 8 MiB check cap. It reuses `Import`'s
+  naming and digest-idempotence behavior behind confined filesystem checks:
+  reject unsafe directories, symlinks, and non-regular targets, and never
+  overwrite differing content. The existing helper alone is not a confinement
+  guarantee. Report each saved path, digest, and size, never extend the check
+  budget, and treat a failed save as a warning on that version, not a failed
+  check. Saved files are a local cache:
+  never committed, and not registered or indexed by S05.
+- **Hint verification and optional adapter.** The APItools-owned
+  `VerifyHints` call and versioned JSON hint format through which a consumer
+  such as OpenUdon, Kinet, or Browsertools supplies LLM- or browser-derived
+  candidate URLs and evidence notes (at most eight, size-bounded). APItools
+  validates hints and fetches only the budget-selected URLs itself under the
+  official-origin policy, labels hint provenance and unexamined excess, and
+  never accepts spec bytes, credentials, cookies, or authority upgrades from an
+  adapter. The optional pull wrapper
+  follows the latency contract above. Tests use a fake adapter.
+- **Capability-relevant selection.** When an already-built baseline inventory
+  is supplied, diff each fetched newer version against it. Otherwise mark the
+  comparison `unexamined` without fetching/reparsing the baseline or rejecting
+  the version check. Optional `StepContract` ranking across fetched versions
+  uses the existing operation-candidate path. Reports name which versions cover
+  the requested capability and flag conflicting evidence; a newer version never
+  replaces an older version's
+  operations by default.
+- **Command, documentation, and verification.** A new opt-in
+  `apitools versions` command over the library API, with `--timeout`,
+  `--no-network`, `--state`, and `--save-dir`, and README and architecture updates for the
+  delivered behavior. Provider-free fixtures use local servers and simulated
+  latency and reproduce sibling versions, equal `info.version` values, a
+  strictly invalid version, a newer version missing operations, off-origin
+  redirects, unsafe hosts, and adapter hints. A run without opt-in performs no
+  network access. Timing fixtures prove the contract: a stalled host returns
+  within the budget plus a small slack with the baseline intact and the
+  affected tiers `unexamined`; all-404 siblings stop at no more than 12
+  requests; a fresh state costs zero requests and an isolated conditional
+  check returning 304 costs one (concurrent tiers may issue other requests);
+  a large 200 HTML response to a probe is abandoned after a few KiB; 429 and 5xx
+  responses are `unexamined` with no retry; an adapter timeout leaves the
+  deterministic result unchanged; report order is stable under permuted
+  completion order; cancellation leaves no goroutines; a saved file's digest
+  equals the reported digest and a rerun reuses it; an invalid, over-cap, or
+  baseline document is never written; no source document is written without a
+  save directory, and no metadata is persisted without its separate opt-in;
+  an unsafe save directory is refused; a failed save never fails the check;
+  a `moved` locator is repaired by replaying its recipe; and a
+  cached `list.json` revalidation with a 304 costs one request against the
+  shared budget. Also test eight hints exceeding the document cap, aggregate
+  budgets across redirects/replay, unchanged conditional bodies, missing
+  baseline inventory, scoped/conflicting preference, partial-read digest
+  omission, Discovery save ineligibility, symlinked save paths, valid documents
+  with late identifying keys, cookie/callback isolation, and off-origin/shared-
+  host repository escapes. Verification:
+  `go test ./...`, `GOWORK=off go test ./...`, `go test -race` over the new
+  concurrent paths, `go vet ./...`, `GOWORK=off go vet ./...`,
+  `go run ./cmd/cataloggen -check`, `go run ./cmd/apitools catalog check`,
+  `go run ./cmd/apitools search --help`, `go run ./cmd/apitools versions
+  --help`, `git diff --check`, and OpenUdon/Udon compatibility checks in
+  workspace and standalone modes per tech-stack.md, with Ramen excluded.
+
+**Dependencies and execution.** No upstream prerequisite; retired M80 and the
+existing remote-discovery and guarded-download code are foundations. S06 is complete and retired; S05 now follows it under one execution owner
+in the same isolated branch/worktree. It has no technical dependency on S06's
+new list parser; its probe primitive remains separate. Kinet's Stage 5 is complete, not a pending dependency.
+Keep the branch outside `~/Workspace/go.work` so normal consumer builds retain
+current workspace behavior; merging and publishing each need separate
+approval. S05.6 reuses the isolated candidate-bound verification procedure in
+[retired S06](../docs/history/status-S06.md),
+with ordinary pinned standalone checks labeled separately. No consumer adopts
+S05 in this milestone; OpenUdon or Kinet adoption is reconciled separately in
+its own ledger. Curating GoDaddy into the
+catalog stays under the "Next provider-catalog expansion" candidate.
+````
+
+## Status record
+
+````markdown
 # Status S05 — Official-source API version discovery
 
-**State:** S05.1 complete, 2026-10-06, following explicit user approval of
-its detailed design record. Execution continues on isolated branch
-`work/s06-s05`; S05.2-S05.6 remain pending. No feature code,
-merge or publication has started. The prior planning approvals remain below.
+**State:** Complete, 2026-10-06, in isolated branch `work/s06-s05`.
+All six task outcomes, required verification and whole-milestone review passed
+in two iterations. No merge, publication, or consumer adoption occurred.
 
 **Specification:** [S05](milestone.md#s05--official-source-api-version-discovery).
 
@@ -154,7 +490,7 @@ no new milestone or promoted candidate.
 | S05.3 — Deterministic upgrade check | `[+]` | Owns P2-1/P2-2/P2-4/P2-7 implementation, L1/L2 fixtures, third-intake F02/F06/F07, and consistency-intake F01/F03/F04/F05. Depends on S05.2. Run tiers 1-3 concurrently under one shared deadline and request/body limits; charge revalidation, conditional requests, redirects, replay and integrated hint checks without resets. A fetched unchanged or invalid source body consumes a document slot. Probe upward from integer/dotted tokens, stop after two consecutive misses, prefer known comparable newer candidates, and preserve deterministic report order. Record source/final URL, observed versus declared bytes, time, validation status, and verified full digest only after a complete bounded read. Timeouts/rate limits produce partial reports with the baseline intact. Scan one supplied official docs page within size/link caps and report no static links honestly. Record locator/recipe and replay then re-read pointers before hints. Compute scoped highest verified comparable preference; conflicts do not create one. Save only fully fetched newer Import-valid OpenAPI/Swagger bytes into an explicit confined directory, preserving naming/idempotence without relying on the existing helper for confinement. Never save baseline, invalid, partial, oversize or merely parsed Discovery content; never overwrite differing content. No save directory means no source writes, independently of metadata persistence. Unsafe paths and failed saves remain visible warnings, never failed checks; do not extend the budget. Add all specification timing, trust and save fixtures. |
 | S05.4 — Hint verification and optional adapter | `[+]` | Owns P2-5 and integrates consistency-intake F01/F06. Depends on S05.3. Add APItools-owned `VerifyHints` and versioned size-bounded JSON hints (at most eight); deduplicate and order deterministically, fetch budget-selected URLs at most once, and explicitly mark excess unexamined. A standalone call uses the same caps; an integrated call uses remaining budget, never a reset. Reuse every-hop origin/credential isolation; accept no supplied spec bytes, credentials, cookies or authority upgrades. Keep provenance and locator/recipe for verified hints (third-intake F06). The optional pull wrapper runs only after deterministic tiers leave the question open and with caller opt-in/deadline (15 s default, 60 s ceiling); adapter failure, timeout or garbage is a tier status and never changes a verified result. Test with a fake adapter; add no LLM/browser dependency. |
 | S05.5 — Capability-relevant selection | `[+]` | Owns P2-2's diff and consistency-intake F02. Depends on S05.4. Diff fetched newer versions only against an optional caller-supplied already-built baseline inventory; never fetch/reparse the baseline for comparison. Without it, comparison is unexamined and the version check remains valid. Add optional `StepContract` ranking through existing operation-candidate metadata, report capability coverage and conflicting version evidence, and never replace the baseline's operations by default. |
-| S05.6 — Command, documentation, and verification | `[ ]` | Owns L2 verification and L4 docs. Depends on S05.1-S05.5. Add opt-in `apitools versions` with `--timeout`, `--no-network`, `--state`, and `--save-dir`; document delivered behavior in README/architecture. Run all specification fixtures and verification below, including race tests, and reuse S06.3's candidate-bound workspace/standalone consumer checks with unchanged-pin checks labeled separately (consistency-intake F08/F09). Pass the persisted ten-iteration gate with no open P1/P2-or-higher findings. Publication, merging into the workspace checkout and consumer adoption each require separate approval. |
+| S05.6 — Command, documentation, and verification | `[+]` | Owns L2 verification and L4 docs. Depends on S05.1-S05.5. Add opt-in `apitools versions` with `--timeout`, `--no-network`, `--state`, and `--save-dir`; document delivered behavior in README/architecture. Run all specification fixtures and verification below, including race tests, and reuse S06.3's candidate-bound workspace/standalone consumer checks with unchanged-pin checks labeled separately (consistency-intake F08/F09). Pass the persisted ten-iteration gate with no open P1/P2-or-higher findings. Publication, merging into the workspace checkout and consumer adoption each require separate approval. |
 
 ## Dependencies and ownership
 
@@ -248,7 +584,7 @@ use only local servers.
 
 ## Review and planning evidence
 
-**Review iterations started:** 0 of at most 10; closing gate not started.
+**Review iterations started:** 2 of at most 10; iteration 2 passed 2026-10-06.
 No intake is a bounded-gate pass. Persist the count once implementation
 reaches review and never reset it. An unresolved blocking finding at iteration
 10 requires user direction.
@@ -351,3 +687,65 @@ Optional StepContract ranking reuses source-native operation candidates over
 newly fetched bytes with exact digest, auth/effect and truncation evidence.
 Focused diff, missing-inventory, caller-preservation and ranking tests passed;
 the combined version-check race gate passed. No version replaces baseline ops.
+
+S05.6 implementation and verification completed 2026-10-06: versions CLI
+uses the approved explicit network/persistence flags and 0/2/1 policy. README,
+product, architecture and stack describe delivered metadata behavior.
+Full APItools tests passed in workspace/standalone modes; full race tests,
+both vet modes, catalog generator/quality and search/versions help passed.
+OpenUdon/Udon full candidate-bound tests/vet passed in both modes, with Ramen
+excluded. Synthetic Udon output directories were moved into disposable
+verification storage; consumer source/manifests/pins are unchanged.
+
+## Whole-milestone review
+
+Iteration 1 started after verification. Review the complete S05 changes from
+S06 closure through all five task commits and the S05.6 diff: request and
+source identity, budgets/deadlines, metadata scope/negative evidence, shared
+host/redirect/credential protections, state reuse, recipes and hints,
+comparison independence, confined saves, CLI/errors and consumer compatibility.
+The GitHub recipe fixture initially failed and its provenance loss was fixed;
+this is retained verification evidence. No closing outcome is claimed yet.
+
+Iteration 1 findings: R1 (P1) GitHub repository authorization used a hostname
+substring rather than the exact raw-content origin; R2 (P2) a supplied native
+Discovery inventory still could not produce the approved native operation diff.
+Both remain owned by S05.6. Fix and verify them, then review the whole milestone
+again as iteration 2; do not reset the persisted count or close at iteration 1.
+
+R1 and R2 are fixed with exact-host and source-native Discovery selector
+regressions; the focused combined race gate passed. Iteration 2 now reviews the
+whole milestone, including these fixes, under the same persisted ten-pass cap.
+
+## Closure evidence
+
+Iteration 2 passed with no remaining P1/P2-or-higher findings and no carried
+lower findings. The whole review covered source-family/service identity,
+unknown/negative evidence, strict request and hint inputs, natural ordering,
+exact GitHub authority and path scopes, redirect/request/body bounds, deadline
+and worker ownership, conditional/cache semantics, prefix and size handling,
+recipe provenance, adapter isolation, native diffs/candidate evidence,
+byte-identical confined saves/collisions, CLI policies and all metadata writes.
+
+Required final tests passed in workspace and standalone modes with Go 1.26.6;
+full `go test -race -p 2 ./...`, both vet modes, catalog generator/quality
+(zero findings), search/versions help and patch checks passed. OpenUdon/Udon
+full test/vet against the candidate worktree passed in both modes. Consumer
+source/manifests/pins remained unchanged; observed synthetic test artifacts
+were moved to disposable storage, and Ramen was excluded.
+
+Consolidation: README and docs/api-version-discovery.md describe delivered
+interfaces; product/architecture/stack own current facts. Existing lessons
+about incomplete coverage remain applicable. The exact-host/native-identity
+lesson is recorded with this milestone. No prior product knowledge or frozen
+record was removed. Evolution v26 is delivered; no new direction bump is
+needed. Candidate directions remain unnumbered: S05 delivery satisfies the
+directory candidate's prerequisite, but legal/operator/crawl-policy gates
+still require separate approval. No candidate is promoted automatically.
+
+Downstream reconciliation: no consumer adopts these new interfaces in this
+milestone. Existing imports/pins and source registrations/catalog index/SQLite
+schema remain intact; compatibility is verified. Retire the full specification
+and status, refresh the history index and remove the exhausted launch input.
+The confirmed S06 -> S05 implementation goal is then complete in this branch.
+````

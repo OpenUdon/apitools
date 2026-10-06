@@ -38,8 +38,8 @@ func (s *apiVersionSession) verifyHints(hints APIVersionHints) {
 	}
 	rows := append([]APIVersionHint(nil), hints.Hints...)
 	sort.Slice(rows, func(i, j int) bool {
-		if n, ok := compareAPIVersions(rows[i].Version, rows[j].Version); ok && n != 0 {
-			return n > 0
+		if rows[i].Version != rows[j].Version {
+			return apiVersionLess(rows[i].Version, rows[j].Version)
 		}
 		if rows[i].URL != rows[j].URL {
 			return rows[i].URL < rows[j].URL

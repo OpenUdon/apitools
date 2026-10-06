@@ -126,6 +126,12 @@ func (c *Client) probeAPIVersion(ctx context.Context, budget *apiVersionBudget, 
 		if err := check(req.URL.String()); err != nil {
 			return err
 		}
+		if !source && len(scopes) > 0 && versionTokenURL(req.URL.String()) != "" {
+			lower := strings.ToLower(req.URL.Path)
+			if strings.HasSuffix(lower, ".json") || strings.HasSuffix(lower, ".yaml") || strings.HasSuffix(lower, ".yml") {
+				return http.ErrUseLastResponse
+			}
+		}
 		return budget.charge()
 	}
 	client.Timeout = 3 * time.Second
@@ -153,6 +159,11 @@ func (c *Client) probeAPIVersion(ctx context.Context, budget *apiVersionBudget, 
 	result.finalURL = raw
 	if resp.Request != nil && resp.Request.URL != nil {
 		result.finalURL = resp.Request.URL.String()
+	}
+	if !source && len(scopes) > 0 && result.status >= 300 && result.status < 400 {
+		if target, e := resp.Location(); e == nil && versionTokenURL(target.String()) != "" {
+			result.finalURL = target.String()
+		}
 	}
 	result.contentType = resp.Header.Get("Content-Type")
 	result.etag = boundedVersionHeader(resp.Header.Get("ETag"))
