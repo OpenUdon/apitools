@@ -70,8 +70,10 @@ and response aliases are also proof inputs. Stage 11 intake probes at
 24c36bf40102c2c1d160dc7d0e27fb161e12dbd6 showed AsyncAPI 2.x direction inversion,
 defaulted GraphQL arguments still required and Smithy literal query inputs.
 Lost serialization or unenforced formats cannot establish complete/known
-evidence. [M83](status-M83.md) owns the pending corrections and exact consumer
-handoff; structurally valid tables alone do not establish these semantics.
+evidence. Accepted [M83](../docs/history/status-M83.md), source
+f2c5693ec39ad6981693d2ad126ff26e3fdd564c, restores these contracts after review5
+and complete ordinary owner/consumer proof. Structurally valid tables alone do
+not establish native semantics; changed identities require fresh consumer review.
 
 ## Bind version evidence to an exact publisher and native identity
 
@@ -80,4 +82,4 @@ handoff; structurally valid tables alone do not establish these semantics.
 - **Why it matters:** A hostname substring can authorize the wrong origin, and an HTTP display projection can conceal native operation changes. Both undermine an otherwise bounded advisory check.
 - **Evidence:** [Retired S05](../docs/history/status-S05.md), review R1/R2 and exact-host, service-family, conditional and native Discovery regressions.
 
-String token values used for prompt text cannot prove native argument equality. M83 whole reviews showed escaped-string collisions, quoted delimiter boundary mistakes and compatible field merges lost by raw whole-selection equality. Keep native typed argument/child evidence, exact default presence and explicit parser closure/depth guards; a partial schema never grants missing-field or runtime authority. [M83 review evidence](status-M83.md#whole-review-iteration-4--local-code-gate-passed) and the corrected/refusal matrices preserve these lessons.
+String token values used for prompt text cannot prove native argument equality. M83 whole reviews showed escaped-string collisions, quoted delimiter boundary mistakes and compatible field merges lost by raw whole-selection equality. Keep native typed argument/child evidence, exact default presence and explicit parser closure/depth guards; a partial schema never grants missing-field or runtime authority. [M83 review evidence](../docs/history/status-M83.md#whole-review-iteration-4--local-code-gate-passed) and the corrected/refusal matrices preserve these lessons.

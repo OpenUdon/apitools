@@ -7,13 +7,13 @@ The user approved the complete reconciliation proposal and its planning-file app
 **Serial order:** Udon:M49 → UWS:M09 → APItools:M83 → OpenUdon:M99 → Kinet:M49.
 **Direct dependency graph:** UWS:M09 → APItools:M83, OpenUdon:M99, Kinet:M49; APItools:M83 → OpenUdon:M99, Kinet:M49; OpenUdon:M99 → Kinet:M49; Udon:M49 → Kinet:M49. Serial order is a scheduling gate, not an additional library dependency.
 
-**Local owner:** All seven M83 rows are complete after named source publication, complete ordinary source/owner/public-consumer qualification and whole review5/10. Coordinator acceptance/downstream consolidation/retirement remain to close; preserved SDK integration work is assigned to existing pending M99.3. The confirmed serial GOAL authorizes implementation/task commits after exact accepted/published prerequisites; UWS:M09 supplies corrected root/codec source b099f6803277ae94c7e9f1da0904a0140b278f20 and ordinary proof. One serial execution owner remains required. This owner's source publication needs a separate fresh named grant; consumed upstream grants and planning/status markers supply no deployment or live authority.
+**Local owner:** M83 is accepted/retired after seven rows and whole review5. Published runtime f2c5693ec39ad6981693d2ad126ff26e3fdd564c and complete ordinary owner/public-consumer proof supply the corrected contract. The full record is in the history index; remaining serial work is OpenUdon:M99 → Kinet:M49. The APItools-only grant covers reviewed source/closure, no live or other-owner authority.
 
 **Coordinator:** [Stage 11](../../../kinet/docs/stage11.md#post-acceptance-remediation--2026-10-08). Exact accepted/published successor revisions remain unset until independently observed; downstream adoption requires them. Installed M44 and independent browser/media/Phase A/legacy/frozen-consumer pins remain unchanged. Stage 12 remains provisional.
 
 ## Stage 11 active horizon
 
-Approved 2026-10-06: both phases of [Kinet STG-11](../../../kinet/docs/stage11.md), with one serial execution owner across Kinet, UWS, APItools, Udon and OpenUdon. This package's M82 is accepted/retired after review 3 at exact public source `54583f9b2f452b7cc522360c5aeeff29ca22f96c`. M83 is the separate active post-acceptance remediation; other owners retain their package-local coordinated work. Frozen history and consumer pins stay preserved. Planning/status markers grant no external authority.
+Approved 2026-10-06: both phases of [Kinet STG-11](../../../kinet/docs/stage11.md), with one serial execution owner across Kinet, UWS, APItools, Udon and OpenUdon. This package's M82 is accepted/retired after review 3 at exact public source `54583f9b2f452b7cc522360c5aeeff29ca22f96c`. M83 is accepted/retired as the separate post-acceptance remediation; other owners retain their package-local coordinated work. Frozen history and consumer pins stay preserved. Planning/status markers grant no external authority.
 
 Milestones are listed in priority order across long-lived domain lanes. Each
 item lists scope and acceptance criteria. This file owns the roadmap, lane
@@ -148,13 +148,12 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M83 | [status-M83.md](status-M83.md) | Pending; review 0/10; accepted/published UWS:M09 prerequisite |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
 
-M83 is the approved active post-acceptance shape remediation. Original Stage 11 is accepted across the five owner ledgers.
+M83 is accepted/retired; no active APItools row remains. Original Stage 11 is accepted across the five owner ledgers.
 Completed source repair and version discovery remain in the history index.
 Other candidates still require fresh reconciliation and approval.
 
@@ -623,16 +622,3 @@ One execution owner, serial execution and task commits under the later confirmed
 ## Stage 11 candidate dispositions
 
 M82 is new source-tooling work with a shared public UWS contract, so it uses the cross-cutting M lane. It promotes no catalog/provider expansion, remote discovery, credential/runtime behavior or unrelated hardening candidate.
-
-## M83 — Stage 11 native shape projection remediation
-
-**Stage/owner.** STG-11 post-acceptance remediation; apitools. Approved planning 2026-10-08. **Placement.** Core/cross-cutting lane; new remediation, never a reopened historical gate.
-**Lineage.** [M82](../docs/history/status-M82.md).
-**Dependencies.** Accepted M82 metadata contract plus accepted and independently published UWS:M09 root contract before exact adoption. Serial scheduling follows UWS:M09. No sibling parser changes or runtime-capability expansion is authorized.
-**Scope.** Correct native-family direction/default/member/request/response projections and preserve honest OpenAPI completeness/schema proof. Restore supported OpenAPI YAML/extension/Swagger/TRACE metadata handling while retaining source identity, selector and symbolic security contracts.
-**Acceptance.** AsyncAPI 2.x publish consumes/output and subscribe produces/input consistently with v3 receive/send. GraphQL defaulted non-null arguments/variables are optional and response aliases remain distinct response keys with stable underlying field/selectors. Smithy static URI query literals are not fabricated required members. Discovery emits only independently declared request/endpoint evidence, leaving unproved requiredness/projection unknown. Unsupported serialization/formats cannot be marked complete/known. Valid numeric YAML response keys and path extensions do not discard a whole source; Swagger version detection is consistent and declared TRACE metadata is retained without widening runtime support. Exact bounded raw-source identities, duplicates, native selectors, security OR/AND and no-network guarantees survive all eight-family qualification and review.
-**Verification.** go test ./...; go vet ./...; focused OperationShapes/GraphQL/sourceguard tests and races; existing compatible checker policy with no new waiver; GOWORK=off GOPROXY=off standalone public source/UWS module checks; defaulted arguments/variables, aliased selections, AsyncAPI 2/3 equivalent direction, Smithy literals versus genuine same-name members, Discovery request/upload variants, serialization/format unknowns, numeric response keys/path extensions/Swagger/TRACE fixtures; eight-family exact source/selector/security/digest and no-network cases; git diff --check.
-**Compatibility/recovery.** Preserve public wires/schemas, declared grammar versions and frozen evidence/pins. Corrected derived tables/packages/workers require fresh consumer assessment, confirmation and grants; never upgrade historical authority or replay unknown writes. Installed M44 is unchanged. Rollout ends at a new exact-source qualified handoff; real installation, migration, sends and registration need separate named authority.
-**Downstream.** OpenUdon:M99 independent source/shape reproduction and Kinet:M49 author worker/package qualification. Corrected table digests require fresh source-backed assessments/publication decisions; old tables/packages are historical evidence, not silently rewritten.
-**Tasks.** All 7 task/commit units in status-M83.md are complete: M83.1 Correct AsyncAPI version-dependent message direction; M83.2 Preserve GraphQL defaults and response keys; M83.3 Separate Smithy static query literals from modeled inputs; M83.4 Correct Discovery request and endpoint projection; M83.5 Keep OpenAPI completeness and format claims honest; M83.6 Restore bounded OpenAPI and Swagger metadata compatibility; M83.7 Qualify all native families and publish the exact handoff.
-**Review/authority.** Whole review5/10 passed after full ordinary qualification and persisted fixes. The explicit prepared-proposal grant authorizes only exact APItools normal source and reviewed evidence/acceptance/retirement publication heads to origin/main with [skip ci]. Initial exact source publication and independent ordinary proof pass; no deployment/live authority or other-owner publication follows. Coordinator acceptance/retirement remain separately recorded.

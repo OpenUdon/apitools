@@ -1,7 +1,49 @@
+# Retired milestone M83 — Stage 11 native shape projection remediation
+
+**Milestone.** M83
+**Outcome.** completed
+**Retired.** 2026-10-08
+**Source status.** tabilet/memory-bank/status-M83.md
+**Source specification.** tabilet/memory-bank/milestone.md#m83--stage-11-native-shape-projection-remediation
+**Evidence.** e891dfd014821c0ef8b9a29a90e19f6252a48392
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 5
+**Verification.** Exact ordinary source/time/version/sums/614 files, complete owner77/39/414/16271 and consumer64/33/353/15444 graphs/files, downloaded full tests/all-package races/vet/build/modverify, catalog/format/whitespace and frozen corpus/grammar/history guards pass. Whole review5 passes; six unchanged checker observations retain existing policy. Failed old SDK suite preserved with pending M99.3 owner, not waived. Retirement envelope/literal-source checks pass.
+**Consolidated into.** [product](../../memory-bank/product.md), [architecture](../../memory-bank/architecture.md), [stack](../../memory-bank/tech-stack.md), [lessons](../../memory-bank/lessons.md), [knowledge](knowledge.md), [publication](../../../docs/m83-publication.md), [ordinary proof](../../../docs/m83-ordinary-proof.json), [qualification](../../../docs/m83-qualification.md); exact OpenUdon:M99/Kinet:M49 prerequisites. Included coordinator retirement changes postdate the published evidence baseline. No new evolution or live authority.
+
+## Milestone specification
+
+``````markdown
+## M83 — Stage 11 native shape projection remediation
+
+**Stage/owner.** STG-11 post-acceptance remediation; apitools. Approved planning 2026-10-08. **Placement.** Core/cross-cutting lane; new remediation, never a reopened historical gate.
+**Lineage.** [M82](../docs/history/status-M82.md).
+**Dependencies.** Accepted M82 metadata contract plus accepted and independently published UWS:M09 root contract before exact adoption. Serial scheduling follows UWS:M09. No sibling parser changes or runtime-capability expansion is authorized.
+**Scope.** Correct native-family direction/default/member/request/response projections and preserve honest OpenAPI completeness/schema proof. Restore supported OpenAPI YAML/extension/Swagger/TRACE metadata handling while retaining source identity, selector and symbolic security contracts.
+**Acceptance.** AsyncAPI 2.x publish consumes/output and subscribe produces/input consistently with v3 receive/send. GraphQL defaulted non-null arguments/variables are optional and response aliases remain distinct response keys with stable underlying field/selectors. Smithy static URI query literals are not fabricated required members. Discovery emits only independently declared request/endpoint evidence, leaving unproved requiredness/projection unknown. Unsupported serialization/formats cannot be marked complete/known. Valid numeric YAML response keys and path extensions do not discard a whole source; Swagger version detection is consistent and declared TRACE metadata is retained without widening runtime support. Exact bounded raw-source identities, duplicates, native selectors, security OR/AND and no-network guarantees survive all eight-family qualification and review.
+**Verification.** go test ./...; go vet ./...; focused OperationShapes/GraphQL/sourceguard tests and races; existing compatible checker policy with no new waiver; GOWORK=off GOPROXY=off standalone public source/UWS module checks; defaulted arguments/variables, aliased selections, AsyncAPI 2/3 equivalent direction, Smithy literals versus genuine same-name members, Discovery request/upload variants, serialization/format unknowns, numeric response keys/path extensions/Swagger/TRACE fixtures; eight-family exact source/selector/security/digest and no-network cases; git diff --check.
+**Compatibility/recovery.** Preserve public wires/schemas, declared grammar versions and frozen evidence/pins. Corrected derived tables/packages/workers require fresh consumer assessment, confirmation and grants; never upgrade historical authority or replay unknown writes. Installed M44 is unchanged. Rollout ends at a new exact-source qualified handoff; real installation, migration, sends and registration need separate named authority.
+**Downstream.** OpenUdon:M99 independent source/shape reproduction and Kinet:M49 author worker/package qualification. Corrected table digests require fresh source-backed assessments/publication decisions; old tables/packages are historical evidence, not silently rewritten.
+**Tasks.** All 7 task/commit units in status-M83.md are complete: M83.1 Correct AsyncAPI version-dependent message direction; M83.2 Preserve GraphQL defaults and response keys; M83.3 Separate Smithy static query literals from modeled inputs; M83.4 Correct Discovery request and endpoint projection; M83.5 Keep OpenAPI completeness and format claims honest; M83.6 Restore bounded OpenAPI and Swagger metadata compatibility; M83.7 Qualify all native families and publish the exact handoff.
+**Review/authority.** Whole review5/10 passed after full ordinary qualification and persisted fixes. The explicit prepared-proposal grant authorizes only exact APItools normal source and reviewed evidence/acceptance/retirement publication heads to origin/main with [skip ci]. Initial exact source publication and independent ordinary proof pass; no deployment/live authority or other-owner publication follows. Coordinator acceptance/retirement remain separately recorded.
+
+**Accepted result.** Seven task units and whole review5 pass; exact ordinary
+published runtime f2c5693ec39ad6981693d2ad126ff26e3fdd564c /
+v0.0.0-20261008061439-f2c5693ec39a and complete owner/public-consumer artifacts
+qualify. Published evidence e891dfd014821c0ef8b9a29a90e19f6252a48392 anchors
+checks and source. Current truth/lessons and exact pending M99/M49 assumptions
+are consolidated; preserved SDK failure has named M99.3 qualification ownership.
+Normal reviewed retirement publication precedes consumer implementation.
+``````
+
+## Status record
+
+``````markdown
 # M83 — Stage 11 native shape projection remediation
 
 **Stage:** STG-11 post-acceptance remediation. **Owner:** APItools.
-**State:** All seven task rows complete, 2026-10-08. Exact source is published and independently ordinarily qualified; whole review5 passed. Coordinator acceptance, shared-memory/downstream reconciliation and retirement follow this task/evidence handoff. Preserved SDK integration work remains with pending M99.3.
+**State:** Accepted/retired on 2026-10-08 after all seven rows, whole review5, exact ordinary source/artifact/owner/public-consumer proof and coordinator consolidation/downstream reconciliation. Preserved failed SDK integration remains explicitly owned by pending M99.3.
 **Authority:** The complete review reconciliation was approved, followed by the confirmed serial GOAL request on 2026-10-08: Udon:M49 → UWS:M09 → APItools:M83 → OpenUdon:M99 → Kinet:M49, COMMIT_POLICY: task and EXTERNAL_MUTATIONS: none. This authorizes scoped implementation after accepted/published prerequisites; source publication still requires this owner's separate fresh named grant. The Udon/UWS publication exceptions do not extend to this owner or live operations.
 **Review source:** stage11-siblings-review.md — Stage 11 code review — sibling packages; APItools section.
 **Review baseline/range:** `9364afac98c97b79c9e6b9335bd9c71d4e8722d5` → `24c36bf40102c2c1d160dc7d0e27fb161e12dbd6`.
@@ -222,3 +264,32 @@ Downloaded ordinary owner and public consumer both pass full tests, all-package 
 Two read-only reviewers independently revalidated the complete M83 implementation, previous fixes, ordinary source/ZIP/GoMod h1/full file manifests, all selected and compiled artifacts, actual closures, immutable source manifests and passing command/log hashes. No remaining P1/P2/P3 was found. Owner also confirms unchanged frozen corpus/grammar/schema/consumer pins and the six unchanged compatible-checker observations; no new waiver or public/private/runtime direction change exists. Ordinary source/proof gates are satisfied.
 
 M83.7 is complete after exact named initial publication, independent ordinary acquisition/complete file proof, downloaded owner/public-consumer full tests/all-package races/vet/build/modverify and persisted whole review5. [Ordinary publication evidence](../../docs/m83-publication.md) and [complete ordinary proof](../../docs/m83-ordinary-proof.json) supplement preserved bootstrap/history records. Source remains f2c5693ec39ad6981693d2ad126ff26e3fdd564c with source version/time/h1 unchanged. The reviewed normal task/evidence head carries [skip ci] and will be independently observed after publication under the same grant. All row states are terminal; parent still owns milestone acceptance, exact downstream reconciliation, consolidation/retirement and reviewed final-closure publication. The old full candidate SDK suite remains failed evidence; M99.3 owns its explicit native-witness/declared-output owner/time repair. No sibling, host/provider/mail/model/user-ledger/registration operation follows.
+
+## Coordinator acceptance and retirement — 2026-10-08
+
+All seven rows and whole review5 pass. Exact runtime
+f2c5693ec39ad6981693d2ad126ff26e3fdd564c independently resolves as
+v0.0.0-20261008061439-f2c5693ec39a, canonical archive
+h1:+UICyuitKDE3g5rnlCA6Sk+QLIEqqVn8MN0PtOX+NKk= and GoMod
+h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=. Independently published
+M83.7 evidence e891dfd014821c0ef8b9a29a90e19f6252a48392 anchors ordinary
+source/file/sum proof, complete owner77/39/414/16271 and consumer64/33/353/15444
+selected/compiled/package/file graphs and downloaded full suites/races/vet/build/
+modverify. Six unchanged checker observations retain their existing policy.
+
+Product/architecture/stack and reusable lessons are consolidated; superseded
+lesson wording is retained literally in knowledge.md. OpenUdon:M99 and Kinet:M49
+pending assumptions bind exact source/sums/full ordinary proof. M99.3 owns the
+preserved SDK output-owner/current-output timing P2 and truthful min-only path
+uncertainty, with correctly owned finite-witness native regressions; the old
+candidate SDK suite remains failed evidence, not waived or relabeled passing.
+Consumer milestones must independently qualify their actual code/worker paths.
+
+The validated full specification/status are retired with honest included
+coordinator-change provenance. Normal [skip ci] retirement closure publication
+under the same APItools-only grant is independently observed before M99 starts;
+its final head is recorded in downstream ledgers after the push, avoiding a
+self-referential identity. Frozen M82/corpora/grammar/history, independent pins,
+installed M44 and app/audit9/9 remain unchanged. No new evolution version or
+live/host/deployment/model/API/mail/registration authority follows.
+``````

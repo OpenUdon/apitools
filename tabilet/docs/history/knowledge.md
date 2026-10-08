@@ -217,3 +217,21 @@ unchanged. Candidate directions remain unnumbered and require fresh approval.
 ````markdown
 Standalone qualification uses `GOWORK=off` and the exact published UWS C09 pin.
 ````
+
+## 2026-10-08 — M83 accepted native-proof lesson reconciliation
+
+Source: lessons.md, source-neutral proof inputs. Reason: retain intake/pending
+wording before recording accepted native semantics. Evidence: published runtime
+f2c5693ec39ad6981693d2ad126ff26e3fdd564c and ordinary evidence
+e891dfd014821c0ef8b9a29a90e19f6252a48392; whole review5 passed. Replacement:
+[current lessons](../../memory-bank/lessons.md) and [M83](status-M83.md).
+
+````markdown
+Native protocol direction, default presence, literal-versus-member provenance
+and response aliases are also proof inputs. Stage 11 intake probes at
+24c36bf40102c2c1d160dc7d0e27fb161e12dbd6 showed AsyncAPI 2.x direction inversion,
+defaulted GraphQL arguments still required and Smithy literal query inputs.
+Lost serialization or unenforced formats cannot establish complete/known
+evidence. [M83](status-M83.md) owns the pending corrections and exact consumer
+handoff; structurally valid tables alone do not establish these semantics.
+````

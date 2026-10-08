@@ -4,8 +4,9 @@ All seven task rows are complete. Whole review passed at iteration5/10 after
 fixing every local P1/P2 and independently qualifying the ordinarily published
 source, complete artifacts and downloaded owner/public consumer. [Publication
 evidence](m83-publication.md) and [ordinary proof](m83-ordinary-proof.json) record
-exact observed identities; coordinator acceptance/consolidation/retirement remain
-a separate handoff, not a consequence of terminal task rows.
+exact observed identities. Coordinator consolidation, exact pending consumer
+reconciliation and validated retirement close acceptance; terminal rows alone
+were insufficient. The full retained record is tabilet/docs/history/status-M83.md.
 Original M82 acceptance, its qualified fixture and all consumer pins are preserved.
 
 The producer/verifier remains `BuildOperationShapeTable` /

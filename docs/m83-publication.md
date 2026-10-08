@@ -63,8 +63,11 @@ this complete ordinary proof, with no remaining findings from the owner and two
 independent read-only reviewers. All seven task rows are complete; the normal
 reviewed task/evidence head carries [skip ci] and is independently observed in
 the publication handoff. Frozen source remains f2; later evidence heads do not
-change its module/archive identity. Milestone acceptance/consolidation,
-downstream reconciliation and retirement remain with the coordinator. The named
+change its module/archive identity. Coordinator acceptance/consolidation and
+exact pending M99/M49 reconciliation close M83. The full validated specification/
+status is retained at tabilet/docs/history/status-M83.md. Normal reviewed retirement
+closure is independently observed before M99 implementation; its final head is
+recorded in downstream ledgers after the push. The named
 grant covers reviewed evidence/acceptance/retirement heads with `[skip ci]` and
 unchanged frozen runtime/source; it supplies no deployment, live ledger/API/model/
 mail/host/Cloudflare/registration operation. Original Stage11 acceptance and
