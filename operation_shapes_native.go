@@ -161,6 +161,7 @@ func smithyShapes(ctx context.Context, root map[string]any, source binding.Sourc
 			return nil, ErrOperationShapeTable
 		}
 		shape := nativeShape(source, native.ID, "#/shapes/"+escapeJSONPointer(native.ID), "aws-smithy:"+model.Protocol)
+		inputMembers := mapValue(mapValue(mapValue(root["shapes"])[native.Input])["members"])
 		// Preserve native protocol/member locations; a modeled AWS operation
 		// is not an invented generic HTTP operation/server.
 		for _, member := range append(append([]*smithyparser.MemberBinding{}, native.InputBindings...), native.UnboundInput...) {
@@ -168,6 +169,19 @@ func smithyShapes(ctx context.Context, root map[string]any, source binding.Sourc
 				return nil, ErrOperationShapeTable
 			}
 			location := member.Location
+			if location == "query" {
+				if _, literal := native.QueryLiterals[member.WireName]; literal {
+					// The native parser synthesizes named, required bindings for
+					// URI literals. Only a declared raw query member is an input,
+					// even when a real non-query member has the synthetic name.
+					raw := mapValue(inputMembers[member.MemberName])
+					traits := mapValue(raw["traits"])
+					query, declared := traits["smithy.api#httpQuery"]
+					if !declared || firstNonEmpty(stringValue(query), member.MemberName) != member.WireName {
+						continue
+					}
+				}
+			}
 			if location == "" {
 				location = "body"
 			}

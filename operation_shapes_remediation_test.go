@@ -64,3 +64,39 @@ func TestOperationShapesGraphQLDefaultsAndAliases(t *testing.T) {
 		t.Fatal("duplicate response key silently accepted")
 	}
 }
+
+func TestOperationShapesSmithyLiteralMemberProvenance(t *testing.T) {
+	for name, members := range map[string]string{
+		"literal":              `{}`,
+		"same-name-body":       `{"x-id":{"target":"smithy.api#String"}}`,
+		"same-name-query":      `{"x-id":{"target":"smithy.api#String","traits":{"smithy.api#httpQuery":"x-id","smithy.api#required":{}}}}`,
+		"different-name-query": `{"Id":{"target":"smithy.api#String","traits":{"smithy.api#httpQuery":"x-id"}}}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			source := fmt.Sprintf(`{"smithy":"2.0","shapes":{"example#Service":{"type":"service","version":"1","operations":[{"target":"example#Get"}],"traits":{"aws.protocols#restJson1":{}}},"example#Get":{"type":"operation","input":{"target":"example#Input"},"traits":{"smithy.api#http":{"method":"GET","uri":"/things?x-id=Get","code":200}}},"example#Input":{"type":"structure","members":%s}}}`, members)
+			table, err := BuildOperationShapeTable(context.Background(), OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "smithy", OperationSourceInput: OperationSourceInput{Kind: OperationSourceAWSSmithy, Content: []byte(source)}}}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			operation := table.Operations[0]
+			if operation.Complete || operation.Method != "" || operation.Selector.Value != "#/shapes/example#Get" {
+				t.Fatal("native protocol/identity lost")
+			}
+			if name == "literal" && len(operation.Inputs) != 0 {
+				t.Fatalf("fabricated literal input: %+v", operation.Inputs)
+			}
+			if name != "literal" && len(operation.Inputs) != 1 {
+				t.Fatalf("lost real member or retained synthetic member: %+v", operation.Inputs)
+			}
+			if name == "same-name-body" && operation.Inputs[0].Location != "body" {
+				t.Fatal("synthetic literal hid body member")
+			}
+			if name == "same-name-query" && (operation.Inputs[0].Location != "query" || !operation.Inputs[0].Required) {
+				t.Fatal("lost real required query member")
+			}
+			if name == "different-name-query" && (operation.Inputs[0].Location != "query" || operation.Inputs[0].Name != "Id") {
+				t.Fatal("lost native member name")
+			}
+		})
+	}
+}

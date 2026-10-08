@@ -829,3 +829,7 @@ Shape projection interprets AsyncAPI 2.x publish as consumed/output and subscrib
 ### M83 GraphQL defaults and response keys
 
 The owned native GraphQL model retains explicit default presence separately from non-null type metadata and each selected field's response key separately from its underlying name. Non-null inputs with defaults are optional. Shape outputs use response keys without changing field/operation selectors; genuine duplicate keys refuse rather than being lost by underlying-name deduplication. Existing summary SelectionNames retain their historical underlying-name meaning. No GraphQL transport is added.
+
+### M83 Smithy member provenance
+
+Smithy URI query literals do not create shape inputs. A same-wire-name native binding is emitted only when the raw modeled input member declares the matching httpQuery trait; a synthetic nonempty MemberName or a same-name body member does not prove query membership. Native selectors and protocol stay unchanged.
