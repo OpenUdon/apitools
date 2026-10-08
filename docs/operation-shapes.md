@@ -84,11 +84,13 @@ subset, OpenAPI 3.1's default 2020-12 context, or the common draft-07 subset for
 OpenRPC/AsyncAPI. Unsupported modern keywords remain unknown; a supported
 explicit 2020-12 schema can establish its modern semantics. Reference siblings,
 legacy exclusive bounds and unresolved dialect overrides remain conservative.
-Current M83 candidate qualification uses `GOWORK=off GOPROXY=off GOTOOLCHAIN=local`
+Current M83 ordinary qualification uses `GOWORK=off GOPROXY=off GOTOOLCHAIN=local`
 and exact independently published UWS M09 root
 `v0.0.0-20261008043726-b099f6803277`. The original M82 qualification and frozen
-C09 fixture remain historical evidence. APItools successor publication and ordinary
-consumer proof require a fresh named gate.
+C09 fixture remain historical evidence. The named APItools successor source publication and complete ordinary owner/
+public-consumer proof passed; [publication evidence](m83-publication.md) records
+exact identities and whole review5. Consumer SDK/worker adoption remains separately
+owned and requires fresh exact assessment/confirmation/grants.
 The UWS module retains its Horizon/HashiCorp HCL transitive dependency closure;
 this API does not make UWS or APItools HCL-free.
 

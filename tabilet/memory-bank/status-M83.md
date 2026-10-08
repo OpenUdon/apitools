@@ -1,7 +1,7 @@
 # M83 — Stage 11 native shape projection remediation
 
 **Stage:** STG-11 post-acceptance remediation. **Owner:** APItools.
-**State:** Authorized local implementation/qualification completed, 2026-10-08. M83.1–M83.6 are complete; M83.7 remains blocked on fresh named publication/ordinary proof and parent disposition of the recorded candidate OpenUdon integration result. No milestone acceptance is claimed.
+**State:** All seven task rows complete, 2026-10-08. Exact source is published and independently ordinarily qualified; whole review5 passed. Coordinator acceptance, shared-memory/downstream reconciliation and retirement follow this task/evidence handoff. Preserved SDK integration work remains with pending M99.3.
 **Authority:** The complete review reconciliation was approved, followed by the confirmed serial GOAL request on 2026-10-08: Udon:M49 → UWS:M09 → APItools:M83 → OpenUdon:M99 → Kinet:M49, COMMIT_POLICY: task and EXTERNAL_MUTATIONS: none. This authorizes scoped implementation after accepted/published prerequisites; source publication still requires this owner's separate fresh named grant. The Udon/UWS publication exceptions do not extend to this owner or live operations.
 **Review source:** stage11-siblings-review.md — Stage 11 code review — sibling packages; APItools section.
 **Review baseline/range:** `9364afac98c97b79c9e6b9335bd9c71d4e8722d5` → `24c36bf40102c2c1d160dc7d0e27fb161e12dbd6`.
@@ -13,7 +13,7 @@
 
 Accepted M82 metadata contract plus accepted and independently published UWS:M09 root contract before exact adoption. Serial scheduling follows UWS:M09. No sibling parser changes or runtime-capability expansion is authorized.
 
-**Exact successor acceptance/publication/build identities:** unset; record full independently observed revisions and hashes during the later execution. Never substitute local HEAD, directory replacements or prior consumed publication authority.
+**Exact successor source/publication/build identities:** frozen source f2c5693ec39ad6981693d2ad126ff26e3fdd564c, independently observed initial publication4bc5ba6a56d0c7ebf34dbd852680ce63c3ab1d18 and ordinary module v0.0.0-20261008061439-f2c5693ec39a. Full archive/mod/file/closure identities are in m83-publication.md and m83-ordinary-proof.json. Coordinator acceptance/retirement are not inferred from terminal rows.
 
 **Downstream:** OpenUdon:M99 independent source/shape reproduction and Kinet:M49 author worker/package qualification. Corrected table digests require fresh source-backed assessments/publication decisions; old tables/packages are historical evidence, not silently rewritten.
 
@@ -33,7 +33,7 @@ AsyncAPI 2.x publish consumes/output and subscribe produces/input consistently w
 | M83.4 — Correct Discovery request and endpoint projection | `[+]` | Preserve declared method/request/normal versus upload endpoint evidence without inventing HTTP contracts or mandatory bodies. Use indeterminate/incomplete evidence when native/raw source cannot prove requiredness or distinguish a supported variant. Keep declared server/source metadata and native selectors. Source P3.6. |
 | M83.5 — Keep OpenAPI completeness and format claims honest | `[+]` | Account for explode-only, Swagger collectionFormat and non-JSON content/encoding loss. Mark unsupported serialization incomplete and unenforced native formats unknown unless constraints are actually proved; do not silently widen schemas or add runtime serialization promises. Sources P3.1/P3.2. |
 | M83.6 — Restore bounded OpenAPI and Swagger metadata compatibility | `[+]` | Normalize only numeric YAML response-code keys with duplicate checks; ignore legal path-level vendor annotations of any type without globally coercing mapping keys. Use consistent Swagger 2.0 detection for schemas/security/servers, retain declared TRACE metadata and remove dead method case logic without enabling TRACE runtime execution. Sources P3.3/P3.4/P3.5. |
-| M83.7 — Qualify all native families and publish the exact handoff | `[!]` | Adopt exact accepted/published UWS:M09 root, preserving conservative schema/dialect/path evidence, then run eight-family source-backed shape/identity/security/no-network compatibility and standalone owner/consumer checks, preserve old qualification evidence and add corrected successor fixtures. Persist review counters and record accepted/published source/module sums plus OpenUdon/Kinet impacts; publication needs fresh named authority. |
+| M83.7 — Qualify all native families and publish the exact handoff | `[+]` | Adopt exact accepted/published UWS:M09 root, preserving conservative schema/dialect/path evidence, then run eight-family source-backed shape/identity/security/no-network compatibility and standalone owner/consumer checks, preserve old qualification evidence and add corrected successor fixtures. Persist review counters and record accepted/published source/module sums plus OpenUdon/Kinet impacts; publication needs fresh named authority. |
 
 ## Active finding provenance
 
@@ -62,10 +62,10 @@ Public schemas/wires, published grammar/version bytes, accepted historical quali
 
 ## Closing review
 
-**Review iterations:** 4/10.
-**Review state:** local code review PASSED at iteration 4/10, 2026-10-08; both read-only reviewers found no remaining P1/P2. Final artifact/ordinary publication gate remains open.
-**Findings/fixes:** iterations 1–3 persisted and fixed all local P1/P2 findings; whole local code pass4 is clear. Owner and exact-archive public bootstrap checks pass; compatible staticcheck retains six unchanged observations. Ordinary publication and unresolved candidate-bound OpenUdon integration disposition remain separately recorded gates.
-**Execution owner:** one serial owner across the five ledgers; no row is in progress at this exact publication/handoff gate. Parent resumes ownership after the child handoff.
+**Review iterations:** 5/10.
+**Review state:** whole review5 PASSED, 2026-10-08; both read-only reviewers and owner found no remaining P1/P2/P3. Complete independent ordinary source/artifact/owner/public-consumer proof qualifies the source.
+**Findings/fixes:** iterations1–3 persisted and fixed all local P1/P2 findings; local4 and whole ordinary5 pass. Every ordinary selected artifact/file/identity and owner/public-consumer check passes; checker retains six unchanged observations. Preserved old SDK failure is explicitly owned by already-pending M99.3, not waived or relabeled passed.
+**Execution owner:** APItools child is sole serial writer through this evidence publication; no task row remains in progress. Parent resumes acceptance/consolidation/retirement ownership after handoff.
 **Commit policy:** The later confirmed serial GOAL uses task commits and EXTERNAL_MUTATIONS: none. Local implementation/review/qualification commits are authorized; publication requires a fresh named exception and independent ordinary proof. Earlier planning-commit authority is historical and is not reused.
 **Closure:** persist each started review iteration before reviewing; resume an interrupted pass at the same number. No open P1/P2 may remain at acceptance. Required verification, exact downstream reconciliation and owner-specific consolidation/retirement follow implementation; never reopen completed Stage 11 history.
 
@@ -164,3 +164,61 @@ Frozen source f2c5693ec39ad6981693d2ad126ff26e3fdd564c (2026-10-08T06:14:39Z) is
 Retained-pin OpenUdon/Udon full checks pass; candidate-bound Udon passes. Candidate-bound OpenUdon has one unresolved full-suite failure in packagev3.TestSourceBackedChainedInputTypesRemainExact, also reproduced with retained M82 APItools and accepted M09 root. The unchanged OpenAPI3.0.3 required integer n/minimum9007199254740993 response/step chain expects compatible and reports binding.output_field_indeterminate plus flow.output_unreferenced. This isolates source impact, not validity of the old expectation; parent revalidation against accepted M09 and pending M99 scope is required. Neither a waiver, fixture-only repair, full-suite pass nor sibling change is claimed. Exact logs/modfiles remain in /home/peter/.cache/apitools-m83-proof.
 
 [Concrete proposal](../../docs/m83-publication-proposal.md), [qualification](../../docs/m83-qualification.md), [bootstrap proof](../../docs/m83-bootstrap-proof.json) and [complete selected closure](../../docs/m83-module-closure.json) define the reviewed scope and unsatisfied gates. Normal target is git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main, observed 24c36bf40102c2c1d160dc7d0e27fb161e12dbd6. Later metadata-only handoff HEAD carries [skip ci] and leaves frozen runtime source unchanged. Fresh owner publication/ordinary acquisition and explicit integration disposition are required before M83.7 [+], acceptance/retirement or downstream adoption. No publication authority is inferred from upstream grants, local hashes or status.
+
+## Coordinator publication-gate and downstream disposition — 2026-10-08
+
+Clean reviewed evidence HEAD 4bc5ba6a56d0c7ebf34dbd852680ce63c3ab1d18 carries
+[skip ci] and changes only metadata from frozen runtime/source
+f2c5693ec39ad6981693d2ad126ff26e3fdd564c. Root independently observes approved
+proposed target git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main at
+24c36bf40102c2c1d160dc7d0e27fb161e12dbd6, an ancestor. Exact local archive,
+full selected/compiled closures, file-content proofs, owner/public-consumer and
+candidate Udon checks pass. Whole local code review remains 4/10; no reset or
+new code review is inferred. Fresh APItools-only normal source/closure publication
+was requested; no answer or authority is assumed. M83.7 stays blocked on that
+grant and independent ordinary APItools module/consumer proof. No row is in
+progress; coordinator owns continuation. Acceptance/retirement remain incomplete.
+
+The full candidate-bound OpenUdon failure remains preserved and is not waived
+or reported as passed. Read-only exact native probes separate accepted M09
+minimum-only witness indeterminacy from one SDK output-owner/context P2: the old
+adapter can borrow operation declarations for absent step outputs and resolve
+current $outputs against the wrong owner. Both retained M82+M09 and local M83+M09
+reproduce; correctly declared finite-enum step chains execute exact json.Number.
+This establishes no M83-specific exported-API regression.
+
+Under the confirmed GOAL's required downstream reconciliation, existing pending
+OpenUdon:M99.3 exact SDK/source/assessment/authority qualification now explicitly
+owns the narrow declared-output/resolved-owner-time inference repair and positive/
+negative native regressions. Original min-only source uncertainty, parent bounds,
+large-number proof and failed integration evidence remain retained. No UWS
+semantic change, frozen-history rewrite, new milestone or actual consumer
+adoption follows. The disposition assigns necessary SDK work; it does not claim
+that the still-unmodified candidate OpenUdon suite passes. Its implementation and
+whole review remain after accepted/published M83. Kinet:M49.7/.8 repeats actual
+worker checks against that accepted SDK. Restoring minimum-only compatibility
+would be a separately approved UWS-owned direction, not this scoped adaptation.
+
+## Fresh named APItools publication grant — recorded before push
+
+On 2026-10-08 the user explicitly authorized its prepared source-publication proposal: “I give authorization for its prepared source publication (/home/peter/Workspace/apitools/docs/m83-publication-proposal.md).” Scope is normal fast-forward publication of exact reviewed initial HEAD 4bc5ba6a56d0c7ebf34dbd852680ce63c3ab1d18, frozen runtime/source f2c5693ec39ad6981693d2ad126ff26e3fdd564c and reviewed evidence/acceptance/retirement closure heads to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main. Every push head carries [skip ci]. Fresh independent ordinary source/module/consumer proof is included. No force, tag, images, gh-pages/docs/host deployment, live actions or other-owner pushes are included. The grant is owner-specific; the default no-external-mutation goal otherwise remains unchanged.
+
+Fresh live inspection observes local HEAD exactly4bc, expected root-authored status-only changes preserved, matching fetch/push origin, and remote/main24c36bf40102c2c1d160dc7d0e27fb161e12dbd6, an ancestor of the exact source and reviewed head. M83.7 is set in progress before its authorized push. Initial publication uses the committed4bc head, not these uncommitted notes or a newly unreviewed head. Local review4 remains passed; ordinary qualification is followed by persisted whole review5 without resetting the count. Coordinator downstream disposition remains preserved; failed old candidate SDK evidence stays failed and is owned by pending M99.3.
+
+## Initial source publication and fresh ordinary acquisition
+
+The authorized normal fast-forward push of exact committed4bc5ba6a56d0c7ebf34dbd852680ce63c3ab1d18 succeeded; independent git ls-remote observes that full head on origin refs/heads/main. The head carries [skip ci]; frozen f2 source is its ancestor. No uncommitted grant/coordinator notes entered that initial publication.
+
+Fresh ordinary cache, configured https://proxy.golang.org,direct and sum.golang.org (GOPRIVATE/GONOSUMDB only existing github.com/genelet), resolves full f2c5693ec39ad6981693d2ad126ff26e3fdd564c to exact v0.0.0-20261008061439-f2c5693ec39a, timestamp2026-10-08T06:14:39Z and Origin.Hash/URL. Archive/GoMod h1 match the qualified source. Ordinary raw ZIP independently measures2,261,369 bytes /0dfc4af0934efe6e053ed117a67de1cd39680dd69c9fe8dc58c8d736bfffc2b0; packaging differs from bootstrap while all614 file bytes and manifestfe772598292a59f8ff96f3da3f226ff861f62be69e6d75590bc74012a8a86621 match source/extraction exactly.
+
+Complete selected owner77/compiled39/414packages and public consumer64/compiled33/353packages reproduce reviewed identities/sums/file manifests. All selected artifacts, including unused modules, are acquired from ordinary sources; owner16,271 total archive files (15,657 dependency +614source) and consumer15,444 are byte-compared. No skipped artifact, bootstrap proxy, directory replacement or workspace substitution occurs. Owner go.mod/go.sum remain byte-identical to frozen source after acquisition. Consumer full tests/races/vet/build/module-integrity pass; downloaded owner full suite passes and final full race/vet/build/integrity sequence is still running. Proofs are retained under /home/peter/.cache/apitools-m83-proof/ordinary-publication.
+
+## Whole review iteration 5 — started after ordinary proof
+
+Downloaded ordinary owner and public consumer both pass full tests, all-package races, vet, build and go mod verify with GOWORK=off GOPROXY=off GOTOOLCHAIN=local after explicit acquisition. Owner frozen go.mod/go.sum remain byte-identical. All required selected/compiled source artifacts and complete file manifests reproduce the reviewed closures. Iteration5 is persisted STARTED before read-only fan-out over the whole M83 source/fixtures, previous fixes, public provenance, ordinary closure/verification and downstream disposition. No count is reset and no acceptance is inferred before this pass closes.
+
+## Whole review iteration 5 — passed and M83.7 complete
+
+Two read-only reviewers independently revalidated the complete M83 implementation, previous fixes, ordinary source/ZIP/GoMod h1/full file manifests, all selected and compiled artifacts, actual closures, immutable source manifests and passing command/log hashes. No remaining P1/P2/P3 was found. Owner also confirms unchanged frozen corpus/grammar/schema/consumer pins and the six unchanged compatible-checker observations; no new waiver or public/private/runtime direction change exists. Ordinary source/proof gates are satisfied.
+
+M83.7 is complete after exact named initial publication, independent ordinary acquisition/complete file proof, downloaded owner/public-consumer full tests/all-package races/vet/build/modverify and persisted whole review5. [Ordinary publication evidence](../../docs/m83-publication.md) and [complete ordinary proof](../../docs/m83-ordinary-proof.json) supplement preserved bootstrap/history records. Source remains f2c5693ec39ad6981693d2ad126ff26e3fdd564c with source version/time/h1 unchanged. The reviewed normal task/evidence head carries [skip ci] and will be independently observed after publication under the same grant. All row states are terminal; parent still owns milestone acceptance, exact downstream reconciliation, consolidation/retirement and reviewed final-closure publication. The old full candidate SDK suite remains failed evidence; M99.3 owns its explicit native-witness/declared-output owner/time repair. No sibling, host/provider/mail/model/user-ledger/registration operation follows.

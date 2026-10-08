@@ -1,9 +1,11 @@
 # M83 corrected metadata qualification
 
-The six projection implementation rows are complete. Whole local code review
-passed at iteration 4/10 after fixing all P1/P2 findings. M83.7 remains open for
-the exact source artifact, fresh named publication and independent ordinary
-module/consumer gate; this document claims no milestone acceptance or publication.
+All seven task rows are complete. Whole review passed at iteration5/10 after
+fixing every local P1/P2 and independently qualifying the ordinarily published
+source, complete artifacts and downloaded owner/public consumer. [Publication
+evidence](m83-publication.md) and [ordinary proof](m83-ordinary-proof.json) record
+exact observed identities; coordinator acceptance/consolidation/retirement remain
+a separate handoff, not a consequence of terminal task rows.
 Original M82 acceptance, its qualified fixture and all consumer pins are preserved.
 
 The producer/verifier remains `BuildOperationShapeTable` /
@@ -64,10 +66,12 @@ disposable test trees were preserved outside its checkout; no tracked sibling
 source, ledger, manifest or pin changed. The candidate-bound bootstrap public consumer and Udon full suite pass. Candidate
 OpenUdon has one unresolved exact-large-integer chain integration failure, also
 reproduced with retained M82 APItools plus M09 root; it is not waived or reported
-as passed. Parent revalidation/disposition precedes acceptance and advancement.
-The publication proposal preserves exact fixture/log context. Ordinary independently
-resolved APItools source/version/origin/archive/sums and full selected/compiled
-consumer proof remain required after authorized publication.
+as passed. Parent revalidation assigns accepted M09 minimum-only witness uncertainty and
+the separate SDK output-owner/time repair to existing pending M99.3. The failed
+full candidate suite remains preserved, never reported as passed or waived.
+[Ordinary source/consumer proof](m83-publication.md) is now satisfied; fresh SDK/
+worker acceptance remains separately owned. The prepared proposal retains its
+original fixture/log context and the status records the later disposition.
 
 OpenUdon M99 and Kinet M49 must reproduce new claims from exact source bytes,
 retain unknown/indeterminate evidence, and freshly assess/confirm/grant new table,
