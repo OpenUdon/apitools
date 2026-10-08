@@ -833,3 +833,7 @@ The owned native GraphQL model retains explicit default presence separately from
 ### M83 Smithy member provenance
 
 Smithy URI query literals do not create shape inputs. A same-wire-name native binding is emitted only when the raw modeled input member declares the matching httpQuery trait; a synthetic nonempty MemberName or a same-name body member does not prove query membership. Native selectors and protocol stay unchanged.
+
+### M83 Discovery projection
+
+The bounded raw method/resource tree supplies normal endpoint and request declaration proof independently of the native parser's preferred media-upload path. Upload-only methods cannot supply a normal method/path contract. Requests retain partial schema evidence without asserting mandatory body presence; absent requests emit no body. Only nonempty declared root/base URL evidence may emit a server.

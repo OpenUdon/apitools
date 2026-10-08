@@ -97,6 +97,23 @@ func discoveryShapes(ctx context.Context, root map[string]any, source binding.So
 		return nil, err
 	}
 	var out []binding.OperationShape
+	methods := map[string]map[string]any{}
+	pending := []map[string]any{root}
+	for len(pending) > 0 {
+		owner := pending[len(pending)-1]
+		pending = pending[:len(pending)-1]
+		for name, value := range mapValue(owner["methods"]) {
+			method := mapValue(value)
+			id := firstNonEmpty(stringValue(method["id"]), name)
+			if methods[id] != nil {
+				return nil, ErrOperationShapeTable
+			}
+			methods[id] = method
+		}
+		for _, value := range mapValue(owner["resources"]) {
+			pending = append(pending, mapValue(value))
+		}
+	}
 	resolver := func(ref string) (map[string]any, bool) {
 		ref = strings.TrimPrefix(ref, "#/components/schemas/")
 		target, ok := model.Schemas[ref]
@@ -110,11 +127,23 @@ func discoveryShapes(ctx context.Context, root map[string]any, source binding.So
 			return nil, ErrOperationShapeTable
 		}
 		shape := nativeShape(source, native.ID, "#/methods/"+escapeJSONPointer(native.ID), "http")
-		shape.Method, shape.Path = native.HTTPMethod, native.Path
+		method := methods[native.ID]
+		// The native parser prefers an upload endpoint. A shape with the
+		// normal method selector must instead project its declared normal path.
+		if path := strings.TrimSpace(stringValue(method["path"])); path != "" {
+			shape.Method = native.HTTPMethod
+			shape.Path = path
+			if !strings.HasPrefix(path, "http://") && !strings.HasPrefix(path, "https://") {
+				shape.Path = "/" + strings.TrimPrefix(path, "/")
+				if model.PathPrefix != "" {
+					shape.Path = "/" + strings.Trim(model.PathPrefix, "/") + shape.Path
+				}
+			}
+		}
 		shape.Security = discoveryShapeSecurity(native.Scopes)
 		// Only declared provenance is emitted; the parser's default Google
 		// endpoint is not new source evidence.
-		if root["rootUrl"] != nil || root["baseUrl"] != nil {
+		if stringValue(root["rootUrl"]) != "" || stringValue(root["baseUrl"]) != "" {
 			if server, redacted, err := sanitizeOperationSourceURL(model.ServerURL); err == nil && !redacted {
 				shape.Servers = []string{server}
 			}
@@ -125,8 +154,14 @@ func discoveryShapes(ctx context.Context, root map[string]any, source binding.So
 			}
 			shape.Inputs = append(shape.Inputs, binding.Input{Location: parameter.Location, Name: firstNonEmpty(parameter.OriginalName, parameter.Name), Required: parameter.Required, Schema: budget.schema(parameter.Schema, resolver)})
 		}
-		if native.RequestRef != "" {
-			shape.Inputs = append(shape.Inputs, binding.Input{Location: "body", Name: "body", Required: true, Schema: budget.schema(model.Schemas[native.RequestRef], resolver)})
+		if request := mapValue(method["request"]); request != nil {
+			value := request
+			if native.RequestRef != "" {
+				value = model.Schemas[native.RequestRef]
+			}
+			// A declared request describes its shape, not mandatory presence.
+			// Discovery has no proved whole-body requiredness in this adapter.
+			shape.Inputs = append(shape.Inputs, binding.Input{Location: "body", Name: "body", Schema: budget.schema(value, resolver)})
 		}
 		if native.ResponseRef != "" {
 			shape.Outputs = append(shape.Outputs, binding.Output{Location: "body", Name: "body", Schema: budget.schema(model.Schemas[native.ResponseRef], resolver)})

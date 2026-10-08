@@ -100,3 +100,50 @@ func TestOperationShapesSmithyLiteralMemberProvenance(t *testing.T) {
 		})
 	}
 }
+
+func TestOperationShapesDiscoveryRequestsAndEndpoints(t *testing.T) {
+	for name, method := range map[string]string{
+		"normal":         `"path":"files","request":{"$ref":"File"}`,
+		"normal-upload":  `"path":"files","request":{"$ref":"File"},"mediaUpload":{"protocols":{"simple":{"path":"/upload/files","multipart":true},"resumable":{"path":"/resumable/files"}}}`,
+		"upload-only":    `"mediaUpload":{"protocols":{"simple":{"path":"/upload/files"}}}`,
+		"inline":         `"path":"files","request":{"type":"object","properties":{"id":{"type":"string"}}}`,
+		"missing-schema": `"path":"files","request":{"$ref":"Missing"}`,
+		"no-request":     `"path":"files"`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			source := fmt.Sprintf(`{"discoveryVersion":"v1","name":"files","version":"v1","rootUrl":"https://example.invalid/","servicePath":"api/v1/","schemas":{"File":{"type":"object"}},"resources":{"files":{"methods":{"insert":{"id":"files.insert","httpMethod":"POST",%s}}}}}`, method)
+			table, err := BuildOperationShapeTable(context.Background(), OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "discovery", OperationSourceInput: OperationSourceInput{Kind: OperationSourceGoogleDiscovery, Content: []byte(source)}}}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			operation := table.Operations[0]
+			if operation.Complete || operation.Selector.Value != "#/methods/files.insert" || len(operation.Servers) != 1 || operation.Servers[0] != "https://example.invalid" {
+				t.Fatalf("lost native identity/server or incomplete evidence: %+v", operation)
+			}
+			if name == "upload-only" {
+				if operation.Path != "" || operation.Method != "" {
+					t.Fatal("upload endpoint became normal HTTP contract")
+				}
+			} else if operation.Path != "/api/v1/files" || operation.Method != "POST" {
+				t.Fatalf("lost declared normal endpoint: %+v", operation)
+			}
+			hasRequest := name != "upload-only" && name != "no-request"
+			if (len(operation.Inputs) == 1) != hasRequest {
+				t.Fatalf("lost/fabricated request: %+v", operation.Inputs)
+			}
+			for _, input := range operation.Inputs {
+				if input.Required || input.Schema.Known {
+					t.Fatal("unproved mandatory body/schema")
+				}
+			}
+		})
+	}
+	source := `{"discoveryVersion":"v1","name":"files","version":"v1","rootUrl":"","baseUrl":"","methods":{"get":{"id":"get","httpMethod":"GET","path":"files"}}}`
+	table, err := BuildOperationShapeTable(context.Background(), OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "empty-server", OperationSourceInput: OperationSourceInput{Kind: OperationSourceGoogleDiscovery, Content: []byte(source)}}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(table.Operations[0].Servers) != 0 {
+		t.Fatal("empty declaration enabled parser default server")
+	}
+}
