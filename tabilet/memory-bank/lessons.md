@@ -65,6 +65,14 @@ need no journal entry or separate archive run.
   forged/stale identity, symbolic-security and no-network regressions in
   `operation_shapes_identity_test.go`.
 
+Native protocol direction, default presence, literal-versus-member provenance
+and response aliases are also proof inputs. Stage 11 intake probes at
+24c36bf40102c2c1d160dc7d0e27fb161e12dbd6 showed AsyncAPI 2.x direction inversion,
+defaulted GraphQL arguments still required and Smithy literal query inputs.
+Lost serialization or unenforced formats cannot establish complete/known
+evidence. [M83](status-M83.md) owns the pending corrections and exact consumer
+handoff; structurally valid tables alone do not establish these semantics.
+
 ## Bind version evidence to an exact publisher and native identity
 
 - **Applies when:** Discovering versions across shared hosting and native source families.
