@@ -2,12 +2,12 @@
 
 ## Stage 11 post-acceptance remediation — 2026-10-08
 
-The user approved the complete reconciliation proposal and its planning-file application. Five new package-local milestones / 28 pending task rows restore accepted supported contracts. Original Stage 11 acceptance and all completed records remain frozen; this intake starts no closing review.
+The user approved the complete reconciliation proposal and its planning-file application. Five new package-local milestones / 28 task rows restore accepted supported contracts. Original Stage 11 acceptance and all completed records remain frozen; this intake starts no closing review.
 
 **Serial order:** Udon:M49 → UWS:M09 → APItools:M83 → OpenUdon:M99 → Kinet:M49.
 **Direct dependency graph:** UWS:M09 → APItools:M83, OpenUdon:M99, Kinet:M49; APItools:M83 → OpenUdon:M99, Kinet:M49; OpenUdon:M99 → Kinet:M49; Udon:M49 → Kinet:M49. Serial order is a scheduling gate, not an additional library dependency.
 
-**Local owner:** M83 — Stage 11 native shape projection remediation; all 7 rows pending, normal closing review not started (0/10). One serial execution owner across the five ledgers. No implementation, commit, goal launch, source publication or deployment is authorized by this planning write. A separate execution request and fresh separately named publication authority are required. Consumed Stage 11 publication/deployment envelopes are not reusable.
+**Local owner:** M83 remains pending with 7 rows and review 0/10. The confirmed serial GOAL authorizes implementation/task commits after exact accepted/published prerequisites; UWS:M09 supplies corrected root/codec source b099f6803277ae94c7e9f1da0904a0140b278f20 and ordinary proof. One serial execution owner remains required. This owner's source publication needs a separate fresh named grant; consumed upstream grants and planning/status markers supply no deployment or live authority.
 
 **Coordinator:** [Stage 11](../../../kinet/docs/stage11.md#post-acceptance-remediation--2026-10-08). Exact accepted/published successor revisions remain unset until independently observed; downstream adoption requires them. Installed M44 and independent browser/media/Phase A/legacy/frozen-consumer pins remain unchanged. Stage 12 remains provisional.
 

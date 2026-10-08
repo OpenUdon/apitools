@@ -821,3 +821,7 @@ Digest-matched prebuilt inventory enables operation diffs; absent/partial
 inventory remains unexamined without reading the baseline source. Candidate
 ranking reuses existing native summaries/effects/auth alternatives. No source
 adoption, credential resolution, account selection or operation execution occurs.
+
+### M83 AsyncAPI direction correction
+
+Shape projection interprets AsyncAPI 2.x publish as consumed/output and subscribe as produced/input, corresponding to 3.x receive/send. Native operation IDs/selectors and partial schema/security evidence are retained; this adds no transport or execution support. Equivalent-version regressions live in `operation_shapes_remediation_test.go`.

@@ -238,9 +238,9 @@ func asyncShapes(ctx context.Context, root map[string]any, source binding.Source
 			}
 		}
 		switch native.Action {
-		case "send", "publish":
+		case "send", "subscribe":
 			shape.Inputs = []binding.Input{{Location: "payload", Name: "payload", Required: true, Schema: schema}}
-		case "receive", "subscribe":
+		case "receive", "publish":
 			shape.Outputs = []binding.Output{{Location: "payload", Name: "payload", Schema: schema}}
 		}
 		if err := budget.append(&out, shape); err != nil {

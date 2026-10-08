@@ -1,8 +1,8 @@
 # M83 — Stage 11 native shape projection remediation
 
 **Stage:** STG-11 post-acceptance remediation. **Owner:** APItools.
-**State:** Approved planning, 2026-10-08; implementation not started. All 7 task rows are pending.
-**Authority:** The user approved the complete reconciliation proposal with “Implement the plan.” This applies planning files only. A separate execution request is required; no code, commit, source-publication, deployment or live-operation authority follows.
+**State:** Authorized serial implementation started, 2026-10-08. M83.1 is complete; six rows remain pending and publication remains a separate gate.
+**Authority:** The complete review reconciliation was approved, followed by the confirmed serial GOAL request on 2026-10-08: Udon:M49 → UWS:M09 → APItools:M83 → OpenUdon:M99 → Kinet:M49, COMMIT_POLICY: task and EXTERNAL_MUTATIONS: none. This authorizes scoped implementation after accepted/published prerequisites; source publication still requires this owner's separate fresh named grant. The Udon/UWS publication exceptions do not extend to this owner or live operations.
 **Review source:** stage11-siblings-review.md — Stage 11 code review — sibling packages; APItools section.
 **Review baseline/range:** `9364afac98c97b79c9e6b9335bd9c71d4e8722d5` → `24c36bf40102c2c1d160dc7d0e27fb161e12dbd6`.
 **Revalidation HEAD:** `24c36bf40102c2c1d160dc7d0e27fb161e12dbd6`; clean worktree, no relevant uncommitted code in the evidence. Approved planning changes are not implementation evidence.
@@ -27,13 +27,13 @@ AsyncAPI 2.x publish consumes/output and subscribe produces/input consistently w
 
 | Item | State | Notes |
 |---|---|---|
-| M83.1 — Correct AsyncAPI version-dependent message direction | `[ ]` | Map 2.x publish to consumed/output and subscribe to produced/input, corresponding to v3 receive/send. Retain partial native security/schema evidence and stable selectors; test equivalent 2/3 declarations. Source A1. |
+| M83.1 — Correct AsyncAPI version-dependent message direction | `[+]` | Map 2.x publish to consumed/output and subscribe to produced/input, corresponding to v3 receive/send. Retain partial native security/schema evidence and stable selectors; test equivalent 2/3 declarations. Source A1. |
 | M83.2 — Preserve GraphQL defaults and response keys | `[ ]` | Use default-value presence for non-null argument/variable requiredness. Add response-key metadata where needed in the owned GraphQL parser/model without changing underlying field names/selectors; preserve aliases and distinguish genuine duplicate response keys. No GraphQL transport capability is added. Sources A2/P3.7. |
 | M83.3 — Separate Smithy static query literals from modeled inputs | `[ ]` | Use raw/native member provenance to omit static URI query literals with no modeled input member. Do not filter only on an empty MemberName, since synthetic names are populated. Preserve real query members, including same-name cases, and source-native protocols/selectors. Source A3. |
 | M83.4 — Correct Discovery request and endpoint projection | `[ ]` | Preserve declared method/request/normal versus upload endpoint evidence without inventing HTTP contracts or mandatory bodies. Use indeterminate/incomplete evidence when native/raw source cannot prove requiredness or distinguish a supported variant. Keep declared server/source metadata and native selectors. Source P3.6. |
 | M83.5 — Keep OpenAPI completeness and format claims honest | `[ ]` | Account for explode-only, Swagger collectionFormat and non-JSON content/encoding loss. Mark unsupported serialization incomplete and unenforced native formats unknown unless constraints are actually proved; do not silently widen schemas or add runtime serialization promises. Sources P3.1/P3.2. |
 | M83.6 — Restore bounded OpenAPI and Swagger metadata compatibility | `[ ]` | Normalize only numeric YAML response-code keys with duplicate checks; ignore legal path-level vendor annotations of any type without globally coercing mapping keys. Use consistent Swagger 2.0 detection for schemas/security/servers, retain declared TRACE metadata and remove dead method case logic without enabling TRACE runtime execution. Sources P3.3/P3.4/P3.5. |
-| M83.7 — Qualify all native families and publish the exact handoff | `[ ]` | Adopt exact accepted/published UWS:M09, run eight-family source-backed shape/identity/security/no-network compatibility and standalone owner/consumer checks, preserve old qualification evidence and add corrected successor fixtures. Persist review counters and record accepted/published source/module sums plus OpenUdon/Kinet impacts; publication needs fresh named authority. |
+| M83.7 — Qualify all native families and publish the exact handoff | `[ ]` | Adopt exact accepted/published UWS:M09 root, preserving conservative schema/dialect/path evidence, then run eight-family source-backed shape/identity/security/no-network compatibility and standalone owner/consumer checks, preserve old qualification evidence and add corrected successor fixtures. Persist review counters and record accepted/published source/module sums plus OpenUdon/Kinet impacts; publication needs fresh named authority. |
 
 ## Active finding provenance
 
@@ -68,3 +68,35 @@ Public schemas/wires, published grammar/version bytes, accepted historical quali
 **Execution owner:** one serial owner across the five ledgers; no row is in progress.
 **Commit policy:** The user separately authorized a planning commit on 2026-10-08 with “git commit and then report the index refresh issue in ~/skill-index.md”. This authorizes one commit of the approved planning changes in this owner repository; implementation, publication and deployment remain outside this request. Future task commits follow the separately invoked GOAL/request policy.
 **Closure:** persist each started review iteration before reviewing; resume an interrupted pass at the same number. No open P1/P2 may remain at acceptance. Required verification, exact downstream reconciliation and owner-specific consolidation/retirement follow implementation; never reopen completed Stage 11 history.
+
+## Accepted UWS:M09 prerequisite — 2026-10-08
+
+All five UWS rows and whole review 7/10 pass; accepted root/codec runtime is
+b099f6803277ae94c7e9f1da0904a0140b278f20, independently resolved as
+v0.0.0-20261008043726-b099f6803277. Published evidence
+51a74545b016b8ab75e30d454338c52f7945a836 is independently observed. Root sum is
+h1:4xy+/HBNh1CSJDO+qOzWdV/0zC/yFCKAz2kOBWufA7g=; codec sum is
+h1:OJsmDK/RcFpyMAMGy84DjcX6kNalYH/E0Q/C3XwD5Uo=. GoMod sums are
+h1:DlqFOnO9lbmYWLLIh5WicNX6NTWIuytU6mIHmxj9BVw= (root) and
+h1:0cR/xLzEP8vJ9FAUhsLbaKVkU7UarXPc51nJjEaMP5Q= (codec).
+[Ordinary publication proof](../../../uws/docs/m09-publication.md) records
+full provenance, exact 360/21 files and complete 52/50/52 selected closures.
+These counts describe UWS proofs, not a prescribed downstream closure size.
+Normal M09 retirement closure 989e3f2c88cac5c0f5a2911dfe04c36a61e43126
+is independently observed on the approved origin/main before adoption. Runtime
+b099f6803277ae94c7e9f1da0904a0140b278f20 is its ancestor; UWS worktree is clean.
+
+Corrected binding proofs retain containing constraints, original dialect and
+indeterminate outcomes. Flow and strict portability use actual root goto,
+trigger/dependency iteration contexts and separate step/operation output owners.
+Untrusted HCL/shape parsing refuses depth above 100 before recursive decoding;
+HCL views require deterministic canonical bytes plus independent value/numeric
+proof. Non-NFC presentation remains fail-closed. Ordinary validation/execution,
+wire/schema/digest algorithms, published versions/corpora and frozen consumer
+pins stay preserved. Changed diagnostics/derived assessments/package or worker
+identities require fresh assessments/confirmations/grants. This prerequisite
+note changes no implementation row to complete and supplies no live authority.
+
+## M83.1 implementation evidence
+
+AsyncAPI 2.x publish emits an output and subscribe a required payload input, matching v3 receive/send. Equivalent 2/3 raw fixtures independently reproduce selector and partial security/completeness evidence. Offline retained Go 1.26.6 `GOWORK=off GOPROXY=off GOTOOLCHAIN=local go test . -run '^TestOperationShapes'` passes. The accepted v3 eight-family corpus bytes stay unchanged.
