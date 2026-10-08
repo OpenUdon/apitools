@@ -235,3 +235,17 @@ Lost serialization or unenforced formats cannot establish complete/known
 evidence. [M83](status-M83.md) owns the pending corrections and exact consumer
 handoff; structurally valid tables alone do not establish these semantics.
 ````
+
+## 2026-10-08 — Required reserved-header projection remediation
+
+**Original source.** tabilet/memory-bank/milestone.md, Active Milestone Specifications.
+
+**Reason and evidence.** After current-code reconciliation at de3f16acbf12c7b632ee0ed9be02efaaf2c2be4b, the user requested package-local milestones and selected required fixes only. New M84 owns confirmed source-P2/local-P2 AP1; completed M83 and all original Stage 11 records remain accepted and frozen. This replaces only the empty active-horizon assertion, not implementation truth or historical acceptance.
+
+**Replacement.** [Active M84 specification](../../memory-bank/milestone.md#m84--reserved-openapi-header-projection-remediation) and its status. No fix or source publication has been delivered by planning.
+
+**Preserved wording.**
+
+```markdown
+M83 is accepted/retired; no active APItools row remains. Original Stage 11 is accepted across the five owner ledgers.
+```
