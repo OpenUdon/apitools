@@ -295,7 +295,7 @@ func graphQLShapes(ctx context.Context, model *graphql.Model, source binding.Sou
 			if variable == nil {
 				return nil, ErrOperationShapeTable
 			}
-			shape.Inputs = append(shape.Inputs, binding.Input{Location: "variable", Name: variable.Name, Required: variable.Required, Schema: graphQLTypeSchema(variable.Type)})
+			shape.Inputs = append(shape.Inputs, binding.Input{Location: "variable", Name: variable.Name, Required: variable.Type.Required && !variable.HasDefault, Schema: graphQLTypeSchema(variable.Type)})
 		}
 		if native.FieldName != "" {
 			var root *graphql.Type
@@ -310,13 +310,13 @@ func graphQLShapes(ctx context.Context, model *graphql.Model, source binding.Sou
 					if argument == nil {
 						return nil, ErrOperationShapeTable
 					}
-					shape.Inputs = append(shape.Inputs, binding.Input{Location: "argument", Name: argument.Name, Required: argument.Required, Schema: graphQLTypeSchema(argument.Type)})
+					shape.Inputs = append(shape.Inputs, binding.Input{Location: "argument", Name: argument.Name, Required: argument.Type.Required && !argument.HasDefault, Schema: graphQLTypeSchema(argument.Type)})
 				}
 				shape.Outputs = []binding.Output{{Location: "data", Name: native.FieldName, Schema: graphQLTypeSchema(field.Type)}}
 			}
 		} else {
-			for _, name := range native.SelectionNames {
-				shape.Outputs = append(shape.Outputs, binding.Output{Location: "data", Name: name})
+			for _, selection := range native.Selections {
+				shape.Outputs = append(shape.Outputs, binding.Output{Location: "data", Name: selection.ResponseKey})
 			}
 		}
 		sortShapeInputs(shape.Inputs)

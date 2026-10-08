@@ -42,3 +42,25 @@ func TestOperationShapesAsyncAPIVersionDirections(t *testing.T) {
 		})
 	}
 }
+
+func TestOperationShapesGraphQLDefaultsAndAliases(t *testing.T) {
+	options := OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "graphql", OperationSourceInput: OperationSourceInput{Kind: OperationSourceGraphQL, Content: []byte(`type Query { field(first: Int! = 10, required: Int!): String } query Q($first: Int! = 10, $required: Int!) { a: field b: field }`)}}}}
+	table, err := BuildOperationShapeTable(context.Background(), options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, operation := range table.Operations {
+		if len(operation.Inputs) != 2 || operation.Inputs[0].Name != "first" || operation.Inputs[0].Required || !operation.Inputs[1].Required {
+			t.Fatalf("wrong default requiredness: %+v", operation)
+		}
+		if operation.Selector.Value == "#/operations/query.Q" {
+			if len(operation.Outputs) != 2 || operation.Outputs[0].Name != "a" || operation.Outputs[1].Name != "b" {
+				t.Fatalf("aliases collapsed: %+v", operation)
+			}
+		}
+	}
+	options.Sources[0].Content = []byte(`query Q { same: first same: second }`)
+	if _, err := BuildOperationShapeTable(context.Background(), options); err == nil {
+		t.Fatal("duplicate response key silently accepted")
+	}
+}

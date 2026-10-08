@@ -219,7 +219,8 @@ func parseIntrospectionArgument(root map[string]any) *Argument {
 		Description:  stringField(root, "description"),
 		Type:         typeRef,
 		DefaultValue: stringField(root, "defaultValue"),
-		Required:     typeRef.Required,
+		HasDefault:   root["defaultValue"] != nil,
+		Required:     typeRef.Required && root["defaultValue"] == nil,
 	}
 }
 
@@ -581,6 +582,8 @@ func (p *graphQLParser) parseInputType(description string) *Type {
 			arg.Required = arg.Type.Required
 		}
 		if p.consume("=") {
+			arg.HasDefault = true
+			arg.Required = false
 			arg.DefaultValue = p.collectDefaultValue()
 		}
 		p.skipDirectives()
@@ -656,7 +659,7 @@ func (p *graphQLParser) parseOperation(forcedKind string) *Operation {
 	p.skipDirectives()
 	hasSelection := false
 	if p.peekValue("{") {
-		operation.SelectionNames = p.parseSelectionSet()
+		operation.SelectionNames, operation.Selections = p.parseSelectionSet()
 		hasSelection = true
 	}
 	if !hasSelection {
@@ -673,7 +676,7 @@ func (p *graphQLParser) parseOperation(forcedKind string) *Operation {
 
 func (p *graphQLParser) parseAnonymousQuery() *Operation {
 	operation := &Operation{Name: "anonymous", Kind: "query"}
-	operation.SelectionNames = p.parseSelectionSet()
+	operation.SelectionNames, operation.Selections = p.parseSelectionSet()
 	operation.ID = sourceOperationID(operation.Kind, operation.Name)
 	operation.Selector = OperationSelector(operation.ID)
 	operation.SourceRef = operation.Selector
@@ -697,6 +700,8 @@ func (p *graphQLParser) parseArgumentsDefinition() []*Argument {
 			arg.Required = arg.Type.Required
 		}
 		if p.consume("=") {
+			arg.HasDefault = true
+			arg.Required = false
 			arg.DefaultValue = p.collectDefaultValue()
 		}
 		p.skipDirectives()
@@ -723,6 +728,8 @@ func (p *graphQLParser) parseVariablesDefinition() []*Variable {
 			variable.Required = variable.Type.Required
 		}
 		if p.consume("=") {
+			variable.HasDefault = true
+			variable.Required = false
 			variable.DefaultValue = p.collectDefaultValue()
 		}
 		p.skipDirectives()
@@ -759,12 +766,13 @@ func (p *graphQLParser) parseTypeRefDepth(depth int) TypeRef {
 	return ref
 }
 
-func (p *graphQLParser) parseSelectionSet() []string {
+func (p *graphQLParser) parseSelectionSet() ([]string, []Selection) {
 	if !p.consume("{") {
-		return nil
+		return nil, nil
 	}
 	seen := map[string]struct{}{}
 	var out []string
+	var selections []Selection
 	for !p.done() && !p.consume("}") {
 		if p.consume("...") {
 			p.consumeName()
@@ -782,6 +790,7 @@ func (p *graphQLParser) parseSelectionSet() []string {
 				selectionName = target
 			}
 		}
+		selections = append(selections, Selection{FieldName: selectionName, ResponseKey: name})
 		if _, exists := seen[selectionName]; !exists {
 			seen[selectionName] = struct{}{}
 			out = append(out, selectionName)
@@ -794,7 +803,7 @@ func (p *graphQLParser) parseSelectionSet() []string {
 			p.skipBalanced("{", "}")
 		}
 	}
-	return out
+	return out, selections
 }
 
 func (p *graphQLParser) collectDefaultValue() string {
@@ -802,7 +811,7 @@ func (p *graphQLParser) collectDefaultValue() string {
 	depth := 0
 	for !p.done() {
 		tok := p.peek()
-		if depth == 0 && (tok.value == ")" || tok.value == "}" || tok.value == "@" || tok.kind == tokenName && p.peekNextValue(":")) {
+		if depth == 0 && (tok.value == ")" || tok.value == "}" || tok.value == "@" || tok.value == "$" || tok.kind == tokenName && p.peekNextValue(":")) {
 			break
 		}
 		if tok.value == "[" || tok.value == "{" || tok.value == "(" {

@@ -174,3 +174,59 @@ func FuzzParse(f *testing.F) {
 		_, _ = Parse(data)
 	})
 }
+
+func TestDefaultsAndResponseKeys(t *testing.T) {
+	model, err := Parse([]byte(`type Query { field(first: Int! = 10, text: String! = "", required: Int!): String } input Filter { limit: Int! = 10 } query Q($first: Int! = 10, $text: String! = "", $required: Int!) { a: field b: field field a: other }`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	operation, _ := model.OperationByID("query.Q")
+	if len(operation.Variables) != 3 {
+		t.Fatal(operation.Variables)
+	}
+	for i, variable := range operation.Variables {
+		if variable.Required != (i == 2) || variable.HasDefault != (i != 2) || !variable.Type.Required {
+			t.Fatalf("wrong variable default: %+v", variable)
+		}
+	}
+	if operation.Variables[0].DefaultValue != "10" {
+		t.Fatal("default swallowed next variable")
+	}
+	var field *Field
+	var input *Argument
+	for _, typ := range model.Types {
+		if typ.Name == "Query" {
+			field = typ.Fields[0]
+		}
+		if typ.Name == "Filter" {
+			input = typ.InputFields[0]
+		}
+	}
+	if field == nil || input == nil {
+		t.Fatal("missing schema types")
+	}
+	for i, argument := range field.Args {
+		if argument.Required != (i == 2) || argument.HasDefault != (i != 2) || !argument.Type.Required {
+			t.Fatalf("wrong argument default: %+v", argument)
+		}
+	}
+	if input.Required {
+		t.Fatal("defaulted input-object field required")
+	}
+	if len(operation.Selections) != 4 || len(operation.SelectionNames) != 2 || operation.Selections[0].FieldName != "field" || operation.Selections[0].ResponseKey != "a" || operation.Selections[1].ResponseKey != "b" || operation.Selections[3].ResponseKey != "a" {
+		t.Fatalf("lost response keys or underlying fields: %+v", operation)
+	}
+	if field.Name != "field" || field.Selector != "#/schema/Query/fields/field" || operation.Selector != "#/operations/query.Q" {
+		t.Fatal("changed native fields/selectors")
+	}
+}
+
+func TestIntrospectionDefaultPresence(t *testing.T) {
+	ref := map[string]any{"kind": "NON_NULL", "ofType": map[string]any{"kind": "SCALAR", "name": "Int"}}
+	for _, value := range []any{nil, "10", "null", ""} {
+		argument := parseIntrospectionArgument(map[string]any{"name": "first", "type": ref, "defaultValue": value})
+		if argument.Required != (value == nil) || argument.HasDefault != (value != nil) || !argument.Type.Required {
+			t.Fatalf("wrong default presence: %+v", argument)
+		}
+	}
+}

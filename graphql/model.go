@@ -65,6 +65,7 @@ type Argument struct {
 	Description  string
 	Type         TypeRef
 	DefaultValue string
+	HasDefault   bool
 	Required     bool
 }
 
@@ -97,9 +98,17 @@ type Operation struct {
 	Summary        string
 	Variables      []*Variable
 	SelectionNames []string
+	Selections     []Selection
 	FieldName      string
 	FieldType      TypeRef
 	RootType       string
+}
+
+// Selection retains each top-level field and its response key. Repeated keys
+// remain visible so trust projections can refuse ambiguous output contracts.
+type Selection struct {
+	FieldName   string
+	ResponseKey string
 }
 
 // Variable records GraphQL operation variable metadata.
@@ -107,6 +116,7 @@ type Variable struct {
 	Name         string
 	Type         TypeRef
 	DefaultValue string
+	HasDefault   bool
 	Required     bool
 }
 

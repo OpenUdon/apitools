@@ -825,3 +825,7 @@ adoption, credential resolution, account selection or operation execution occurs
 ### M83 AsyncAPI direction correction
 
 Shape projection interprets AsyncAPI 2.x publish as consumed/output and subscribe as produced/input, corresponding to 3.x receive/send. Native operation IDs/selectors and partial schema/security evidence are retained; this adds no transport or execution support. Equivalent-version regressions live in `operation_shapes_remediation_test.go`.
+
+### M83 GraphQL defaults and response keys
+
+The owned native GraphQL model retains explicit default presence separately from non-null type metadata and each selected field's response key separately from its underlying name. Non-null inputs with defaults are optional. Shape outputs use response keys without changing field/operation selectors; genuine duplicate keys refuse rather than being lost by underlying-name deduplication. Existing summary SelectionNames retain their historical underlying-name meaning. No GraphQL transport is added.
