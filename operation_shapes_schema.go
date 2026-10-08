@@ -278,7 +278,7 @@ func shapeBodyContent(root map[string]any, object map[string]any, budget *operat
 }
 
 func shapeHTTPServers(root map[string]any, pathItem, operation map[string]any) ([]string, bool) {
-	if root["swagger"] == "2.0" {
+	if stringValue(root["swagger"]) == "2.0" {
 		host := stringValue(root["host"])
 		value, declared := operation["schemes"]
 		if !declared {

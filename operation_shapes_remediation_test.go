@@ -223,3 +223,55 @@ func TestOperationShapesSwaggerSerialization(t *testing.T) {
 		})
 	}
 }
+
+func TestOperationShapesOpenAPIMetadataCompatibility(t *testing.T) {
+	source := `openapi: 3.1.0
+info: {title: YAML, version: '1'}
+servers: [{url: https://example.invalid}]
+security: []
+paths:
+  x-list: [a, b]
+  x-scalar: text
+  x-null: null
+  /things:
+    x-number: 42
+    trace:
+      responses:
+        200: {description: Things, content: {application/json: {schema: {type: object}}}}
+`
+	options := OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "yaml", OperationSourceInput: OperationSourceInput{Kind: OperationSourceOpenAPI, Content: []byte(source)}}}}
+	table, err := BuildOperationShapeTable(context.Background(), options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(table.Operations) != 1 || table.Operations[0].Method != "TRACE" || table.Operations[0].Path != "/things" || !table.Operations[0].Outputs[0].Schema.Known {
+		t.Fatalf("lost valid metadata: %+v", table)
+	}
+	for _, bad := range []string{
+		source + "        '200': {description: duplicate}\n",
+		source + "        200.0: {description: normalized-duplicate}\n",
+		source + "        true: {description: boolean}\n",
+		source + "        200.5: {description: fraction}\n",
+		"openapi: 3.1.0\ninfo: {title: Numeric, version: '1'}\npaths:\n  200: {}\n",
+		"openapi: 3.1.0\ninfo: {title: Numeric, version: '1'}\npaths: {}\ncomponents:\n  schemas:\n    Test:\n      type: object\n      properties:\n        200: {type: string}\n",
+	} {
+		options.Sources[0].Content = []byte(bad)
+		if _, err := BuildOperationShapeTable(context.Background(), options); err == nil {
+			t.Fatal("coerced arbitrary or colliding YAML key")
+		}
+	}
+}
+
+func TestOperationShapesNumericSwaggerVersion(t *testing.T) {
+	for _, version := range []string{`"2.0"`, `2.0`} {
+		source := fmt.Sprintf(`{"swagger":%s,"info":{"title":"Swagger","version":"1"},"host":"example.invalid","schemes":["https"],"basePath":"/v1","produces":["application/json"],"securityDefinitions":{"basic":{"type":"basic"},"oauth":{"type":"oauth2","flow":"implicit","authorizationUrl":"https://example.invalid/auth","scopes":{"read":"read"}}},"security":[{"basic":[],"oauth":["read"]}],"paths":{"/things":{"get":{"responses":{"200":{"description":"Things","schema":{"type":"object"}}}}}}}`, version)
+		table, err := BuildOperationShapeTable(context.Background(), OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "swagger", OperationSourceInput: OperationSourceInput{Kind: OperationSourceOpenAPI, Content: []byte(source)}}}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		operation := table.Operations[0]
+		if !operation.Complete || !operation.Security.Known || len(operation.Servers) != 1 || operation.Servers[0] != "https://example.invalid/v1" || len(operation.Security.Alternatives[0].Requirements) != 2 {
+			t.Fatalf("inconsistent Swagger version: %+v", operation)
+		}
+	}
+}

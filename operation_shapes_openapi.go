@@ -23,16 +23,16 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 	}
 	var out []binding.OperationShape
 	for _, path := range sortedMapKeys(paths) {
+		if strings.HasPrefix(path, "x-") {
+			continue
+		}
 		pathItem, resolved := shapeLocalObject(root, paths[path])
 		if !resolved {
 			return nil, ErrOperationShapeTable
 		}
 		for _, method := range sortedMapKeys(pathItem) {
-			if !isHTTPMethod(method) {
+			if !isHTTPMethod(method) && method != "trace" {
 				continue
-			}
-			if method != strings.ToLower(method) {
-				return nil, ErrOperationShapeTable
 			}
 			if err := ctx.Err(); err != nil {
 				return nil, err

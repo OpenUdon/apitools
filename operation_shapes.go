@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"math/big"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -187,7 +188,7 @@ func decodeShapeDocument(ctx context.Context, data []byte) (map[string]any, erro
 		if err != nil {
 			return nil, err
 		}
-		value, err = shapeYAMLValue(node)
+		value, err = shapeYAMLValue(node, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -253,34 +254,53 @@ func shapeJSONValue(ctx context.Context, d *json.Decoder) (any, error) {
 	return nil, ErrOperationShapeTable
 }
 
-func shapeYAMLValue(n *yaml.Node) (any, error) {
+func shapeYAMLValue(n *yaml.Node, path []string) (any, error) {
 	switch n.Kind {
 	case yaml.DocumentNode:
 		if len(n.Content) != 1 {
 			return nil, ErrOperationShapeTable
 		}
-		return shapeYAMLValue(n.Content[0])
+		return shapeYAMLValue(n.Content[0], path)
 	case yaml.MappingNode:
 		out := map[string]any{}
 		for i := 0; i < len(n.Content); i += 2 {
 			key := n.Content[i]
-			if key.Kind != yaml.ScalarNode || key.Tag != "!!str" {
+			if key.Kind != yaml.ScalarNode {
 				return nil, ErrOperationShapeTable
 			}
-			if _, exists := out[key.Value]; exists {
+			name := key.Value
+			if key.Tag != "!!str" {
+				// Numeric response-code keys are the only accepted non-string
+				// mapping keys. Never coerce arbitrary schema or extension keys.
+				responseCodes := len(path) == 4 && path[0] == "paths" || len(path) == 5 && path[0] == "components" && path[1] == "pathItems"
+				if !responseCodes || path[len(path)-1] != "responses" || !isHTTPMethod(path[len(path)-2]) && path[len(path)-2] != "trace" || key.Tag != "!!int" && key.Tag != "!!float" {
+					return nil, ErrOperationShapeTable
+				}
+				value, err := shapeYAMLValue(key, nil)
+				if err != nil {
+					return nil, err
+				}
+				number, ok := value.(json.Number)
+				code, valid := new(big.Rat).SetString(number.String())
+				if !ok || !valid || !code.IsInt() || !code.Num().IsInt64() || code.Num().Int64() < 100 || code.Num().Int64() > 599 {
+					return nil, ErrOperationShapeTable
+				}
+				name = code.Num().String()
+			}
+			if _, exists := out[name]; exists {
 				return nil, ErrOperationShapeTable
 			}
-			value, err := shapeYAMLValue(n.Content[i+1])
+			value, err := shapeYAMLValue(n.Content[i+1], append(path, name))
 			if err != nil {
 				return nil, err
 			}
-			out[key.Value] = value
+			out[name] = value
 		}
 		return out, nil
 	case yaml.SequenceNode:
 		out := make([]any, 0, len(n.Content))
 		for _, child := range n.Content {
-			value, err := shapeYAMLValue(child)
+			value, err := shapeYAMLValue(child, append(path, ""))
 			if err != nil {
 				return nil, err
 			}

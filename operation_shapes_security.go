@@ -24,7 +24,7 @@ func openAPIShapeSecurity(root, operation map[string]any) (binding.Security, err
 		return security, nil
 	}
 	definitions := mapValue(mapValue(root["components"])["securitySchemes"])
-	if root["swagger"] == "2.0" {
+	if stringValue(root["swagger"]) == "2.0" {
 		definitions = mapValue(root["securityDefinitions"])
 	}
 	for _, rawAlternative := range alternatives {
@@ -67,13 +67,13 @@ func openAPIShapeSecurity(root, operation map[string]any) (binding.Security, err
 						security.Known = false
 					}
 				case "basic":
-					if root["swagger"] != "2.0" || len(scopes) > 0 {
+					if stringValue(root["swagger"]) != "2.0" || len(scopes) > 0 {
 						security.Known = false
 					}
 				case "oauth2":
 					declaredScopes := map[string]bool{}
 					flows := mapValue(definition["flows"])
-					if root["swagger"] == "2.0" {
+					if stringValue(root["swagger"]) == "2.0" {
 						flows = map[string]any{"legacy": definition}
 					}
 					if len(flows) == 0 {

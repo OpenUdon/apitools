@@ -11,7 +11,7 @@ APIs or their wire bytes. M82 is accepted after whole review 3 at public source
 The producer preserves raw SHA-256, family-native operation selectors and
 symbolic IDs. It uses the existing native parsers. Direct JSON Schema numeric
 constraints retain their lexemes; YAML uses guarded nodes with exact JSON-compatible numeric
-scalars. Non-JSON YAML scalar tags and numeric spellings refuse. Annotations,
+scalars. Only operation response-code mappings normalize integral numeric YAML 100–599 keys, refusing normalized collisions; all other non-string mapping keys refuse. Non-JSON YAML scalar tags and numeric spellings refuse. Annotations,
 examples and defaults are omitted from schema projections. Missing, recursive,
 external or unsupported schema evidence has `known: false`; absence is distinct
 from an explicitly unconstrained schema. No external reference is loaded.
@@ -20,7 +20,7 @@ claiming complete schema or lossless numeric semantics.
 
 | Family | Projection and current limits |
 |---|---|
-| OpenAPI/Swagger | Native path/method pointer plus operation-ID alias; inherited/overridden parameters, local request/response/header schemas and symbolic security. Supported explicit HTTP contracts can be complete. Multiple media types/successful response alternatives, undeclared security, unresolved schemes, unsupported dialects or transport details remain incomplete. Explode/style/collectionFormat and parameter/header content cannot prove supported serialization. Non-JSON or encoded bodies and unenforced native/custom formats remain unknown. Swagger bodies require one explicit JSON media declaration. |
+| OpenAPI/Swagger | Native path/method pointer plus operation-ID alias, including declared TRACE metadata without widening runtime capability; legal path-map x- annotations are ignored. inherited/overridden parameters, local request/response/header schemas and symbolic security. Supported explicit HTTP contracts can be complete. Multiple media types/successful response alternatives, undeclared security, unresolved schemes, unsupported dialects or transport details remain incomplete. Explode/style/collectionFormat and parameter/header content cannot prove supported serialization. Non-JSON or encoded bodies and unenforced native/custom formats remain unknown. Swagger bodies require one explicit JSON media declaration. |
 | Google Discovery | Method ID/pointer, inherited native parameters, independently declared normal method path/server and declared referenced or inline request bodies. Upload-only declarations cannot supply a normal HTTP endpoint; whole-body requiredness stays unproved. Parser-normalized schemas and OAuth scope alternatives remain partial; no default endpoint or complete account/auth policy is inferred. |
 | AWS Smithy | Absolute operation shape ID/pointer, native AWS protocol and raw-proven input-member locations. Static URI query literals are excluded from inputs; real query members retain their native names. Compound/member schemas and authorization remain partial. No synthetic generic HTTP server/method is emitted. |
 | AsyncAPI | Operation ID/pointer and version-specific payload direction: v2 subscribe and v3 send take inputs; v2 publish and v3 receive produce outputs. A single local message schema can be projected; multiple messages, bindings and auth remain partial. |

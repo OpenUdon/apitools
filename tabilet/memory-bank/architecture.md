@@ -841,3 +841,7 @@ The bounded raw method/resource tree supplies normal endpoint and request declar
 ### M83 serialization and format proof
 
 OpenAPI serialization details that the shape contract does not reproduce (including explode, collectionFormat and content/encoding) prevent completeness. Body schemas are unknown for non-JSON or encoded representations; Swagger body proof needs one explicit inherited JSON media declaration. Format knownness permits only exact built-in assertions of the retained JSON Schema compiler, leaving native numeric/binary and custom formats unknown. No runtime serializer or new constraint translation is added.
+
+### M83 bounded OpenAPI compatibility
+
+YAML numeric-key normalization is restricted to integral 100–599 response codes at native operation response maps, including reusable path items; normalized collisions and other non-string keys refuse. Legal path-map x- annotations are skipped regardless of their value type. Swagger detection uses one string/number interpretation throughout shapes, servers and security. TRACE is retained as source shape metadata without changing generic HTTP/runtime methods.
