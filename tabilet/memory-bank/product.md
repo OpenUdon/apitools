@@ -2,7 +2,7 @@
 
 ## M83 corrected metadata candidate
 
-Authorized local remediation corrects native direction/default/member/request/response evidence and conservative OpenAPI serialization/format projection. The owned GraphQL model retains underlying fields, response keys, typed argument identity and children for compatible merging; conflicting fields/arguments remain refused. No transport, credential or execution capability is added. Six implementation rows are complete; exact UWS M09 adoption and successor qualification are in progress. APItools publication, independent ordinary consumer proof and milestone acceptance remain a fresh named gate, distinct from frozen M82 acceptance.
+Authorized local remediation corrects native direction/default/member/request/response evidence and conservative OpenAPI serialization/format projection. The owned GraphQL model retains underlying fields, response keys, typed argument identity and children for compatible merging; conflicting fields/arguments remain refused. No transport, credential or execution capability is added. Six implementation rows, exact UWS M09 adoption and local successor/archive/public-bootstrap qualification are complete. APItools publication, independent ordinary consumer proof and milestone acceptance remain a fresh named gate, distinct from frozen M82 acceptance.
 
 ## Qualified Stage 11 source metadata — M82
 

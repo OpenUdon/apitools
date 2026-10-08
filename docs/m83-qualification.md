@@ -44,8 +44,9 @@ are recorded. `go mod verify` passes. Horizon `v1.14.5`, HashiCorp HCL `v2.24.0`
 and the retained compiler `v6.0.1` remain; no dependency removal or private runtime
 import is claimed. Only the direct UWS version changes. Acquiring the complete
 selected graph adds checksums for already-selected dependencies without changing
-those versions. The owner's exact archive and consumer closure are recorded in
-the publication proposal once the qualified local source is committed.
+those versions. The owner's exact source `f2c5693ec39ad6981693d2ad126ff26e3fdd564c`, archive
+and independent bootstrap consumer closure are recorded in the
+[publication proposal](m83-publication-proposal.md) and [bootstrap proof](m83-bootstrap-proof.json).
 
 Verification uses retained Go 1.26.6 with `GOWORK=off GOPROXY=off
 GOTOOLCHAIN=local`, disposable fixtures and no credentials/models. Full tests,
@@ -60,8 +61,11 @@ cache and publication handoff.
 Full ordinary retained-pin OpenUdon and Udon suites pass. That verifies retained
 compatibility, not downstream adoption of the corrected producer. Generated Udon
 disposable test trees were preserved outside its checkout; no tracked sibling
-source, ledger, manifest or pin changed. Candidate-bound bootstrap module consumer
-and sibling checks precede the fresh publication request; ordinary independently
+source, ledger, manifest or pin changed. The candidate-bound bootstrap public consumer and Udon full suite pass. Candidate
+OpenUdon has one unresolved exact-large-integer chain integration failure, also
+reproduced with retained M82 APItools plus M09 root; it is not waived or reported
+as passed. Parent revalidation/disposition precedes acceptance and advancement.
+The publication proposal preserves exact fixture/log context. Ordinary independently
 resolved APItools source/version/origin/archive/sums and full selected/compiled
 consumer proof remain required after authorized publication.
 
