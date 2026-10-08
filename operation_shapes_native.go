@@ -3,6 +3,7 @@ package apitools
 import (
 	"bytes"
 	"context"
+	"sort"
 	"strings"
 
 	"github.com/OpenUdon/apitools/graphql"
@@ -364,8 +365,12 @@ func graphQLShapes(ctx context.Context, model *graphql.Model, source binding.Sou
 				shape.Outputs = []binding.Output{{Location: "data", Name: native.FieldName, Schema: graphQLTypeSchema(field.Type)}}
 			}
 		} else {
-			for _, selection := range native.Selections {
-				shape.Outputs = append(shape.Outputs, binding.Output{Location: "data", Name: selection.ResponseKey})
+			keys, err := graphQLShapeResponseKeys(native.Selections, budget)
+			if err != nil {
+				return nil, err
+			}
+			for _, key := range keys {
+				shape.Outputs = append(shape.Outputs, binding.Output{Location: "data", Name: key})
 			}
 		}
 		sortShapeInputs(shape.Inputs)
@@ -518,4 +523,55 @@ func grpcPartialMessageSchema(message *grpcproto.Message, budget *operationShape
 	// options and nested/enum types are not all represented by the parser.
 	schema.Known = false
 	return schema
+}
+
+// Merge compatible native selections while rejecting known response-key field
+// or argument conflicts at every child path. No response schema is inferred.
+func graphQLShapeResponseKeys(selections []graphql.Selection, budget *operationShapeBudget) ([]string, error) {
+	type entry struct {
+		selection graphql.Selection
+		path      string
+	}
+	pending := make([]entry, 0, len(selections))
+	for _, selection := range selections {
+		pending = append(pending, entry{selection: selection})
+	}
+	seen := map[string]graphql.Selection{}
+	var keys []string
+	bytes := 0
+	for len(pending) > 0 {
+		if err := budget.ctx.Err(); err != nil {
+			return nil, err
+		}
+		budget.schemaWork++
+		if budget.schemaWork > 100000 {
+			return nil, ErrOperationShapeTable
+		}
+		item := pending[len(pending)-1]
+		pending = pending[:len(pending)-1]
+		selection := item.selection
+		if len(item.path)+1+len(selection.ResponseKey) > binding.MaxTableBytes-bytes {
+			return nil, ErrOperationShapeTable
+		}
+		path := item.path + "\x00" + selection.ResponseKey
+		if prior, duplicate := seen[path]; duplicate {
+			if prior.FieldName != selection.FieldName || prior.Arguments != selection.Arguments {
+				return nil, ErrOperationShapeTable
+			}
+		} else {
+			if len(selection.Arguments) > binding.MaxTableBytes-bytes-len(path) {
+				return nil, ErrOperationShapeTable
+			}
+			bytes += len(path) + len(selection.Arguments)
+			seen[path] = selection
+			if item.path == "" {
+				keys = append(keys, selection.ResponseKey)
+			}
+		}
+		for _, child := range selection.Children {
+			pending = append(pending, entry{selection: child, path: path})
+		}
+	}
+	sort.Strings(keys)
+	return keys, nil
 }

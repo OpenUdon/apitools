@@ -7,7 +7,7 @@ require (
 	github.com/OpenUdon/awssmithy v0.0.0-20260520213111-549a060a5e28
 	github.com/OpenUdon/googlediscovery v0.0.0-20260520203137-c02129a009fc
 	github.com/OpenUdon/oas v0.0.0-20260507023120-7fb319711323
-	github.com/OpenUdon/uws v0.0.0-20261006181058-6a267306032e
+	github.com/OpenUdon/uws v0.0.0-20261008043726-b099f6803277
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.50.0

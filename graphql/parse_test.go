@@ -230,3 +230,43 @@ func TestIntrospectionDefaultPresence(t *testing.T) {
 		}
 	}
 }
+
+func TestDefaultQuotedDelimiters(t *testing.T) {
+	for _, value := range []string{"$", "@", "}", ")", "{", "["} {
+		model, err := Parse([]byte(`query Q($value: String! = "` + value + `", $required: Int!) { field }`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		operation, _ := model.OperationByID("query.Q")
+		if len(operation.Variables) != 2 || operation.Variables[0].DefaultValue != value || !operation.Variables[0].HasDefault || operation.Variables[0].Required || !operation.Variables[1].Required {
+			t.Fatalf("quoted default changed: %+v", operation.Variables)
+		}
+	}
+}
+
+func TestSelectionBoundariesAndNativeValues(t *testing.T) {
+	for _, source := range []string{
+		`query Q { field(arg:1`,
+		`query Q { field { child`,
+		`query Q { field(input: [1) }`,
+		`query Q { ` + strings.Repeat(`f @d(]) { `, 5000) + `id` + strings.Repeat(`}`, 5001),
+		`query Q { field(text: "\uD800") }`,
+		`query Q { field(text: "\uDC00") }`,
+		`query Q { field(text: "\u{110000}") }`,
+		`query Q { field(text: "\u{D800}") }`,
+		`query Q { field(text: "\x61") }`,
+	} {
+		if _, err := Parse([]byte(source)); err == nil {
+			t.Fatal("malformed/unbounded native value accepted")
+		}
+	}
+	for _, source := range []string{
+		`query Q { field(input: ["]", {child: ["}","("]}]) }`,
+		`query Q { field(text: "\u{61}") }`,
+		`query Q { field(text: "\uD83D\uDCA9") }`,
+	} {
+		if _, err := Parse([]byte(source)); err != nil {
+			t.Fatal("valid native structured value refused", err)
+		}
+	}
+}

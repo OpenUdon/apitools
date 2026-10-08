@@ -11,7 +11,7 @@ APIs or their wire bytes. M82 is accepted after whole review 3 at public source
 The producer preserves raw SHA-256, family-native operation selectors and
 symbolic IDs. It uses the existing native parsers. Direct JSON Schema numeric
 constraints retain their lexemes; YAML uses guarded nodes with exact JSON-compatible numeric
-scalars. Only operation response-code mappings normalize integral numeric YAML 100–599 keys, refusing normalized collisions; all other non-string mapping keys refuse. Non-JSON YAML scalar tags and numeric spellings refuse. Annotations,
+scalars. Only native operation response-code mappings (including callbacks/webhooks) normalize integral numeric YAML 100–599 keys with a 64-character numeric-key bound, refusing normalized collisions; all other non-string mapping keys refuse. Non-JSON YAML scalar tags and numeric spellings refuse. Annotations,
 examples and defaults are omitted from schema projections. Missing, recursive,
 external or unsupported schema evidence has `known: false`; absence is distinct
 from an explicitly unconstrained schema. No external reference is loaded.
@@ -24,7 +24,7 @@ claiming complete schema or lossless numeric semantics.
 | Google Discovery | Method ID/pointer, inherited native parameters, independently declared normal method path/server and declared referenced or inline request bodies. Upload-only declarations cannot supply a normal HTTP endpoint; whole-body requiredness stays unproved. Parser-normalized schemas and OAuth scope alternatives remain partial; no default endpoint or complete account/auth policy is inferred. |
 | AWS Smithy | Absolute operation shape ID/pointer, native AWS protocol and raw-proven input-member locations. Static URI query literals are excluded from inputs; real query members retain their native names. Compound/member schemas and authorization remain partial. No synthetic generic HTTP server/method is emitted. |
 | AsyncAPI | Operation ID/pointer and version-specific payload direction: v2 subscribe and v3 send take inputs; v2 publish and v3 receive produce outputs. A single local message schema can be projected; multiple messages, bindings and auth remain partial. |
-| GraphQL | Native operation/root-field pointer, default-aware variables/arguments and selected response keys. Aliases preserve underlying native field names/selectors; duplicate response keys refuse. Scalar types are partial; schema selection, custom scalars, lists and auth remain unproved. |
+| GraphQL | Native operation/root-field pointer, default-aware variables/arguments and selected response keys. Aliases preserve underlying native field names/selectors; compatible repeated selections merge by field/typed argument and child response-key evidence; real conflicts refuse. Scalar types are partial; schema selection, custom scalars, lists and auth remain unproved. |
 | OpenRPC | Native method ID/pointer, ordered parameter descriptors and local result schemas. Positional parameters preserve declaration order; transport/auth remains unproved. |
 | gRPC/protobuf | Native service/method pointer/full-method aliases and request/response message identities with available top-level field shapes. Wire presence, numeric encoding, nested messages, enums and streams remain partial. No RPC connection/reflection occurs. |
 | OData | Native resource/action/function/import/navigation identities and declared parameters/results. Facets, response presence, resource HTTP selection and auth remain partial. |
@@ -84,6 +84,17 @@ subset, OpenAPI 3.1's default 2020-12 context, or the common draft-07 subset for
 OpenRPC/AsyncAPI. Unsupported modern keywords remain unknown; a supported
 explicit 2020-12 schema can establish its modern semantics. Reference siblings,
 legacy exclusive bounds and unresolved dialect overrides remain conservative.
-Standalone qualification uses `GOWORK=off` and the exact published UWS C09 pin.
+Current M83 candidate qualification uses `GOWORK=off GOPROXY=off GOTOOLCHAIN=local`
+and exact independently published UWS M09 root
+`v0.0.0-20261008043726-b099f6803277`. The original M82 qualification and frozen
+C09 fixture remain historical evidence. APItools successor publication and ordinary
+consumer proof require a fresh named gate.
 The UWS module retains its Horizon/HashiCorp HCL transitive dependency closure;
 this API does not make UWS or APItools HCL-free.
+
+The [M83 successor fixture](../testdata/operation-shapes/m83/README.md) contains
+eight sources/thirteen operations, without modifying the original corpus.
+GraphQL merge validation charges the existing 100,000-node projection work budget
+and limits retained response-path/argument identity to 8 MiB. Native fragments,
+conditional selections, return types and authentication remain partial evidence;
+these checks do not claim full GraphQL validation or execution capability.

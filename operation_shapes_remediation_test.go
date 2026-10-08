@@ -3,6 +3,7 @@ package apitools
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -272,6 +273,118 @@ func TestOperationShapesNumericSwaggerVersion(t *testing.T) {
 		operation := table.Operations[0]
 		if !operation.Complete || !operation.Security.Known || len(operation.Servers) != 1 || operation.Servers[0] != "https://example.invalid/v1" || len(operation.Security.Alternatives[0].Requirements) != 2 {
 			t.Fatalf("inconsistent Swagger version: %+v", operation)
+		}
+	}
+}
+
+func TestOperationShapesGraphQLCompatibleRepeats(t *testing.T) {
+	for _, selection := range []string{`field field`, `same: field same: field`, `field(id: 1) field(id: 1)`, `field(id: "1") field(id: "1")`, `field { id } field { id }`, `field { id } field { name }`, `field(id: 1) field: field(id: 1)`, `field(a: 1, b: 2) field(b: 2, a: 1)`, `field(input: {a: 1, b: [2, 3]}) field(input: {b: [2, 3], a: 1})`, `field(text: "a") field(text: "\u0061")`, `field(text: "n") field(text: """n""")`} {
+		options := OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "graphql", OperationSourceInput: OperationSourceInput{Kind: OperationSourceGraphQL, Content: []byte("query Q { " + selection + " }")}}}}
+		table, err := BuildOperationShapeTable(context.Background(), options)
+		if err != nil {
+			t.Fatalf("compatible repeated selection %s refused: %v", selection, err)
+		}
+		if len(table.Operations[0].Outputs) != 1 {
+			t.Fatal("compatible repeated output not merged")
+		}
+	}
+	for _, selection := range []string{`same: first same: second`, `field(id: 1) field(id: 2)`, `field(id: "1") field(id: 1)`, `field { same: first } field { same: second }`, `field(text: "\n") field(text: "n")`, `field(text: "\t") field(text: "t")`, `field(text: "\u0061") field(text: "u0061")`, `field(input: [1,2]) field(input: [2,1])`} {
+		options := OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "graphql", OperationSourceInput: OperationSourceInput{Kind: OperationSourceGraphQL, Content: []byte("query Q { " + selection + " }")}}}}
+		if _, err := BuildOperationShapeTable(context.Background(), options); err == nil {
+			t.Fatalf("unproved conflicting response selection %s accepted", selection)
+		}
+	}
+}
+
+func TestOperationShapesYAMLNestedResponseContexts(t *testing.T) {
+	main := `openapi: 3.1.0
+info: {title: Nested, version: '1'}
+paths:
+  /things:
+    get:
+      responses: {200: {description: Things}}
+`
+	for _, extra := range []string{
+		`      callbacks:
+        event:
+          '{$request.body#/url}':
+            post:
+              responses: {200: {description: Event}}
+`,
+		`webhooks:
+  event:
+    post:
+      responses: {200: {description: Event}}
+`,
+		`components:
+  callbacks:
+    event:
+      '{$request.body#/url}':
+        post:
+          responses: {200: {description: Event}}
+`,
+		`components:
+  pathItems:
+    event:
+      post:
+        responses: {200.0: {description: Event}}
+`,
+	} {
+		options := OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "yaml", OperationSourceInput: OperationSourceInput{Kind: OperationSourceOpenAPI, Content: []byte(main + extra)}}}}
+		table, err := BuildOperationShapeTable(context.Background(), options)
+		if err != nil {
+			t.Fatal("legal nested response keys discarded source", err)
+		}
+		if len(table.Operations) != 1 || table.Operations[0].Path != "/things" || table.Operations[0].Complete {
+			t.Fatal("nested response recognition expanded projection")
+		}
+	}
+	for _, key := range []string{`!!float 200e1000000`, `!!int ` + strings.Repeat("2", 10000)} {
+		options := OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "yaml", OperationSourceInput: OperationSourceInput{Kind: OperationSourceOpenAPI, Content: []byte(strings.Replace(main, "200:", key+":", 1))}}}}
+		if _, err := BuildOperationShapeTable(context.Background(), options); err == nil {
+			t.Fatal("unbounded malformed response code accepted")
+		}
+	}
+}
+
+func TestOperationShapesGraphQLQuotedSelectionDelimiters(t *testing.T) {
+	for _, selection := range []string{`a: field(text: "(") b: field`, `a: field @skip(if: "(") b: field`, `a: field { child(text: "}") } b: field`, `a: field(text: "$") b: field`, `a: field(text: """a\"""b""") b: field`} {
+		options := OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "graphql", OperationSourceInput: OperationSourceInput{Kind: OperationSourceGraphQL, Content: []byte("query Q { " + selection + " }")}}}}
+		table, err := BuildOperationShapeTable(context.Background(), options)
+		if err != nil {
+			t.Fatalf("quoted selection delimiter corrupted parser: %s %v", selection, err)
+		}
+		if len(table.Operations[0].Outputs) != 2 || table.Operations[0].Outputs[0].Name != "a" || table.Operations[0].Outputs[1].Name != "b" {
+			t.Fatal("quoted delimiter fabricated selection")
+		}
+	}
+}
+
+func TestOperationShapesGraphQLNativeStringAndFragmentProof(t *testing.T) {
+	block := "\"\"\"\n  a\n \n  b\n\"\"\""
+	for _, selection := range []string{
+		`field(text: "\u{61}") field(text: "a")`,
+		`field(text: "\uD83D\uDCA9") field(text: "💩")`,
+		`field(input: ["]", {child: ["}","("]}])`,
+		`field { ... on User { id } } field { User: name }`,
+		`field(text: ` + block + `) field(text: "a\n\nb")`,
+	} {
+		options := OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "graphql", OperationSourceInput: OperationSourceInput{Kind: OperationSourceGraphQL, Content: []byte("query Q { " + selection + " }")}}}}
+		table, err := BuildOperationShapeTable(context.Background(), options)
+		if err != nil {
+			t.Fatal("compatible native value/fragment metadata refused", err)
+		}
+		if len(table.Operations[0].Outputs) != 1 || table.Operations[0].Complete || table.Operations[0].Outputs[0].Schema.Known {
+			t.Fatal("fragment/string repair invented complete schema")
+		}
+	}
+	for _, selection := range []string{
+		`field(text: "\uD800") field(text: "�")`,
+		`field(text: ` + block + `) field(text: "a\n \nb")`,
+	} {
+		options := OperationShapeOptions{Sources: []ShapeSourceInput{{ID: "graphql", OperationSourceInput: OperationSourceInput{Kind: OperationSourceGraphQL, Content: []byte("query Q { " + selection + " }")}}}}
+		if _, err := BuildOperationShapeTable(context.Background(), options); err == nil {
+			t.Fatal("invalid/conflicting native string values merged")
 		}
 	}
 }

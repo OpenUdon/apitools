@@ -10,6 +10,7 @@ import (
 	"io"
 	"math/big"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -272,8 +273,7 @@ func shapeYAMLValue(n *yaml.Node, path []string) (any, error) {
 			if key.Tag != "!!str" {
 				// Numeric response-code keys are the only accepted non-string
 				// mapping keys. Never coerce arbitrary schema or extension keys.
-				responseCodes := len(path) == 4 && path[0] == "paths" || len(path) == 5 && path[0] == "components" && path[1] == "pathItems"
-				if !responseCodes || path[len(path)-1] != "responses" || !isHTTPMethod(path[len(path)-2]) && path[len(path)-2] != "trace" || key.Tag != "!!int" && key.Tag != "!!float" {
+				if !shapeYAMLResponseMap(path) || key.Tag != "!!int" && key.Tag != "!!float" || len(key.Value) > 64 {
 					return nil, ErrOperationShapeTable
 				}
 				value, err := shapeYAMLValue(key, nil)
@@ -281,8 +281,12 @@ func shapeYAMLValue(n *yaml.Node, path []string) (any, error) {
 					return nil, err
 				}
 				number, ok := value.(json.Number)
+				approx, err := strconv.ParseFloat(number.String(), 64)
+				if !ok || err != nil || approx < 100 || approx > 599 {
+					return nil, ErrOperationShapeTable
+				}
 				code, valid := new(big.Rat).SetString(number.String())
-				if !ok || !valid || !code.IsInt() || !code.Num().IsInt64() || code.Num().Int64() < 100 || code.Num().Int64() > 599 {
+				if !valid || !code.IsInt() || !code.Num().IsInt64() || code.Num().Int64() < 100 || code.Num().Int64() > 599 {
 					return nil, ErrOperationShapeTable
 				}
 				name = code.Num().String()
@@ -342,4 +346,28 @@ func sortShapeInputs(inputs []binding.Input) {
 		}
 		return inputs[i].Name < inputs[j].Name
 	})
+}
+
+// Recognize only native OpenAPI Operation Object response maps. Callback and
+// webhook declarations stay metadata; recognizing their keys adds no projection
+// or runtime support, and schema properties named responses are not coerced.
+func shapeYAMLResponseMap(path []string) bool {
+	if len(path) == 0 || path[len(path)-1] != "responses" {
+		return false
+	}
+	operation := path[:len(path)-1]
+	for len(operation) >= 3 {
+		method := operation[len(operation)-1]
+		if !isHTTPMethod(method) && method != "trace" {
+			return false
+		}
+		if len(operation) == 3 && (operation[0] == "paths" || operation[0] == "webhooks") || len(operation) == 4 && operation[0] == "components" && operation[1] == "pathItems" || len(operation) == 5 && operation[0] == "components" && operation[1] == "callbacks" {
+			return true
+		}
+		if len(operation) < 7 || operation[len(operation)-4] != "callbacks" {
+			return false
+		}
+		operation = operation[:len(operation)-4]
+	}
+	return false
 }

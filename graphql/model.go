@@ -109,6 +109,10 @@ type Operation struct {
 type Selection struct {
 	FieldName   string
 	ResponseKey string
+	// Arguments is deterministic typed argument-value identity, independent of
+	// argument/object field order. Children retain native selected response keys.
+	Arguments string
+	Children  []Selection
 }
 
 // Variable records GraphQL operation variable metadata.

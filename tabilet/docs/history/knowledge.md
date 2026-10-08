@@ -205,3 +205,15 @@ That earlier horizon is complete; Stage 11 M82 is now planned and unimplemented.
 adoption are separately authorized; the main workspace and consumer pins are
 unchanged. Candidate directions remain unnumbered and require fresh approval.
 ````
+
+## 2026-10-08 — Current M83 shape qualification follows exact UWS M09
+
+**Original source.** `docs/operation-shapes.md`, standalone qualification paragraph at pre-M83 source `aa9c74f7bd8a34d597a660449a0d672b99c9f341`.
+
+**Replacement reason and evidence.** M83 adopts independently published corrected UWS M09 root `b099f6803277ae94c7e9f1da0904a0140b278f20`; the new successor fixture and local module proof qualify corrected projections. Existing M82/C09 acceptance and corpus bytes remain frozen. Replacement: [current operation-shape contract](../../../docs/operation-shapes.md) and the separately gated M83 qualification.
+
+**Superseded wording.**
+
+````markdown
+Standalone qualification uses `GOWORK=off` and the exact published UWS C09 pin.
+````

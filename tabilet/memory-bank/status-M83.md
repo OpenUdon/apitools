@@ -1,7 +1,7 @@
 # M83 — Stage 11 native shape projection remediation
 
 **Stage:** STG-11 post-acceptance remediation. **Owner:** APItools.
-**State:** Authorized serial implementation started, 2026-10-08. M83.1 is complete; six rows remain pending and publication remains a separate gate.
+**State:** Authorized serial implementation started, 2026-10-08. M83.1–M83.6 are complete; M83.7 is in progress and publication remains a separate gate.
 **Authority:** The complete review reconciliation was approved, followed by the confirmed serial GOAL request on 2026-10-08: Udon:M49 → UWS:M09 → APItools:M83 → OpenUdon:M99 → Kinet:M49, COMMIT_POLICY: task and EXTERNAL_MUTATIONS: none. This authorizes scoped implementation after accepted/published prerequisites; source publication still requires this owner's separate fresh named grant. The Udon/UWS publication exceptions do not extend to this owner or live operations.
 **Review source:** stage11-siblings-review.md — Stage 11 code review — sibling packages; APItools section.
 **Review baseline/range:** `9364afac98c97b79c9e6b9335bd9c71d4e8722d5` → `24c36bf40102c2c1d160dc7d0e27fb161e12dbd6`.
@@ -33,7 +33,7 @@ AsyncAPI 2.x publish consumes/output and subscribe produces/input consistently w
 | M83.4 — Correct Discovery request and endpoint projection | `[+]` | Preserve declared method/request/normal versus upload endpoint evidence without inventing HTTP contracts or mandatory bodies. Use indeterminate/incomplete evidence when native/raw source cannot prove requiredness or distinguish a supported variant. Keep declared server/source metadata and native selectors. Source P3.6. |
 | M83.5 — Keep OpenAPI completeness and format claims honest | `[+]` | Account for explode-only, Swagger collectionFormat and non-JSON content/encoding loss. Mark unsupported serialization incomplete and unenforced native formats unknown unless constraints are actually proved; do not silently widen schemas or add runtime serialization promises. Sources P3.1/P3.2. |
 | M83.6 — Restore bounded OpenAPI and Swagger metadata compatibility | `[+]` | Normalize only numeric YAML response-code keys with duplicate checks; ignore legal path-level vendor annotations of any type without globally coercing mapping keys. Use consistent Swagger 2.0 detection for schemas/security/servers, retain declared TRACE metadata and remove dead method case logic without enabling TRACE runtime execution. Sources P3.3/P3.4/P3.5. |
-| M83.7 — Qualify all native families and publish the exact handoff | `[ ]` | Adopt exact accepted/published UWS:M09 root, preserving conservative schema/dialect/path evidence, then run eight-family source-backed shape/identity/security/no-network compatibility and standalone owner/consumer checks, preserve old qualification evidence and add corrected successor fixtures. Persist review counters and record accepted/published source/module sums plus OpenUdon/Kinet impacts; publication needs fresh named authority. |
+| M83.7 — Qualify all native families and publish the exact handoff | `[~]` | Adopt exact accepted/published UWS:M09 root, preserving conservative schema/dialect/path evidence, then run eight-family source-backed shape/identity/security/no-network compatibility and standalone owner/consumer checks, preserve old qualification evidence and add corrected successor fixtures. Persist review counters and record accepted/published source/module sums plus OpenUdon/Kinet impacts; publication needs fresh named authority. |
 
 ## Active finding provenance
 
@@ -62,11 +62,11 @@ Public schemas/wires, published grammar/version bytes, accepted historical quali
 
 ## Closing review
 
-**Review iterations:** 0/10.
-**Review state:** not started; this is review intake, not a pass of an existing gate.
-**Findings/fixes:** no implementation or fix verification claimed.
-**Execution owner:** one serial owner across the five ledgers; no row is in progress.
-**Commit policy:** The user separately authorized a planning commit on 2026-10-08 with “git commit and then report the index refresh issue in ~/skill-index.md”. This authorizes one commit of the approved planning changes in this owner repository; implementation, publication and deployment remain outside this request. Future task commits follow the separately invoked GOAL/request policy.
+**Review iterations:** 4/10.
+**Review state:** local code review PASSED at iteration 4/10, 2026-10-08; both read-only reviewers found no remaining P1/P2. Final artifact/ordinary publication gate remains open.
+**Findings/fixes:** owner full standalone/offline tests, vet and focused races pass against exact M09; compatible staticcheck reports only the six byte-unchanged pre-existing observations. Parent review evidence requires checking compatible repeated GraphQL selections versus conflicting response keys; whole-pass classification/fixes follow.
+**Execution owner:** one serial owner across the five ledgers; M83.7 is the sole in-progress row while local artifact qualification finishes.
+**Commit policy:** The later confirmed serial GOAL uses task commits and EXTERNAL_MUTATIONS: none. Local implementation/review/qualification commits are authorized; publication requires a fresh named exception and independent ordinary proof. Earlier planning-commit authority is historical and is not reused.
 **Closure:** persist each started review iteration before reviewing; resume an interrupted pass at the same number. No open P1/P2 may remain at acceptance. Required verification, exact downstream reconciliation and owner-specific consolidation/retirement follow implementation; never reopen completed Stage 11 history.
 
 ## Accepted UWS:M09 prerequisite — 2026-10-08
@@ -120,3 +120,39 @@ Explode-only and collectionFormat declarations, parameter/header content and uns
 ## M83.6 implementation evidence
 
 Guarded YAML decoding normalizes only integral 100–599 numeric keys in native OpenAPI operation response maps, with post-normalization collision refusal. Arbitrary non-string map keys remain rejected. Legal x- path-map annotations of any type are ignored. Swagger 2.0 string/numeric detection is consistent for extraction, server and symbolic security. Declared TRACE operation metadata is retained in the shape producer only; the generic runtime/HTTP capability set is unchanged. All offline OperationShapes tests, numeric/colliding/invalid-key, x- annotation, TRACE and Swagger security/server fixtures pass. No frozen corpus/schema/grammar byte changed.
+
+## Whole review iteration 1 — findings recorded before fixes
+
+Iteration 1 STARTED persisted before read-only fan-out. Owner and two read-only reviewers examined the complete milestone diff. Four P2 findings block this pass: (R1) compatible repeated GraphQL response selections reject, while discarded argument/child identity prevents safe deduplication; (R2) a quoted dollar default is mistaken for a variable delimiter; (R3) legal callback/webhook/reusable-callback numeric YAML response maps reject the whole source despite intentionally partial operation handling; (R4) numeric response-key rational parsing must bound lexeme/magnitude before arithmetic to avoid disproportionate work on large malformed integer/exponent keys. No P1 identified. Fixes and verification are pending; counter remains 1 until the next whole pass. Parent compatible-repeat evidence is included in R1.
+
+## Whole review iteration 1 — fixes and verification
+
+R1 keeps exact parsed token signature (kind/value, arguments, directives and child selections) beside native field/response-key metadata. Identical compatible repeats merge to one output; differing field/argument/string-kind/directive/child identities refuse conservatively. R2 now recognizes punctuation delimiters only; quoted dollar and other delimiter defaults retain values. R3 recognizes operation response maps under paths, reusable path items, callbacks and webhooks, without projecting or executing callbacks/webhooks. R4 bounds numeric-key lexemes to 64 characters and cheaply rejects nonfinite/out-of-range decimal magnitudes before exact rational/integrality checks. New accept/refusal fixtures pass with all OperationShapes/GraphQL focused tests. No P1/P2 remains known after fixes; a new whole pass is required.
+
+## Whole review iteration 2 — findings recorded before fixes
+
+Three P2 findings block iteration 2: (R5) lossy decoded string tokens collide when used as trust identity for escaped versus literal arguments; (R6) quoted delimiters affect lexer/balanced selection boundaries; (R7) whole-selection equality rejects compatible child unions, self-alias and reordered arguments. Native string lexemes, punctuation-only boundaries and separately structured field/argument/child evidence are required. The R1 exact-repeat fix is retained as evidence and superseded by compatible structural merging. No P1 found. Other family fixes and successor/frozen fixture identities reviewed clean; docs need the corrected merge policy.
+
+## Whole review iteration 2 — fixes and verification
+
+R5/R6 retain native raw string lexemes and correctly interpret quoted/block values for argument identity; lexer/balanced nesting counts punctuation only. R7 separates deterministic typed arguments from selected children, merges compatible repeated fields/self-aliases/reordered arguments/objects and child unions, and rejects known nested field/argument conflicts. The existing partial GraphQL schema/fragment/auth limits stay visible; bounded merge traversal charges projection nodes and caps retained identity bytes. Escaped-versus-literal, typed values, child conflicts and quoted argument/directive/child delimiters join the accept/refusal matrix. All focused OperationShapes/GraphQL tests pass and both successor/original corpus bytes stay unchanged. Counter is not reset; another whole pass is required.
+
+## Whole review iteration 3 — findings recorded before fixes
+
+P2s in new structured GraphQL proof: (R8) argument/child set EOF must require closing delimiters; (R9) recursion requires its own depth-100 gate and matched lexical delimiters; (R10) quoted delimiter values inside structured lists must not be consumed as closers; (R11) native variable-width Unicode escapes and strict scalar/surrogate proof cannot use JSON string decoding; (R12) unsupported inline fragments must not fabricate fields from type conditions. No P1 found. These are bounded source/parser metadata repairs, with no fragment expansion, transport or schema-execution capability. Owner will fix before another complete pass.
+
+Iteration 3 additionally records P2 R13 before its fix: block-string common indentation must trim short internal blank lines, or argument-value identity can falsely merge distinct strings. The native GraphQL September2025 string/block semantics were checked against the primary specification; no external operation is performed.
+
+## Whole review iteration 3 — fixes and verification
+
+R8/R9 add explicit set/argument closure, matched lexical delimiters and a separate depth-100 selection recursion gate. R10 makes punctuation/name peeking exclude string tokens, including lists/objects. R11 uses native Unicode escape decoding (fixed/braced scalar values and paired surrogates), refusing invalid scalars instead of JSON replacement. R12 skips unsupported fragment bodies/type conditions as partial metadata without fabricated fields or expansion. R13 applies common indentation to every post-first block-string line, including short blank lines. Native string, typed list, fragment, malformed EOF/mismatch and deep-bypass regressions pass with all focused shapes/GraphQL tests. Ordinary retained OpenUdon and Udon full suites pass; their source/ledger/pins remain unchanged. Another whole pass is required.
+
+## Whole review iteration 4 — local code gate passed
+
+Both read-only reviewers and the owner found no remaining P1/P2 in the full M83 implementation, previous fixes, native-family boundaries and preserved corpora. Current summary drift is corrected during consolidation. No new evolution version: these are the approved scoped metadata corrections, with no direction/public-private boundary expansion. Final exact artifact/consumer qualification and separately named publication remain open; this pass is not milestone acceptance.
+
+## M83.7 local qualification checkpoint
+
+Exact public M09 root is adopted; its independently downloaded origin/sums and 360 source files match accepted evidence. Local owner full tests/races/vet/build/catalog freshness and patch/format checks pass after whole review4; checker retains exactly the six byte-unchanged observations. Complete dependency proof covers 77 selected modules including owner, 39 compiled modules and 15,657 dependency files, with all module hashes/archives verified. The corrected eight-family/13-operation fixture is independently reviewed at 9,615 bytes / cfe13bcd44f62b0b650a20833984231426bd0a83cee91538b96d5332d1107fad; original frozen corpus remains unchanged. [Qualification](../../docs/m83-qualification.md) and [closure](../../docs/m83-module-closure.json) record exact facts.
+
+The authorized local code/qualification checkpoint is committed to make an exact reviewable source artifact for bootstrap archive/consumer checks. M83.7 stays in progress until those finish, then blocked only at the separate fresh named publication/ordinary-proof gate. This checkpoint does not mark publication, acceptance, retirement or downstream adoption complete.

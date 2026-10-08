@@ -1,5 +1,9 @@
 # Tech Stack
 
+## M83 local candidate qualification
+
+The candidate pins independently acquired UWS M09 root `v0.0.0-20261008043726-b099f6803277`, source `b099f6803277ae94c7e9f1da0904a0140b278f20`, with exact archive/mod sums recorded in status-M83. Existing dependencies and consumer/browser pins stay fixed. Verification uses retained Go 1.26.6 with GOWORK/GOPROXY off and GOTOOLCHAIN local, full tests/vet/build and root/GraphQL/sourceguard races. Compatible staticcheck 2026.2.1 retains the same six byte-unchanged pre-existing observations. The successor corpus has eight sources/thirteen operations, 9,615 bytes / SHA-256 `cfe13bcd44f62b0b650a20833984231426bd0a83cee91538b96d5332d1107fad`; the original M82 corpus stays frozen. Selected/compiled module closure and standalone bootstrap/ordinary provenance are recorded separately at the named publication gate. No migration, publication, source replacement or runtime serializer is implicit.
+
 ## Qualified Stage 11 source metadata — M82
 
 Accepted APItools source `54583f9b2f452b7cc522360c5aeeff29ca22f96c` is public as

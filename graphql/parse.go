@@ -302,26 +302,35 @@ const (
 type graphQLToken struct {
 	kind  tokenKind
 	value string
+	raw   string
 }
 
 func lexGraphQL(input string) ([]graphQLToken, error) {
 	var tokens []graphQLToken
-	depth := 0
+	var nesting []string
 	appendToken := func(token graphQLToken) error {
 		tokens = append(tokens, token)
 		if len(tokens) > sourceguard.MaxWorkItems {
 			return fmt.Errorf("graphql: token count exceeds maximum %d", sourceguard.MaxWorkItems)
 		}
+		if token.kind != tokenPunct {
+			return nil
+		}
 		switch token.value {
 		case "{", "[", "(":
-			depth++
-			if depth > sourceguard.MaxNestingDepth {
+			nesting = append(nesting, token.value)
+			if len(nesting) > sourceguard.MaxNestingDepth {
 				return fmt.Errorf("graphql: nesting exceeds maximum depth %d", sourceguard.MaxNestingDepth)
 			}
 		case "}", "]", ")":
-			if depth > 0 {
-				depth--
+			if len(nesting) == 0 {
+				return fmt.Errorf("graphql: unmatched delimiter")
 			}
+			open := nesting[len(nesting)-1]
+			if open == "{" && token.value != "}" || open == "[" && token.value != "]" || open == "(" && token.value != ")" {
+				return fmt.Errorf("graphql: mismatched delimiter")
+			}
+			nesting = nesting[:len(nesting)-1]
 		}
 		return nil
 	}
@@ -368,7 +377,7 @@ func lexGraphQL(input string) ([]graphQLToken, error) {
 			if err != nil {
 				return nil, err
 			}
-			if err := appendToken(graphQLToken{kind: tokenString, value: value}); err != nil {
+			if err := appendToken(graphQLToken{kind: tokenString, value: value, raw: input[i:next]}); err != nil {
 				return nil, err
 			}
 			i = next
@@ -393,16 +402,26 @@ func lexGraphQL(input string) ([]graphQLToken, error) {
 			return nil, fmt.Errorf("graphql: unexpected character %q", input[i])
 		}
 	}
+	if len(nesting) != 0 {
+		return nil, fmt.Errorf("graphql: unterminated delimiter")
+	}
 	return tokens, nil
 }
 
 func readGraphQLString(input string, start int) (string, int, error) {
 	if strings.HasPrefix(input[start:], `"""`) {
-		end := strings.Index(input[start+3:], `"""`)
-		if end < 0 {
-			return "", 0, fmt.Errorf("graphql: unterminated block string")
+		for end := start + 3; end < len(input); {
+			offset := strings.Index(input[end:], `"""`)
+			if offset < 0 {
+				break
+			}
+			end += offset
+			if end == start+3 || input[end-1] != '\\' {
+				return strings.TrimSpace(input[start+3 : end]), end + 3, nil
+			}
+			end += 3
 		}
-		return strings.TrimSpace(input[start+3 : start+3+end]), start + 3 + end + 3, nil
+		return "", 0, fmt.Errorf("graphql: unterminated block string")
 	}
 	var b strings.Builder
 	for i := start + 1; i < len(input); i++ {
@@ -767,16 +786,29 @@ func (p *graphQLParser) parseTypeRefDepth(depth int) TypeRef {
 }
 
 func (p *graphQLParser) parseSelectionSet() ([]string, []Selection) {
+	return p.parseSelectionSetDepth(0)
+}
+
+func (p *graphQLParser) parseSelectionSetDepth(depth int) ([]string, []Selection) {
+	if depth >= sourceguard.MaxNestingDepth {
+		p.err = fmt.Errorf("graphql: selection nesting exceeds maximum depth %d", sourceguard.MaxNestingDepth)
+		return nil, nil
+	}
 	if !p.consume("{") {
 		return nil, nil
 	}
 	seen := map[string]struct{}{}
 	var out []string
 	var selections []Selection
-	for !p.done() && !p.consume("}") {
+	for !p.done() && !p.peekValue("}") {
 		if p.consume("...") {
-			p.consumeName()
+			if p.consumeName() == "on" {
+				p.consumeName() // The type condition is not a response field.
+			}
 			p.skipDirectives()
+			if p.peekValue("{") {
+				p.skipBalanced("{", "}") // Fragment projection remains partial.
+			}
 			continue
 		}
 		name := p.consumeName()
@@ -790,18 +822,23 @@ func (p *graphQLParser) parseSelectionSet() ([]string, []Selection) {
 				selectionName = target
 			}
 		}
-		selections = append(selections, Selection{FieldName: selectionName, ResponseKey: name})
 		if _, exists := seen[selectionName]; !exists {
 			seen[selectionName] = struct{}{}
 			out = append(out, selectionName)
 		}
+		arguments := ""
 		if p.peekValue("(") {
-			p.skipBalanced("(", ")")
+			arguments = p.parseSelectionArguments()
 		}
 		p.skipDirectives()
+		var children []Selection
 		if p.peekValue("{") {
-			p.skipBalanced("{", "}")
+			_, children = p.parseSelectionSetDepth(depth + 1)
 		}
+		selections = append(selections, Selection{FieldName: selectionName, ResponseKey: name, Arguments: arguments, Children: children})
+	}
+	if !p.consume("}") {
+		p.err = fmt.Errorf("graphql: unterminated selection set")
 	}
 	return out, selections
 }
@@ -811,13 +848,13 @@ func (p *graphQLParser) collectDefaultValue() string {
 	depth := 0
 	for !p.done() {
 		tok := p.peek()
-		if depth == 0 && (tok.value == ")" || tok.value == "}" || tok.value == "@" || tok.value == "$" || tok.kind == tokenName && p.peekNextValue(":")) {
+		if depth == 0 && (tok.kind == tokenPunct && (tok.value == ")" || tok.value == "}" || tok.value == "@" || tok.value == "$") || tok.kind == tokenName && p.peekNextValue(":")) {
 			break
 		}
-		if tok.value == "[" || tok.value == "{" || tok.value == "(" {
+		if tok.kind == tokenPunct && (tok.value == "[" || tok.value == "{" || tok.value == "(") {
 			depth++
 		}
-		if tok.value == "]" || tok.value == "}" || tok.value == ")" {
+		if tok.kind == tokenPunct && (tok.value == "]" || tok.value == "}" || tok.value == ")") {
 			if depth == 0 {
 				break
 			}
@@ -865,6 +902,9 @@ func (p *graphQLParser) skipBalanced(open, close string) {
 	depth := 1
 	for !p.done() && depth > 0 {
 		tok := p.advance()
+		if tok.kind != tokenPunct {
+			continue
+		}
 		switch tok.value {
 		case open:
 			depth++
@@ -909,11 +949,11 @@ func (p *graphQLParser) peekKind(kind tokenKind) bool {
 }
 
 func (p *graphQLParser) peekValue(value string) bool {
-	return !p.done() && p.peek().value == value
+	return !p.done() && p.peek().kind != tokenString && p.peek().value == value
 }
 
 func (p *graphQLParser) peekNextValue(value string) bool {
-	return p.pos+1 < len(p.tokens) && p.tokens[p.pos+1].value == value
+	return p.pos+1 < len(p.tokens) && p.tokens[p.pos+1].kind != tokenString && p.tokens[p.pos+1].value == value
 }
 
 func (p *graphQLParser) peek() graphQLToken {
