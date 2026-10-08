@@ -111,8 +111,10 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 					if _, present := parameter["content"]; present {
 						complete = false
 					}
-					if _, present := parameter["style"]; present {
-						complete = false
+					for _, key := range []string{"style", "explode", "collectionFormat"} {
+						if _, present := parameter[key]; present {
+							complete = false
+						}
 					}
 					if _, present := parameter["allowReserved"]; present {
 						complete = false
@@ -206,6 +208,11 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 					if swagger {
 						value = header
 					}
+					for _, key := range []string{"style", "explode", "collectionFormat", "content"} {
+						if _, present := header[key]; present {
+							complete = false
+						}
+					}
 					shape.Outputs = append(shape.Outputs, binding.Output{Location: "header", Name: name, Schema: budget.schema(value, shapeLocalResolver(root))})
 				}
 			} else if len(success) > 1 {
@@ -213,6 +220,29 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 				complete = false
 			} else {
 				complete = false
+			}
+			if swagger {
+				for _, key := range []string{"consumes", "produces"} {
+					value, declared := native[key]
+					if !declared {
+						value = root[key]
+					}
+					media, ok := value.([]any)
+					supported := ok && len(media) == 1 && shapeJSONMediaType(stringValue(media[0]))
+					if key == "consumes" {
+						for i := range shape.Inputs {
+							if shape.Inputs[i].Location == "body" && !supported {
+								shape.Inputs[i].Schema.Known = false
+							}
+						}
+					} else {
+						for i := range shape.Outputs {
+							if shape.Outputs[i].Location == "body" && !supported {
+								shape.Outputs[i].Schema.Known = false
+							}
+						}
+					}
+				}
 			}
 			for i := range shape.Inputs {
 				if dialectUnknown {

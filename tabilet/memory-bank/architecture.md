@@ -837,3 +837,7 @@ Smithy URI query literals do not create shape inputs. A same-wire-name native bi
 ### M83 Discovery projection
 
 The bounded raw method/resource tree supplies normal endpoint and request declaration proof independently of the native parser's preferred media-upload path. Upload-only methods cannot supply a normal method/path contract. Requests retain partial schema evidence without asserting mandatory body presence; absent requests emit no body. Only nonempty declared root/base URL evidence may emit a server.
+
+### M83 serialization and format proof
+
+OpenAPI serialization details that the shape contract does not reproduce (including explode, collectionFormat and content/encoding) prevent completeness. Body schemas are unknown for non-JSON or encoded representations; Swagger body proof needs one explicit inherited JSON media declaration. Format knownness permits only exact built-in assertions of the retained JSON Schema compiler, leaving native numeric/binary and custom formats unknown. No runtime serializer or new constraint translation is added.

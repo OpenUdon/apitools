@@ -147,3 +147,79 @@ func TestOperationShapesDiscoveryRequestsAndEndpoints(t *testing.T) {
 		t.Fatal("empty declaration enabled parser default server")
 	}
 }
+
+func TestOperationShapesUnsupportedSerializationAndFormats(t *testing.T) {
+	for name, change := range map[string]func(map[string]any){
+		"explode-only": func(operation map[string]any) { operation["parameters"].([]any)[0].(map[string]any)["explode"] = true },
+		"response-xml": func(operation map[string]any) {
+			response := mapValue(mapValue(operation["responses"])["200"])
+			response["content"] = map[string]any{"application/xml": map[string]any{"schema": map[string]any{"type": "object"}}}
+		},
+		"response-encoding": func(operation map[string]any) {
+			media := mapValue(mapValue(mapValue(mapValue(operation["responses"])["200"])["content"])["application/json"])
+			media["encoding"] = map[string]any{}
+		},
+		"request-form": func(operation map[string]any) {
+			operation["requestBody"] = map[string]any{"content": map[string]any{"application/x-www-form-urlencoded": map[string]any{"schema": map[string]any{"type": "object"}}}}
+		},
+		"header-explode": func(operation map[string]any) {
+			response := mapValue(mapValue(operation["responses"])["200"])
+			response["headers"] = map[string]any{"X-Test": map[string]any{"schema": map[string]any{"type": "array", "items": map[string]any{"type": "string"}}, "explode": true}}
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			fixture := completeShapeFixture()
+			operation := mapValue(mapValue(mapValue(fixture["paths"])["/pets/{id}"])["get"])
+			change(operation)
+			table, err := BuildOperationShapeTable(context.Background(), optionsForShapeFixture(t, fixture))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if table.Operations[0].Complete {
+				t.Fatalf("unsupported serialization proved complete: %+v", table.Operations[0])
+			}
+			if (name == "response-xml" || name == "response-encoding") && table.Operations[0].Outputs[0].Schema.Known {
+				t.Fatal("unsupported representation proved schema")
+			}
+		})
+	}
+	for _, format := range []string{"int32", "int64", "float", "double", "byte", "binary", "password", "custom-format"} {
+		t.Run(format, func(t *testing.T) {
+			fixture := completeShapeFixture()
+			operation := mapValue(mapValue(mapValue(fixture["paths"])["/pets/{id}"])["get"])
+			operation["parameters"].([]any)[0].(map[string]any)["schema"] = map[string]any{"type": "integer", "format": format}
+			table, err := BuildOperationShapeTable(context.Background(), optionsForShapeFixture(t, fixture))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if table.Operations[0].Inputs[0].Schema.Known || table.Operations[0].Complete {
+				t.Fatal("unenforced format proved known")
+			}
+		})
+	}
+}
+
+func TestOperationShapesSwaggerSerialization(t *testing.T) {
+	for _, change := range []string{"none", "collectionFormat", "xml", "missing-media"} {
+		t.Run(change, func(t *testing.T) {
+			fixture := map[string]any{"swagger": "2.0", "info": map[string]any{"title": "Swagger", "version": "1"}, "host": "example.invalid", "schemes": []any{"https"}, "security": []any{}, "produces": []any{"application/json"}, "paths": map[string]any{"/things": map[string]any{"get": map[string]any{"parameters": []any{map[string]any{"name": "ids", "in": "query", "type": "array", "items": map[string]any{"type": "string"}}}, "responses": map[string]any{"200": map[string]any{"description": "Things", "schema": map[string]any{"type": "object"}}}}}}}
+			operation := mapValue(mapValue(mapValue(fixture["paths"])["/things"])["get"])
+			if change == "collectionFormat" {
+				operation["parameters"].([]any)[0].(map[string]any)["collectionFormat"] = "pipes"
+			}
+			if change == "xml" {
+				fixture["produces"] = []any{"application/xml"}
+			}
+			if change == "missing-media" {
+				delete(fixture, "produces")
+			}
+			table, err := BuildOperationShapeTable(context.Background(), optionsForShapeFixture(t, fixture))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if table.Operations[0].Complete != (change == "none") {
+				t.Fatalf("wrong Swagger completeness %s: %+v", change, table.Operations[0])
+			}
+		})
+	}
+}

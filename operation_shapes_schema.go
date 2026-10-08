@@ -3,6 +3,7 @@ package apitools
 import (
 	"encoding/json"
 	"errors"
+	"mime"
 	"strings"
 
 	"github.com/OpenUdon/uws/binding"
@@ -123,7 +124,17 @@ func projectShapeSchema(value any, resolver nativeSchemaResolver, active map[str
 				out["allOf"] = []any{resolved}
 			}
 			known = known && complete
-		case "type", "format", "enum", "const", "required", "minimum", "maximum", "multipleOf", "minLength", "maxLength", "pattern", "minItems", "maxItems", "uniqueItems", "minProperties", "maxProperties":
+		case "format":
+			out[key] = child
+			// These exact names are enforced by the retained compiler's built-in
+			// format assertions. Native/custom names (int32, byte, binary, etc.)
+			// compile as annotations and cannot prove their constraints.
+			switch child {
+			case "json-pointer", "relative-json-pointer", "uuid", "duration", "period", "ipv4", "ipv6", "hostname", "email", "date", "time", "date-time", "uri", "iri", "uri-reference", "iri-reference", "uri-template", "semver":
+			default:
+				known = false
+			}
+		case "type", "enum", "const", "required", "minimum", "maximum", "multipleOf", "minLength", "maxLength", "pattern", "minItems", "maxItems", "uniqueItems", "minProperties", "maxProperties":
 			out[key] = child
 		case "exclusiveMinimum", "exclusiveMaximum":
 			if flag, ok := child.(bool); ok {
@@ -243,18 +254,25 @@ func partialTypeSchema(typeName string, nullable bool) binding.Schema {
 
 func shapeBodyContent(root map[string]any, object map[string]any, budget *operationShapeBudget) (binding.Schema, bool) {
 	if schema, exists := object["schema"]; exists {
-		return budget.schema(schema, shapeLocalResolver(root)), true
+		result := budget.schema(schema, shapeLocalResolver(root))
+		// Swagger media declarations live on root/operation rather than the
+		// response object; the caller accounts for those separately.
+		return result, true
 	}
 	content := mapValue(object["content"])
 	if len(content) != 1 {
 		return binding.Schema{}, false
 	}
-	for _, media := range content {
+	for name, media := range content {
 		item, ok := media.(map[string]any)
 		if !ok {
 			return binding.Schema{}, false
 		}
-		return budget.schema(item["schema"], shapeLocalResolver(root)), true
+		schema := budget.schema(item["schema"], shapeLocalResolver(root))
+		if _, encoded := item["encoding"]; encoded || !shapeJSONMediaType(name) {
+			schema.Known = false
+		}
+		return schema, true
 	}
 	return binding.Schema{}, false
 }
@@ -313,4 +331,9 @@ func shapeHTTPServers(root map[string]any, pathItem, operation map[string]any) (
 		servers = append(servers, clean)
 	}
 	return servers, len(servers) > 0
+}
+
+func shapeJSONMediaType(value string) bool {
+	kind, _, err := mime.ParseMediaType(value)
+	return err == nil && (kind == "application/json" || strings.HasPrefix(kind, "application/") && strings.HasSuffix(kind, "+json") && !strings.Contains(kind, "*"))
 }
