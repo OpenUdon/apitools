@@ -3,7 +3,7 @@
 **Stage/owner:** STG-11 post-acceptance remediation; APItools.
 **Planning approval:** User requested package-local milestones on 2026-10-08 and selected required fixes only.
 **State:** Pending; four task rows; publication authorized after qualification/review; closing review not started (0/10).
-**Current goal authority:** The user invoked memory-bank-goal and explicitly authorized Git commits and GitHub publication if needed. Task commits and reviewed normal fast-forward source/closure pushes to the existing main refs are authorized for this required-only horizon. The inferred serial order still awaits the skill's launch confirmation; no implementation has started.
+**Current goal authority:** The user invoked memory-bank-goal, authorized task commits and needed reviewed normal fast-forward GitHub source/closure publication to the recorded existing main refs, and confirmed serial execution Udon:M52 -> APItools:M84 -> Kinet:M50. This status remains pending until its serial/dependency gates pass.
 **Review source:** Stage 11 review 2 — all milestones, all five packages (`stage11-review-2.md`), AP1.
 **Source priority / local severity:** P2 / P2; confirmed projection behavior and current Kinet incompatibility gate.
 **Review and revalidation baseline:** `de3f16acbf12c7b632ee0ed9be02efaaf2c2be4b`; clean worktree. No relevant uncommitted changes used.

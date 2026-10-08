@@ -7,7 +7,7 @@ The user requested package-local milestones and a cross-package launch reference
 **Local owner:** M84, four task rows, owns confirmed AP1 (source P2/local P2) after accepted M82/M83.
 **Serial order:** Udon:M52 -> APItools:M84 -> Kinet:M50; producers are independent.
 **Direct downstream:** Kinet:M50 requires exact accepted and independently published M84; public SDK consumer compatibility must be proved.
-**Coordinator:** [Required review 2 remediation](../../../kinet/docs/stage11.md#required-review-2-remediation--2026-10-08). Publication markers grant no authority; the current user goal request authorizes task commits and reviewed normal fast-forward M84 source/closure publication to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main after exact proposal preparation. Inferred launch order awaits confirmation.
+**Coordinator:** [Required review 2 remediation](../../../kinet/docs/stage11.md#required-review-2-remediation--2026-10-08). Publication markers grant no authority; the current user goal request authorizes task commits and reviewed normal fast-forward M84 source/closure publication to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main after exact proposal preparation. The user confirmed serial execution Udon:M52 -> APItools:M84 -> Kinet:M50.
 
 ## Stage 11 post-acceptance remediation — 2026-10-08
 
