@@ -1,0 +1,22 @@
+{
+  "baseline": "d6b21e5b37c71a5dec0e9b1f0f25c07da549bdf7",
+  "source": "d082e9ee0c93005aa7e45a6b3612e7201aec2eb0",
+  "changedFiles": [
+    "docs/m85-consumer-fixture/main.go.txt",
+    "docs/m85-consumer-fixture/public_test.go.txt",
+    "docs/operation-candidates.md",
+    "inventory.go",
+    "inventory_helpers.go",
+    "operation_candidates_reserved_headers_test.go",
+    "operation_shapes_openapi.go",
+    "tabilet/memory-bank/status-M85.md"
+  ],
+  "frozenHistoryCorpusCatalogAndManifestsChanged": false,
+  "sharedBankChangedByExecutor": false,
+  "checkerFiles": {
+    "api_versions.go": "a82180d9a41cbb47c8a9853ade721f862640aaba06aba87777c6b2ab3e1507e0",
+    "api_versions_compare.go": "68c2edf4bdfdfdf2391a98c8228b6e29503cb74e9e50ff641ea623af884a596f",
+    "catalog_discovery_remote_test.go": "13e55fb8cae1095c188ed6290e9d4ff15eda401701a31d73de6016eae792eb37",
+    "operation_source_native.go": "19544d6860ea891fad8ff51ea33055b240b9310b01ea64ddc6952d0d53de684e"
+  }
+}

@@ -43,7 +43,7 @@ func TestOperationCandidatesReservedHeaders(t *testing.T) {
 func TestOperationCandidatesReservedHeaderMatrix(t *testing.T) {
 	for _, version := range []string{"3.0.0", "3.0.3", "3.0.4", "3.1.0", "3.1.1", "3.1.2"} {
 		for _, name := range []string{"Accept", "accept", "aCcEpT", "Content-Type", "content-type", "CONTENT-TYPE", "Authorization", "authorization", "AUTHORIZATION"} {
-			for _, mode := range []string{"direct", "ref", "chain"} {
+			for _, mode := range []string{"direct", "ref"} {
 				t.Run(version+"/"+name+"/"+mode, func(t *testing.T) {
 					fixture := completeShapeFixture()
 					fixture["openapi"] = version
@@ -55,12 +55,8 @@ func TestOperationCandidatesReservedHeaderMatrix(t *testing.T) {
 					parameter := map[string]any{"name": name, "in": "header", "required": "ignored", "schema": map[string]any{"$ref": "https://fixture.invalid/never-fetched"}, "style": "unsupported", "explode": true}
 					var raw any = parameter
 					if mode != "direct" {
-						fixture["components"] = map[string]any{"parameters": map[string]any{"reserved/~header": parameter, "chain": map[string]any{"$ref": "#/components/parameters/reserved~1~0header"}}}
-						target := "reserved~1~0header"
-						if mode == "chain" {
-							target = "chain"
-						}
-						raw = map[string]any{"$ref": "#/components/parameters/" + target}
+						fixture["components"] = map[string]any{"parameters": map[string]any{"reserved/~header": parameter}}
+						raw = map[string]any{"$ref": "#/components/parameters/reserved~1~0header"}
 					}
 					path["parameters"] = []any{raw}
 					operation["parameters"] = append(operation["parameters"].([]any), raw)
@@ -243,5 +239,56 @@ func TestOperationInventoryReservedNamesInGenuineLocations(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestOperationCandidatesReservedHeadersPreserveUnknownReferenceChains(t *testing.T) {
+	for _, hops := range []int{2, 10000} {
+		t.Run(fmt.Sprint(hops), func(t *testing.T) {
+			fixture := completeShapeFixture()
+			parameters := map[string]any{"p0": map[string]any{"name": "Accept", "in": "header", "required": true, "schema": map[string]any{"type": "string"}}}
+			for i := 1; i < hops; i++ {
+				parameters[fmt.Sprintf("p%d", i)] = map[string]any{"$ref": fmt.Sprintf("#/components/parameters/p%d", i-1)}
+			}
+			fixture["components"] = map[string]any{"parameters": parameters}
+			paths := mapValue(fixture["paths"])
+			path := mapValue(paths["/pets/{id}"])
+			operation := mapValue(path["get"])
+			operation["summary"] = "Get pet"
+			operation["parameters"] = append(operation["parameters"].([]any), map[string]any{"$ref": fmt.Sprintf("#/components/parameters/p%d", hops-1)})
+			// Repeated inherited use must retain the legacy single-hop unknown, not
+			// add a per-use traversal through the entire local reference graph.
+			for i := 0; i < 16; i++ {
+				paths[fmt.Sprintf("/groups/%d/pets/{id}", i)] = path
+			}
+			delete(paths, "/pets/{id}")
+			source, err := json.Marshal(fixture)
+			if err != nil {
+				t.Fatal(err)
+			}
+			inventory, err := BuildOperationInventory(context.Background(), InventoryOptions{Documents: []InventoryDocument{{Content: source}}})
+			if err != nil || len(inventory.Operations) != 16 {
+				t.Fatalf("inventory: %+v %v", inventory, err)
+			}
+			for _, op := range inventory.Operations {
+				if len(op.Parameters) != 2 || len(op.ReadinessIssues) == 0 {
+					t.Fatalf("unknown reference silently omitted: %+v", op)
+				}
+				for _, parameter := range op.Parameters {
+					if strings.EqualFold(parameter.Name, "Accept") {
+						t.Fatalf("unresolved chain fabricated required header: %+v", parameter)
+					}
+				}
+			}
+			report, err := BuildOperationCandidates(context.Background(), OperationCandidateOptions{Sources: []OperationSourceInput{{Kind: OperationSourceOpenAPI, Content: source}}, Contract: StepContract{Purpose: "Get pet", Inputs: map[string]ContractValue{"id": {Type: "string", Required: boolPointer(true)}}, Effect: OperationEffectRead}})
+			if err != nil || len(report.Candidates) != 16 {
+				t.Fatalf("candidate report: %+v %v", report, err)
+			}
+			for _, candidate := range report.Candidates {
+				if candidate.Match.Inputs.Status == ContractMatchCompatible || candidateCapability(candidate, "inputs").Status == OperationCapabilitySupported || len(candidate.Summary.Gaps) == 0 {
+					t.Fatalf("unknown chain claimed compatible: %+v", candidate)
+				}
+			}
+		})
 	}
 }

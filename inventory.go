@@ -300,12 +300,6 @@ func parameterSummaries(root map[string]any, parameters []any, op *OperationSumm
 	out := make([]ParameterSummary, 0, len(parameters))
 	for _, value := range parameters {
 		parameter := mapValue(value)
-		// Pure local Reference Object chains may identify an ignored header
-		// without projecting any of its irrelevant schema metadata. Other
-		// inventory reference/overlay behavior remains unchanged.
-		if resolved, ok := shapeLocalObject(root, parameter); ok && ignoredOpenAPI3HeaderParameter(root, resolved) {
-			continue
-		}
 		if ref := stringValue(parameter["$ref"]); strings.HasPrefix(ref, "#/") {
 			if resolved := localObjectRef(root, ref); len(resolved) > 0 {
 				parameter = mergeObjectRef(resolved, parameter)
