@@ -1,0 +1,27 @@
+{
+  "remoteURL": "git@github.com-tabilet:OpenUdon/apitools.git",
+  "ref": "refs/heads/main",
+  "before": "409816b94ef377ab3c7253959169bca08cf1d125",
+  "head": "acf9ab9f2afb40e98c0047ae08d0033f5b2395ce",
+  "source": "409d4dd54ffa3fbd8c7cddd75bd556ea6bf0e67c",
+  "normalFastForward": true,
+  "clean": true,
+  "review3Passed": true,
+  "commits": [
+    "acf9ab9f2afb40e98c0047ae08d0033f5b2395ce [skip ci] Pass M85 final ordinary handoff and whole review3"
+  ],
+  "changedPaths": [
+    "docs/m85-ordinary-proof.json",
+    "docs/m85-publication.md",
+    "docs/m85-qualification.md",
+    "docs/m85-release-handoff.md",
+    "docs/m85-source-publication.json",
+    "docs/m85-verification-reuse.json",
+    "tabilet/memory-bank/status-M85.md"
+  ],
+  "proofSHA256": "f648bcdd550e598da54904f4ebf3647e862d05d3233af6be5b20fdfda3eaa39f",
+  "row4InProgress": true,
+  "independentlyObservedAfter": "acf9ab9f2afb40e98c0047ae08d0033f5b2395ce",
+  "pushLog": "/tmp/am85r2-proof/evidence-push.log",
+  "pushLogSHA256": "e6c65a27927801ae9c5bf313684a16b5a323acb2b17fefbc0c2984b89771354c"
+}
