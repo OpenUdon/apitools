@@ -2,7 +2,7 @@
 
 **Stage/owner:** STG-11 post-acceptance remediation; APItools.
 **Planning approval:** User requested package-local milestones on 2026-10-08 and selected required fixes only.
-**State:** Executing M84.4; M84.1/.2/.3 complete; one serial owner; whole pre-publication review1 passed (1/10); ordinary publication/final review pending.
+**State:** All four task gates complete; ordinary source/current-consumer proof passes; whole closing review2 passed (2/10); coordinator acceptance/consolidation/reconciliation/retirement pending.
 **Current goal authority:** The user invoked memory-bank-goal, authorized task commits and needed reviewed normal fast-forward GitHub source/closure publication to the recorded existing main refs, and confirmed serial execution Udon:M52 -> APItools:M84 -> Kinet:M50. Udon:M52 is accepted/published/retired, and M84 is the next ready serial unit.
 **Review source:** Stage 11 review 2 — all milestones, all five packages (`stage11-review-2.md`), AP1.
 **Source priority / local severity:** P2 / P2; confirmed projection behavior and current Kinet incompatibility gate.
@@ -31,7 +31,7 @@ The [owner record](../../../udon/tabilet/docs/history/status-M52.md) and
 | M84.1 — Apply reserved-header parameter rules | `[+]` | AP1. Exclude reserved Accept, Content-Type and Authorization parameter declarations according to supported OpenAPI rules, including reusable local parameter references and the supported header-name semantics. A required declaration must not create binding.input_required. Preserve genuine required headers and security scheme/OR/AND information; never bind credential values as literals or resolve credentials. |
 | M84.2 — Prove projection and native-authoring compatibility | `[+]` | Add deterministic bounded fixtures for supported OpenAPI versions, direct/referenced declarations, genuine headers and security requirements. Independently reproduce shape bytes and show current UWS/OpenUdon assessment admits valid native authoring without fabricated reserved inputs while incomplete real bindings still refuse. Run source/determinism/identity/forgery and metadata-only compatibility checks. |
 | M84.3 — Qualify clean source and prepare reviewed publication | `[+]` | Run required offline owner and proportionate public/private consumer checks against the exact candidate graph, preserving frozen corpus/wires and all unrelated pins. Record exact source/module/build identities and a concrete fresh source-publication proposal for normal fast-forward to the existing main ref. Review the exact candidate before exercising the current publication authority; bootstrap proof remains labelled and cannot satisfy ordinary publication. |
-| M84.4 — Publish reviewed source and close ordinary handoff | `[~]` | The initial missing-authority blocker is resolved by the user's current GitHub publication authorization. After M84.3 qualification and review of the exact proposal, mark this operation in progress and publish reviewed M84 source plus scoped evidence/closure by normal fast-forward to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main. Independently verify ordinary full-SHA/module/sums/source/consumer proof; complete whole review, downstream reconciliation, consolidation and retirement. No additional push approval is required within this granted scope. No force push, tags, images, deployment or live requests. |
+| M84.4 — Publish reviewed source and close ordinary handoff | `[+]` | The initial missing-authority blocker is resolved by the user's current GitHub publication authorization. After M84.3 qualification and review of the exact proposal, mark this operation in progress and publish reviewed M84 source plus scoped evidence/closure by normal fast-forward to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main. Independently verify ordinary full-SHA/module/sums/source/consumer proof; complete whole review, downstream reconciliation, consolidation and retirement. No additional push approval is required within this granted scope. No force push, tags, images, deployment or live requests. |
 
 ## Acceptance and verification
 
@@ -40,7 +40,7 @@ AP1 is fixed at the source projection and independently verified consumer bounda
 Run go test ./..., go vet ./..., git diff --check and existing applicable corpus/source-format/identity guards. Follow the established checker policy without inventing a new waiver. Verify the current SDK consumer and actual selected private consumer graph with retained Go 1.26.6/GOWORK=off and cached offline dependencies. Reuse identical identity-bound verification evidence; repeat checks for changed inputs or remaining failures. Publication acquisition/proof follows the exact reviewed proposal under the current scoped user grant.
 
 **Compatibility:** Corrected shape bytes/digests may change for affected sources. Do not rewrite previously approved packages or grants; Kinet:M50 owns fresh assessment/publication and worker adoption. Existing schemas, frozen sources and history remain unchanged.
-**Closing review:** whole pre-publication iteration1 passed, 1/10; persist whole-pass starts, resume the same interrupted pass, maximum ten, no P1/P2 carry-forward.
+**Closing review:** whole pre-publication iteration1 and final whole iteration2 passed, 2/10; persist whole-pass starts, resume the same interrupted pass, maximum ten, no P1/P2 carry-forward.
 **Execution/commit:** One serial owner; later confirmed goal uses task commits. No execution or commit follows from this planning write.
 **External mutations:** Reviewed M84 source and scoped documentation/closure, normal fast-forward only, to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main under the current user grant. Prepare and verify the exact outgoing proposal before acting; M83 grants remain consumed.
 **Downstream:** Kinet:M50 requires accepted independently published M84 identities before adoption. UWS/OpenUdon lower-priority findings are not scheduled.
@@ -123,3 +123,44 @@ and [exact publication proposal](../../docs/m84-publication-proposal.md) bind th
 source/toolchain/modules/CLI identities and scoped outgoing content. Candidate
 proof is labelled bootstrap, never ordinary publication. Whole prepub1 passed
 without findings; M84.4 is selected under the current exact normal-FF source grant.
+
+## M84.4 — source and ordinary handoff complete, 2026-10-09
+
+M84.4 was in progress before the source launcher. Under the current exact grant,
+reviewed normal fast-forward advanced git@github.com-tabilet:OpenUdon/apitools.git
+refs/heads/main fromde3f16acbf12c7b632ee0ed9be02efaaf2c2be4b to
+3773bd485fe31599e355719e0c5ecea0373bc553. Independent ls-remote observed that exact
+source/evidence head. The six outgoing commits and all scoped paths/proposal hash
+were reviewed; no force, tag/image/deployment/other-owner/live operation occurred.
+Fresh source-empty APItools/VCS cache resolves full SHA0c from the ordinary
+Git/module origin, with exact version/time/both sums and all621 source ZIP/Git/
+extracted bytes matching the qualified source. Ordinary rawZIP2333509 bytes,
+SHA256012e818ca76501f84f3064dd9809ca1c4f666d26bb83f6bc2a6100a9a1593655, is
+independently observed; no candidate seed/file proxy is used. Actual ordinary
+owner/public/private graphs77/73/171 and complete compiled/source inventories
+reproduce qualified inputs; all19 fresh events pass and all3 CLI bytes reproduce.
+Affected owner/header and public/private16-case SDK races plus privateM52 unknown/
+deadline controls pass. Exact source/module/consumer input parity permits reuse
+of unchanged passing broad owner/SDK/private/checker evidence without repetition.
+The [ordinary proof](../../docs/m84-ordinary-proof.json), [reuse proof](../../docs/m84-verification-reuse.json)
+and [publication evidence](../../docs/m84-publication.md) retain exact gates.
+Scoped final review/evidence publication follows the closing review; the root
+coordinator owns shared-memory consolidation, Kinet:M50 reconciliation and
+validated retirement. Terminal rows do not establish milestone acceptance.
+
+## Whole review iteration2 — passed, 2026-10-09
+
+Persisted before the final entire-milestone pass. Review both implementation
+commits, all regressions/guarded invariants, exact source and complete actual
+ordinary owner/public/private proof, preserved failed checks, exact proposal/
+source before-and-after, metadata publication scope and downstream custody.
+Resume interrupted iteration2; no P1/P2/higher carry-forward, maximum10 total.
+
+The final entire-milestone pass and independent Tier0 read-only review found no
+P1/P2/P3. Ordinary621-file source/Origin/version/time/sums, all19 event/log hashes,
+exact publication range/proposal, complete normalized compiled-input parity,
+unchanged consumer manifests, private/public boundaries and all3 reproducible
+binaries independently revalidated. No source changed after0c; no broad suites
+were repeated. All four task units and whole review2 pass. Scoped final evidence
+publication is authorized; root acceptance/consolidation/reconciliation/retirement
+remain separate required closure work, with no live/deployment authority.

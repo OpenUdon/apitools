@@ -64,3 +64,16 @@ consumer migration, deployment, live/provider/model/mail/user-ledger actions,
 registration, Ramen and Stage12 stay outside this assignment. No evolution
 version is needed for this scoped correction. Coordinator consolidation,
 Kinet:M50 adoption/reconciliation and retirement follow final ordinary proof.
+
+Ordinary source acquisition and current owner/public/private module proof now pass.
+[Ordinary proof](m84-ordinary-proof.json) binds independently observed source head
+3773bd485fe31599e355719e0c5ecea0373bc553, full-SHA normal Git/module resolution,
+matching version/time/sums, all621 Git/ZIP/extracted files and the actual unchanged
+77/73/171 graphs. Nineteen fresh ordinary command events pass; affected authoring/
+unknown/deadline races and all3 integrity/compiled/CLI gates run against the new
+ordinary artifact. The3 CLI bytes reproduce exactly. [Reuse](m84-verification-reuse.json)
+proves complete source/graph/consumer input equality before retaining identical
+broad test/checker evidence. Ordinary rawZIP packaging is separately observed
+in [publication evidence](m84-publication.md); bootstrap packaging is never
+represented as remote acquisition. Final whole review2 passed without P1/P2/P3; coordinator
+consolidation/reconciliation/retirement remain before milestone acceptance.

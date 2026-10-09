@@ -1,0 +1,53 @@
+{
+  "owner": {
+    "selectedAndCompiledIdentitiesEqual": true,
+    "fullModuleSourceInventoriesAndSumsEqual": true,
+    "compiledPackageAndFileCountsEqual": true,
+    "ordinaryClosureSHA256": "795f7896c9c8302025eb9a63798bc8736494a91055ed35aa655fdd6f87d31453",
+    "qualifiedClosureSHA256": "721d98b0dbd777ad572854080885aa6d766f9597c8c27e9b4bcf4e0729af6f2b",
+    "consumerFilesEqual": null
+  },
+  "public": {
+    "selectedAndCompiledIdentitiesEqual": true,
+    "fullModuleSourceInventoriesAndSumsEqual": true,
+    "compiledPackageAndFileCountsEqual": true,
+    "ordinaryClosureSHA256": "c641cc96c81eab74694e8efc99983431e7f06b220d6ce8aa7d002dded4f6f5a8",
+    "qualifiedClosureSHA256": "e93c71f5b474081ca24b2f35c31a73e8daae6c20d1876469b9216a3b17b09081",
+    "consumerFilesEqual": true
+  },
+  "private": {
+    "selectedAndCompiledIdentitiesEqual": true,
+    "fullModuleSourceInventoriesAndSumsEqual": true,
+    "compiledPackageAndFileCountsEqual": true,
+    "ordinaryClosureSHA256": "25f08a4d6588351913ac232fbba75f5ccdee384c85f47d41520c961c4792985b",
+    "qualifiedClosureSHA256": "42f6480e897cdce4f1d8951015226da1a8e5df7768ba5803831c1b54f7e27985",
+    "consumerFilesEqual": true
+  },
+  "apitools-owner": {
+    "candidateAndOrdinaryBinaryEqual": true,
+    "sha256": "d221084d1af7bbb81c173103d713fec83d6ed7ea4366cd8163dec941a073f292"
+  },
+  "sdk-public": {
+    "candidateAndOrdinaryBinaryEqual": true,
+    "sha256": "719c1dcb6efe614ff5952b89bd00295efebcc36ea1edd3a05d4843532c303321"
+  },
+  "udon-private-cli": {
+    "candidateAndOrdinaryBinaryEqual": true,
+    "sha256": "c116ecafb7f910399f0c61d9d8616385a95147cf2cacdaf4bb40c4ac33c74d4a"
+  },
+  "reusedPassingChecks": [
+    "clean owner full test/race/vet/build/catalog/format/checker policy",
+    "public current SDK packagev3 full suite/vet",
+    "private full M52 output/exact-number/bodyless/direct/Unix-broker race grid/vet"
+  ],
+  "ordinaryRerunChecks": [
+    "affected owner header regressions",
+    "public/private 16-case SDK header authoring races",
+    "private M52 native unknown/deadline controls",
+    "all3 modverify",
+    "all3 selected/compiled/full artifact inventories",
+    "all3 trimpath CLI builds"
+  ],
+  "sourceFilesAll621Equal": true,
+  "noBroadSuitesRepeatedAtMetadataCheckpoint": true
+}
