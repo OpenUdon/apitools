@@ -1,0 +1,26 @@
+{
+  "owner": {
+    "fullSourceVersionsBothSumsAndModuleFileInventoriesEqual": true,
+    "compiledSourceOwnershipAndHashesEqual": true,
+    "graphAndCompiledCountsEqual": true,
+    "consumerInputsEqual": null,
+    "localClosureSHA256": "3a2324facb803992df0fc549ceb98c6986a610fab0a46007ecacbda40ec089a6",
+    "ordinaryClosureSHA256": "1bce06c5f0e573a700f79ab0549a08294aa8e2aca3e658c7b62f32922a64581a"
+  },
+  "public": {
+    "fullSourceVersionsBothSumsAndModuleFileInventoriesEqual": true,
+    "compiledSourceOwnershipAndHashesEqual": true,
+    "graphAndCompiledCountsEqual": true,
+    "consumerInputsEqual": true,
+    "localClosureSHA256": "105bcd8d08c6e4fa471258505afd48d255e2a4d6e65eaf4b9d68978c812972ad",
+    "ordinaryClosureSHA256": "651143604c449c967766f6b3e31b906c2321fa9ca85d8aa28f7e8d34c27275e5"
+  },
+  "private": {
+    "fullSourceVersionsBothSumsAndModuleFileInventoriesEqual": true,
+    "compiledSourceOwnershipAndHashesEqual": true,
+    "graphAndCompiledCountsEqual": true,
+    "consumerInputsEqual": true,
+    "localClosureSHA256": "64c5a3030a6d74bc00dedcbc2077f119008808e45503247803f4d808574ead8c",
+    "ordinaryClosureSHA256": "d54eb4aa5823d3d849c654eeb891cd994d895e164a8276a06c63a0f4c18c4811"
+  }
+}
