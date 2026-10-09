@@ -63,3 +63,10 @@ consolidates/reconciles/retires M84 before Kinet:M50 adopts exact producer ident
 Installed M44, independent browser/media/PhaseA/legacy pins, public wires, frozen
 sources/history and registration stay unchanged. No Ramen, Stage12, deployment,
 live/host/account/provider/model/mail/user-ledger action or approval upgrade follows.
+
+Observed final scoped evidence publication normally advanced main3773bd485fe31599e355719e0c5ecea0373bc553
+to `b7425e2030489ce25a0ee523f83d694176f949f0`; the independent after-ref matched exactly.
+[Exact record](m84-evidence-publication.json) retains reviewed scope/source,
+whole2 result and log/proof hashes. Root subsequently consolidated accepted facts,
+reconciled Kinet:M50 and prepared validated retirement. Runtime0c remains unchanged;
+later coordinator commits/publication are recorded only after observed.

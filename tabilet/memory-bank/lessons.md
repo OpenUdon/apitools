@@ -83,3 +83,19 @@ not establish native semantics; changed identities require fresh consumer review
 - **Evidence:** [Retired S05](../docs/history/status-S05.md), review R1/R2 and exact-host, service-family, conditional and native Discovery regressions.
 
 String token values used for prompt text cannot prove native argument equality. M83 whole reviews showed escaped-string collisions, quoted delimiter boundary mistakes and compatible field merges lost by raw whole-selection equality. Keep native typed argument/child evidence, exact default presence and explicit parser closure/depth guards; a partial schema never grants missing-field or runtime authority. [M83 review evidence](../docs/history/status-M83.md#whole-review-iteration-4--local-code-gate-passed) and the corrected/refusal matrices preserve these lessons.
+
+## Source-specific ignored declarations and complete archive inputs
+
+Ignored source declarations must not fabricate input or completeness constraints.
+Apply source-version/location/header-case/reference rules without weakening genuine
+bindings or independent security projection. Evidence: [accepted M84](../docs/history/status-M84.md),
+operation_shapes_reserved_headers_test.go and the16-case SDK/native authoring
+matrix with M83 negative controls.
+
+Immutable module seeding must preserve every archive file, including source *.lock
+files; mutable-cache filtering belongs only in cache metadata. Real module directory
+roots and immutable hardlinks preserve Go modverify behavior. Reuse passing broad
+checks only after full source/version/sum/consumer input equality. Ordinary and local
+ZIP containers may differ despite identical normalized files/module sums.
+Evidence: [M84 ordinary proof](../../docs/m84-ordinary-proof.json) and retained
+cache failures/restored exact lockfiles. No source workaround or user-cache mutation.

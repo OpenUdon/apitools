@@ -1,5 +1,24 @@
 # Product
 
+## Accepted M84 reserved-header remediation — 2026-10-09
+
+M84 is accepted after four task gates and whole review2. Independently published
+source `0c1383c6e2059e89cbf100ed8cb689be64d9ba57` resolves as `v0.0.0-20261009012335-0c1383c6e205`,
+module sum `h1:GeJhKB7I42cH+bWw+8CoiPImyLmHKsqJih6E7uvUdlg=` and GoMod sum
+`h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=`.
+Reviewed source3773bd485fe31599e355719e0c5ecea0373bc553 and evidence closure
+`b7425e2030489ce25a0ee523f83d694176f949f0` are independently observed on the authorized main ref.
+[Handoff](../../docs/m84-release-handoff.md), [ordinary proof](../../docs/m84-ordinary-proof.json)
+and [history](../docs/history/index.md) retain exact source/consumer/review evidence.
+M82/M83 and frozen consumers remain at their recorded acceptance.
+
+Supported OpenAPI3 reserved Accept/Content-Type/Authorization header Parameter
+Objects no longer manufacture required workflow input bindings or unsupported
+schema/serialization gaps. Genuine inputs and source security remain exact.
+The 108-case owner matrix and16 current SDK cases qualify compatible native
+authoring, with M83 negative controls reproducing the defect. No credentials,
+runtime operation or authority is added; Kinet owns fresh adoption and confirmation.
+
 ## M83 corrected metadata qualified source
 
 Authorized local remediation corrects native direction/default/member/request/response evidence and conservative OpenAPI serialization/format projection. The owned GraphQL model retains underlying fields, response keys, typed argument identity and children for compatible merging; conflicting fields/arguments remain refused. No transport, credential or execution capability is added. Six implementation rows, exact UWS M09 adoption and local successor/archive/public-bootstrap qualification are complete. Exact source f2c5693ec39ad6981693d2ad126ff26e3fdd564c is normally published and independently ordinarily qualified at v0.0.0-20261008061439-f2c5693ec39a. Whole review5 and all seven task rows pass; M83 is accepted/retired after exact pending-consumer reconciliation and current-truth consolidation; [history](../docs/history/index.md) retains the full specification/status. Frozen M82 acceptance remains unchanged.

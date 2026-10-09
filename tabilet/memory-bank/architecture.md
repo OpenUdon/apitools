@@ -1,5 +1,24 @@
 # Architecture
 
+## Accepted M84 reserved-header remediation — 2026-10-09
+
+M84 is accepted after four task gates and whole review2. Independently published
+source `0c1383c6e2059e89cbf100ed8cb689be64d9ba57` resolves as `v0.0.0-20261009012335-0c1383c6e205`,
+module sum `h1:GeJhKB7I42cH+bWw+8CoiPImyLmHKsqJih6E7uvUdlg=` and GoMod sum
+`h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=`.
+Reviewed source3773bd485fe31599e355719e0c5ecea0373bc553 and evidence closure
+`b7425e2030489ce25a0ee523f83d694176f949f0` are independently observed on the authorized main ref.
+[Handoff](../../docs/m84-release-handoff.md), [ordinary proof](../../docs/m84-ordinary-proof.json)
+and [history](../docs/history/index.md) retain exact source/consumer/review evidence.
+M82/M83 and frozen consumers remain at their recorded acceptance.
+
+Bounded local-reference/name/location/duplicate checks precede the OpenAPI3
+ignore rule. HTTP case-insensitive reserved header names are excluded before
+requiredness/schema/serialization/completeness projection. Security scheme
+OR/AND is independently retained; query/cookie/path and genuine header inputs,
+Swagger2 and all public interfaces/wires are unchanged. Independent verification
+reproduces corrected claims from raw bytes and rejects forged/stale metadata.
+
 ## Qualified Stage 11 source metadata — M82
 
 The accepted M82 producer/verifier uses existing native parsers and public UWS

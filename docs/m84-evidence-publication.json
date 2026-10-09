@@ -1,0 +1,28 @@
+{
+  "schema": "apitools.m84.evidence-push.v1",
+  "target": "git@github.com-tabilet:OpenUdon/apitools.git",
+  "ref": "refs/heads/main",
+  "before": "3773bd485fe31599e355719e0c5ecea0373bc553",
+  "outgoing": "b7425e2030489ce25a0ee523f83d694176f949f0",
+  "source": "0c1383c6e2059e89cbf100ed8cb689be64d9ba57",
+  "paths": [
+    "docs/m84-ordinary-proof.json",
+    "docs/m84-publication.md",
+    "docs/m84-qualification.md",
+    "docs/m84-release-handoff.md",
+    "docs/m84-verification-reuse.json",
+    "tabilet/memory-bank/status-M84.md"
+  ],
+  "wholeReview": {
+    "iterations": 2,
+    "state": "passed",
+    "findings": []
+  },
+  "sourceChanges": false,
+  "worktree": "clean",
+  "normalFastForwardReviewed": true,
+  "ordinaryProofSHA256": "6da4835747ce3d23a0abab4f02d944dc534bf0632f7a916d066cff878294fe36",
+  "grantedScope": "scoped ordinary evidence/review/closure under existing source grant",
+  "independentlyObservedAfter": "b7425e2030489ce25a0ee523f83d694176f949f0",
+  "pushLogSHA256": "9ce750270351472518ddee39a5fa86d41edb857a9cb2613eb9201f5dfe273040"
+}

@@ -1,8 +1,41 @@
+# Retired milestone M84 — Reserved OpenAPI header projection remediation
+
+**Milestone.** M84
+**Outcome.** completed
+**Retired.** 2026-10-09
+**Source status.** tabilet/memory-bank/status-M84.md
+**Source specification.** tabilet/memory-bank/milestone.md#m84--reserved-openapi-header-projection-remediation
+**Evidence.** b7425e2030489ce25a0ee523f83d694176f949f0
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 2
+**Verification.** Full owner tests/races/vet/build/catalog/format/diff,108-case header matrix,16-case current SDK and M83 negative controls, fresh ordinary Origin/full-SHA/version/sums/all621 source files, exact owner77/public73/private171 archives/compiled source/CLI parity and all19 ordinary events pass. Six unchanged checker observations retain existing policy; cache failures remain recorded.
+**Consolidated into.** [product](../../memory-bank/product.md), [architecture](../../memory-bank/architecture.md), [stack](../../memory-bank/tech-stack.md), [lessons](../../memory-bank/lessons.md), [ordinary proof](../../../docs/m84-ordinary-proof.json), [publication](../../../docs/m84-publication.md) and [handoff](../../../docs/m84-release-handoff.md); exact Kinet:M50 adoption reconciled. Included coordinator closure/retirement changes postdate the observed evidence head.
+**Accepted source.** 0c1383c6e2059e89cbf100ed8cb689be64d9ba57
+**Module.** v0.0.0-20261009012335-0c1383c6e205
+
+## Milestone specification
+
+``````markdown
+## M84 — Reserved OpenAPI header projection remediation
+
+**Goal/scope:** Fix AP1's fabricated required Accept/Content-Type/Authorization inputs in supported OpenAPI 3 operation shapes. Preserve real header/security constraints, deterministic source identity, local references, bounds and independent reproduction; no credential resolution or runtime execution.
+**Provenance:** Stage 11 review 2 (`stage11-review-2.md`), source P2/local P2, confirmed; report/revalidation commit `de3f16acbf12c7b632ee0ed9be02efaaf2c2be4b`, clean worktree. Lineage M82/M83; completed records stay frozen.
+**Dependencies:** Existing accepted UWS M09 root/codec, no new producer milestone dependency. Udon M52 is a serial scheduling predecessor.
+**Acceptance:** A reserved header declaration cannot fabricate binding.input_required and block otherwise valid native authoring. Genuine headers and security OR/AND remain correctly represented; current UWS/OpenUdon consumers independently verify corrected shapes.
+**Tasks/review:** All four correction/consumer/qualification/publication units are complete. Final whole review2 passes, with exact ordinary source/consumer proof and scoped evidence publication observed at b7425e2030489ce25a0ee523f83d694176f949f0. Owner consolidation and downstream reconciliation complete; normal retirement applies.
+**Verification:** Offline owner tests/vet/source/corpus/identity guards and proportionate actual consumer checks, retained toolchain/current selected graphs, existing checker policy, diff hygiene and independent ordinary module proof after named publication.
+**Compatibility/downstream:** Affected shape digests require fresh downstream assessment/publication/grants. Kinet M50 owns adoption/worker/bundle qualification; old packages, public schemas/wires and unrelated pins stay frozen. No new evolution direction, live action or broader source-format hardening is included.
+``````
+
+## Status record
+
+``````markdown
 # M84 — Reserved OpenAPI header projection remediation
 
 **Stage/owner:** STG-11 post-acceptance remediation; APItools.
 **Planning approval:** User requested package-local milestones on 2026-10-08 and selected required fixes only.
-**State:** All four task gates complete; ordinary source/current-consumer proof passes; whole closing review2 passed (2/10); coordinator acceptance/consolidation/reconciliation/retirement pending.
+**State:** Accepted 2026-10-09; all four task gates, ordinary source/current-consumer proof, whole review2 and coordinator consolidation/reconciliation pass; ready for validated retirement.
 **Current goal authority:** The user invoked memory-bank-goal, authorized task commits and needed reviewed normal fast-forward GitHub source/closure publication to the recorded existing main refs, and confirmed serial execution Udon:M52 -> APItools:M84 -> Kinet:M50. Udon:M52 is accepted/published/retired, and M84 is the next ready serial unit.
 **Review source:** Stage 11 review 2 — all milestones, all five packages (`stage11-review-2.md`), AP1.
 **Source priority / local severity:** P2 / P2; confirmed projection behavior and current Kinet incompatibility gate.
@@ -164,3 +197,18 @@ binaries independently revalidated. No source changed after0c; no broad suites
 were repeated. All four task units and whole review2 pass. Scoped final evidence
 publication is authorized; root acceptance/consolidation/reconciliation/retirement
 remain separate required closure work, with no live/deployment authority.
+
+## Coordinator closure — 2026-10-09
+
+Root inspected the complete outgoing source diff, all four completed rows,
+persisted whole review2 and ordinary source/consumer identity. No source
+Go/go.mod/go.sum changed after 0c1383c6e2059e89cbf100ed8cb689be64d9ba57. Source/evidence main
+publication is independently observed through b7425e2030489ce25a0ee523f83d694176f949f0; the exact
+second push is retained in docs/m84-evidence-publication.json. Current product,
+architecture, tooling and applicable lessons are consolidated. Kinet:M50 now
+binds exact APItools source/version/sums alongside accepted M52, with real worker/
+catalog/combined-graph/integration/bundle qualification still pending. Full
+specification/status retention and envelope checks precede active-source removal.
+No original history/corpus/wire/pin or evolution direction is changed. Coordinator
+changes postdate the observed source/evidence head; no later publication is claimed.
+``````

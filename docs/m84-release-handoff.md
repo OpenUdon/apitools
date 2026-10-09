@@ -12,10 +12,11 @@ and [source inventory](m84-source-files.json) bind exact artifacts and gates.
 All four task gates pass; final whole review 2 passed without P1/P2/P3.
 Normal source publication was independently observed at
 `3773bd485fe31599e355719e0c5ecea0373bc553` on the exact authorized existing
-APItools main target. Scoped ordinary-evidence publication follows this final
-review under the same grant; its full outgoing/observed head is retained by the
-executor and coordinator. Coordinator acceptance/consolidation/reconciliation/
-retirement remain required; terminal rows alone are not milestone acceptance.
+APItools main target. Scoped ordinary-evidence publication is independently observed at
+b7425e2030489ce25a0ee523f83d694176f949f0. [Exact push](m84-evidence-publication.json)
+retains its before/after, reviewed source and proof/log hashes. Coordinator
+acceptance/consolidation/Kinet reconciliation complete on2026-10-09; the
+[retired record](../tabilet/docs/history/status-M84.md) preserves both full sources.
 
 Supported OpenAPI 3.0/3.1 reserved header Parameter Objects are ignored after
 bounded local-reference/name/location/duplicate checks, using HTTP case-insensitive

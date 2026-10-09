@@ -249,3 +249,17 @@ handoff; structurally valid tables alone do not establish these semantics.
 ```markdown
 M83 is accepted/retired; no active APItools row remains. Original Stage 11 is accepted across the five owner ledgers.
 ```
+
+## 2026-10-09 — Accepted M84 and remaining consumer horizon
+
+**Original source.** tabilet/memory-bank/milestone.md, Active Milestone Specifications.
+**Reason and evidence.** All four M84 task gates/whole review2 and exact ordinary
+source/consumer proof pass at0c1383c6e2059e89cbf100ed8cb689be64d9ba57; evidence
+mainb7425e2030489ce25a0ee523f83d694176f949f0 is independently published.
+**Replacement.** [M84 retired record](status-M84.md), consolidated memory-bank facts
+and Kinet:M50 exact adoption. Historical M83/earlier evidence remains unchanged.
+**Preserved wording.**
+
+```markdown
+M83 remains accepted/retired; M84 is the new required active APItools owner.
+```

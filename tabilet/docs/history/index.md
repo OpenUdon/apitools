@@ -5,6 +5,7 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 
 | Milestone | Outcome | Retired | Record | Summary |
 |---|---|---|---|---|
+| M84 | completed | 2026-10-09 | [M84](status-M84.md) | Reserved OpenAPI3 headers no longer fabricate required inputs; four rows/whole review2; published source0c1383c6e2059e89cbf100ed8cb689be64d9ba57 |
 | C01 | completed | 2026-09-25 | [C01](status-C01.md) | Generated Catalog And Security Aggregation |
 | C02 | completed | 2026-09-26 | [C02](status-C02.md) | Catalog Refresh Manifest Integrity |
 | C03 | completed | 2026-09-26 | [C03](status-C03.md) | Catalog Resolution And Security Audit Accuracy |

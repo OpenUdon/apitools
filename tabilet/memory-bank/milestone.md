@@ -4,7 +4,7 @@
 
 The user requested package-local milestones and a cross-package launch reference on 2026-10-08, then selected **required fixes only**. This approves planning-file application, not implementation, commits, publication or deployment. Stage 11 review 2 is ordinary intake against current post-M49 code; completed acceptance and review counters stay frozen. Lower-priority UWS/OpenUdon and other hardening is not promoted.
 
-**Local owner:** M84, four task rows, owns confirmed AP1 (source P2/local P2) after accepted M82/M83.
+**Local owner:** M84, four completed rows/whole review2, accepts AP1 after exact ordinary source/consumer proof. Runtime0c1383c6e2059e89cbf100ed8cb689be64d9ba57 and evidenceb7425e2030489ce25a0ee523f83d694176f949f0 are published; Kinet:M50 adoption remains.
 **Serial order:** Udon:M52 -> APItools:M84 -> Kinet:M50; producers are independent.
 **Direct downstream:** Kinet:M50 requires exact accepted and independently published M84; public SDK consumer compatibility must be proved.
 **Coordinator:** [Required review 2 remediation](../../../kinet/docs/stage11.md#required-review-2-remediation--2026-10-08). Publication markers grant no authority; the current user goal request authorizes task commits and reviewed normal fast-forward M84 source/closure publication to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main after exact proposal preparation. The user confirmed serial execution Udon:M52 -> APItools:M84 -> Kinet:M50.
@@ -157,24 +157,14 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M84 | [status-M84.md](status-M84.md) | Pending; source publication authorized after qualification/review |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
 
-## M84 — Reserved OpenAPI header projection remediation
-
-**Goal/scope:** Fix AP1's fabricated required Accept/Content-Type/Authorization inputs in supported OpenAPI 3 operation shapes. Preserve real header/security constraints, deterministic source identity, local references, bounds and independent reproduction; no credential resolution or runtime execution.
-**Provenance:** Stage 11 review 2 (`stage11-review-2.md`), source P2/local P2, confirmed; report/revalidation commit `de3f16acbf12c7b632ee0ed9be02efaaf2c2be4b`, clean worktree. Lineage M82/M83; completed records stay frozen.
-**Dependencies:** Existing accepted UWS M09 root/codec, no new producer milestone dependency. Udon M52 is a serial scheduling predecessor.
-**Acceptance:** A reserved header declaration cannot fabricate binding.input_required and block otherwise valid native authoring. Genuine headers and security OR/AND remain correctly represented; current UWS/OpenUdon consumers independently verify corrected shapes.
-**Tasks/review:** Four pending units in the indexed status: correction, consumer regressions, clean qualification/proposal, authorized publication/ordinary proof/closure. The current user goal grant resolves the initial publication-authority blocker. Whole closing review not started (0/10).
-**Verification:** Offline owner tests/vet/source/corpus/identity guards and proportionate actual consumer checks, retained toolchain/current selected graphs, existing checker policy, diff hygiene and independent ordinary module proof after named publication.
-**Compatibility/downstream:** Affected shape digests require fresh downstream assessment/publication/grants. Kinet M50 owns adoption/worker/bundle qualification; old packages, public schemas/wires and unrelated pins stay frozen. No new evolution direction, live action or broader source-format hardening is included.
 
 
-M83 remains accepted/retired; M84 is the new required active APItools owner.
+M83 and M84 remain accepted/retired; no active APItools task remains.
 Original Stage 11 is accepted across the five owner ledgers.
 Completed source repair and version discovery remain in the history index.
 Other candidates still require fresh reconciliation and approval.

@@ -1,5 +1,33 @@
 # Tech Stack
 
+## Accepted M84 reserved-header remediation — 2026-10-09
+
+M84 is accepted after four task gates and whole review2. Independently published
+source `0c1383c6e2059e89cbf100ed8cb689be64d9ba57` resolves as `v0.0.0-20261009012335-0c1383c6e205`,
+module sum `h1:GeJhKB7I42cH+bWw+8CoiPImyLmHKsqJih6E7uvUdlg=` and GoMod sum
+`h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=`.
+Reviewed source3773bd485fe31599e355719e0c5ecea0373bc553 and evidence closure
+`b7425e2030489ce25a0ee523f83d694176f949f0` are independently observed on the authorized main ref.
+[Handoff](../../docs/m84-release-handoff.md), [ordinary proof](../../docs/m84-ordinary-proof.json)
+and [history](../docs/history/index.md) retain exact source/consumer/review evidence.
+M82/M83 and frozen consumers remain at their recorded acceptance.
+
+Go1.26.6/GOWORK=off qualifies actual owner/public/private graphs77/73/171,
+compiled modules39/35/74 and all15657/18160/35037 selected archive source files.
+Current SDK801, UWS root/codec b099 and accepted private runtimeM52 9c remain exact,
+with no directory/workspace replacements and the retained Docker-to-Moby version
+mapping. Public graphs import no private Udon. Owner/public/private CLI SHA256s:
+d221084d1af7bbb81c173103d713fec83d6ed7ea4366cd8163dec941a073f292,
+719c1dcb6efe614ff5952b89bd00295efebcc36ea1edd3a05d4843532c303321,
+c116ecafb7f910399f0c61d9d8616385a95147cf2cacdaf4bb40c4ac33c74d4a.
+
+Full owner tests/races/vet/build/catalog/format/diff and current consumer proof
+pass; all19 ordinary events and621 Git/ZIP/extracted source files match.
+The same six checker observations retain the existing policy without a new waiver.
+Prior environment/cache failures are retained and resolved only in owned scratch.
+Real module directories and complete immutable archive bytes are required for
+modverify; broad evidence is reused only after exact source/graph/consumer parity.
+
 ## M83 ordinary qualified source
 
 Published f2c5693ec39ad6981693d2ad126ff26e3fdd564c / v0.0.0-20261008061439-f2c5693ec39a pins independently acquired UWS M09 root `v0.0.0-20261008043726-b099f6803277`, source `b099f6803277ae94c7e9f1da0904a0140b278f20`, with exact archive/mod sums recorded in the [retired M83](../docs/history/status-M83.md). Existing dependencies and consumer/browser pins stay fixed. Verification uses retained Go 1.26.6 with GOWORK/GOPROXY off and GOTOOLCHAIN local, full tests/vet/build and root/GraphQL/sourceguard races. Compatible staticcheck 2026.2.1 retains the same six byte-unchanged pre-existing observations. The successor corpus has eight sources/thirteen operations, 9,615 bytes / SHA-256 `cfe13bcd44f62b0b650a20833984231426bd0a83cee91538b96d5332d1107fad`; the original M82 corpus stays frozen. [Qualification](../../docs/m83-qualification.md), [ordinary selected/compiled proof](../../docs/m83-ordinary-proof.json) and [publication evidence](../../docs/m83-publication.md) record actual owner77/39 and public consumer64/33 selected/compiled modules, all files/sums and passing downloaded full checks. Whole review5 and all task rows pass. The preserved candidate SDK failure belongs to already-pending M99.3 declared-output owner/time qualification; it is not waived or reported as passed. No consumer migration, additional publication, source replacement or runtime serializer is implicit; reviewed retirement publication is independently observed before M99 implementation.
