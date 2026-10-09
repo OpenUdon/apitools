@@ -263,3 +263,36 @@ and Kinet:M50 exact adoption. Historical M83/earlier evidence remains unchanged.
 ```markdown
 M83 remains accepted/retired; M84 is the new required active APItools owner.
 ```
+
+## 2026-10-09 — Scope M84 proof and approve candidate-input successor M85
+
+**Original sources.** tabilet/memory-bank/product.md and architecture.md, Accepted M84 reserved-header remediation; milestone.md, Active Milestone Specifications.
+**Reason and evidence.** Actual clean Kinet worker ced5468 with published APItools0c reproduces complete reserved-header-free shapes but incompatible candidate inputs in both local and rootless W18. M50-NATIVE-F01 is confirmed P2 at APItools34f5633b941192f6719f0abfc2783cd6675434ad; shape acceptance remains frozen. The user approved M85's four-row fix and source publication on 2026-10-09.
+**Replacement.** Narrow current M84 facts below and approved [M85 specification](../../memory-bank/milestone.md#m85--reserved-header-candidate-and-inventory-remediation), with exact [Kinet evidence](../../../../kinet/docs/m50-candidate-header-finding.md). No candidate fix is claimed delivered by planning.
+**Preserved product wording.**
+
+```markdown
+Supported OpenAPI3 reserved Accept/Content-Type/Authorization header Parameter
+Objects no longer manufacture required workflow input bindings or unsupported
+schema/serialization gaps. Genuine inputs and source security remain exact.
+The 108-case owner matrix and16 current SDK cases qualify compatible native
+authoring, with M83 negative controls reproducing the defect. No credentials,
+runtime operation or authority is added; Kinet owns fresh adoption and confirmation.
+```
+
+**Preserved architecture wording.**
+
+```markdown
+Bounded local-reference/name/location/duplicate checks precede the OpenAPI3
+ignore rule. HTTP case-insensitive reserved header names are excluded before
+requiredness/schema/serialization/completeness projection. Security scheme
+OR/AND is independently retained; query/cookie/path and genuine header inputs,
+Swagger2 and all public interfaces/wires are unchanged. Independent verification
+reproduces corrected claims from raw bytes and rejects forged/stale metadata.
+```
+
+**Preserved milestone wording.**
+
+```markdown
+M83 and M84 remain accepted/retired; no active APItools task remains.
+```

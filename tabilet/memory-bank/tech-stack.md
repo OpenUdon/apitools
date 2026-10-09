@@ -1,5 +1,15 @@
 # Tech Stack
 
+## Current M85 qualification requirement — 2026-10-09
+
+M84 module/source/CLI and shape/SDK proofs below remain accepted at their exact
+identities. Actual Kinet W18 candidate selection fails reserved-header sources;
+these proofs do not establish that integration. Approved M85 requires owner
+candidate/inventory/summary regressions, current SDK/CLI and exact ordinary
+source/consumer proof before new Kinet worker qualification. Retain Go1.26.6,
+GOWORK=off, SDK801/UWSb099/privateM52 runtime9c and the existing six-observation
+checker policy; no new dependency or waiver is planned.
+
 ## Accepted M84 reserved-header remediation — 2026-10-09
 
 M84 is accepted after four task gates and whole review2. Independently published

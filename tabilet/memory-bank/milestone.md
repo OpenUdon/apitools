@@ -2,6 +2,11 @@
 
 ## Stage 11 review 2 required remediation — 2026-10-08
 
+Approved GOAL Step4 successor, 2026-10-09: M50-NATIVE-F01 requires new M85
+before Kinet:M50 can finish. The user approved all four rows, planning/serial
+execution, task commits and needed reviewed source publication. Remaining order
+APItools:M85 -> Kinet:M50; complete horizon four units/22 rows. M84 stays frozen.
+
 The user requested package-local milestones and a cross-package launch reference on 2026-10-08, then selected **required fixes only**. This approves planning-file application, not implementation, commits, publication or deployment. Stage 11 review 2 is ordinary intake against current post-M49 code; completed acceptance and review counters stay frozen. Lower-priority UWS/OpenUdon and other hardening is not promoted.
 
 **Local owner:** M84, four completed rows/whole review2, accepts AP1 after exact ordinary source/consumer proof. Runtime0c1383c6e2059e89cbf100ed8cb689be64d9ba57 and evidenceb7425e2030489ce25a0ee523f83d694176f949f0 are published; Kinet:M50 adoption remains.
@@ -157,6 +162,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
+| M85 | [status-M85.md](status-M85.md) | Approved; pending execution |
 
 Closed milestones are recorded in the history index.
 
@@ -164,7 +170,22 @@ Closed milestones are recorded in the history index.
 
 
 
-M83 and M84 remain accepted/retired; no active APItools task remains.
+## M85 — Reserved-header candidate and inventory remediation
+
+**Goal:** Close M50-NATIVE-F01 by making OpenAPI3 effective inputs coherent across inventory, consumer summaries, candidates and shapes, so valid W18 workflows do not require ignored header parameters.
+**Approval:** User approved the four-row fix and source publication on 2026-10-09, following the complete reconciliation proposal. This approval authorizes planning and separate serial goal execution with task commits.
+**Provenance:** M50 native candidate-header blocker; source priority not supplied, local P2, confirmed. APItools baseline/revalidation34f5633b941192f6719f0abfc2783cd6675434ad, clean; selected published source0c1383c6e2059e89cbf100ed8cb689be64d9ba57. Kinet evidence checkpoint1aff008db0a463b360502f288a08f49ae0aafaa2 includes bounded qualification-test changes; actual workers use clean sourceced5468a5573658a7257585ee2e9588b2998390e. [Finding](../../../kinet/docs/m50-candidate-header-finding.md) and JSON SHA2564060c75e73ec15715971e37e99d2d510136d63118ff9d2d7308acdd4bba9738f retain exact local/rootless reports.
+**Evidence:** inventory.go:299, operation_candidates.go:432/535, operation_summary.go:81 retain/require Accept and Content-Type; operation_shapes_openapi.go correctly excludes all three reserved header names. Authorization is omitted only by the existing credential-shaped summary filter.
+**Lineage/dependencies:** Accepted/retired M84 remains frozen; exact SDK801b45bb1aec297631b2e5d87beb1977788a1ab1, UWS root/codec b099f6803277ae94c7e9f1da0904a0140b278f20 and private consumer runtime9c99eab6051f250dc49e2e52d8246526280046ca. No sibling semantics or new SDK implementation is included.
+**Scope:** OpenAPI3 reserved Accept/Content-Type/Authorization header semantics, bounded existing reference/inheritance paths, inventory/summary/candidate coherence, owner and consumer proof, exact ordinary publication. Preserve genuine inputs/body/security, Swagger2, other families, raw source identity, selectors, API signatures/wire schemas, privacy and no-fetch/no-credential/no-execution behavior. No general parser hardening or unrelated override policy change.
+**Tasks:** Four task-sized rows in status-M85.md. One serial owner; zero/one general row in progress. Parallel implementation is not allowed.
+**Acceptance:** Reserved headers never manufacture effective candidate inputs, incompatibility or irrelevant schema/type/auth-review gaps. Genuine required inputs and security still refuse absent evidence. Current SDK/CLI and actual candidate-selection consumers establish the corrected contract against exact selected graphs; independent ordinary source/module/CLI evidence passes. Kinet must adopt the accepted/published successor and requalify changed workers; no Kinet workaround.
+**Verification:** Retained Go1.26.6/GOWORK=off/offline fixtures, focused cases plus full owner tests/races/vet/build/catalog/format/diff and compatible checker under the existing six-observation policy. Verify SDK801 build/assess/verify/candidate contracts, all selected/unused ordinary archives and compiled ownership, full source/version/sums and CLI reproduction; reuse identical unchanged dependency proof, not changed source or failed cases.
+**Publication:** User-authorized reviewed normal fast-forward source/scoped evidence/closure to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main, only after preparing exact reviewed proposal/qualification. No repeated permission within this grant; changed target/ref or unrelated outgoing commits require resolution. No force/amend/tags/images/deployment/live actions.
+**Review/closure:** Persist the whole review counter before each started pass, maximum10, no P1/P2 carried. Source/publication task is not acceptance; complete independent verification, consolidation/downstream reconciliation and strict retirement after all rows pass.
+**Downstream/migration:** APItools:M85 -> Kinet:M50. Preserve original M50.9 row and append successor lineage; M50.10 qualifies the new stack/default-closed bundle and exact handoff. Original18 required rows remain, with four necessary producer rows (four units/22 total). No live-ledger migration, grant transfer, deployment or evolution change.
+
+M83 and M84 remain accepted/retired; M85 is the active required owner.
 Original Stage 11 is accepted across the five owner ledgers.
 Completed source repair and version discovery remain in the history index.
 Other candidates still require fresh reconciliation and approval.

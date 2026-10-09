@@ -2,6 +2,12 @@
 
 ## Stage 11 source metadata
 
+M84 remains accepted/published/retired for its shape projection. Actual Kinet
+M50 exposes a separate reserved-header inventory/candidate mismatch. The user
+approved [M85](tabilet/memory-bank/status-M85.md), four rows and reviewed normal
+fast-forward source/evidence publication to the existing APItools main ref.
+Remaining serial order is APItools:M85 -> Kinet:M50; no live/deployment authority.
+
 [Stage 11](../kinet/docs/stage11.md) coordinates both refactoring phases across
 five owner ledgers. APItools M82 is accepted and published at
 `54583f9b2f452b7cc522360c5aeeff29ca22f96c`, whole review 3. It produces and

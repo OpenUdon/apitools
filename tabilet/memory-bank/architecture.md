@@ -12,12 +12,14 @@ Reviewed source3773bd485fe31599e355719e0c5ecea0373bc553 and evidence closure
 and [history](../docs/history/index.md) retain exact source/consumer/review evidence.
 M82/M83 and frozen consumers remain at their recorded acceptance.
 
-Bounded local-reference/name/location/duplicate checks precede the OpenAPI3
-ignore rule. HTTP case-insensitive reserved header names are excluded before
-requiredness/schema/serialization/completeness projection. Security scheme
-OR/AND is independently retained; query/cookie/path and genuine header inputs,
-Swagger2 and all public interfaces/wires are unchanged. Independent verification
-reproduces corrected claims from raw bytes and rejects forged/stale metadata.
+In M84's shape-table path, bounded local-reference/name/location/duplicate
+checks precede the OpenAPI3 reserved-header rule and requiredness/schema/style
+projection. Security OR/AND, genuine inputs, Swagger2 and wire schemas remain.
+The independent inventory -> OperationSummary -> ConsumerOperationSummary ->
+candidate matching path still retains reserved Accept/Content-Type. Shape
+verification does not correct that path. [M85](milestone.md#m85--reserved-header-candidate-and-inventory-remediation)
+must align effective input semantics before Kinet can accept the combined stack;
+[actual evidence](../../../kinet/docs/m50-candidate-header-finding.md) binds the gap.
 
 ## Qualified Stage 11 source metadata — M82
 

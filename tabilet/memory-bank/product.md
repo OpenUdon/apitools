@@ -12,12 +12,15 @@ Reviewed source3773bd485fe31599e355719e0c5ecea0373bc553 and evidence closure
 and [history](../docs/history/index.md) retain exact source/consumer/review evidence.
 M82/M83 and frozen consumers remain at their recorded acceptance.
 
-Supported OpenAPI3 reserved Accept/Content-Type/Authorization header Parameter
-Objects no longer manufacture required workflow input bindings or unsupported
-schema/serialization gaps. Genuine inputs and source security remain exact.
-The 108-case owner matrix and16 current SDK cases qualify compatible native
-authoring, with M83 negative controls reproducing the defect. No credentials,
-runtime operation or authority is added; Kinet owns fresh adoption and confirmation.
+M84 corrects the OpenAPI3 shape-table projection of reserved
+Accept/Content-Type/Authorization header Parameter Objects, without fabricated
+binding inputs or unsupported schema/serialization gaps. Its108 owner cases and16
+SDK Build/Assess/Verify cases pass; genuine inputs and security remain exact.
+Those gates do not cover candidate selection: inventory/consumer summaries still
+require Accept/Content-Type, so actual W18 refuses otherwise valid workflows.
+[Finding](../../../kinet/docs/m50-candidate-header-finding.md) and approved
+[M85](milestone.md#m85--reserved-header-candidate-and-inventory-remediation) own
+that remaining contract. No credentials, execution or consumer acceptance follows.
 
 ## M83 corrected metadata qualified source
 
