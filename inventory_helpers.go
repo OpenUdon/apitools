@@ -38,6 +38,15 @@ func boolValue(value any) bool {
 	return false
 }
 
+func ignoredOpenAPI3HeaderParameter(root, parameter map[string]any) bool {
+	version := stringValue(root["openapi"])
+	if stringValue(root["swagger"]) == "2.0" || (!strings.HasPrefix(version, "3.0.") && !strings.HasPrefix(version, "3.1.")) || stringValue(parameter["in"]) != "header" {
+		return false
+	}
+	name := stringValue(parameter["name"])
+	return strings.EqualFold(name, "Accept") || strings.EqualFold(name, "Content-Type") || strings.EqualFold(name, "Authorization")
+}
+
 func stringSlice(value any) []string {
 	if typed, ok := value.([]string); ok {
 		return sortedUniqueStrings(append([]string(nil), typed...))

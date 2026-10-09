@@ -6,6 +6,8 @@ advisory source metadata: it does not bind a workflow step, approve an
 operation, or authorize execution. `BuildOperationCandidates` implements the
 local-only v1 producer for the source families listed below.
 
+OpenAPI 3.0/3.1 inventories, summaries and candidates ignore header Parameter Objects named Accept, Content-Type or Authorization, case insensitively, before input/schema/readiness projection. Their metadata does not create workflow inputs or review gaps. Genuine parameters in other locations and independent security schemes/requirements retain their existing semantics; Swagger 2.0 is unchanged. Shape projection uses the same rule.
+
 ## Wire contract
 
 `OperationCandidateRequest` carries `schema_version` and one `contract`.

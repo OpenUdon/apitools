@@ -310,6 +310,11 @@ func parameterSummaries(root map[string]any, parameters []any, op *OperationSumm
 		if len(parameter) == 0 {
 			continue
 		}
+		// Ignored OpenAPI 3 header declarations have no effective input or
+		// schema metadata. Apply the rule before summary/readiness projection.
+		if ignoredOpenAPI3HeaderParameter(root, parameter) {
+			continue
+		}
 		schema := mapValue(parameter["schema"])
 		summary := ParameterSummary{
 			Name:        stringValue(parameter["name"]),
