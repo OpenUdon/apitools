@@ -3,7 +3,7 @@
 **Stage/owner:** STG-11 post-acceptance remediation; APItools.
 **Planning approval:** User requested package-local milestones on 2026-10-08 and selected required fixes only.
 **State:** Pending; four task rows; publication authorized after qualification/review; closing review not started (0/10).
-**Current goal authority:** The user invoked memory-bank-goal, authorized task commits and needed reviewed normal fast-forward GitHub source/closure publication to the recorded existing main refs, and confirmed serial execution Udon:M52 -> APItools:M84 -> Kinet:M50. This status remains pending until its serial/dependency gates pass.
+**Current goal authority:** The user invoked memory-bank-goal, authorized task commits and needed reviewed normal fast-forward GitHub source/closure publication to the recorded existing main refs, and confirmed serial execution Udon:M52 -> APItools:M84 -> Kinet:M50. Udon:M52 is accepted/published/retired, and M84 is the next ready serial unit.
 **Review source:** Stage 11 review 2 — all milestones, all five packages (`stage11-review-2.md`), AP1.
 **Source priority / local severity:** P2 / P2; confirmed projection behavior and current Kinet incompatibility gate.
 **Review and revalidation baseline:** `de3f16acbf12c7b632ee0ed9be02efaaf2c2be4b`; clean worktree. No relevant uncommitted changes used.
@@ -17,6 +17,14 @@ Correct AP1 only. For supported OpenAPI 3 inputs, reserved header parameter decl
 No new UWS/OpenUdon source is scheduled. Retain the accepted UWS M09 root/codec versions and current public contracts. Udon:M52 -> APItools:M84 is serial scheduling only, with no new producer dependency. Direct downstream: Kinet:M50; ordinary public SDK consumer verification must establish compatibility with the corrected projection.
 
 ## Tasks
+
+**Accepted serial predecessor:** Udon:M52 runtime9c99eab6051f250dc49e2e52d8246526280046ca,
+modulev0.0.0-20261009004332-9c99eab6051f, independently published with source/evidence
+closuref2a56e71293997f73597aafb7c44b747bd0e525c and whole review4. This is not an
+APItools producer dependency, but current private SDK consumer proof must use
+this exact accepted runtime alongside retained UWS root/codec and SDK801.
+The [owner record](../../../udon/tabilet/docs/history/status-M52.md) and
+[handoff](../../../udon/docs/m52-release-handoff.md) bind both sums/CLI/graph proof.
 
 | Item | State | Notes |
 |---|---|---|
