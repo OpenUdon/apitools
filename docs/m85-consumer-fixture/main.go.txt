@@ -1,0 +1,60 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/OpenUdon/apitools"
+	"github.com/OpenUdon/openudon/packagev3"
+	"os"
+)
+
+func main() {
+	if len(os.Args) != 2 {
+		panic("usage: sdk-public API_FILE")
+	}
+	api, err := os.ReadFile(os.Args[1])
+	if err != nil {
+		panic(err)
+	}
+	required := true
+	candidates, err := apitools.BuildOperationCandidates(context.Background(), apitools.OperationCandidateOptions{Sources: []apitools.OperationSourceInput{{Kind: apitools.OperationSourceOpenAPI, Content: api}}, Contract: apitools.StepContract{Purpose: "Get fixture value", Inputs: map[string]apitools.ContractValue{"q": {Type: "string", Required: &required}}, Effect: apitools.OperationEffectRead}})
+	if err != nil {
+		panic(err)
+	}
+	workflow := []byte(`uws: 1.13.0
+info: {title: Fixture, version: '1'}
+sourceDescriptions: [{name: api, type: openapi, url: sources/openapi/api.yaml}]
+operations:
+ - operationId: fetch
+   sourceDescription: api
+   sourceOperationId: fetch
+   effect: read
+   request: {query: {q: fixture}}
+workflows:
+ - workflowId: main
+   type: sequence
+   steps: [{stepId: fetch, operationRef: fetch}]
+`)
+	p, err := packagev3.Build(context.Background(), packagev3.BuildOptions{Scope: "workflows/W01-fixture", WorkflowYAML: workflow, DataJSON: []byte(`{}`), Sources: []packagev3.SourceInput{{ID: "api", Kind: "openapi", Path: "sources/openapi/api.yaml", Bytes: api}}})
+	if err != nil {
+		panic(err)
+	}
+	assessment, err := packagev3.Assess(context.Background(), p.Manifest, p.Files)
+	if err != nil {
+		panic(err)
+	}
+	verified, err := packagev3.Verify(context.Background(), packagev3.VerifyOptions{Scope: p.Manifest.Scope, ExpectedSHA256: p.SHA256, Files: p.Files})
+	if err != nil {
+		panic(err)
+	}
+	result := struct {
+		Candidates            apitools.OperationCandidateReport
+		Build, Assess, Verify string
+	}{candidates, p.Assessment.Outcome, assessment.Outcome, verified.Assessment().Outcome}
+	encoded, err := json.Marshal(result)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(encoded))
+}
