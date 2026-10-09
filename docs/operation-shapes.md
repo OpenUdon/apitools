@@ -34,6 +34,16 @@ local source set and compares deterministic UWS bytes. It rejects structurally
 valid forged fields, omitted operations and stale raw identities. This is
 independent reproduction, not a signature or execution approval.
 
+Supported OpenAPI 3.0/3.1 parameter projection ignores header declarations named
+Accept, Content-Type or Authorization, using HTTP case-insensitive names after
+bounded local-reference resolution. They cannot create workflow input bindings
+or make their ignored schemas/serialization into completeness evidence. Genuine
+headers and identically named path/query/cookie inputs remain represented;
+Swagger 2.0 projection is unchanged. Security is still derived independently
+from schemes and requirement alternatives, without resolving credential values.
+See the official [3.0 parameter rules](https://spec.openapis.org/oas/v3.0.4.html#parameter-object)
+and [3.1 parameter rules](https://spec.openapis.org/oas/v3.1.1.html#parameter-object).
+
 OpenAPI security preserves declaration-order OR alternatives and sorted AND
 requirements inside each alternative. Explicit empty security is anonymous;
 missing declarations/definitions remain unknown, with symbolic alternatives

@@ -95,6 +95,11 @@ func openAPIShapes(ctx context.Context, root map[string]any, source binding.Sour
 						return nil, ErrOperationShapeTable
 					}
 					seen[key] = true
+					// OpenAPI 3 ignores these parameter definitions; HTTP header
+					// names are case insensitive. Security remains scheme-derived.
+					if !swagger && location == "header" && (strings.EqualFold(name, "Accept") || strings.EqualFold(name, "Content-Type") || strings.EqualFold(name, "Authorization")) {
+						continue
+					}
 					value := parameter["schema"]
 					if swagger && location != "body" {
 						projection := map[string]any{}

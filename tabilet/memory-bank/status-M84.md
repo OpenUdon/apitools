@@ -2,7 +2,7 @@
 
 **Stage/owner:** STG-11 post-acceptance remediation; APItools.
 **Planning approval:** User requested package-local milestones on 2026-10-08 and selected required fixes only.
-**State:** Pending; four task rows; publication authorized after qualification/review; closing review not started (0/10).
+**State:** M84.1 complete; one serial owner; publication authorized after qualification/review; closing review not started (0/10).
 **Current goal authority:** The user invoked memory-bank-goal, authorized task commits and needed reviewed normal fast-forward GitHub source/closure publication to the recorded existing main refs, and confirmed serial execution Udon:M52 -> APItools:M84 -> Kinet:M50. Udon:M52 is accepted/published/retired, and M84 is the next ready serial unit.
 **Review source:** Stage 11 review 2 — all milestones, all five packages (`stage11-review-2.md`), AP1.
 **Source priority / local severity:** P2 / P2; confirmed projection behavior and current Kinet incompatibility gate.
@@ -28,7 +28,7 @@ The [owner record](../../../udon/tabilet/docs/history/status-M52.md) and
 
 | Item | State | Notes |
 |---|---|---|
-| M84.1 — Apply reserved-header parameter rules | `[ ]` | AP1. Exclude reserved Accept, Content-Type and Authorization parameter declarations according to supported OpenAPI rules, including reusable local parameter references and the supported header-name semantics. A required declaration must not create binding.input_required. Preserve genuine required headers and security scheme/OR/AND information; never bind credential values as literals or resolve credentials. |
+| M84.1 — Apply reserved-header parameter rules | `[+]` | AP1. Exclude reserved Accept, Content-Type and Authorization parameter declarations according to supported OpenAPI rules, including reusable local parameter references and the supported header-name semantics. A required declaration must not create binding.input_required. Preserve genuine required headers and security scheme/OR/AND information; never bind credential values as literals or resolve credentials. |
 | M84.2 — Prove projection and native-authoring compatibility | `[ ]` | Add deterministic bounded fixtures for supported OpenAPI versions, direct/referenced declarations, genuine headers and security requirements. Independently reproduce shape bytes and show current UWS/OpenUdon assessment admits valid native authoring without fabricated reserved inputs while incomplete real bindings still refuse. Run source/determinism/identity/forgery and metadata-only compatibility checks. |
 | M84.3 — Qualify clean source and prepare reviewed publication | `[ ]` | Run required offline owner and proportionate public/private consumer checks against the exact candidate graph, preserving frozen corpus/wires and all unrelated pins. Record exact source/module/build identities and a concrete fresh source-publication proposal for normal fast-forward to the existing main ref. Review the exact candidate before exercising the current publication authority; bootstrap proof remains labelled and cannot satisfy ordinary publication. |
 | M84.4 — Publish reviewed source and close ordinary handoff | `[ ]` | The initial missing-authority blocker is resolved by the user's current GitHub publication authorization. After M84.3 qualification and review of the exact proposal, mark this operation in progress and publish reviewed M84 source plus scoped evidence/closure by normal fast-forward to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main. Independently verify ordinary full-SHA/module/sums/source/consumer proof; complete whole review, downstream reconciliation, consolidation and retirement. No additional push approval is required within this granted scope. No force push, tags, images, deployment or live requests. |
@@ -44,3 +44,17 @@ Run go test ./..., go vet ./..., git diff --check and existing applicable corpus
 **Execution/commit:** One serial owner; later confirmed goal uses task commits. No execution or commit follows from this planning write.
 **External mutations:** Reviewed M84 source and scoped documentation/closure, normal fast-forward only, to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main under the current user grant. Prepare and verify the exact outgoing proposal before acting; M83 grants remain consumed.
 **Downstream:** Kinet:M50 requires accepted independently published M84 identities before adoption. UWS/OpenUdon lower-priority findings are not scheduled.
+
+## M84.1 — completed, 2026-10-09
+
+The source-neutral OpenAPI projector ignores the three reserved header names
+case insensitively after bounded local Parameter Object resolution and existing
+identity/location/duplicate checks, before schema/requiredness/serialization
+projection. Swagger is excluded from this new rule. Schemes/security alternatives
+are processed independently and unchanged. The 108-case supported3.0/3.1
+direct/local-ref matrix covers path-item inheritance and operation declarations
+and validates without fabricated bindings. Focused Go1.26.6 check passed with
+GOWORK/GOPROXY off; `/tmp/am84-proof/row1-corrected.log` retains it. The initial
+build failed from an inherited absent TMPDIR; owned TMPDIR/GOTMPDIR corrected
+the environment and no source workaround was added. Contract documentation links
+the official OpenAPI parameter/header semantics.
