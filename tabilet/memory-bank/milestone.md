@@ -1,5 +1,68 @@
 # Milestones
 
+## Stage 12 approved planning — 2026-10-09
+
+**Approved reconciliation.** Stage 12 planning review, 2026-10-09; source priority
+not supplied. Review baseline/current revalidation `f2837e7b266a0f8d1d379c4dd7820bba7c5f2179`,
+including uncommitted Stage 12 planning files. F01/F02 are locally P1; F03–F09
+are P2 (F03 partially confirmed, all others confirmed). F07 (P2, owner UWS:C11) distinguishes adapted migration fixtures from M86 actual ordinary published adoption; the HCL-free claim is limited to APItools.
+Owner status notes retain evidence and lineage. Intake starts no review iteration.
+The coordinator now has 19 milestones / 84 pending rows (13/62 required, 6/22
+conditional). Accepted local Kinet commits satisfy Kinet prerequisites; siblings
+require exact acceptance and independently verified publication. Publication
+grants remain ungranted launch prerequisites; no implementation is authorized.
+
+Kinet R65 approved STG-12, browser profiles and legacy cleanup, as planning on
+2026-10-09. APItools owns one conditional unit, [M86](status-M86.md), which adopts
+the HCL-free UWS. It is triggered only after a clean, authorized Kinet:M54
+inventory and an accepted, published UWS:C11. No row has started.
+
+The shared contract is the [Stage 12 coordinator](../../../kinet/docs/stage12.md).
+Planning grants no implementation, commit, publication or live authority.
+
+**Historical Stage 11 context.** Stage 11 entries below retain their recorded
+acceptance and order. Their references to provisional Stage 12 or no remaining
+task describe those checkpoints. Current Stage 12 planning is above and in its
+owner specifications; consumed Stage 11 grants do not carry forward.
+
+## Stage 12 parallel dispatch policy
+
+Approved Stage 12 parallel execution review, 2026-10-09; source priorities and
+separate review baseline not supplied. Revalidation uses this package's unchanged
+full baseline recorded above and includes uncommitted planning files. F01/F04
+are local P2 workflow prerequisites; F02/F03/F05 are Lower scheduling findings
+required by the owner-selected optimization. F03 is partially confirmed and
+resolved by the selected early contract freeze; other findings are confirmed
+(F05 conditional on existing operational authority). Intake starts no review.
+
+One coordinator controls the integrated ledgers and serialized integration/closure.
+The approved future launch uses `STATUS_PRIORITY`, `PARALLELISM: 3`,
+`INTEGRATION: local-rebase-ff` and `COMMIT_POLICY: task`; these planning records
+launch nothing. At most one live milestone per package and one in-progress row
+per isolated lease. The nine eligible milestones are Kinet:A16, UWS:C10,
+Browserdriver:M16, Browsertools:M33, OpenUdon:P10, Udon:M53, OpenUdon:A32,
+Kinet:M54 and Udon:M54. All others remain sequential. Every dispatch checks
+actual closure, publication where required, triggers and bidirectional contract/
+write conflicts; priority positions and different repositories alone prove no
+safety. Child scopes exclude shared memory, other statuses and launch input.
+
+M51 freezes native-owner-reviewed report/host interfaces and conformance fixtures
+before producers begin. P10 and Udon:M53 then implement independently; Udon
+has no OpenUdon import. Their former sequencing/impact edge is replaced by
+sibling compatibility verification at M56/M52, with both true producer inputs
+retained. A32 and authorized Kinet:M54/Udon:M54 may overlap; C11 still joins
+accepted/published A32 and Udon:M54 after clean authorized inventory.
+
+Consumer checks read immutable exact snapshots, never another live checkout.
+Shared-memory updates and combined integration checks are coordinator-only and
+serialized. Leases rebase and re-verify the captured integration ref; affected
+contracts require re-review without counter reset. A blocked lease retains its
+branch/status and blocks dependents only; contract drift pauses affected leases.
+Source publication remains separately named and ungranted. Audit stays disabled.
+Kinet's adopted goal governs this cross-package run; sibling standalone protocols
+and the serial Python API controller remain unchanged.
+
+
 ## Stage 11 review 2 required remediation — 2026-10-08
 
 Accepted GOAL Step4 successor, 2026-10-09: M85 closes M50-NATIVE-F01 after
@@ -163,6 +226,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
+| M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C) |
 
 Closed milestones are recorded in the history index.
 
@@ -170,10 +234,58 @@ Closed milestones are recorded in the history index.
 
 
 
-M83/M84/M85 remain accepted/retired; no active APItools task remains.
+### M86 — HCL-free UWS adoption (conditional)
+
+**Stage/owner.** Kinet STG-12 Phase C; APItools. Dispatch priority position 18/19.
+
+**Trigger.** UWS:C11 is accepted and published, after a clean, authorized
+Kinet:M54 inventory.
+
+**Scope.** Adopt the exact published C11; prove the HashiCorp/Horizon HCL
+selected/compiled closure is absent; run regressions across all eight source
+families; qualify consumers and publish. Actual ordinary published C11 adoption
+without workspace/directory replacement is distinct from C11 pre-publication
+adapted fixtures; Kinet:M55 later proves final worker adoption.
+
+**Acceptance.** No HCL module remains in the APItools graph. Source-family
+behavior, shape and candidate contracts and digests are unchanged.
+
+**Downstream.** Kinet:M55.
+
+**Tasks/review.** [status-M86.md](status-M86.md), 3 rows, review 0/10. The
+[coordinator](../../../kinet/docs/stage12.md) holds the shared order and triggers.
+
+M83/M84/M85 remain accepted/retired; M86 is the only active (conditional) APItools unit.
 Original Stage 11 is accepted across the five owner ledgers.
 Completed source repair and version discovery remain in the history index.
 Other candidates still require fresh reconciliation and approval.
+
+**Depends on.** UWS:C11. All required prerequisites must have
+accepted closure at exact revisions; sibling producer adoption also needs
+independently verified publication. A priority position never supplies authority.
+
+**Downstream impacts.** Kinet:M55?.
+
+**Write set.** The owning `apitools/` package's implementation, tests, ordinary
+documentation, manifests and qualification outputs only as required by this
+milestone's existing scope, plus `tabilet/memory-bank/status-M86.md` in its
+assigned worktree. Excludes `AGENTS.md`, `tabilet/GOAL.md`, shared memory-bank
+files, other statuses, evolution, stages, history/knowledge, the package audit
+database/sidecars, coordination docs and launch input. The coordinator alone applies shared-memory and closure
+changes serially; no child writes a sibling repository or user ledger.
+
+**Contracts read.** Immutable exact prerequisite artifacts listed above, the
+M51 native-owner-reviewed contract/fixtures when applicable, the assigned
+package baseline and frozen shared-memory/consumer snapshots captured at
+dispatch. Cross-package checks use read-only exact snapshots or approved
+published module inputs, never changing sibling checkouts. Record full source,
+artifact and fixture hashes in the later execution brief; contract drift pauses
+affected leases for coordinator reconciliation. Existing no-workspace/no-directory
+substitution requirements for ordinary published adoption remain in force.
+
+**Parallel-safe.** no. Execute sequentially; this milestone is on a required integration/contract chain.
+At most one live milestone per package. All tests use private lease ports,
+disposable stores/caches/browser profiles and unique output directories.
 
 ## Requested Changes After Initialization
 
