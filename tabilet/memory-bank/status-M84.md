@@ -2,7 +2,7 @@
 
 **Stage/owner:** STG-11 post-acceptance remediation; APItools.
 **Planning approval:** User requested package-local milestones on 2026-10-08 and selected required fixes only.
-**State:** M84.1 complete; one serial owner; publication authorized after qualification/review; closing review not started (0/10).
+**State:** M84.1/.2 complete; one serial owner; publication authorized after qualification/review; closing review not started (0/10).
 **Current goal authority:** The user invoked memory-bank-goal, authorized task commits and needed reviewed normal fast-forward GitHub source/closure publication to the recorded existing main refs, and confirmed serial execution Udon:M52 -> APItools:M84 -> Kinet:M50. Udon:M52 is accepted/published/retired, and M84 is the next ready serial unit.
 **Review source:** Stage 11 review 2 — all milestones, all five packages (`stage11-review-2.md`), AP1.
 **Source priority / local severity:** P2 / P2; confirmed projection behavior and current Kinet incompatibility gate.
@@ -29,7 +29,7 @@ The [owner record](../../../udon/tabilet/docs/history/status-M52.md) and
 | Item | State | Notes |
 |---|---|---|
 | M84.1 — Apply reserved-header parameter rules | `[+]` | AP1. Exclude reserved Accept, Content-Type and Authorization parameter declarations according to supported OpenAPI rules, including reusable local parameter references and the supported header-name semantics. A required declaration must not create binding.input_required. Preserve genuine required headers and security scheme/OR/AND information; never bind credential values as literals or resolve credentials. |
-| M84.2 — Prove projection and native-authoring compatibility | `[ ]` | Add deterministic bounded fixtures for supported OpenAPI versions, direct/referenced declarations, genuine headers and security requirements. Independently reproduce shape bytes and show current UWS/OpenUdon assessment admits valid native authoring without fabricated reserved inputs while incomplete real bindings still refuse. Run source/determinism/identity/forgery and metadata-only compatibility checks. |
+| M84.2 — Prove projection and native-authoring compatibility | `[+]` | Add deterministic bounded fixtures for supported OpenAPI versions, direct/referenced declarations, genuine headers and security requirements. Independently reproduce shape bytes and show current UWS/OpenUdon assessment admits valid native authoring without fabricated reserved inputs while incomplete real bindings still refuse. Run source/determinism/identity/forgery and metadata-only compatibility checks. |
 | M84.3 — Qualify clean source and prepare reviewed publication | `[ ]` | Run required offline owner and proportionate public/private consumer checks against the exact candidate graph, preserving frozen corpus/wires and all unrelated pins. Record exact source/module/build identities and a concrete fresh source-publication proposal for normal fast-forward to the existing main ref. Review the exact candidate before exercising the current publication authority; bootstrap proof remains labelled and cannot satisfy ordinary publication. |
 | M84.4 — Publish reviewed source and close ordinary handoff | `[ ]` | The initial missing-authority blocker is resolved by the user's current GitHub publication authorization. After M84.3 qualification and review of the exact proposal, mark this operation in progress and publish reviewed M84 source plus scoped evidence/closure by normal fast-forward to git@github.com-tabilet:OpenUdon/apitools.git refs/heads/main. Independently verify ordinary full-SHA/module/sums/source/consumer proof; complete whole review, downstream reconciliation, consolidation and retirement. No additional push approval is required within this granted scope. No force push, tags, images, deployment or live requests. |
 
@@ -58,3 +58,29 @@ GOWORK/GOPROXY off; `/tmp/am84-proof/row1-corrected.log` retains it. The initial
 build failed from an inherited absent TMPDIR; owned TMPDIR/GOTMPDIR corrected
 the environment and no source workaround was added. Contract documentation links
 the official OpenAPI parameter/header semantics.
+
+## M84.2 — completed, 2026-10-09
+
+The new owner regressions preserve genuine header, query, cookie and path inputs;
+ignored schemas/serialization cannot introduce completeness gaps. Security retains
+a two-member AND alternative and a one-member OR alternative, including an
+API-key scheme whose parameter name is Authorization. Genuine missing inputs and
+incomplete AND security refuse. Escaped local pointer chains resolve; cycles,
+missing and remote Parameter Object refs refuse. Deterministic table bytes and raw
+SHA/native selector equality reproduce; fabricated reserved inputs and stale raw
+source identities are rejected. The Swagger projection control stays unchanged.
+Focused owner shapes pass; inherited source fixtures/golden bytes remain unchanged.
+
+Current ordinary SDK801 plus UWS M09 consumes the exact M84.1 source as the
+explicitly local bootstrap version v0.0.0-20261009012011-04c158e2b41c, without
+workspace/directory replacements. This is compatibility evidence, not publication.
+Sixteen source-backed Build/Assess/Verify/determinism/raw-source cases pass over
+3.0.3/3.1.0 and direct/ref forms; bound genuine inputs pass and missing genuine
+header/query inputs retain binding.input_required. The unchanged M83 source fails
+all four reserved-only controls with exactly three fabricated required-input
+diagnostics, retaining the before-fix evidence. Initial fixture spelling used
+unsupported request.headers; corrected to existing request.header, with no sibling
+code or contract change. Inert [consumer source](../../docs/m84-consumer-fixture/public_test.go.txt)
+is reproducible; logs are `/tmp/am84-proof/public-row2-corrected.log`,
+`public-row2-before-fix.log` and `row2-guards.log`. Exact final clean-source and
+actual public/private selected graph qualification remain M84.3/.4 work.
