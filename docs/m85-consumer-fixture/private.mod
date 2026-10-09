@@ -10,7 +10,7 @@ require (
 require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
-	github.com/OpenUdon/apitools v0.0.0-20261009041745-d082e9ee0c93 // indirect
+	github.com/OpenUdon/apitools v0.0.0-20261009043143-409d4dd54ffa // indirect
 	github.com/OpenUdon/asyncapi v0.1.0 // indirect
 	github.com/OpenUdon/awssmithy v0.0.0-20260920023826-d8920534a28f // indirect
 	github.com/OpenUdon/browsertools v0.0.0-20260925161530-3abe70efc03d // indirect

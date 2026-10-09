@@ -22,8 +22,8 @@ github.com/OpenUdon/apitools v0.0.0-20261008061439-f2c5693ec39a h1:+UICyuitKDE3g
 github.com/OpenUdon/apitools v0.0.0-20261008061439-f2c5693ec39a/go.mod h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=
 github.com/OpenUdon/apitools v0.0.0-20261009012335-0c1383c6e205 h1:GeJhKB7I42cH+bWw+8CoiPImyLmHKsqJih6E7uvUdlg=
 github.com/OpenUdon/apitools v0.0.0-20261009012335-0c1383c6e205/go.mod h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=
-github.com/OpenUdon/apitools v0.0.0-20261009041745-d082e9ee0c93 h1:IA6e50TFbaKl7hIFEdS9bHBKn72DVojUqixnNKqRyM0=
-github.com/OpenUdon/apitools v0.0.0-20261009041745-d082e9ee0c93/go.mod h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=
+github.com/OpenUdon/apitools v0.0.0-20261009043143-409d4dd54ffa h1:pM+UcJViuxwN0+e2z8FL3IhHrN1rKGOmYeDtNfg/f2Y=
+github.com/OpenUdon/apitools v0.0.0-20261009043143-409d4dd54ffa/go.mod h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=
 github.com/OpenUdon/arazzo v0.0.0-20260920020621-be78f964c4da h1:RyHRh9V4AT13NyN58wwI3kVOd9cpLnhCRu2GIktzfnk=
 github.com/OpenUdon/arazzo v0.0.0-20260920020621-be78f964c4da/go.mod h1:F2nJL1nHmVdPT+fRQt8je/5eeJXflBwncM+XQChmP6w=
 github.com/OpenUdon/asyncapi v0.1.0 h1:ZfGDJHknYUKfEZIC6VrhpdiwDVStMoZnyYmr3AVbQH4=

@@ -5,7 +5,7 @@ go 1.26.6
 require github.com/OpenUdon/openudon v0.1.1-0.20261008110433-801b45bb1aec
 
 require (
-	github.com/OpenUdon/apitools v0.0.0-20261009041745-d082e9ee0c93 // indirect
+	github.com/OpenUdon/apitools v0.0.0-20261009043143-409d4dd54ffa // indirect
 	github.com/OpenUdon/asyncapi v0.1.0 // indirect
 	github.com/OpenUdon/awssmithy v0.0.0-20260520213111-549a060a5e28 // indirect
 	github.com/OpenUdon/evidence v0.0.0-20260815084845-0c17258b9736 // indirect
