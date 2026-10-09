@@ -1,0 +1,26 @@
+{
+  "source": {
+    "source": "0c1383c6e2059e89cbf100ed8cb689be64d9ba57",
+    "version": "v0.0.0-20261009012335-0c1383c6e205",
+    "time": "2026-10-09T01:23:35Z",
+    "bootstrapSource": "/tmp/am84-proof/source-0c1383c6e205"
+  },
+  "baseline": "b7f2997f0f287f724ee27d737b5e94e378b9a4fb",
+  "changedFiles": [
+    "docs/m84-consumer-fixture/public_test.go.txt",
+    "docs/operation-shapes.md",
+    "operation_shapes_openapi.go",
+    "operation_shapes_reserved_headers_test.go",
+    "tabilet/memory-bank/status-M84.md"
+  ],
+  "frozenPathsChanged": false,
+  "schemasPinsAndGoManifestsUnchanged": true,
+  "frozenCorpusAndHistoryUnchanged": true,
+  "checkerFiles": {
+    "api_versions.go": "a82180d9a41cbb47c8a9853ade721f862640aaba06aba87777c6b2ab3e1507e0",
+    "api_versions_compare.go": "68c2edf4bdfdfdf2391a98c8228b6e29503cb74e9e50ff641ea623af884a596f",
+    "catalog_discovery_remote_test.go": "13e55fb8cae1095c188ed6290e9d4ff15eda401701a31d73de6016eae792eb37",
+    "operation_source_native.go": "19544d6860ea891fad8ff51ea33055b240b9310b01ea64ddc6952d0d53de684e"
+  },
+  "formattedTrackedGoFiles": 247
+}

@@ -1,0 +1,112 @@
+package consumer_test
+
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"reflect"
+	"strings"
+	"testing"
+
+	"github.com/OpenUdon/apitools"
+	"github.com/OpenUdon/openudon/packagev3"
+	"github.com/OpenUdon/uws/binding"
+)
+
+func TestCurrentSDKReservedHeaderAuthoring(t *testing.T) {
+	for _, version := range []string{"3.0.3", "3.1.0"} {
+		for _, referenced := range []bool{false, true} {
+			for _, c := range []struct{ name, request, parameters, want string }{
+				{"reserved-only", "{query: {q: fixture}}", "", "compatible"},
+				{"real-header-bound", "{query: {q: fixture}, header: {X-Required: fixture}}", "\n   - {name: X-Required, in: header, required: true, schema: {type: string}}", "compatible"},
+				{"real-header-missing", "{query: {q: fixture}}", "\n   - {name: X-Required, in: header, required: true, schema: {type: string}}", "incompatible"},
+				{"real-query-missing", "{query: {q: fixture}}", "\n   - {name: Authorization, in: query, required: true, schema: {type: string}}", "incompatible"},
+			} {
+				t.Run(fmt.Sprintf("%s/ref=%v/%s", version, referenced, c.name), func(t *testing.T) {
+					reserved := "\n   - {name: aCcEpT, in: header, required: true, schema: {type: string}}\n   - {name: CONTENT-TYPE, in: header, required: true, schema: {type: string}}\n   - {name: authorization, in: header, required: true, schema: {type: string}}"
+					components := ""
+					if referenced {
+						reserved = "\n   - {$ref: '#/components/parameters/accept'}\n   - {$ref: '#/components/parameters/content'}\n   - {$ref: '#/components/parameters/auth'}"
+						components = "components:\n parameters:\n  accept: {name: aCcEpT, in: header, required: true, schema: {type: string}}\n  content: {name: CONTENT-TYPE, in: header, required: true, schema: {type: string}}\n  auth: {name: authorization, in: header, required: true, schema: {type: string}}\n"
+					}
+					api := fmt.Sprintf(`openapi: %s
+info: {title: Fixture, version: '1'}
+servers: [{url: 'https://fixture.invalid'}]
+security: []
+paths:
+ /value:
+  parameters:%s
+  get:
+   operationId: fetch
+   parameters:
+   - {name: q, in: query, required: true, schema: {type: string}}%s
+   responses:
+    '200':
+     description: ok
+     content:
+      application/json:
+       schema: {type: object, properties: {ok: {type: boolean}}}
+%s`, version, reserved, c.parameters, components)
+					workflow := fmt.Sprintf(`uws: 1.13.0
+info: {title: Fixture, version: '1'}
+sourceDescriptions: [{name: api, type: openapi, url: sources/openapi/api.yaml}]
+operations:
+ - operationId: fetch
+   sourceDescription: api
+   sourceOperationId: fetch
+   effect: read
+   request: %s
+workflows:
+ - workflowId: main
+   type: sequence
+   steps: [{stepId: fetch, operationRef: fetch}]
+`, c.request)
+					options := packagev3.BuildOptions{Scope: "workflows/W01-fixture", WorkflowYAML: []byte(workflow), DataJSON: []byte(`{}`), Sources: []packagev3.SourceInput{{ID: "api", Kind: "openapi", Path: "sources/openapi/api.yaml", Bytes: []byte(api)}}}
+					p, err := packagev3.Build(context.Background(), options)
+					if err != nil || p.Assessment.Outcome != c.want {
+						t.Fatalf("Build: %+v %v", p.Assessment, err)
+					}
+					fresh, err := packagev3.Assess(context.Background(), p.Manifest, p.Files)
+					if err != nil || !reflect.DeepEqual(fresh, p.Assessment) {
+						t.Fatalf("assessment reproduction: %+v %v", fresh, err)
+					}
+					v, err := packagev3.Verify(context.Background(), packagev3.VerifyOptions{Scope: p.Manifest.Scope, ExpectedSHA256: p.SHA256, Files: p.Files})
+					if err != nil || v.Assessment().Outcome != c.want {
+						t.Fatalf("Verify: %+v %v", v.Assessment(), err)
+					}
+					again, err := packagev3.Build(context.Background(), options)
+					if err != nil || again.SHA256 != p.SHA256 {
+						t.Fatal("nondeterministic package", err)
+					}
+					table, err := binding.ParseTable(p.Files[packagev3.ShapesPath])
+					if err != nil {
+						t.Fatal(err)
+					}
+					for _, input := range table.Operations[0].Inputs {
+						if input.Location == "header" && (strings.EqualFold(input.Name, "Accept") || strings.EqualFold(input.Name, "Content-Type") || strings.EqualFold(input.Name, "Authorization")) {
+							t.Fatal("fabricated header input")
+						}
+					}
+					shapeOptions := apitools.OperationShapeOptions{Sources: []apitools.ShapeSourceInput{{ID: "api", OperationSourceInput: apitools.OperationSourceInput{Kind: apitools.OperationSourceOpenAPI, Content: []byte(api)}}}}
+					if err := apitools.VerifyOperationShapeTable(context.Background(), shapeOptions, table); err != nil {
+						t.Fatal("independent raw-shape reproduction", err)
+					}
+					if !bytes.Equal(p.Files[options.Sources[0].Path], options.Sources[0].Bytes) {
+						t.Fatal("source bytes rewritten")
+					}
+					if c.want == "incompatible" {
+						found := false
+						for _, f := range p.Assessment.Findings {
+							if f.Code == "binding.input_required" {
+								found = true
+							}
+						}
+						if !found {
+							t.Fatal("real missing input refusal lost", p.Assessment.Findings)
+						}
+					}
+				})
+			}
+		}
+	}
+}
