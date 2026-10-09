@@ -296,3 +296,85 @@ reproduces corrected claims from raw bytes and rejects forged/stale metadata.
 ```markdown
 M83 and M84 remain accepted/retired; no active APItools task remains.
 ```
+
+## 2026-10-09 — Accept M85 and scope its existing reference boundary
+
+**Original sources.** product.md and architecture.md, Accepted M84 reserved-header remediation; tech-stack.md, Current M85 qualification requirement; lessons.md, Verify every effective-input projection.
+**Reason and evidence.** All four M85 rows, final whole review3 and independent ordinary source/consumer proof pass at source409d4dd54ffa3fbd8c7cddd75bd556ea6bf0e67c. Source/qualification409816b94ef377ab3c7253959169bca08cf1d125 and reviewed ordinary evidenceacf9ab9f2afb40e98c0047ae08d0033f5b2395ce are observed on the authorized main ref. Review1's added unbounded chain traversal was removed, preserving original single-hop/escaped inventory behavior and explicit longer-chain unknown evidence.
+**Replacement.** [M85 retired record](status-M85.md) and current product/architecture/tooling/lesson sections, plus exact Kinet:M50 adoption.
+
+**Preserved Product wording.**
+
+``````markdown
+## Accepted M84 reserved-header remediation — 2026-10-09
+
+M84 is accepted after four task gates and whole review2. Independently published
+source `0c1383c6e2059e89cbf100ed8cb689be64d9ba57` resolves as `v0.0.0-20261009012335-0c1383c6e205`,
+module sum `h1:GeJhKB7I42cH+bWw+8CoiPImyLmHKsqJih6E7uvUdlg=` and GoMod sum
+`h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=`.
+Reviewed source3773bd485fe31599e355719e0c5ecea0373bc553 and evidence closure
+`b7425e2030489ce25a0ee523f83d694176f949f0` are independently observed on the authorized main ref.
+[Handoff](../../docs/m84-release-handoff.md), [ordinary proof](../../docs/m84-ordinary-proof.json)
+and [history](../docs/history/index.md) retain exact source/consumer/review evidence.
+M82/M83 and frozen consumers remain at their recorded acceptance.
+
+M84 corrects the OpenAPI3 shape-table projection of reserved
+Accept/Content-Type/Authorization header Parameter Objects, without fabricated
+binding inputs or unsupported schema/serialization gaps. Its108 owner cases and16
+SDK Build/Assess/Verify cases pass; genuine inputs and security remain exact.
+Those gates do not cover candidate selection: inventory/consumer summaries still
+require Accept/Content-Type, so actual W18 refuses otherwise valid workflows.
+[Finding](../../../kinet/docs/m50-candidate-header-finding.md) and approved
+[M85](milestone.md#m85--reserved-header-candidate-and-inventory-remediation) own
+that remaining contract. No credentials, execution or consumer acceptance follows.
+``````
+
+**Preserved Architecture wording.**
+
+``````markdown
+## Accepted M84 reserved-header remediation — 2026-10-09
+
+M84 is accepted after four task gates and whole review2. Independently published
+source `0c1383c6e2059e89cbf100ed8cb689be64d9ba57` resolves as `v0.0.0-20261009012335-0c1383c6e205`,
+module sum `h1:GeJhKB7I42cH+bWw+8CoiPImyLmHKsqJih6E7uvUdlg=` and GoMod sum
+`h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=`.
+Reviewed source3773bd485fe31599e355719e0c5ecea0373bc553 and evidence closure
+`b7425e2030489ce25a0ee523f83d694176f949f0` are independently observed on the authorized main ref.
+[Handoff](../../docs/m84-release-handoff.md), [ordinary proof](../../docs/m84-ordinary-proof.json)
+and [history](../docs/history/index.md) retain exact source/consumer/review evidence.
+M82/M83 and frozen consumers remain at their recorded acceptance.
+
+In M84's shape-table path, bounded local-reference/name/location/duplicate
+checks precede the OpenAPI3 reserved-header rule and requiredness/schema/style
+projection. Security OR/AND, genuine inputs, Swagger2 and wire schemas remain.
+The independent inventory -> OperationSummary -> ConsumerOperationSummary ->
+candidate matching path still retains reserved Accept/Content-Type. Shape
+verification does not correct that path. [M85](milestone.md#m85--reserved-header-candidate-and-inventory-remediation)
+must align effective input semantics before Kinet can accept the combined stack;
+[actual evidence](../../../kinet/docs/m50-candidate-header-finding.md) binds the gap.
+``````
+
+**Preserved Tooling wording.**
+
+``````markdown
+## Current M85 qualification requirement — 2026-10-09
+
+M84 module/source/CLI and shape/SDK proofs below remain accepted at their exact
+identities. Actual Kinet W18 candidate selection fails reserved-header sources;
+these proofs do not establish that integration. Approved M85 requires owner
+candidate/inventory/summary regressions, current SDK/CLI and exact ordinary
+source/consumer proof before new Kinet worker qualification. Retain Go1.26.6,
+GOWORK=off, SDK801/UWSb099/privateM52 runtime9c and the existing six-observation
+checker policy; no new dependency or waiver is planned.
+``````
+
+**Preserved Lesson wording.**
+
+``````markdown
+## Verify every effective-input projection before consumer acceptance
+
+- **Applies when:** A source feeds independent shape, inventory, summary and candidate APIs.
+- **Lesson:** Shape and SDK build/assessment/verification proof does not qualify candidate matching. Exercise the same source through the actual consumer selection/publication path, with reserved and genuine inputs and independent security evidence. Bound scripted confirmation so an unavailable operation fails promptly.
+- **Why it matters:** A correct shape can coexist with false candidate required inputs and legitimately block publication; a host workaround would fork native semantics.
+- **Evidence:** [M50-NATIVE-F01](../../../kinet/docs/m50-candidate-header-finding.md), actual local/rootless worker ced5468, published APItools0c; [M85](status-M85.md) is approved remediation, not delivered proof.
+``````

@@ -1,25 +1,26 @@
 # Architecture
 
-## Accepted M84 reserved-header remediation — 2026-10-09
+## Accepted M85 effective-input projection — 2026-10-09
 
-M84 is accepted after four task gates and whole review2. Independently published
-source `0c1383c6e2059e89cbf100ed8cb689be64d9ba57` resolves as `v0.0.0-20261009012335-0c1383c6e205`,
-module sum `h1:GeJhKB7I42cH+bWw+8CoiPImyLmHKsqJih6E7uvUdlg=` and GoMod sum
+M85 is accepted/retired after four rows and final whole review3. Published
+source `409d4dd54ffa3fbd8c7cddd75bd556ea6bf0e67c` resolves ordinarily as
+`v0.0.0-20261009043143-409d4dd54ffa`, sum
+`h1:pM+UcJViuxwN0+e2z8FL3IhHrN1rKGOmYeDtNfg/f2Y=` and GoMod sum
 `h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=`.
-Reviewed source3773bd485fe31599e355719e0c5ecea0373bc553 and evidence closure
-`b7425e2030489ce25a0ee523f83d694176f949f0` are independently observed on the authorized main ref.
-[Handoff](../../docs/m84-release-handoff.md), [ordinary proof](../../docs/m84-ordinary-proof.json)
-and [history](../docs/history/index.md) retain exact source/consumer/review evidence.
-M82/M83 and frozen consumers remain at their recorded acceptance.
+Reviewed source409816b94ef377ab3c7253959169bca08cf1d125 and ordinary evidence
+acf9ab9f2afb40e98c0047ae08d0033f5b2395ce are independently observed. [Handoff](../../docs/m85-release-handoff.md),
+[ordinary proof](../../docs/m85-ordinary-proof.json) and [full record](../docs/history/status-M85.md)
+retain exact source/consumer/review/cleanup evidence. M84 and earlier acceptance
+stay frozen; Kinet adoption requires new actual workers and qualification.
 
-In M84's shape-table path, bounded local-reference/name/location/duplicate
-checks precede the OpenAPI3 reserved-header rule and requiredness/schema/style
-projection. Security OR/AND, genuine inputs, Swagger2 and wire schemas remain.
-The independent inventory -> OperationSummary -> ConsumerOperationSummary ->
-candidate matching path still retains reserved Accept/Content-Type. Shape
-verification does not correct that path. [M85](milestone.md#m85--reserved-header-candidate-and-inventory-remediation)
-must align effective input semantics before Kinet can accept the combined stack;
-[actual evidence](../../../kinet/docs/m50-candidate-header-finding.md) binds the gap.
+The inventory path applies the shared supported-version/location/case predicate
+before schema/readiness, then unchanged consumer-summary/candidate logic sees
+only effective inputs. Independent shape verification and security OR/AND remain.
+Reference behavior preserves the legacy one-hop/escaped inventory boundary;
+unknown longer chains do not become supported or manufacture header inputs.
+Review1 removed the new repeated unbounded traversal instead of extending native
+capability. Actual SDK/CLI and ordinary source/compiled proof establish coherence;
+Kinet owns sequencing, confirmation, isolation and fresh changed-stack adoption.
 
 ## Qualified Stage 11 source metadata — M82
 

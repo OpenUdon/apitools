@@ -2,11 +2,12 @@
 
 ## Stage 11 source metadata
 
-M84 remains accepted/published/retired for its shape projection. Actual Kinet
-M50 exposes a separate reserved-header inventory/candidate mismatch. The user
-approved [M85](tabilet/memory-bank/status-M85.md), four rows and reviewed normal
-fast-forward source/evidence publication to the existing APItools main ref.
-Remaining serial order is APItools:M85 -> Kinet:M50; no live/deployment authority.
+M84 remains frozen. [M85](tabilet/docs/history/status-M85.md) is accepted/retired
+after four rows/final whole3, published source409d and independent ordinary
+candidate+SDK/CLI/source proof. Effective reserved-header inputs are coherent,
+with existing reference limits and no new credentials/runtime capability.
+Kinet:M50 must adopt the exact source and requalify its workers/bundle; no live
+or deployment authority follows. The named M85 source operation is consumed.
 
 [Stage 11](../kinet/docs/stage11.md) coordinates both refactoring phases across
 five owner ledgers. APItools M82 is accepted and published at

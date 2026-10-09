@@ -100,9 +100,9 @@ ZIP containers may differ despite identical normalized files/module sums.
 Evidence: [M84 ordinary proof](../../docs/m84-ordinary-proof.json) and retained
 cache failures/restored exact lockfiles. No source workaround or user-cache mutation.
 
-## Verify every effective-input projection before consumer acceptance
+## Verify every effective-input projection without extending reference work
 
-- **Applies when:** A source feeds independent shape, inventory, summary and candidate APIs.
-- **Lesson:** Shape and SDK build/assessment/verification proof does not qualify candidate matching. Exercise the same source through the actual consumer selection/publication path, with reserved and genuine inputs and independent security evidence. Bound scripted confirmation so an unavailable operation fails promptly.
-- **Why it matters:** A correct shape can coexist with false candidate required inputs and legitimately block publication; a host workaround would fork native semantics.
-- **Evidence:** [M50-NATIVE-F01](../../../kinet/docs/m50-candidate-header-finding.md), actual local/rootless worker ced5468, published APItools0c; [M85](status-M85.md) is approved remediation, not delivered proof.
+- **Applies when:** Shapes, inventories, summaries and candidates derive independent evidence from one source.
+- **Lesson:** Exercise actual selection as well as SDK Build/Assess/Verify. Apply coherent ignored-input semantics at the owner. Preserve existing reference capability boundaries; an added per-parameter traversal can multiply work across operations even under a raw byte bound. Bound fixture confirmation and retain unknown unsupported references.
+- **Why:** Shape-only M84 proof left W18 blocked; M85 corrected candidate semantics. Whole1 caught an unnecessary unbounded chain extension before publication, and removal preserved the original single-hop/escaped contract.
+- **Evidence:** [M85](../docs/history/status-M85.md), final whole3, exact source409d/current SDK16/CLI8/ordinary proof; [M50-NATIVE-F01](../../../kinet/docs/m50-candidate-header-finding.md) preserves failed prior integration.

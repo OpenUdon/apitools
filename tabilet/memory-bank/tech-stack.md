@@ -1,14 +1,32 @@
 # Tech Stack
 
-## Current M85 qualification requirement — 2026-10-09
+## Accepted M85 qualification — 2026-10-09
 
-M84 module/source/CLI and shape/SDK proofs below remain accepted at their exact
-identities. Actual Kinet W18 candidate selection fails reserved-header sources;
-these proofs do not establish that integration. Approved M85 requires owner
-candidate/inventory/summary regressions, current SDK/CLI and exact ordinary
-source/consumer proof before new Kinet worker qualification. Retain Go1.26.6,
-GOWORK=off, SDK801/UWSb099/privateM52 runtime9c and the existing six-observation
-checker policy; no new dependency or waiver is planned.
+M85 is accepted/retired after four rows and final whole review3. Published
+source `409d4dd54ffa3fbd8c7cddd75bd556ea6bf0e67c` resolves ordinarily as
+`v0.0.0-20261009043143-409d4dd54ffa`, sum
+`h1:pM+UcJViuxwN0+e2z8FL3IhHrN1rKGOmYeDtNfg/f2Y=` and GoMod sum
+`h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=`.
+Reviewed source409816b94ef377ab3c7253959169bca08cf1d125 and ordinary evidence
+acf9ab9f2afb40e98c0047ae08d0033f5b2395ce are independently observed. [Handoff](../../docs/m85-release-handoff.md),
+[ordinary proof](../../docs/m85-ordinary-proof.json) and [full record](../docs/history/status-M85.md)
+retain exact source/consumer/review/cleanup evidence. M84 and earlier acceptance
+stay frozen; Kinet adoption requires new actual workers and qualification.
+
+Use explicit cached Go1.26.6 executable under GOTOOLCHAIN=local/GOWORK=off;
+`/usr/local/go/bin/go` is1.26.1 and its auto-selected version is insufficient
+provenance. Actual owner/public/private binary build information is go1.26.6.
+Complete owner/current-consumer suites plus ordinary22 events and CLI8 pass;
+selected77/73/171, compiled39/35/74, all649 APItools source files and204 unique
+selected archives/compiled-generated inputs match. Source archives have different
+raw ZIP packaging but identical normalized contents/sums. Three CLI SHA256s:
+033868c6f16b2305ad83e19783843a3a25b0233c4a18f95514e56982ba25ee31,
+c76757728f6d41c67a14b0f7e52586acce79e6ca02faff607b9b95f9afcf8d81,
+0170c0394138ca9853e83eb124e6c4d94a14f8ca3e9c34ec6fbefe8393bdd3be.
+Six compatible checker observations retain existing policy; no new waiver.
+Compiler-only cleanup preserved all34 referenced generated files/hashes; source,
+archive, proof, log and binary caches remain. Rejected d082/quota/old-toolchain
+attempts remain recorded and supply no final acceptance.
 
 ## Accepted M84 reserved-header remediation — 2026-10-09
 

@@ -1,26 +1,29 @@
 # Product
 
-## Accepted M84 reserved-header remediation — 2026-10-09
+## Accepted M85 candidate/input coherence — 2026-10-09
 
-M84 is accepted after four task gates and whole review2. Independently published
-source `0c1383c6e2059e89cbf100ed8cb689be64d9ba57` resolves as `v0.0.0-20261009012335-0c1383c6e205`,
-module sum `h1:GeJhKB7I42cH+bWw+8CoiPImyLmHKsqJih6E7uvUdlg=` and GoMod sum
+M85 is accepted/retired after four rows and final whole review3. Published
+source `409d4dd54ffa3fbd8c7cddd75bd556ea6bf0e67c` resolves ordinarily as
+`v0.0.0-20261009043143-409d4dd54ffa`, sum
+`h1:pM+UcJViuxwN0+e2z8FL3IhHrN1rKGOmYeDtNfg/f2Y=` and GoMod sum
 `h1:WmUXlfBBoaI6vtv/wzeZfyO8q/pZMhnHiBckkAthYfk=`.
-Reviewed source3773bd485fe31599e355719e0c5ecea0373bc553 and evidence closure
-`b7425e2030489ce25a0ee523f83d694176f949f0` are independently observed on the authorized main ref.
-[Handoff](../../docs/m84-release-handoff.md), [ordinary proof](../../docs/m84-ordinary-proof.json)
-and [history](../docs/history/index.md) retain exact source/consumer/review evidence.
-M82/M83 and frozen consumers remain at their recorded acceptance.
+Reviewed source409816b94ef377ab3c7253959169bca08cf1d125 and ordinary evidence
+acf9ab9f2afb40e98c0047ae08d0033f5b2395ce are independently observed. [Handoff](../../docs/m85-release-handoff.md),
+[ordinary proof](../../docs/m85-ordinary-proof.json) and [full record](../docs/history/status-M85.md)
+retain exact source/consumer/review/cleanup evidence. M84 and earlier acceptance
+stay frozen; Kinet adoption requires new actual workers and qualification.
 
-M84 corrects the OpenAPI3 shape-table projection of reserved
-Accept/Content-Type/Authorization header Parameter Objects, without fabricated
-binding inputs or unsupported schema/serialization gaps. Its108 owner cases and16
-SDK Build/Assess/Verify cases pass; genuine inputs and security remain exact.
-Those gates do not cover candidate selection: inventory/consumer summaries still
-require Accept/Content-Type, so actual W18 refuses otherwise valid workflows.
-[Finding](../../../kinet/docs/m50-candidate-header-finding.md) and approved
-[M85](milestone.md#m85--reserved-header-candidate-and-inventory-remediation) own
-that remaining contract. No credentials, execution or consumer acceptance follows.
+Supported OpenAPI3 reserved Accept/Content-Type/Authorization header declarations
+are ignored before inventory schema/readiness projection, coherently with shapes,
+consumer summaries and candidate matching. Genuine inputs/body/security,
+Swagger2, other families, raw source identities/selectors and wire schemas remain.
+SDK16 candidate+Build/Assess/Verify and CLI8 plus complete ordinary proof qualify
+the native contract. Existing single-hop/escaped refs stay supported; longer
+inventory chains remain explicit unknown/readiness evidence. No credentials,
+execution, consumer authority or deployment is added.
+
+M84's independently accepted shape/SDK context remains in its retired record;
+its incomplete candidate-selection context is retained in M50-NATIVE-F01.
 
 ## M83 corrected metadata qualified source
 
