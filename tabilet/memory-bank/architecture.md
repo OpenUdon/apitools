@@ -641,6 +641,10 @@ mode without mutating producer files.
   uses that order and consults RFC 9727 only when `SearchOptions.ProviderURL`
   is non-empty. Search cache keys include the provider URL.
 - CLI entry point: `go run ./cmd/apitools`.
+- CLI commands include `search`, `versions`, `import`, and `catalog` with
+  lifecycle subcommands `init`, `add`, `import`, `index`, `search`, `snapshot`,
+  and `refresh` supporting explicit and environment-resolved roots alongside
+  built-in inspection commands.
 - CLI parsing uses one non-terminating flag adapter. Genuine help exits 0 on
   stdout, usage errors exit 2 on stderr, and runtime failures exit 1 on stderr;
   the parser decides whether `--help` is a flag or a value instead of scanning

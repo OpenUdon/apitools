@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sort"
 	"strings"
 	"syscall"
@@ -63,6 +64,16 @@ func runCatalog(args []string, out, errOut io.Writer) int {
 		return exitUsage
 	}
 	switch args[0] {
+	case "init":
+		return runCatalogInit(args[1:], out, errOut)
+	case "add":
+		return runCatalogAdd(args[1:], out, errOut)
+	case "import":
+		return runCatalogImport(args[1:], out, errOut)
+	case "search":
+		return runCatalogSearch(args[1:], out, errOut)
+	case "snapshot":
+		return runCatalogSnapshot(args[1:], out, errOut)
 	case "advisory":
 		return runCatalogAdvisory(args[1:], out, errOut)
 	case "check":
@@ -107,21 +118,26 @@ func catalogUsage(out io.Writer) {
 	fmt.Fprintln(out, "Usage: apitools catalog <command>")
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "Commands:")
+	fmt.Fprintln(out, "  init             initialize an explicit catalog root directory")
+	fmt.Fprintln(out, "  add              add a local API specification file to the catalog")
+	fmt.Fprintln(out, "  import           download, validate, and register a remote OpenAPI document")
+	fmt.Fprintln(out, "  index            build an offline operation index under an explicit root")
+	fmt.Fprintln(out, "  search           search catalog operations or providers")
+	fmt.Fprintln(out, "  snapshot         create a clean, normalized, read-only snapshot of the catalog")
+	fmt.Fprintln(out, "  refresh          refresh one selected built-in spec reference")
+	fmt.Fprintln(out, "  refresh-report   review saved refresh artifacts offline")
 	fmt.Fprintln(out, "  advisory         render provider advisory summaries")
 	fmt.Fprintln(out, "  check            run offline catalog quality checks")
 	fmt.Fprintln(out, "  export           copy selected provider artifacts into a workflow directory")
-	fmt.Fprintln(out, "  index            build an offline operation index under an explicit root")
+	fmt.Fprintln(out, "  inspect          inspect one provider and resolution status")
 	fmt.Fprintln(out, "  list             list built-in provider catalog metadata")
 	fmt.Fprintln(out, "  materialize      copy one provider's registered artifacts with provenance")
-	fmt.Fprintln(out, "  resolve          resolve provider names to catalog artifact metadata")
-	fmt.Fprintln(out, "  specs            list refreshable built-in spec references")
-	fmt.Fprintln(out, "  stats            summarize catalog protocol and artifact status")
-	fmt.Fprintln(out, "  refresh          refresh one selected built-in spec reference")
-	fmt.Fprintln(out, "  refresh-report   review saved refresh artifacts offline")
-	fmt.Fprintln(out, "  inspect          inspect one provider and resolution status")
 	fmt.Fprintln(out, "  overlay-view     inspect advisory security overlay effects")
+	fmt.Fprintln(out, "  resolve          resolve provider names to catalog artifact metadata")
 	fmt.Fprintln(out, "  security-audit   audit catalog auth metadata and local artifacts")
 	fmt.Fprintln(out, "  security-report  report auth/security status across providers")
+	fmt.Fprintln(out, "  specs            list refreshable built-in spec references")
+	fmt.Fprintln(out, "  stats            summarize catalog protocol and artifact status")
 }
 
 func runCatalogAdvisory(args []string, out, errOut io.Writer) int {
@@ -640,6 +656,7 @@ func runCatalogRefreshWithClient(args []string, out, errOut io.Writer, refresher
 	fs := newCommandFlagSet("apitools catalog refresh")
 	providerKey := fs.String("provider", "", "Provider ID, display name, or alias to refresh")
 	specRefID := fs.String("spec", "", "Spec reference ID to refresh; required when provider has multiple refreshable specs")
+	rootFlag := fs.String("root", "", "Catalog root directory (or use APITOOLS_CATALOG_ROOT)")
 	cacheDir := fs.String("cache-dir", "catalog-openapi-cache", "Catalog cache directory for saved review artifacts")
 	cachePath := fs.String("cache", "catalog-openapi-cache/cache.sqlite", "SQLite cache path used to register saved artifact paths")
 	timeout := fs.Duration("timeout", apitools.DefaultTimeout, "Refresh download timeout")
@@ -647,7 +664,7 @@ func runCatalogRefreshWithClient(args []string, out, errOut io.Writer, refresher
 	allowUnsafeHosts := fs.Bool("allow-unsafe-hosts", false, "Allow localhost/private hosts; intended only for local tests")
 	jsonOut := fs.Bool("json", false, "Write JSON output")
 	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), "Usage: apitools catalog refresh --provider <provider> [--spec <spec-ref>] [--cache-dir catalog-openapi-cache] [--cache catalog-openapi-cache/cache.sqlite] [--json]")
+		fmt.Fprintln(fs.Output(), "Usage: apitools catalog refresh --provider <provider> [--spec <spec-ref>] [--root DIRECTORY] [--cache-dir catalog-openapi-cache] [--cache catalog-openapi-cache/cache.sqlite] [--json]")
 		fmt.Fprintln(fs.Output())
 		fs.PrintDefaults()
 	}
@@ -658,6 +675,15 @@ func runCatalogRefreshWithClient(args []string, out, errOut io.Writer, refresher
 		fmt.Fprintf(errOut, "unexpected argument %q\n", fs.Arg(0))
 		fs.Usage()
 		return exitUsage
+	}
+	rootOpts := catalogpkg.RootOptionsWithEnvironment(catalogpkg.RootOptions{Directory: *rootFlag})
+	if rootOpts.Directory != "" {
+		if *cacheDir == "catalog-openapi-cache" {
+			*cacheDir = rootOpts.Directory
+		}
+		if *cachePath == "catalog-openapi-cache/cache.sqlite" {
+			*cachePath = filepath.Join(rootOpts.Directory, catalogpkg.DefaultRegistryPath)
+		}
 	}
 	if _, err := selectRefreshableSpecRows(*providerKey, *specRefID, nil); err != nil {
 		fmt.Fprintln(errOut, err)

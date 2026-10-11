@@ -33,7 +33,7 @@ Each row is a later implementation commit unit under the governing request. Mark
 
 | Item | State | Notes |
 |---|---|---|
-| M88.R1 — Catalog lifecycle commands | `[ ]` | Implement missing lifecycle commands with existing registry/index/import APIs; retain legacy index/refresh behavior and explicit-root/no-write read guarantees. |
+| M88.R1 — Catalog lifecycle commands | `[+]` | Delivered catalog lifecycle CLI commands (init, add, import, search, snapshot) and environment-root resolution for index/refresh in cmd/apitools; retained explicit-root no-repair/no-refresh guarantees and verified 100% offline tests. |
 | M88.R2 — Provider-scoped remote discovery | `[ ]` | Pass explicit installation-side provider URL through SourceAuto search with dual opt-in, URL safety, limits and truthful partial evidence. Owns F06 (P2/P2). |
 | M88.R3 — CLI and consumer qualification | `[ ]` | Run offline owner/CLI/network-fixture/consumer gates and record exact accepted source plus separately authorized publication handoff. |
 
@@ -46,5 +46,6 @@ Each row is a later implementation commit unit under the governing request. Mark
 ## Review gate and scoped commit tracking
 
 - Whole-milestone review: 0/10, not started; begin after implementation and required verification.
-- Implementation commits: none; these planning changes remain uncommitted.
+- Implementation commits:
+  - M88.R1: feat(M88.R1): implement catalog lifecycle CLI commands and root resolution
 - No prior review counter or frozen status is reopened.
