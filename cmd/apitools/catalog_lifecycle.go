@@ -607,7 +607,6 @@ func runCatalogSearchWithClient(args []string, out, errOut io.Writer, newClient 
 	if code, done := parseCommandFlags(fs, parseArgs, out, errOut); done {
 		return code
 	}
-	_ = providerURL
 	if query == "" {
 		if fs.NArg() > 0 {
 			query = fs.Arg(0)
@@ -661,6 +660,8 @@ func runCatalogSearchWithClient(args []string, out, errOut io.Writer, newClient 
 						},
 						RemoteLookup: *remote,
 					},
+					RemoteEnabled: *remote,
+					ProviderURL:   strings.TrimSpace(*providerURL),
 				}
 				if *remote {
 					remoteClient, closeCache, clientErr := newClient(paths.RegistryPath)

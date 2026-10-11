@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -200,5 +201,79 @@ func TestCatalogDiscoveryRemoteFailureScopeAndSafety(t *testing.T) {
 				t.Fatal("unparsed source identity lost")
 			}
 		})
+	}
+}
+
+func TestCatalogDiscoveryRemoteProviderURLAndRFC9727(t *testing.T) {
+	content, err := os.ReadFile("testdata/catalog-root/openapi/notes.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var server *httptest.Server
+	server = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/empty-list":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte("{}"))
+		case "/.well-known/api-catalog":
+			w.Header().Set("Content-Type", "application/linkset+json")
+			linkset := fmt.Sprintf(`{"linkset":[{"anchor":"%s","service-desc":[{"href":"%s/openapi.json","type":"application/openapi+json","title":"Notes API"}]}]}`, server.URL, server.URL)
+			_, _ = w.Write([]byte(linkset))
+		case "/openapi.json":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write(content)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	options := preparedCatalogDiscovery(t)
+	options.RemoteClient = &apitools.Client{
+		APIsGuruListURL:  server.URL + "/empty-list",
+		AllowUnsafeHosts: true,
+		HTTPClient:       server.Client(),
+	}
+	options.Request.RemoteLookup = true
+	options.RemoteEnabled = true
+	options.ProviderURL = server.URL
+
+	report, err := apitools.DiscoverCatalogOperations(context.Background(), options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Outcome != apitools.CatalogDiscoveryMatch || len(report.Candidates) == 0 {
+		t.Fatalf("expected candidates via RFC 9727 fallback, got outcome=%s (%+v)", report.Outcome, report)
+	}
+	if report.Candidates[0].Remote == nil || report.Candidates[0].Remote.Authority != "public-catalog" {
+		t.Fatalf("remote evidence missing or wrong authority: %#v", report.Candidates[0].Remote)
+	}
+}
+
+func TestCatalogDiscoveryRemoteRejectsUnsafeProviderURL(t *testing.T) {
+	options := preparedCatalogDiscovery(t)
+	options.RemoteClient = &apitools.Client{
+		AllowUnsafeHosts: false,
+	}
+	options.Request.RemoteLookup = true
+	options.RemoteEnabled = true
+	options.ProviderURL = "http://127.0.0.1:8080/docs"
+
+	report, err := apitools.DiscoverCatalogOperations(context.Background(), options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Outcome != apitools.CatalogDiscoveryBlocked {
+		t.Fatalf("expected blocked outcome for unsafe provider URL, got %s", report.Outcome)
+	}
+	found := false
+	for _, diag := range report.Diagnostics {
+		if diag.Code == "discovery.remote_unsafe" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected discovery.remote_unsafe diagnostic, got: %#v", report.Diagnostics)
 	}
 }

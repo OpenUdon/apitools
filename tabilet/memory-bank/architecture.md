@@ -639,7 +639,10 @@ mode without mutating producer files.
 - `Search` sources include `apis-guru`, experimental `lap-registry`,
   provider-scoped experimental `rfc9727`, and legacy `public-apis`. `auto`
   uses that order and consults RFC 9727 only when `SearchOptions.ProviderURL`
-  is non-empty. Search cache keys include the provider URL.
+  is non-empty. Search cache keys include the provider URL. Opt-in catalog remote
+  discovery in `DiscoverCatalogOperations` similarly uses `SourceAuto` and accepts
+  installation-side `CatalogDiscoveryOptions.ProviderURL` for provider-scoped RFC 9727
+  fallback discovery.
 - CLI entry point: `go run ./cmd/apitools`.
 - CLI commands include `search`, `versions`, `import`, and `catalog` with
   lifecycle subcommands `init`, `add`, `import`, `index`, `search`, `snapshot`,

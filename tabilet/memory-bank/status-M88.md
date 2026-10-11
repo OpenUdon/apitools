@@ -34,7 +34,7 @@ Each row is a later implementation commit unit under the governing request. Mark
 | Item | State | Notes |
 |---|---|---|
 | M88.R1 — Catalog lifecycle commands | `[+]` | Delivered catalog lifecycle CLI commands (init, add, import, search, snapshot) and environment-root resolution for index/refresh in cmd/apitools; retained explicit-root no-repair/no-refresh guarantees and verified 100% offline tests. |
-| M88.R2 — Provider-scoped remote discovery | `[ ]` | Pass explicit installation-side provider URL through SourceAuto search with dual opt-in, URL safety, limits and truthful partial evidence. Owns F06 (P2/P2). |
+| M88.R2 — Provider-scoped remote discovery | `[+]` | Broadened DiscoverCatalogOperations remote lookup to SourceAuto, plumbed installation-side ProviderURL through SearchOptions.ProviderURL for RFC 9727 fallback (resolving F06), enforced URL safety and dual opt-in, and verified with offline fixtures. |
 | M88.R3 — CLI and consumer qualification | `[ ]` | Run offline owner/CLI/network-fixture/consumer gates and record exact accepted source plus separately authorized publication handoff. |
 
 ## Acceptance and verification
@@ -48,4 +48,5 @@ Each row is a later implementation commit unit under the governing request. Mark
 - Whole-milestone review: 0/10, not started; begin after implementation and required verification.
 - Implementation commits:
   - M88.R1: feat(M88.R1): implement catalog lifecycle CLI commands and root resolution
+  - M88.R2: feat(M88.R2): broaden remote catalog discovery to SourceAuto with provider URL
 - No prior review counter or frozen status is reopened.

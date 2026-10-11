@@ -46,9 +46,25 @@ func retrieveCatalogDiscoveryRemote(ctx context.Context, evidence catalogDiscove
 	if _, err := client.redirectSafeClient(); err != nil {
 		return catalogDiscoveryRefusal(*report, "discovery.remote_transport", "remote transport violates the configured URL safety policy")
 	}
+	providerURL := strings.TrimSpace(options.ProviderURL)
+	if providerURL != "" {
+		catalogURL, err := rfc9727CatalogURL(providerURL)
+		if err != nil {
+			return catalogDiscoveryRefusal(*report, "discovery.remote_unsafe", "remote catalog provider URL violates the configured URL safety policy")
+		}
+		if _, err := client.validateCacheURL(catalogURL); err != nil {
+			return catalogDiscoveryRefusal(*report, "discovery.remote_unsafe", "remote catalog provider URL violates the configured URL safety policy")
+		}
+	}
 	network, cancel := context.WithTimeout(ctx, catalogDiscoveryRemoteTimeout)
 	defer cancel()
-	search, err := client.Search(network, SearchOptions{Query: options.Request.Contract.Purpose, Limit: catalogDiscoveryRemoteDocuments, Source: SourceAPIsGuru, CacheMode: CacheModeBypass})
+	search, err := client.Search(network, SearchOptions{
+		Query:       options.Request.Contract.Purpose,
+		Limit:       catalogDiscoveryRemoteDocuments,
+		Source:      SourceAuto,
+		ProviderURL: providerURL,
+		CacheMode:   CacheModeBypass,
+	})
 	if err != nil {
 		return catalogDiscoveryRemoteFailure(evidence, err)
 	}
