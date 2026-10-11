@@ -620,7 +620,10 @@ mode without mutating producer files.
   documented in [`docs/operation-candidates.md`](../../docs/operation-candidates.md).
 - Public root package APIs include `Client`, `Search`, `Import`,
   additive `ImportWithReport`, `LocalFiles`, `BuildOperationInventory`, `LoadOperationIndex`,
-  `BuildAuthoringAPIDocuments`, auth summaries, and operation selection.
+  `BuildAuthoringAPIDocuments`, auth summaries, operation selection, and M87.3's
+  `ProjectCatalogDecision`/`CatalogDecisionView` projecting discovery reports into
+  bounded 64-KiB decision models with source-distinguishable prompt rendering and
+  local-reference selectable indexing.
   Step-candidate contracts are additive types in `step_metadata.go`; the
   versioned request carries purpose, typed inputs/outputs, and effect, while
   the result envelope pairs existing operation data with exact source identity,

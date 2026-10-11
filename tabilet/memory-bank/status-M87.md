@@ -39,7 +39,7 @@ Each row is a later implementation commit unit under the governing request. Mark
 |---|---|---|
 | M87.R1 — Explicit environment resolution | `[+]` | Delivered RootOptionsWithEnvironment, RootOptionsFromEnvironment, ResolveDefaultRoot with aliases and precedence (CLI/APITOOLS_CATALOG_*/CATALOG_*/KINET_CATALOG_*); verified missing-root and read-only behavior with 100% offline tests. |
 | M87.R2 — Bounded snapshot and consistency | `[+]` | Delivered catalog.SnapshotRoot with nested relative path preservation (resolving F03), metadata and selected source copying with distinct ceilings (resolving F02), active journal detection, collision/overlap defenses, full-set drift verification (resolving F04), destination-only SQLite journal normalization to DELETE, and rollback on error. |
-| M87.R3 — Bounded decision projection | `[ ]` | Implement final JSON/prompt validation for every outcome, source-distinguishable prompts and stable selectable indexes. Owns F08-F09 (P2/P2). |
+| M87.R3 — Bounded decision projection | `[+]` | Delivered ProjectCatalogDecision, CatalogDecisionView, and CatalogDecisionCandidate in root apitools with strict 64-KiB view/prompt bounds for every outcome (resolving F08), full source/reference/operation/gap prompt evidence (resolving F09), local-reference selectable indexing, and answer validation. |
 | M87.R4 — Compatibility qualification | `[ ]` | Run owner and immutable consumer/parity gates; record accepted source and publication handoff. Publication requires separately named authority and independent verification before consumer adoption. |
 
 ## Acceptance and verification
@@ -54,4 +54,5 @@ Each row is a later implementation commit unit under the governing request. Mark
 - Implementation commits:
   - M87.R1: catalog: add environment resolution and precedence for catalog roots
   - M87.R2: catalog: add safe bounded SnapshotRoot with drift defense and normalization
+  - M87.R3: root: add bounded ProjectCatalogDecision and evidence-bearing decision cards
 - No prior review counter or frozen status is reopened.
