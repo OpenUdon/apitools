@@ -592,19 +592,22 @@ unexamined coverage; a large artifact is not automatically complete evidence.
 M81.4 consumes these helpers and preserves that distinction in its index.
 
 M81.2 adds `catalog.RootOptions`/`ResolveRoot` for explicit root, registry and
-index path configuration. No root selects no implicit directory; M80
-discovery returns metadata-only leads and insufficient evidence. The
-selected root rejects symlinks at or below it while resolving symlinked
-ancestors. Relative registry/index paths cannot overlap or escape the root.
-Resolution creates no files. `sqlitecache.ReadCatalogArtifacts` uses a
-read-only SQLite transaction and shared row validation without migration,
-pruning or access-time updates, including legacy registry schemas 1–3; newer
-schemas refuse. Snapshot bounds are five seconds, 10,000 rows and 32 MiB
-aggregate registration text before decoding. Missing registry/index remains
-missing evidence. M80 discovery and M81 index generation/read/publication
-and selected-artifact export are delivered and published at M80 source
-`fb132631c9827eae5f2ec4503d03f21eabfb4113`. The synthetic shared-artifact fixture
-is under `testdata/catalog-root` with an explicit disposable preparation recipe.
+index path configuration. M87.1 adds `RootOptionsWithEnvironment`,
+`RootOptionsFromEnvironment`, and `ResolveDefaultRoot` with precedence
+(explicit CLI options > APITOOLS_CATALOG_* > CATALOG_* > KINET_CATALOG_*).
+No root selects no implicit directory; M80 discovery returns metadata-only
+leads and insufficient evidence. The selected root rejects symlinks at or
+below it while resolving symlinked ancestors. Relative registry/index paths
+cannot overlap or escape the root. Resolution creates no files.
+`sqlitecache.ReadCatalogArtifacts` uses a read-only SQLite transaction and
+shared row validation without migration, pruning or access-time updates,
+including legacy registry schemas 1–3; newer schemas refuse. Snapshot
+bounds are five seconds, 10,000 rows and 32 MiB aggregate registration text
+before decoding. Missing registry/index remains missing evidence. M80 discovery
+and M81 index generation/read/publication and selected-artifact export are
+delivered and published at M80 source `fb132631c9827eae5f2ec4503d03f21eabfb4113`.
+The synthetic shared-artifact fixture is under `testdata/catalog-root` with an
+explicit disposable preparation recipe.
 
 - Go module path: `github.com/OpenUdon/apitools`.
 - The versioned step-candidate wire contract and source-family matrix are

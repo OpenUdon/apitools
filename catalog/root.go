@@ -117,3 +117,70 @@ func rootFilePath(root *os.Root, value, fallback string) (string, error) {
 	}
 	return value, nil
 }
+
+// RootOptionsWithEnvironment returns options with any empty fields populated
+// from canonical environment variables and legacy fallbacks. Precedence for
+// each field is:
+//
+// Directory:
+//  1. options.Directory (explicit configuration)
+//  2. APITOOLS_CATALOG_ROOT
+//  3. CATALOG_ROOT
+//  4. KINET_CATALOG_ROOT
+//
+// RegistryPath:
+//  1. options.RegistryPath (explicit configuration)
+//  2. APITOOLS_CATALOG_REGISTRY
+//  3. CATALOG_REGISTRY
+//  4. KINET_CATALOG_REGISTRY
+//
+// IndexPath:
+//  1. options.IndexPath (explicit configuration)
+//  2. APITOOLS_CATALOG_INDEX
+//  3. CATALOG_INDEX
+//  4. KINET_CATALOG_INDEX
+//
+// All environment values are trimmed of leading and trailing whitespace. If a
+// variable is unset or contains only whitespace, it is ignored in favor of the
+// next alias in precedence.
+func RootOptionsWithEnvironment(options RootOptions) RootOptions {
+	dir := strings.TrimSpace(options.Directory)
+	if dir == "" {
+		dir = envLookup("APITOOLS_CATALOG_ROOT", "CATALOG_ROOT", "KINET_CATALOG_ROOT")
+	}
+	registry := strings.TrimSpace(options.RegistryPath)
+	if registry == "" {
+		registry = envLookup("APITOOLS_CATALOG_REGISTRY", "CATALOG_REGISTRY", "KINET_CATALOG_REGISTRY")
+	}
+	index := strings.TrimSpace(options.IndexPath)
+	if index == "" {
+		index = envLookup("APITOOLS_CATALOG_INDEX", "CATALOG_INDEX", "KINET_CATALOG_INDEX")
+	}
+	return RootOptions{
+		Directory:    dir,
+		RegistryPath: registry,
+		IndexPath:    index,
+	}
+}
+
+// RootOptionsFromEnvironment constructs RootOptions using canonical environment
+// variables and legacy fallbacks.
+func RootOptionsFromEnvironment() RootOptions {
+	return RootOptionsWithEnvironment(RootOptions{})
+}
+
+// ResolveDefaultRoot resolves the catalog root using RootOptionsFromEnvironment().
+// It remains strictly read-only: absent configuration returns an empty RootPaths
+// without implicit cache lookup or root directory creation.
+func ResolveDefaultRoot() (RootPaths, error) {
+	return ResolveRoot(RootOptionsFromEnvironment())
+}
+
+func envLookup(keys ...string) string {
+	for _, key := range keys {
+		if val := strings.TrimSpace(os.Getenv(key)); val != "" {
+			return val
+		}
+	}
+	return ""
+}
