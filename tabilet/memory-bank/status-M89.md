@@ -37,7 +37,7 @@ Each row is a later implementation commit unit under the governing request. Mark
 | Item | State | Notes |
 |---|---|---|
 | M89.R1 — Query and contract planners | `[+]` | Delivered vendor-neutral LLMClient interface, PlanSearchQuery, PlanDiscoveryRequest, and deterministic draft preparers/validators in root apitools (resolving F10); enforced standard StepContract effects normalizing idempotent_write to write (resolving F11); rejected wildcard inputs and added contract.input_missing clarification diagnostics (resolving F12); verified offline mock and deterministic fallback tests. |
-| M89.R2 — Selectable-only recommendation | `[ ]` | Restrict model/deterministic recommendations to final Selectable indexes; retain original order/indexes, abstain when empty and revalidate explanation/view/prompt bounds. Owns F13 (P2/P2). |
+| M89.R2 — Selectable-only recommendation | `[+]` | Delivered RecommendCandidate with strict selectable-only validation (resolving F13), deterministic ranking fallback, empty eligibility abstention, and decision view bounds/validity rechecks. |
 | M89.R3 — Mock and consumer qualification | `[ ]` | Run offline/mock/consumer and compatibility gates; record exact accepted source and independent publication handoff before adoption; provide M86 regression obligations. |
 
 ## Acceptance and verification
@@ -51,4 +51,5 @@ Each row is a later implementation commit unit under the governing request. Mark
 - Whole-milestone review: 0/10, not started; begin after implementation and required verification.
 - Implementation commits:
   - M89.R1: feat(M89.R1): add vendor-neutral query and contract planners with deterministic fallbacks
+  - M89.R2: feat(M89.R2): implement selectable-only candidate recommendation and bounds recheck
 - No prior review counter or frozen status is reopened.

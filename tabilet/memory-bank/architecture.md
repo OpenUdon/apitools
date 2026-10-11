@@ -623,11 +623,13 @@ mode without mutating producer files.
   `BuildAuthoringAPIDocuments`, auth summaries, operation selection, and M87.3's
   `ProjectCatalogDecision`/`CatalogDecisionView` projecting discovery reports into
   bounded 64-KiB decision models with source-distinguishable prompt rendering and
-  local-reference selectable indexing, and M89.1's vendor-neutral `LLMClient` completion
-  interface, `PlanSearchQuery`, `PlanDiscoveryRequest`, and deterministic contract/request
+  local-reference selectable indexing, and M89's vendor-neutral `LLMClient` completion
+  interface, `PlanSearchQuery`, `PlanDiscoveryRequest`, deterministic contract/request
   draft preparers (`PrepareStepContractDraft`, `PrepareDiscoveryRequestDraft`) enforcing
   strict PromptBudget bounds, standard StepContract effect vocabularies (normalizing
-  idempotent_write to write and rejecting wildcard inputs), and deterministic fallbacks.
+  idempotent_write to write and rejecting wildcard inputs), and `RecommendCandidate`
+  restricting assistance to final Selectable candidates while revalidating bounds and
+  falling back deterministically without executing or approving operations.
   Step-candidate contracts are additive types in `step_metadata.go`; the
   versioned request carries purpose, typed inputs/outputs, and effect, while
   the result envelope pairs existing operation data with exact source identity,
