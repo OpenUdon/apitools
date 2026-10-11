@@ -120,3 +120,10 @@ cache failures/restored exact lockfiles. No source workaround or user-cache muta
 - **Lesson:** `SourceAuto` cascades across multiple catalog backends (APIs.guru, LAP Registry, RFC 9727, public-apis). For RFC 9727 discovery to succeed, an installation-side `ProviderURL` must be explicitly provided and plumbed to `SearchOptions.ProviderURL`. Validate the provider URL against SSRF, unpermitted private hosts, and non-canonical schemes before dispatching queries.
 - **Why it matters:** Hardcoding a single source disables RFC 9727 provider-directed discovery; conversely, unvalidated remote hosts can lead to private network traversal or SSRF vulnerabilities.
 - **Evidence:** [M88](../docs/history/status-M88.md), review finding F06; `catalog_discovery_remote.go` and `catalog_discovery_remote_test.go`.
+
+## LLM touchpoints must use standard effect vocabularies and selectable-only candidate boundaries
+
+- **Applies when:** Formulating operation contracts and candidate recommendations with pluggable LLM assistants.
+- **Lesson:** Normalize model-generated effects to standard `OperationEffect` values (`read`, `write`, `unknown`, or omitted) and strictly reject unapproved values such as `idempotent_write`. Avoid fabricating wildcard inputs when parameters are missing; instead, expose missing evidence via informational diagnostics (`contract.input_missing`). In candidate recommendation, restrict assistance strictly to verified `Selectable` candidates; never recommend unqualified, omitted, or hallucinated candidate indexes. Always revalidate serialized JSON and prompt bounds after attaching explanation text.
+- **Why it matters:** Non-standard effect strings cause qualification failures. Wildcard inputs conceal missing parameter dependencies. Recommending non-selectable candidates violates human confirmation boundaries and can authorize incorrect operations.
+- **Evidence:** [M89](../docs/history/status-M89.md), review findings F10, F11, F12, F13; `llm_plan.go`, `llm_recommend.go`, `llm_plan_test.go`, and `llm_recommend_test.go`.

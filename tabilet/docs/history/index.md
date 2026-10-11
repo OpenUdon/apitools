@@ -5,6 +5,7 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 
 | Milestone | Outcome | Retired | Record | Summary |
 |---|---|---|---|---|
+| M89 | completed | 2026-10-11 | [M89](status-M89.md) | Three rows/whole1; vendor-neutral query, contract, and recommendation planners |
 | M88 | completed | 2026-10-11 | [M88](status-M88.md) | Three rows/whole1; catalog management CLI and guarded remote discovery |
 | M87 | completed | 2026-10-11 | [M87](status-M87.md) | Four rows/whole1; explicit catalog roots, safe snapshots, and bounded decision projections |
 | M85 | completed | 2026-10-09 | [M85](status-M85.md) | Four rows/whole3; coherent reserved-header candidates, published source409d and complete ordinary source/SDK/CLI proof |

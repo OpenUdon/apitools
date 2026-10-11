@@ -242,40 +242,13 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M89 | [status-M89.md](status-M89.md) | Actionable; optional planning; M88 accepted |
-| M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89 compatibility prerequisite |
+| M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89 accepted |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
 
 
-
-### M89 — Optional vendor-neutral query, contract, and recommendation planning
-
-**Goal/acceptance.** Optional planners compile without package cycles/vendor SDKs, preserve deterministic qualification and effect/input semantics, expose missing evidence, and never recommend outside final selectable indexes. No model credential is needed for default use or tests.
-
-**State/owner.** Actionable 2026-10-11; apitools; catalog track. All 3 rows pending; review 0/10, not started. Target behavior is unimplemented.
-
-**Scope and contracts.**
-
-Place PlanSearchQuery, PlanDiscoveryRequest and discovery-related types in root apitools, not catalog. Supply an optional vendor-neutral completion interface and deterministic prepare/validate entry points for isolated callers. Consumers own model clients, credentials, policy, cancellation, privacy and accounting. Standalone APItools CLI stays deterministic; no HTTP model adapter, provider credential environment fallback or model transport flag is scheduled.
-
-Use the current StepContract read/write/unknown/omitted vocabulary, never idempotent_write. Return contract drafts with readiness and diagnostics for consumer review before qualification. Missing input evidence yields clarification or metadata-only leads; no wildcard input or relaxed required-input matching. Use existing PromptBudget/sanitization and strict bounded output parsing. Nil/failing/invalid completions fall back deterministically; cancellation stops rather than launching another call. Model drafts never establish user-provided facts by themselves.
-
-RecommendCandidate takes the final bounded view. Expose only its Selectable candidates to assistance and validate returned indexes against that set. Deterministic fallback uses existing ranking order among eligible candidates with original indexes; empty eligibility yields no recommendation. Omitted/unqualified/remote-only candidates remain ineligible. Advice never selects or executes. Recheck JSON/prompt limits after attaching explanation text.
-
-**Depends on.** APItools:M88 accepted.
-**Downstream impacts.** Kinet:M57; Ramen:M82; APItools:M86? compatibility join.
-**Lineage.** Retired M80/M81 and M85 deterministic qualification/candidate contracts remain authoritative.
-
-**Rows.** M89.R1 Query and contract planners; M89.R2 Selectable-only recommendation; M89.R3 Mock and consumer qualification. [Status/provenance](status-M89.md).
-
-**Verification.** GOWORK=off go test ./...; GOWORK=off go vet ./...; model-free/mock tests for effects, missing input, invalid/oversized output, cancellation, recommendations and explanation limits; standalone graph/consumer checks; git diff --check. No live model calls.
-
-**Write set.** root planning/projection APIs, dependency-neutral completion contracts, tests and ordinary docs; this status. Provider transport and credentials are consumer-owned. Shared records/closure remain coordinator-owned.
-
-**Execution policy.** Planning authorizes no implementation, commit, publication, deployment or live-model operation. A separate execution request governs task commits. One coordinator owns shared records/integration; this catalog track is serial and **Parallel-safe: no**. No overlapping catalog or same-package Stage 12 worker/module writers. Use immutable inputs; sibling adoption requires exact accepted and independently published revisions, not workspace replacements. Publication requires separately named authority; old Stage 12 grants do not transfer. Audit remains disabled/unavailable as recorded.
 
 ### M86 — HCL-free UWS adoption (conditional)
 
