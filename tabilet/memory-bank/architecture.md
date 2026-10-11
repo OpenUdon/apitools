@@ -607,7 +607,13 @@ before decoding. Missing registry/index remains missing evidence. M80 discovery
 and M81 index generation/read/publication and selected-artifact export are
 delivered and published at M80 source `fb132631c9827eae5f2ec4503d03f21eabfb4113`.
 The synthetic shared-artifact fixture is under `testdata/catalog-root` with an
-explicit disposable preparation recipe.
+explicit disposable preparation recipe. M87.2 adds `catalog.SnapshotRoot` for
+safe read-only catalog copies. It preserves nested relative paths for registry,
+index, and selected source without flattening, copies external metadata, enforces
+individual ceilings (64 MiB registry/index, 2 MiB metadata, 8 MiB selected source),
+checks active WAL/journal sidecars and collisions, executes full-set drift checks
+across all sources, and normalizes destination SQLite databases to DELETE journal
+mode without mutating producer files.
 
 - Go module path: `github.com/OpenUdon/apitools`.
 - The versioned step-candidate wire contract and source-family matrix are
