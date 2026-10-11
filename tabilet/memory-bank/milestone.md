@@ -242,8 +242,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M87 | [status-M87.md](status-M87.md) | Pending; catalog foundations |
-| M88 | [status-M88.md](status-M88.md) | Pending; CLI/discovery; M87 prerequisite |
+| M88 | [status-M88.md](status-M88.md) | Actionable; CLI/discovery; M87 accepted |
 | M89 | [status-M89.md](status-M89.md) | Pending; optional planning; M88 prerequisite |
 | M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89 compatibility prerequisite |
 
@@ -251,33 +250,6 @@ Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
 
-
-
-### M87 — Explicit catalog roots, safe snapshots, and bounded decisions
-
-**Goal/acceptance.** Explicit roots remain read-only; snapshots preserve all configured evidence or safely refuse it; cross-file drift/collisions cannot yield accepted output. Every returned view and prompt is bounded and distinguishes alternatives; omitted, unqualified and remote-only candidates remain unselectable.
-
-**State/owner.** Approved planning 2026-10-11; apitools; catalog track. All 4 rows pending; review 0/10, not started. Target behavior is unimplemented.
-
-**Scope and contracts.**
-
-Add environment-to-RootOptions resolution. Precedence is explicit CLI configuration, APITOOLS_CATALOG_ROOT, CATALOG_ROOT, KINET_CATALOG_ROOT. Canonical registry/index aliases retain legacy fallbacks. ResolveRoot stays read-only: absent configuration produces metadata-only leads without implicit cache lookup or root creation.
-
-Add catalog.SnapshotRoot for APItools consumers and CLI. Preserve registry/index/selected-source paths relative to the source root, creating destination parents. Metadata has an explicit source and destination mapping, not a Kinet-specific library filename. Default ceilings: 64 MiB per registry/index, 2 MiB metadata, 8 MiB selected source. Check file/prefix/sidecar collisions, symlinks/special files, root overlap and active journals. Missing optional registry/index evidence stays missing; selected source and configured metadata must copy successfully. After all copies, recheck the complete source set, missing-file transitions and journal state before destination-only SQLite normalization. Drift returns an error; failures leave no accepted partial snapshot or producer mutation. Kinet retains its host Prepare custody and independent 32 MiB native aggregate limit.
-
-Add ProjectCatalogDecision and view/candidate types in root apitools using existing outcome names. Preserve original indexes/order, scope/contract evidence, omitted counts, provider/source identity, references, operation metadata and qualification gaps. Only qualified displayed candidates with local references are selectable. Enforce independent 64 KiB bounds on serialized view and rendered prompt on every successful return, including negative outcomes, oversized base scope, rollback and explanations. Marshal/validation failures return no accepted view. Selection and execution remain consumer-owned.
-
-**Depends on.** Accepted APItools M80/M81 root/discovery contracts; no new pending prerequisite.
-**Downstream impacts.** APItools:M88.
-**Lineage.** Retired APItools M80/M81; Kinet W18/M50 are consumer/isolation evidence, not reopened work.
-
-**Rows.** M87.R1 Explicit environment resolution; M87.R2 Bounded snapshot and consistency; M87.R3 Bounded decision projection; M87.R4 Compatibility qualification. [Status/provenance](status-M87.md).
-
-**Verification.** GOWORK=off go test ./...; GOWORK=off go vet ./...; focused root/snapshot/projection race and parity fixtures; existing root/discovery regressions and immutable Kinet consumer fixtures; git diff --check. All data is offline/disposable.
-
-**Write set.** catalog root/snapshot code, root catalog_decision API, tests and ordinary docs; this status. No Kinet host imports or sibling edits. Shared records/closure remain coordinator-owned.
-
-**Execution policy.** Planning authorizes no implementation, commit, publication, deployment or live-model operation. A separate execution request governs task commits. One coordinator owns shared records/integration; this catalog track is serial and **Parallel-safe: no**. No overlapping catalog or same-package Stage 12 worker/module writers. Use immutable inputs; sibling adoption requires exact accepted and independently published revisions, not workspace replacements. Publication requires separately named authority; old Stage 12 grants do not transfer. Audit remains disabled/unavailable as recorded.
 
 
 ### M88 — Catalog management CLI and guarded remote discovery

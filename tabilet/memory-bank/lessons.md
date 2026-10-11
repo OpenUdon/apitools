@@ -106,3 +106,10 @@ cache failures/restored exact lockfiles. No source workaround or user-cache muta
 - **Lesson:** Exercise actual selection as well as SDK Build/Assess/Verify. Apply coherent ignored-input semantics at the owner. Preserve existing reference capability boundaries; an added per-parameter traversal can multiply work across operations even under a raw byte bound. Bound fixture confirmation and retain unknown unsupported references.
 - **Why:** Shape-only M84 proof left W18 blocked; M85 corrected candidate semantics. Whole1 caught an unnecessary unbounded chain extension before publication, and removal preserved the original single-hop/escaped contract.
 - **Evidence:** [M85](../docs/history/status-M85.md), final whole3, exact source409d/current SDK16/CLI8/ordinary proof; [M50-NATIVE-F01](../../../kinet/docs/m50-candidate-header-finding.md) preserves failed prior integration.
+
+## Safe catalog snapshots require full-set drift verification and relative path preservation
+
+- **Applies when:** Snapshotting, copying, or projecting read-only catalog roots for consumers.
+- **Lesson:** Preserve nested relative paths rather than flattening with `filepath.Base`. Snapshot metadata and selected source alongside registry/index files under distinct bounded ceilings. Recheck the entire source set for file additions, removals, modifications, and active WAL/journal sidecars before destination normalization. Destination-only SQLite journal normalization to `DELETE` mode must not touch source databases.
+- **Why it matters:** Flattening relative paths breaks consumers expecting nested registry/index layouts. Omitting metadata or selected source causes downstream validation failures. In-flight writes or concurrent updates during copying can produce corrupt or inconsistent snapshots.
+- **Evidence:** [M87](../docs/history/status-M87.md), review findings F02, F03, F04; `catalog/snapshot.go` and `catalog/snapshot_test.go`.

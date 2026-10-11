@@ -95,7 +95,7 @@ See `go.mod` for exact versions. Key dependency roles:
 | `github.com/OpenUdon/awssmithy` | Native AWS Smithy JSON parser used by the deprecated compatibility wrapper and source-type classification tests. |
 | `github.com/OpenUdon/googlediscovery` | Native Google Discovery parser used by the deprecated compatibility wrapper and source-type classification tests. |
 | `gopkg.in/yaml.v3` | YAML parsing for local and remote specs. |
-| `modernc.org/sqlite` | Optional pure-Go SQLite cache backend in `sqlitecache`. |
+| `modernc.org/sqlite` | Pure-Go SQLite driver for `sqlitecache` and `catalog` snapshot normalization. |
 
 ## Common Commands
 
