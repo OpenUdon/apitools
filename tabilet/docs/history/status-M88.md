@@ -1,6 +1,51 @@
+# Retired milestone M88 - Catalog management CLI and guarded remote discovery
+
+**Milestone.** M88
+**Outcome.** completed
+**Retired.** 2026-10-11
+**Source status.** tabilet/memory-bank/status-M88.md
+**Source specification.** tabilet/memory-bank/milestone.md#m88--catalog-management-cli-and-guarded-remote-discovery
+**Evidence.** 7e46126d0a306b6ad8d4c8e5525d199e1a58f006
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 1
+**Verification.** GOWORK=off go test ./...; GOWORK=off go test -race ./...; GOWORK=off go vet ./...; git diff --check; CLI lifecycle/legacy fixtures; injected HTTP fixtures for provider URL, SourceAuto, refusal/deadline/partial coverage.
+**Consolidated into.** [Architecture](../../memory-bank/architecture.md), [stack](../../memory-bank/tech-stack.md), [lessons](../../memory-bank/lessons.md), [knowledge](knowledge.md).
+
+## Milestone specification
+
+````markdown
+### M88 — Catalog management CLI and guarded remote discovery
+
+**Goal/acceptance.** Compatible explicit CLI operations can create, populate, index, search, refresh and snapshot catalogs. RFC 9727 receives an approved provider URL when earlier auto tiers miss. Offline paths never fetch; remote leads need local import and requalification before selection.
+
+**State/owner.** Approved planning 2026-10-11; apitools; catalog track. All 3 rows pending; review 0/10, not started. Target behavior is unimplemented.
+
+**Scope and contracts.**
+
+Provide explicit catalog init, local add, URL import, index, refresh, search and snapshot through existing registry/index/import facilities. Add missing commands and compatible aliases/plumbing for existing commands. Retain artifact/index formats, source/provider/spec identity, digests, security metadata and explicit unknown license/redistribution facts. Require configured roots; only explicit initialization/mutation creates storage. Read commands never implicitly repair, refresh or index.
+
+Broaden opt-in catalog remote discovery to SourceAuto with its current first-success fallback behavior. Add an installation-side provider URL option passed into SearchOptions.ProviderURL; CLI/GUI supply it from explicit operator input only, never model-inferred host authority. Preserve request and installation opt-in, guarded HTTP(S), unsafe-host/redirect defenses, document/time bounds, credential-free retrieval, ephemeral cache bypass and incomplete remote coverage. A remote miss never establishes global absence. Kinet native/hosted remote capability remains unavailable.
+
+**Depends on.** APItools:M87 accepted.
+**Downstream impacts.** APItools:M89; Ramen:M81.
+**Lineage.** Retired M80/M81 and existing index/refresh/import/search commands; extend compatible contracts instead of duplicating commands.
+
+**Rows.** M88.R1 Catalog lifecycle commands; M88.R2 Provider-scoped remote discovery; M88.R3 CLI and consumer qualification. [Status/provenance](status-M88.md).
+
+**Verification.** GOWORK=off go test ./...; GOWORK=off go vet ./...; CLI lifecycle/legacy fixtures; injected HTTP fixtures for provider URL, SourceAuto, refusal/deadline/partial coverage; immutable consumer checks; git diff --check.
+
+**Write set.** cmd/apitools commands and catalog/discovery helpers, tests and ordinary docs; this status. Shared records/closure remain coordinator-owned.
+
+**Execution policy.** Planning authorizes no implementation, commit, publication, deployment or live-model operation. A separate execution request governs task commits. One coordinator owns shared records/integration; this catalog track is serial and **Parallel-safe: no**. No overlapping catalog or same-package Stage 12 worker/module writers. Use immutable inputs; sibling adoption requires exact accepted and independently published revisions, not workspace replacements. Publication requires separately named authority; old Stage 12 grants do not transfer. Audit remains disabled/unavailable as recorded.
+````
+
+## Status record
+
+````markdown
 # Status M88 — Catalog management CLI and guarded remote discovery
 
-**State.** Pending; no row started. Whole-milestone review 0/10, not started.
+**State.** Accepted; all rows complete. Whole-milestone review 1/10 passed.
 **Context.** Approved catalog track in the current horizon alongside Kinet STG-12, without changing the original browser scope or provisional stages.
 **Specification.** [M88](milestone.md#m88--catalog-management-cli-and-guarded-remote-discovery).
 
@@ -35,7 +80,7 @@ Each row is a later implementation commit unit under the governing request. Mark
 |---|---|---|
 | M88.R1 — Catalog lifecycle commands | `[+]` | Delivered catalog lifecycle CLI commands (init, add, import, search, snapshot) and environment-root resolution for index/refresh in cmd/apitools; retained explicit-root no-repair/no-refresh guarantees and verified 100% offline tests. |
 | M88.R2 — Provider-scoped remote discovery | `[+]` | Broadened DiscoverCatalogOperations remote lookup to SourceAuto, plumbed installation-side ProviderURL through SearchOptions.ProviderURL for RFC 9727 fallback (resolving F06), enforced URL safety and dual opt-in, and verified with offline fixtures. |
-| M88.R3 — CLI and consumer qualification | `[ ]` | Run offline owner/CLI/network-fixture/consumer gates and record exact accepted source plus separately authorized publication handoff. |
+| M88.R3 — CLI and consumer qualification | `[+]` | Ran full owner test suite, race detectors, CLI lifecycle regression fixtures, and remote discovery fixtures; whole-milestone review 1/10 passed with 0 findings; recorded exact accepted source. |
 
 ## Acceptance and verification
 
@@ -45,8 +90,9 @@ Each row is a later implementation commit unit under the governing request. Mark
 
 ## Review gate and scoped commit tracking
 
-- Whole-milestone review: 0/10, not started; begin after implementation and required verification.
+- Whole-milestone review: 1/10, passed; no P1/P2/Lower findings.
 - Implementation commits:
   - M88.R1: feat(M88.R1): implement catalog lifecycle CLI commands and root resolution
   - M88.R2: feat(M88.R2): broaden remote catalog discovery to SourceAuto with provider URL
 - No prior review counter or frozen status is reopened.
+````

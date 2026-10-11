@@ -113,3 +113,10 @@ cache failures/restored exact lockfiles. No source workaround or user-cache muta
 - **Lesson:** Preserve nested relative paths rather than flattening with `filepath.Base`. Snapshot metadata and selected source alongside registry/index files under distinct bounded ceilings. Recheck the entire source set for file additions, removals, modifications, and active WAL/journal sidecars before destination normalization. Destination-only SQLite journal normalization to `DELETE` mode must not touch source databases.
 - **Why it matters:** Flattening relative paths breaks consumers expecting nested registry/index layouts. Omitting metadata or selected source causes downstream validation failures. In-flight writes or concurrent updates during copying can produce corrupt or inconsistent snapshots.
 - **Evidence:** [M87](../docs/history/status-M87.md), review findings F02, F03, F04; `catalog/snapshot.go` and `catalog/snapshot_test.go`.
+
+## Catalog remote discovery fallback requires provider URL forwarding and strict URL safety
+
+- **Applies when:** Broadening remote catalog discovery from single-source to cascaded multi-source (`SourceAuto`).
+- **Lesson:** `SourceAuto` cascades across multiple catalog backends (APIs.guru, LAP Registry, RFC 9727, public-apis). For RFC 9727 discovery to succeed, an installation-side `ProviderURL` must be explicitly provided and plumbed to `SearchOptions.ProviderURL`. Validate the provider URL against SSRF, unpermitted private hosts, and non-canonical schemes before dispatching queries.
+- **Why it matters:** Hardcoding a single source disables RFC 9727 provider-directed discovery; conversely, unvalidated remote hosts can lead to private network traversal or SSRF vulnerabilities.
+- **Evidence:** [M88](../docs/history/status-M88.md), review finding F06; `catalog_discovery_remote.go` and `catalog_discovery_remote_test.go`.

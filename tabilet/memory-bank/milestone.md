@@ -242,8 +242,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M88 | [status-M88.md](status-M88.md) | Actionable; CLI/discovery; M87 accepted |
-| M89 | [status-M89.md](status-M89.md) | Pending; optional planning; M88 prerequisite |
+| M89 | [status-M89.md](status-M89.md) | Actionable; optional planning; M88 accepted |
 | M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89 compatibility prerequisite |
 
 Closed milestones are recorded in the history index.
@@ -252,36 +251,11 @@ Closed milestones are recorded in the history index.
 
 
 
-### M88 — Catalog management CLI and guarded remote discovery
-
-**Goal/acceptance.** Compatible explicit CLI operations can create, populate, index, search, refresh and snapshot catalogs. RFC 9727 receives an approved provider URL when earlier auto tiers miss. Offline paths never fetch; remote leads need local import and requalification before selection.
-
-**State/owner.** Approved planning 2026-10-11; apitools; catalog track. All 3 rows pending; review 0/10, not started. Target behavior is unimplemented.
-
-**Scope and contracts.**
-
-Provide explicit catalog init, local add, URL import, index, refresh, search and snapshot through existing registry/index/import facilities. Add missing commands and compatible aliases/plumbing for existing commands. Retain artifact/index formats, source/provider/spec identity, digests, security metadata and explicit unknown license/redistribution facts. Require configured roots; only explicit initialization/mutation creates storage. Read commands never implicitly repair, refresh or index.
-
-Broaden opt-in catalog remote discovery to SourceAuto with its current first-success fallback behavior. Add an installation-side provider URL option passed into SearchOptions.ProviderURL; CLI/GUI supply it from explicit operator input only, never model-inferred host authority. Preserve request and installation opt-in, guarded HTTP(S), unsafe-host/redirect defenses, document/time bounds, credential-free retrieval, ephemeral cache bypass and incomplete remote coverage. A remote miss never establishes global absence. Kinet native/hosted remote capability remains unavailable.
-
-**Depends on.** APItools:M87 accepted.
-**Downstream impacts.** APItools:M89; Ramen:M81.
-**Lineage.** Retired M80/M81 and existing index/refresh/import/search commands; extend compatible contracts instead of duplicating commands.
-
-**Rows.** M88.R1 Catalog lifecycle commands; M88.R2 Provider-scoped remote discovery; M88.R3 CLI and consumer qualification. [Status/provenance](status-M88.md).
-
-**Verification.** GOWORK=off go test ./...; GOWORK=off go vet ./...; CLI lifecycle/legacy fixtures; injected HTTP fixtures for provider URL, SourceAuto, refusal/deadline/partial coverage; immutable consumer checks; git diff --check.
-
-**Write set.** cmd/apitools commands and catalog/discovery helpers, tests and ordinary docs; this status. Shared records/closure remain coordinator-owned.
-
-**Execution policy.** Planning authorizes no implementation, commit, publication, deployment or live-model operation. A separate execution request governs task commits. One coordinator owns shared records/integration; this catalog track is serial and **Parallel-safe: no**. No overlapping catalog or same-package Stage 12 worker/module writers. Use immutable inputs; sibling adoption requires exact accepted and independently published revisions, not workspace replacements. Publication requires separately named authority; old Stage 12 grants do not transfer. Audit remains disabled/unavailable as recorded.
-
-
 ### M89 — Optional vendor-neutral query, contract, and recommendation planning
 
 **Goal/acceptance.** Optional planners compile without package cycles/vendor SDKs, preserve deterministic qualification and effect/input semantics, expose missing evidence, and never recommend outside final selectable indexes. No model credential is needed for default use or tests.
 
-**State/owner.** Approved planning 2026-10-11; apitools; catalog track. All 3 rows pending; review 0/10, not started. Target behavior is unimplemented.
+**State/owner.** Actionable 2026-10-11; apitools; catalog track. All 3 rows pending; review 0/10, not started. Target behavior is unimplemented.
 
 **Scope and contracts.**
 
