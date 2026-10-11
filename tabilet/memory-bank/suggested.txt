@@ -1,0 +1,34 @@
+# Disposable local launch reference — approved planning 2026-10-11.
+# PROPOSED — NOT APPROVED for execution; no grants activated by planning.
+# Integrated alternative: ../kinet/tabilet/memory-bank/suggested.txt.
+# Choose one coordinator; never run local and integrated ledger writers together.
+# Verify SHA256 against actual approval before a later goal; reconcile dependency drift.
+Using tabilet/GOAL.md, execute this loop.
+
+PROJECT_CONTEXT:
+- AGENTS.md
+- tabilet/memory-bank/milestone.md
+
+STATUS_ORDER:
+M87 -> M88 -> M89 -> M86?
+
+STATUS_FILE_MAP:
+M87 = tabilet/memory-bank/status-M87.md
+M88 = tabilet/memory-bank/status-M88.md
+M89 = tabilet/memory-bank/status-M89.md
+M86 = tabilet/memory-bank/status-M86.md
+
+DOWNSTREAM_IMPACTS:
+M87 -> M88
+M88 -> M89, Ramen:M81
+M89 -> Kinet:M57, Ramen:M82, M86?
+M86? -> Kinet:M55?
+
+COMMIT_POLICY: task
+SUGGESTED_UPDATE: confirm
+EXTERNAL_MUTATIONS: none
+AUTHORIZATION_GRANTS: {}
+
+M86 retains its original accepted/published UWS:C11 and authorized Kinet:M54 inventory trigger; M89 is an additional acceptance dependency, not trigger authority.
+
+All catalog units are Parallel-safe:no. Exact accepted/published inputs are required; no changing sibling checkout substitutes. Completion requires acceptance/verification for every required and triggered conditional milestone. A publication prerequisite never grants publication authority. Creating this reference starts no execution.

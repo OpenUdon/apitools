@@ -1,5 +1,21 @@
 # Milestones
 
+## Approved catalog track — 2026-10-11
+
+The user approved six new milestones / 21 pending rows across APItools, Kinet and Ramen. This is a separate serial catalog track in the current horizon, not a replacement of Stage 12 browser work. Existing scopes, conditional triggers, grants, non-pending states and review counters retain their recorded meaning. The supplied plans remain source evidence; these corrected milestone/status contracts supersede their unsafe proposed assumptions. No target behavior is implemented by planning.
+
+**Decisions.** Explicit roots/no implicit cache fallback; APItools interfaces with consumer-owned model adapters and deterministic standalone CLI; no native/hosted Kinet remote expansion. Kinet retains host snapshot custody and worker-only source semantics.
+
+**Dependencies.** APItools:M87 -> M88 -> M89; M88 -> Ramen:M81; M89 + Ramen:M81 -> Ramen:M82; M89 + Kinet:M53 -> Kinet:M57. M89 additionally precedes conditional APItools:M86; M57 additionally precedes conditional Kinet:M55. M86/M55 retain every original prerequisite and operational trigger. Exact accepted/public producer adoption remains mandatory.
+
+**Priority/ownership.** New-track priority is upstream M87/M88/M89, Ramen M81/M82, then Kinet M57 after existing M53. Existing Stage 12 entries retain relative priority. Never interrupt an active owner or overlap catalog/same-package worker writers. All new units are Parallel-safe:no; one coordinator serializes integration and records. Missing publication authority blocks its consumer, not its recognition as required work.
+
+**Review lineage.** Catalog roadmap review (2026-10-11), baseline not supplied; F01-F13 are confirmed prospective plan defects. Source/local severity: F01-F02 P1, F03-F13 P2. One primary owner each: M87.R2 F02-F04; M87.R3 F08-F09; M88.R2 F06; M89.R1 F10-F12; M89.R2 F13; Kinet M57.R1 F05, M57.R2 F01, M57.R4 F07. Owner statuses preserve evidence/full baselines without a separate review ledger. No closing-review iteration starts at intake.
+
+**Intake checks.** Focused APItools root/discovery/candidate/RFC checks passed; Kinet authorwire passed. Kinet catalogflow/catalogquestion/catalogwire checks were setup-blocked by missing offline golang.org/x/text v0.14.0. All source baselines were clean. Optional audit toolkit unavailable; no audit storage created. These checks do not establish future-feature acceptance.
+
+**Launch custody.** Kinet's integrated suggested.txt covers the entire affected horizon; APItools/Ramen references cover complete local horizons and name external prerequisites. These are alternatives, never independent concurrent ledger owners. Preserve existing human decisions and verify a refreshed file SHA256 against actual approval before activating grants. Catalog units receive no effective grant; Stage 12 scopes never transfer. Planning performs no commit, publication, deployment or live action.
+
 ## Stage 12 approved planning — 2026-10-09
 
 **Approved reconciliation.** Stage 12 planning review, 2026-10-09; source priority
@@ -226,13 +242,94 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C) |
+| M87 | [status-M87.md](status-M87.md) | Pending; catalog foundations |
+| M88 | [status-M88.md](status-M88.md) | Pending; CLI/discovery; M87 prerequisite |
+| M89 | [status-M89.md](status-M89.md) | Pending; optional planning; M88 prerequisite |
+| M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89 compatibility prerequisite |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
 
 
+
+### M87 — Explicit catalog roots, safe snapshots, and bounded decisions
+
+**Goal/acceptance.** Explicit roots remain read-only; snapshots preserve all configured evidence or safely refuse it; cross-file drift/collisions cannot yield accepted output. Every returned view and prompt is bounded and distinguishes alternatives; omitted, unqualified and remote-only candidates remain unselectable.
+
+**State/owner.** Approved planning 2026-10-11; apitools; catalog track. All 4 rows pending; review 0/10, not started. Target behavior is unimplemented.
+
+**Scope and contracts.**
+
+Add environment-to-RootOptions resolution. Precedence is explicit CLI configuration, APITOOLS_CATALOG_ROOT, CATALOG_ROOT, KINET_CATALOG_ROOT. Canonical registry/index aliases retain legacy fallbacks. ResolveRoot stays read-only: absent configuration produces metadata-only leads without implicit cache lookup or root creation.
+
+Add catalog.SnapshotRoot for APItools consumers and CLI. Preserve registry/index/selected-source paths relative to the source root, creating destination parents. Metadata has an explicit source and destination mapping, not a Kinet-specific library filename. Default ceilings: 64 MiB per registry/index, 2 MiB metadata, 8 MiB selected source. Check file/prefix/sidecar collisions, symlinks/special files, root overlap and active journals. Missing optional registry/index evidence stays missing; selected source and configured metadata must copy successfully. After all copies, recheck the complete source set, missing-file transitions and journal state before destination-only SQLite normalization. Drift returns an error; failures leave no accepted partial snapshot or producer mutation. Kinet retains its host Prepare custody and independent 32 MiB native aggregate limit.
+
+Add ProjectCatalogDecision and view/candidate types in root apitools using existing outcome names. Preserve original indexes/order, scope/contract evidence, omitted counts, provider/source identity, references, operation metadata and qualification gaps. Only qualified displayed candidates with local references are selectable. Enforce independent 64 KiB bounds on serialized view and rendered prompt on every successful return, including negative outcomes, oversized base scope, rollback and explanations. Marshal/validation failures return no accepted view. Selection and execution remain consumer-owned.
+
+**Depends on.** Accepted APItools M80/M81 root/discovery contracts; no new pending prerequisite.
+**Downstream impacts.** APItools:M88.
+**Lineage.** Retired APItools M80/M81; Kinet W18/M50 are consumer/isolation evidence, not reopened work.
+
+**Rows.** M87.R1 Explicit environment resolution; M87.R2 Bounded snapshot and consistency; M87.R3 Bounded decision projection; M87.R4 Compatibility qualification. [Status/provenance](status-M87.md).
+
+**Verification.** GOWORK=off go test ./...; GOWORK=off go vet ./...; focused root/snapshot/projection race and parity fixtures; existing root/discovery regressions and immutable Kinet consumer fixtures; git diff --check. All data is offline/disposable.
+
+**Write set.** catalog root/snapshot code, root catalog_decision API, tests and ordinary docs; this status. No Kinet host imports or sibling edits. Shared records/closure remain coordinator-owned.
+
+**Execution policy.** Planning authorizes no implementation, commit, publication, deployment or live-model operation. A separate execution request governs task commits. One coordinator owns shared records/integration; this catalog track is serial and **Parallel-safe: no**. No overlapping catalog or same-package Stage 12 worker/module writers. Use immutable inputs; sibling adoption requires exact accepted and independently published revisions, not workspace replacements. Publication requires separately named authority; old Stage 12 grants do not transfer. Audit remains disabled/unavailable as recorded.
+
+
+### M88 — Catalog management CLI and guarded remote discovery
+
+**Goal/acceptance.** Compatible explicit CLI operations can create, populate, index, search, refresh and snapshot catalogs. RFC 9727 receives an approved provider URL when earlier auto tiers miss. Offline paths never fetch; remote leads need local import and requalification before selection.
+
+**State/owner.** Approved planning 2026-10-11; apitools; catalog track. All 3 rows pending; review 0/10, not started. Target behavior is unimplemented.
+
+**Scope and contracts.**
+
+Provide explicit catalog init, local add, URL import, index, refresh, search and snapshot through existing registry/index/import facilities. Add missing commands and compatible aliases/plumbing for existing commands. Retain artifact/index formats, source/provider/spec identity, digests, security metadata and explicit unknown license/redistribution facts. Require configured roots; only explicit initialization/mutation creates storage. Read commands never implicitly repair, refresh or index.
+
+Broaden opt-in catalog remote discovery to SourceAuto with its current first-success fallback behavior. Add an installation-side provider URL option passed into SearchOptions.ProviderURL; CLI/GUI supply it from explicit operator input only, never model-inferred host authority. Preserve request and installation opt-in, guarded HTTP(S), unsafe-host/redirect defenses, document/time bounds, credential-free retrieval, ephemeral cache bypass and incomplete remote coverage. A remote miss never establishes global absence. Kinet native/hosted remote capability remains unavailable.
+
+**Depends on.** APItools:M87 accepted.
+**Downstream impacts.** APItools:M89; Ramen:M81.
+**Lineage.** Retired M80/M81 and existing index/refresh/import/search commands; extend compatible contracts instead of duplicating commands.
+
+**Rows.** M88.R1 Catalog lifecycle commands; M88.R2 Provider-scoped remote discovery; M88.R3 CLI and consumer qualification. [Status/provenance](status-M88.md).
+
+**Verification.** GOWORK=off go test ./...; GOWORK=off go vet ./...; CLI lifecycle/legacy fixtures; injected HTTP fixtures for provider URL, SourceAuto, refusal/deadline/partial coverage; immutable consumer checks; git diff --check.
+
+**Write set.** cmd/apitools commands and catalog/discovery helpers, tests and ordinary docs; this status. Shared records/closure remain coordinator-owned.
+
+**Execution policy.** Planning authorizes no implementation, commit, publication, deployment or live-model operation. A separate execution request governs task commits. One coordinator owns shared records/integration; this catalog track is serial and **Parallel-safe: no**. No overlapping catalog or same-package Stage 12 worker/module writers. Use immutable inputs; sibling adoption requires exact accepted and independently published revisions, not workspace replacements. Publication requires separately named authority; old Stage 12 grants do not transfer. Audit remains disabled/unavailable as recorded.
+
+
+### M89 — Optional vendor-neutral query, contract, and recommendation planning
+
+**Goal/acceptance.** Optional planners compile without package cycles/vendor SDKs, preserve deterministic qualification and effect/input semantics, expose missing evidence, and never recommend outside final selectable indexes. No model credential is needed for default use or tests.
+
+**State/owner.** Approved planning 2026-10-11; apitools; catalog track. All 3 rows pending; review 0/10, not started. Target behavior is unimplemented.
+
+**Scope and contracts.**
+
+Place PlanSearchQuery, PlanDiscoveryRequest and discovery-related types in root apitools, not catalog. Supply an optional vendor-neutral completion interface and deterministic prepare/validate entry points for isolated callers. Consumers own model clients, credentials, policy, cancellation, privacy and accounting. Standalone APItools CLI stays deterministic; no HTTP model adapter, provider credential environment fallback or model transport flag is scheduled.
+
+Use the current StepContract read/write/unknown/omitted vocabulary, never idempotent_write. Return contract drafts with readiness and diagnostics for consumer review before qualification. Missing input evidence yields clarification or metadata-only leads; no wildcard input or relaxed required-input matching. Use existing PromptBudget/sanitization and strict bounded output parsing. Nil/failing/invalid completions fall back deterministically; cancellation stops rather than launching another call. Model drafts never establish user-provided facts by themselves.
+
+RecommendCandidate takes the final bounded view. Expose only its Selectable candidates to assistance and validate returned indexes against that set. Deterministic fallback uses existing ranking order among eligible candidates with original indexes; empty eligibility yields no recommendation. Omitted/unqualified/remote-only candidates remain ineligible. Advice never selects or executes. Recheck JSON/prompt limits after attaching explanation text.
+
+**Depends on.** APItools:M88 accepted.
+**Downstream impacts.** Kinet:M57; Ramen:M82; APItools:M86? compatibility join.
+**Lineage.** Retired M80/M81 and M85 deterministic qualification/candidate contracts remain authoritative.
+
+**Rows.** M89.R1 Query and contract planners; M89.R2 Selectable-only recommendation; M89.R3 Mock and consumer qualification. [Status/provenance](status-M89.md).
+
+**Verification.** GOWORK=off go test ./...; GOWORK=off go vet ./...; model-free/mock tests for effects, missing input, invalid/oversized output, cancellation, recommendations and explanation limits; standalone graph/consumer checks; git diff --check. No live model calls.
+
+**Write set.** root planning/projection APIs, dependency-neutral completion contracts, tests and ordinary docs; this status. Provider transport and credentials are consumer-owned. Shared records/closure remain coordinator-owned.
+
+**Execution policy.** Planning authorizes no implementation, commit, publication, deployment or live-model operation. A separate execution request governs task commits. One coordinator owns shared records/integration; this catalog track is serial and **Parallel-safe: no**. No overlapping catalog or same-package Stage 12 worker/module writers. Use immutable inputs; sibling adoption requires exact accepted and independently published revisions, not workspace replacements. Publication requires separately named authority; old Stage 12 grants do not transfer. Audit remains disabled/unavailable as recorded.
 
 ### M86 — HCL-free UWS adoption (conditional)
 
@@ -248,19 +345,22 @@ without workspace/directory replacement is distinct from C11 pre-publication
 adapted fixtures; Kinet:M55 later proves final worker adoption.
 
 **Acceptance.** No HCL module remains in the APItools graph. Source-family
-behavior, shape and candidate contracts and digests are unchanged.
+behavior, shape and candidate contracts and digests are unchanged. M86.2 also
+preserves accepted M87-M89 root/snapshot/decision/discovery/planning fixtures;
+M86.3 qualifies those Kinet/Ramen APIs. M89 acceptance cannot activate the original
+C11/M54 conditional trigger.
 
 **Downstream.** Kinet:M55.
 
 **Tasks/review.** [status-M86.md](status-M86.md), 3 rows, review 0/10. The
 [coordinator](../../../kinet/docs/stage12.md) holds the shared order and triggers.
 
-M83/M84/M85 remain accepted/retired; M86 is the only active (conditional) APItools unit.
+M83/M84/M85 remain accepted/retired. M87-M89 are required catalog work; M86 remains conditional with an additional M89 compatibility prerequisite.
 Original Stage 11 is accepted across the five owner ledgers.
 Completed source repair and version discovery remain in the history index.
 Other candidates still require fresh reconciliation and approval.
 
-**Depends on.** UWS:C11. All required prerequisites must have
+**Depends on.** UWS:C11 and APItools:M89. All required prerequisites must have
 accepted closure at exact revisions; sibling producer adoption also needs
 independently verified publication. A priority position never supplies authority.
 
@@ -317,6 +417,8 @@ the work automatically.
 
 | Direction | Why Deferred | Promotion Trigger |
 |---|---|---|
+| Automatic catalog-root discovery | M87 keeps explicit roots and metadata-only no-root outcomes; no implicit cache lookup/creation. | A named consumer and approved compatibility/privacy review justify implicit discovery. |
+| APItools-owned HTTP model adapters | M89 uses consumer-owned model clients; standalone APItools remains deterministic. | A standalone adopter approves provider transport, opt-in, credential/privacy and offline-test contracts. |
 | Next provider-catalog expansion | No provider batch or user-verifiable outcome has been approved after the completed historical catalog batches. The [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md) also proposes a structured license/redistribution audit and workflow-ready typed overlays; those remain separate from M80's discovery report, which must expose unknown evidence. GoDaddy is absent from the catalog; its official Domains specs (`https://developer.godaddy.com/openapi/domains-v1.json` through `domains-v3.json`) were observed on 2026-10-01, and curating v1 or v2 would need a source-reviewed refresh correction for a publisher `properties.type` string defect. | Approve a bounded provider-owned source batch, its source/auth/license review rules, or a bounded license/typed-overlay upgrade with acceptance evidence. Proposed catalog IDs remain unallocated until fresh reconciliation and approval. |
 | Embedded baseline catalog root | M81's approved decision 3 keeps catalog roots caller-supplied. Embedding the 141 committed advisory overlays (about 2 MB) and their index would give published consumers a zero-setup offline root, but it widens distribution before the committed-overlay redistribution audit proposed in the [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md) and adds binary size for every consumer. | The committed-overlay redistribution audit completes, and a consumer needs a zero-setup offline root. |
 | Search default-behavior refinements | `Client.Search` keeps APIs.guru's `preferred` version and falls back to a lexicographic sort of version keys when it is missing (`providers.go`), and `auto` stops at the first source with matches (`client.go`). Changing either default alters results that OpenUdon and other callers rely on, so S05 reports versions through a separate opt-in command instead. Separately, the retired M80.4 remote tier sets `client.Cache = nil` with `CacheModeBypass` (`catalog_discovery_remote.go`), so each remote lookup re-downloads the whole APIs.guru directory list; S05 avoids that cost for its own checks but does not change the retired behavior. | Approve a default-behavior change with consumer reconciliation, observe APIs.guru entries whose `preferred` version is missing or unusable, or measure the directory download as a latency problem for a consumer. |
