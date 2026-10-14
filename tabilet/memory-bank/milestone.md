@@ -62,7 +62,6 @@ Source publication remains separately named and ungranted. Audit stays disabled.
 Kinet's adopted goal governs this cross-package run; sibling standalone protocols
 and the serial Python API controller remain unchanged.
 
-
 ## Stage 11 review 2 required remediation — 2026-10-08
 
 Accepted GOAL Step4 successor, 2026-10-09: M85 closes M50-NATIVE-F01 after
@@ -115,6 +114,98 @@ explicitly make that safe.
 The review procedure below covers one milestone. To run several in order, with
 dependency and downstream reconciliation between them, [../GOAL.md](../GOAL.md)
 is one optional protocol for that; any equivalent works just as well.
+
+## Authorization requirements
+
+Each milestone specification may contain `AUTHORIZATION_REQUIREMENTS`. It
+declares conditions on actions; it never grants permission or schedules them.
+Keep the declaration in that specification only. Status files reference it.
+The following optional shape is a template, not authorization:
+
+```yaml
+AUTHORIZATION_REQUIREMENTS:
+  git.commit:
+    via: goal-policy
+    executor: assigned-agent
+  git.push:
+    via: explicit
+    executor: coordinator
+    scope:
+      repository: "<owning repository>"
+      remote: "<exact remote URL>"
+      ref: "<exact destination ref>"
+      mode: fast-forward
+  cli.local:
+    via: goal-policy
+    executor: assigned-agent
+    scope: declared-implementation-and-verification
+  browser:
+    via: explicit
+    executor: assigned-agent
+    scope:
+      environment: fixture
+      origins: ["<exact approved origin>"]
+      actions: ["<approved action>"]
+  sudo:
+    via: explicit
+    executor: coordinator
+    scope:
+      commands: ["<specific privileged operation>"]
+  ssh:
+    via: explicit
+    executor: coordinator
+    scope:
+      host: "<exact host>"
+      user: "<account>"
+      commands: ["<specific remote operation>"]
+```
+
+`via` is `goal-policy` or `explicit`. Only local commits and ordinary local
+implementation/verification may use `goal-policy`; their governing task scope
+and commit policy still apply. Other listed actions require explicit human
+authority. Inspect and resolve exact targets before seeking approval. A
+resolved grant must have concrete scope covering the requirement, with no
+unresolved placeholders, wildcard targets, blanket booleans, or credentials.
+
+Under [the optional goal protocol](../GOAL.md), `AUTHORIZATION_GRANTS` belongs
+to the resolved human-approved request, not to this file. Requirements,
+proposed grants, status notes, and `suggested.txt` are evidence, not approval.
+Check authority before the action; pause affected work and dependents when it
+is missing. Independent authorized work may continue under the governing
+order and ownership rules. Required unperformed task or acceptance actions
+prevent closure; listing an action here alone does not require its performance.
+Outside a goal, use the current scoped human request and applicable project
+rules. Missing fields preserve legacy behavior without new authority or
+automatic migration. These are instruction-level boundaries, not tool or OS
+enforcement.
+
+## Standing corrective planning
+
+`CORRECTIVE_PLANNING` is an optional execution policy, defaulting to `confirm`.
+Standing `auto` cannot weaken acceptance, required evidence, verification gates
+or severity rules, cancel unmet obligations, or erase them through supersession.
+A named successor preserves all obligations. Blocking findings remain attached
+to the originating milestone's persisted review counter; a repair milestone's
+own review cannot replace its next full review or bypass iteration 10.
+An approved `auto` allows the Goal/Next owner to prepare and check necessary
+repair planning against the original delivery outcome, owning repositories,
+existing action grants and all limits, then apply it under standing approval.
+Prefer a matching open milestone when its scope and dependency position fit;
+otherwise create a new repair milestone with permanent identity and lineage.
+Preserve completed/frozen history, row outcomes and review counters. New
+features, scope or permission expansion, higher limits, collisions and unknown
+checksum drift still require human direction. Children only report needed work.
+
+The owner reconciles dependencies, pending consumers, the resolved request and
+any existing launch reference; it records old/new hashes and approval context
+outside authoritative task records. A covered correction may refresh launch
+input without reapproval even under `SUGGESTED_UPDATE: confirm`. Other edits
+retain that policy. Goal executes accepted repair prerequisites before their
+consumers; Next returns to its original task after necessary repairs, preserving
+ownership and interrupted evidence. All repair rows/commits/attempts count
+toward explicit limits. Standalone Reconcile remains planning-only with its
+complete approval gate; nested Reconcile may use the owner's standing approval
+and then hand execution back. Installation never activates this policy.
 
 ## Status ID Pattern
 
@@ -289,6 +380,20 @@ disposable stores/caches/browser profiles and unique output directories.
 
 ## Requested Changes After Initialization
 
+For stage work, `memory-bank-propose --stages` requests creation or revision of
+the optional `tabilet/stages.md` overview. `--stage STG-01` selects an existing
+stage; the request must say when milestones should be planned. Equivalent
+plain-English references are valid. Later-stage ideas may have only an ID,
+tentative name, and brief intent. Additional context can be proposed later,
+without assigning milestone IDs or task rows now. Stage IDs stay stable across
+renames and reorderings and are never reused. Do not advance stages or schedule
+later work merely because the current milestone closes.
+
+For execution environment and authorization policy, `--environment dangerous`,
+`--environment sandbox` (default when omitted), or `--environment least` sets the
+hands-free stance in launch references and milestone policies, optionally modified
+by expressions like `plus <action>`, `minus <action>`, or `but <action> in milestone <ID>`.
+
 For a requested feature, candidate promotion, or change to future direction,
 inspect the current plan and implementation first. Record user intent separately
 from observed facts and unresolved assumptions. If a pending milestone already
@@ -307,6 +412,30 @@ and in pending status rows until implemented; current architecture describes
 only what the repository establishes as fact. Planning does not implement or
 accept the requested behavior. Use `memory-bank-propose` where installed, or
 follow this procedure directly with another agent.
+
+**Expensive checks.** Some acceptance depends on a check that is expensive or
+protected; see the [verification-attempt gate](#verification-attempt-gate).
+For such a milestone:
+
+- Limit acceptance to behavior the milestone owns, proved with the smallest
+  workload. Put actual pairing with real producers or consumers in the
+  milestone that adopts them.
+- When the check needs host capabilities (privileges, operating-system or
+  kernel features, devices, browsers, or external accounts), make a cheap
+  readiness probe its first row.
+- Name the uncounted local diagnostic loop, and order cases so that an
+  unrelated failure cannot hide the milestone's own cases.
+
+To defer already approved work through a stage rescope, present the exact
+untouched pending rows and affected downstream work for approval. After
+approval, retain their identity and original task text, mark them `[X]`, and
+record the authority, reason, destination stage, and dependency disposition.
+Cancellation proves no delivered acceptance. A future replacement receives a
+new approved identity and names its cancelled lineage. Preserve `[~]`, `[!]`,
+`[+]`, `[X]`, and `[-]` rows and all review evidence. Withdraw affected pending
+dependents or keep their prerequisites in the active horizon; an unresolved
+dependency cannot be deferred by changing a stage label. An entirely cancelled
+milestone remains active until its normal closure and retirement disposition.
 
 ## Candidate Directions
 
@@ -376,7 +505,9 @@ Before implementing any newly reviewed finding:
    it in Candidate Directions with a rationale and promotion trigger.
 6. Reconcile affected pending specifications and the remaining order. Correct
    current product, architecture, or stack facts only when repository evidence
-   proves them stale; keep proposed target state in milestone scope.
+   proves them stale; keep proposed target state in milestone scope. Apply the
+   expensive-check limits above, and do not move downstream pairing evidence
+   into a milestone whose acceptance depends on an expensive check.
 
 Do not create a persistent review copy or ledger. Put portable review and
 finding IDs, both source and local severity, revalidation baseline, repository
@@ -384,6 +515,30 @@ evidence, and historical lineage in the affected milestone/status notes. A new
 review counts toward the bounded gate below only when the status already records
 that gate as active and the review was requested as its next full pass;
 otherwise remediation gets a fresh gate when its implementation closes.
+
+## Verification-attempt gate
+
+An expensive or protected check needs privileged setup, scarce hardware or
+quota, a physical or live environment, explicitly granted actions, or minutes
+per run. For a row whose acceptance depends on one:
+
+- Reproduce and fix failures first in the cheapest environment that can show
+  them, such as an unprivileged local run on disposable fixtures. These
+  diagnostic runs are ordinary verification and never satisfy acceptance.
+- Make each expensive run execute every case whose safety does not depend on an
+  earlier result, and report all failures. Stop early only when continuing
+  would be unsafe.
+- Redaction protects real data. Raw diagnostics from synthetic, disposable
+  fixtures may be kept in private, ignored artifact paths. Never commit them,
+  and never treat them as evidence of effects, non-dispatch, retry eligibility,
+  or authority.
+- Each expensive run is one attempt. Persist the row's attempt count in its
+  status notes; a session change does not reset it. Stop after three
+  consecutive failed attempts at the same stage (or the limit the milestone
+  sets), or when the failing stage lies outside the behavior the milestone owns.
+  Mark the row `[!]` with a short diagnosis and options, such as a correction, a
+  rescope or an environment change, and ask the user. Approval to continue sets
+  a new explicit limit. Never repeat an unchanged failed attempt.
 
 ## Planning Notes
 
