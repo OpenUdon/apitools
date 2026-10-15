@@ -111,3 +111,80 @@ func TestCatalogSourceCollisionAndRegistrationRollback(t *testing.T) {
 		t.Fatal("left newly copied source on failure")
 	}
 }
+
+func TestCatalogNestedRegistryLifecycle(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("APITOOLS_CATALOG_ROOT", root)
+	t.Setenv("APITOOLS_CATALOG_REGISTRY", "state/db/cache.sqlite")
+	t.Setenv("APITOOLS_CATALOG_INDEX", "metadata/index.json")
+	source := filepath.Join(t.TempDir(), "spec.json")
+	os.WriteFile(source, []byte(lifecycleSpec), 0600)
+	commands := [][]string{
+		{"catalog", "init"},
+		{"catalog", "add", source, "--provider", "github", "--spec", "github-rest-api-openapi"},
+		{"catalog", "index"},
+		{"catalog", "search", "list users", "--json"},
+		{"catalog", "snapshot", "--target", filepath.Join(t.TempDir(), "snapshot")},
+	}
+	for _, args := range commands {
+		var out, errOut bytes.Buffer
+		if code := run(args, &out, &errOut); code != exitSuccess {
+			t.Fatalf("%v: %d %s", args, code, errOut.String())
+		}
+		if args[1] == "search" && !strings.Contains(out.String(), "listUsers") {
+			t.Fatalf("lost indexed operation: %s", out.String())
+		}
+	}
+	for _, rel := range []string{"state/db/cache.sqlite", "metadata/index.json", "specs/github/spec.json"} {
+		if _, err := os.Stat(filepath.Join(root, rel)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	rows, err := sqlitecache.ReadCatalogArtifacts(context.Background(), catalog.RootOptionsFromEnvironment())
+	if err != nil || len(rows) != 1 || rows[0].Path != "specs/github/spec.json" {
+		t.Fatalf("root-relative rows: %#v %v", rows, err)
+	}
+}
+
+func TestCatalogFlagEnvironmentPrecedence(t *testing.T) {
+	for _, mode := range []string{"canonical", "alias", "explicit", "empty-explicit", "defaults"} {
+		t.Run(mode, func(t *testing.T) {
+			for _, key := range []string{"APITOOLS_CATALOG_ROOT", "CATALOG_ROOT", "KINET_CATALOG_ROOT", "APITOOLS_CATALOG_REGISTRY", "CATALOG_REGISTRY", "KINET_CATALOG_REGISTRY", "APITOOLS_CATALOG_INDEX", "CATALOG_INDEX", "KINET_CATALOG_INDEX"} {
+				t.Setenv(key, "")
+			}
+			root := t.TempDir()
+			t.Setenv("APITOOLS_CATALOG_ROOT", root)
+			wantReg, wantIdx := "cache.sqlite", "operations.v1.json"
+			args := []string{"catalog", "init"}
+			if mode != "defaults" {
+				t.Setenv("KINET_CATALOG_REGISTRY", "legacy.sqlite")
+				t.Setenv("KINET_CATALOG_INDEX", "legacy.json")
+				t.Setenv("CATALOG_REGISTRY", "alias.sqlite")
+				t.Setenv("CATALOG_INDEX", "alias.json")
+				wantReg, wantIdx = "alias.sqlite", "alias.json"
+			}
+			if mode == "canonical" || mode == "explicit" || mode == "empty-explicit" {
+				t.Setenv("APITOOLS_CATALOG_REGISTRY", "canonical.sqlite")
+				t.Setenv("APITOOLS_CATALOG_INDEX", "canonical.json")
+				wantReg, wantIdx = "canonical.sqlite", "canonical.json"
+			}
+			if mode == "explicit" {
+				args = append(args, "--registry", "explicit.sqlite", "--index", "explicit.json")
+				wantReg, wantIdx = "explicit.sqlite", "explicit.json"
+			}
+			if mode == "empty-explicit" {
+				args = append(args, "--registry", "", "--index", "")
+				wantReg, wantIdx = "cache.sqlite", "operations.v1.json"
+			}
+			var out, errOut bytes.Buffer
+			if code := run(args, &out, &errOut); code != exitSuccess {
+				t.Fatalf("%d %s", code, errOut.String())
+			}
+			for _, rel := range []string{wantReg, wantIdx} {
+				if _, err := os.Stat(filepath.Join(root, rel)); err != nil {
+					t.Fatal(err)
+				}
+			}
+		})
+	}
+}

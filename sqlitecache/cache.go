@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/OpenUdon/apitools"
+	"github.com/OpenUdon/apitools/catalog"
 	"github.com/OpenUdon/apitools/internal/artifactio"
 	_ "modernc.org/sqlite"
 )
@@ -68,6 +69,24 @@ func Open(path string) (*Cache, error) {
 
 // OpenWithOptions opens a bounded SQLite cache with explicit retention limits.
 func OpenWithOptions(path string, options Options) (*Cache, error) {
+	return openWithArtifactRoot(path, options, "")
+}
+
+// OpenCatalog opens an explicitly configured catalog registry. Artifact paths
+// remain relative to the catalog root even when the database is nested.
+// Existing Open/OpenWithOptions retain database-directory-relative semantics.
+func OpenCatalog(options catalog.RootOptions) (*Cache, error) {
+	paths, err := catalog.ResolveRoot(options)
+	if err != nil {
+		return nil, err
+	}
+	if paths.Directory == "" {
+		return nil, fmt.Errorf("catalog root is required")
+	}
+	return openWithArtifactRoot(paths.RegistryPath, Options{}, paths.Directory)
+}
+
+func openWithArtifactRoot(path string, options Options, artifactRoot string) (*Cache, error) {
 	path = strings.TrimSpace(path)
 	if path == "" {
 		return nil, fmt.Errorf("cache path is required")
@@ -94,7 +113,11 @@ func OpenWithOptions(path string, options Options) (*Cache, error) {
 	if err != nil {
 		return nil, err
 	}
-	cache := &Cache{db: db, baseDir: cacheBaseDir(path), options: normalizeOptions(options)}
+	baseDir := cacheBaseDir(path)
+	if artifactRoot != "" {
+		baseDir = artifactRoot
+	}
+	cache := &Cache{db: db, baseDir: baseDir, options: normalizeOptions(options)}
 	if err := cache.migrate(context.Background()); err != nil {
 		_ = db.Close()
 		return nil, err

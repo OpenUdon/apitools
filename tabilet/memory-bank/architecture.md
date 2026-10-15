@@ -906,3 +906,10 @@ source publication. Local reads use bounded artifactio regular-file checks;
 imports download into private temporary staging. Catalog source publication uses
 atomic identical-content reuse and refuses differing collisions. Failed
 registration removes only a newly created source, preserving pre-existing files.
+
+S07 adds sqlitecache.OpenCatalog for writable explicit-root registrations:
+nested registry locations keep artifact paths relative to the catalog root.
+Open/OpenWithOptions retain their database-directory-relative cache semantics
+and schema v3. Lifecycle/index CLI path flags distinguish omission from explicit
+values: canonical environment precedes legacy aliases and defaults; explicit
+empty registry/index flags select their built-in defaults.

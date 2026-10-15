@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -111,7 +112,7 @@ func storeCatalogSource(ctx context.Context, paths catalog.RootPaths, data []byt
 	if err := validateCatalogMutationPaths(catalog.RootOptions{Directory: paths.Directory, RegistryPath: relativeCatalogPath(paths.Directory, paths.RegistryPath), IndexPath: relativeCatalogPath(paths.Directory, paths.IndexPath)}, []string{artifact.Path}, nil); err != nil {
 		return err
 	}
-	cache, err := sqlitecache.Open(paths.RegistryPath)
+	cache, err := sqlitecache.OpenCatalog(catalog.RootOptions{Directory: paths.Directory, RegistryPath: relativeCatalogPath(paths.Directory, paths.RegistryPath), IndexPath: relativeCatalogPath(paths.Directory, paths.IndexPath)})
 	if err != nil {
 		return err
 	}
@@ -132,3 +133,26 @@ func storeCatalogSource(ctx context.Context, paths catalog.RootPaths, data []byt
 }
 
 func relativeCatalogPath(root, path string) string { rel, _ := filepath.Rel(root, path); return rel }
+
+// Flag defaults must not mask environment configuration. Explicit empty path
+// flags select the built-in default; an explicit empty root stays unconfigured.
+func catalogCLIOptions(fs *flag.FlagSet, options catalog.RootOptions) catalog.RootOptions {
+	resolved := catalog.RootOptionsWithEnvironment(options)
+	fs.Visit(func(f *flag.Flag) {
+		switch f.Name {
+		case "root", "dir":
+			resolved.Directory = strings.TrimSpace(options.Directory)
+		case "registry":
+			resolved.RegistryPath = strings.TrimSpace(options.RegistryPath)
+		case "index":
+			resolved.IndexPath = strings.TrimSpace(options.IndexPath)
+		}
+	})
+	if resolved.RegistryPath == "" {
+		resolved.RegistryPath = catalog.DefaultRegistryPath
+	}
+	if resolved.IndexPath == "" {
+		resolved.IndexPath = catalog.DefaultOperationIndexPath
+	}
+	return resolved
+}

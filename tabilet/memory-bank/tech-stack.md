@@ -355,3 +355,9 @@ module dependency is used. The offline operation index command is delivered by M
   enables bounded lookup. State/list-cache/save/inventory flags are independent.
   Library network tests use local servers; focused gate is
   `go test -race . ./cmd/apitools -run 'TestAPIVersion|TestVersionsCLI'`.
+
+S07 focused lifecycle gate: `go test ./catalog ./sqlitecache ./cmd/apitools
+./internal/artifactio`. Root-aware writable catalog registration uses the
+additive `sqlitecache.OpenCatalog`; existing cache openers and schemas remain.
+Omitted CLI registry/index flags honor APITOOLS_CATALOG_*, then CATALOG_*,
+then KINET_CATALOG_*; explicit flags win and empty path flags select defaults.

@@ -18,8 +18,8 @@ import (
 func runCatalogIndex(args []string, out, errOut io.Writer) int {
 	fs := newCommandFlagSet("apitools catalog index")
 	root := fs.String("root", "", "Explicit existing catalog root (required)")
-	registry := fs.String("registry", catalog.DefaultRegistryPath, "Registration database path relative to root")
-	indexPath := fs.String("index", catalog.DefaultOperationIndexPath, "Output index path relative to root")
+	registry := fs.String("registry", "", "Registration database path relative to root")
+	indexPath := fs.String("index", "", "Output index path relative to root")
 	catalogPath := fs.String("catalog", "", "Optional synthetic/custom catalog JSON path relative to root")
 	jsonOut := fs.Bool("json", false, "Write build counts as JSON")
 	fs.Usage = func() {
@@ -29,7 +29,7 @@ func runCatalogIndex(args []string, out, errOut io.Writer) int {
 	if code, done := parseCommandFlags(fs, args, out, errOut); done {
 		return code
 	}
-	rootOpts := catalog.RootOptionsWithEnvironment(catalog.RootOptions{
+	rootOpts := catalogCLIOptions(fs, catalog.RootOptions{
 		Directory:    *root,
 		RegistryPath: *registry,
 		IndexPath:    *indexPath,
@@ -47,11 +47,11 @@ func runCatalogIndex(args []string, out, errOut io.Writer) int {
 		ReadRegistrations: sqlitecache.ReadCatalogSpecArtifacts,
 	}
 	if *catalogPath != "" {
-		if filepath.Clean(strings.TrimSpace(*catalogPath)) == filepath.Clean(strings.TrimSpace(*indexPath)) {
+		if filepath.Clean(strings.TrimSpace(*catalogPath)) == filepath.Clean(strings.TrimSpace(rootOpts.IndexPath)) {
 			fmt.Fprintln(errOut, "catalog input and index output overlap")
 			return exitUsage
 		}
-		file, err := artifactio.ReadFile(*root, *catalogPath, artifactio.ReadOptions{MaxBytes: 4 << 20})
+		file, err := artifactio.ReadFile(rootOpts.Directory, *catalogPath, artifactio.ReadOptions{MaxBytes: 4 << 20})
 		if err != nil {
 			fmt.Fprintln(errOut, "cannot read confined catalog metadata")
 			return exitRuntime

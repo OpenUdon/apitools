@@ -25,8 +25,8 @@ func runCatalogInit(args []string, out, errOut io.Writer) int {
 	fs := newCommandFlagSet("apitools catalog init")
 	rootFlag := fs.String("root", "", "Explicit catalog root directory (or use APITOOLS_CATALOG_ROOT)")
 	dirFlag := fs.String("dir", "", "Alias for --root")
-	registry := fs.String("registry", catalog.DefaultRegistryPath, "Registration database path relative to root")
-	indexPath := fs.String("index", catalog.DefaultOperationIndexPath, "Output index path relative to root")
+	registry := fs.String("registry", "", "Registration database path relative to root")
+	indexPath := fs.String("index", "", "Output index path relative to root")
 	catalogPath := fs.String("catalog", "", "Optional custom catalog JSON path relative to root")
 	jsonOut := fs.Bool("json", false, "Write JSON output")
 	fs.Usage = func() {
@@ -46,7 +46,7 @@ func runCatalogInit(args []string, out, errOut io.Writer) int {
 	if selectedDir == "" {
 		selectedDir = strings.TrimSpace(*dirFlag)
 	}
-	rootOpts := catalog.RootOptionsWithEnvironment(catalog.RootOptions{
+	rootOpts := catalogCLIOptions(fs, catalog.RootOptions{
 		Directory:    selectedDir,
 		RegistryPath: *registry,
 		IndexPath:    *indexPath,
@@ -119,7 +119,7 @@ func runCatalogInit(args []string, out, errOut io.Writer) int {
 	}
 
 	// Initialize SQLite database
-	db, err := sqlitecache.Open(regAbs)
+	db, err := sqlitecache.OpenCatalog(rootOpts)
 	if err != nil {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
@@ -185,7 +185,7 @@ func runCatalogAdd(args []string, out, errOut io.Writer) int {
 	kindFlag := fs.String("kind", "openapi", "Artifact kind (openapi, swagger2, etc.)")
 	sourceURL := fs.String("source-url", "", "Optional original source URL")
 	rootFlag := fs.String("root", "", "Explicit catalog root directory (or use APITOOLS_CATALOG_ROOT)")
-	registry := fs.String("registry", catalog.DefaultRegistryPath, "Registration database path relative to root")
+	registry := fs.String("registry", "", "Registration database path relative to root")
 	jsonOut := fs.Bool("json", false, "Write JSON output")
 	fs.Usage = func() {
 		fmt.Fprintln(fs.Output(), "Usage: apitools catalog add <file> [--provider <id>] [--spec <id>] [--kind openapi] [--source-url <url>] [--root DIRECTORY] [--registry cache.sqlite] [--json]")
@@ -214,7 +214,7 @@ func runCatalogAdd(args []string, out, errOut io.Writer) int {
 		return exitUsage
 	}
 
-	rootOpts := catalog.RootOptionsWithEnvironment(catalog.RootOptions{
+	rootOpts := catalogCLIOptions(fs, catalog.RootOptions{
 		Directory:    *rootFlag,
 		RegistryPath: *registry,
 	})
@@ -348,7 +348,7 @@ func runCatalogImportWithClient(args []string, out, errOut io.Writer, newClient 
 	providerFlag := fs.String("provider", "", "Provider ID (optional)")
 	nameFlag := fs.String("name", "", "Suggested filename stem (optional)")
 	rootFlag := fs.String("root", "", "Explicit catalog root directory (or use APITOOLS_CATALOG_ROOT)")
-	registry := fs.String("registry", catalog.DefaultRegistryPath, "Registration database path relative to root")
+	registry := fs.String("registry", "", "Registration database path relative to root")
 	timeout := fs.Duration("timeout", apitools.DefaultTimeout, "Import download timeout")
 	jsonOut := fs.Bool("json", false, "Write JSON output")
 	fs.Usage = func() {
@@ -387,7 +387,7 @@ func runCatalogImportWithClient(args []string, out, errOut io.Writer, newClient 
 		return exitUsage
 	}
 
-	rootOpts := catalog.RootOptionsWithEnvironment(catalog.RootOptions{
+	rootOpts := catalogCLIOptions(fs, catalog.RootOptions{
 		Directory:    *rootFlag,
 		RegistryPath: *registry,
 	})
@@ -500,8 +500,8 @@ func runCatalogSnapshot(args []string, out, errOut io.Writer) int {
 	fs := newCommandFlagSet("apitools catalog snapshot")
 	target := fs.String("target", "", "Target directory for catalog snapshot (required)")
 	rootFlag := fs.String("root", "", "Source catalog root directory (or use APITOOLS_CATALOG_ROOT)")
-	registry := fs.String("registry", catalog.DefaultRegistryPath, "Registration database path relative to root")
-	indexPath := fs.String("index", catalog.DefaultOperationIndexPath, "Index path relative to root")
+	registry := fs.String("registry", "", "Registration database path relative to root")
+	indexPath := fs.String("index", "", "Index path relative to root")
 	selectedSpec := fs.String("selected-spec", "", "Optional selected spec path relative to root")
 	metadataSrc := fs.String("metadata-src", "", "Optional external metadata source path")
 	metadataDest := fs.String("metadata-dest", "", "Optional relative metadata path in target")
@@ -526,7 +526,7 @@ func runCatalogSnapshot(args []string, out, errOut io.Writer) int {
 		return exitUsage
 	}
 
-	rootOpts := catalog.RootOptionsWithEnvironment(catalog.RootOptions{
+	rootOpts := catalogCLIOptions(fs, catalog.RootOptions{
 		Directory:    *rootFlag,
 		RegistryPath: *registry,
 		IndexPath:    *indexPath,
@@ -592,8 +592,8 @@ func runCatalogSearchWithClient(args []string, out, errOut io.Writer, newClient 
 	fs := newCommandFlagSet("apitools catalog search")
 	queryFlag := fs.String("query", "", "Search query (or first positional argument)")
 	rootFlag := fs.String("root", "", "Catalog root directory (or use APITOOLS_CATALOG_ROOT)")
-	registry := fs.String("registry", catalog.DefaultRegistryPath, "Registration database path relative to root")
-	indexPath := fs.String("index", catalog.DefaultOperationIndexPath, "Index path relative to root")
+	registry := fs.String("registry", "", "Registration database path relative to root")
+	indexPath := fs.String("index", "", "Index path relative to root")
 	remote := fs.Bool("remote", false, "Enable remote catalog lookup")
 	providerURL := fs.String("provider-url", "", "Provider URL or hostname for RFC 9727 discovery")
 	limit := fs.Int("limit", 10, "Maximum result count")
@@ -629,7 +629,7 @@ func runCatalogSearchWithClient(args []string, out, errOut io.Writer, newClient 
 		return exitUsage
 	}
 
-	rootOpts := catalog.RootOptionsWithEnvironment(catalog.RootOptions{
+	rootOpts := catalogCLIOptions(fs, catalog.RootOptions{
 		Directory:    *rootFlag,
 		RegistryPath: *registry,
 		IndexPath:    *indexPath,
