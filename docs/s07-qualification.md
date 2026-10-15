@@ -65,8 +65,8 @@ HCL fixtures under three relative srv/ trees; their shape/timestamps were checke
 and the invocation-owned trees were moved into disposable diagnostic storage.
 This proves local candidate compatibility, not ordinary published adoption.
 
-Required pre-review qualification passes; review iteration 1 fixes are complete,
-with whole review iteration 2 pending.
+Required qualification passes. Whole review passed at iteration 2 after the
+iteration 1 fixes. Final implementation: `fb94a77db9e17c9750bdf39e0ae7fe4df318109f`.
 
 ## Review iteration 1 fixes
 
@@ -101,3 +101,10 @@ generation/quality and both complete consumer test/vet suites pass after the
 review fixes. OpenUdon's first archive-based run reported private-store setup
 refusal; the unchanged focused package passed, and a complete run with explicit
 isolated TMPDIR passed. No consumer test was skipped or modified.
+
+S07 is accepted and retired after two review iterations. The
+[full retired specification/status](../tabilet/docs/history/status-S07.md)
+retains all six rows and review evidence. M86 remains pending at review 0/10
+with its original operational triggers and accepted S07 compatibility input.
+M87–M89 records remain frozen. Publication follows the authorized normal
+fast-forward main operation; no unrelated milestone is launched.

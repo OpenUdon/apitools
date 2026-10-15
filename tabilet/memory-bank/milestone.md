@@ -8,7 +8,8 @@ task commits, verification, local fast-forward integration and normal push to
 Local baseline `8b60f796150dc2dbfe940670e0932f3bf1b864f2` and remote baseline
 `3157924bc65cc23e1e5fd19bdb03b294bd40a5ed` are preserved by merge
 `1aa23f6`. Ubuntu v2.13 harness rules prevail. No unrelated milestone,
-consumer pin, audit, Ramen check or live operation is authorized.
+consumer pin, audit, Ramen check or live operation is authorized. S07 is now
+accepted/retired after six rows and whole review 2; see the history index.
 
 ## Approved catalog track — 2026-10-11
 
@@ -363,53 +364,13 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| S07 | [status-S07.md](status-S07.md) | Approved; serial remediation |
-| M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89 accepted, S07 prerequisite |
+| M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89/S07 accepted |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
 
 
-
-### S07 — Catalog lifecycle safety and compatibility remediation
-
-**Source/approval.** “Remote M87–M89 integration review,” baseline
-`3157924bc65cc23e1e5fd19bdb03b294bd40a5ed`; approved implementation plan
-2026-10-15. All ten findings confirmed against the merged source; severities
-agree. F01/F02/F03/F04 P1; F05–F10 P2. Intake does not reopen frozen M87–M89.
-
-**Scope/owners.** S07.1 owns F01 destination symlinks, F02 destructive rollback
-and F05 unsafe snapshot sources. S07.2 owns F03 provider traversal and F04
-initialization traversal. S07.3 owns F06 nested registries and F09 environment
-precedence. S07.4 owns F07 unindexable identities and F08 custom-catalog search.
-S07.5 owns F10 invalid model completions. S07.6 owns combined qualification.
-
-**Acceptance.** Confined transactional snapshots accept new/empty targets and
-identical reuse, reject differing nonempty targets, check drift and normalize
-only staged SQLite files. Reject unsafe configuration, identities, source
-symlinks and special files before writes/opening sources; preserve existing
-artifacts on failures. Nested registries retain root-relative artifacts via an
-additive root-aware opener; existing cache schemas/semantics remain. Explicit
-flags override canonical environment, aliases and defaults. One explicitly
-selected bounded custom catalog governs add/import/index/search; unknown
-identities fail before writes. Invalid, missing, mistyped or over-budget model
-planning responses retain deterministic fallback, fences, effect normalization
-and clarification. Preserve exported signatures, wire formats, command names,
-source families and opt-in remote policy.
-
-**Verification.** Offline regressions for every finding; workspace/standalone
-tests and vet, focused race, generation/quality, CLI smoke and diff checks.
-Disposable OpenUdon/Udon compatibility configuration uses the integration
-candidate without changing sibling worktrees/pins. Exclude Ramen.
-
-**Dependencies/ownership.** Accepted M87–M89; serial, one active row. S07 precedes
-M86 compatibility checks without changing its C11/M54 triggers or review count.
-Write implementation/tests/current docs and S07 planning/status; preserve frozen
-history. Retire only after the persisted ten-iteration review gate passes.
-No evolution bump: restores existing contracts. No remote push until qualified.
-
-**Tasks/review.** [status-S07.md](status-S07.md), six rows; review initially 0/10.
 
 ### M86 — HCL-free UWS adoption (conditional)
 
@@ -435,7 +396,9 @@ C11/M54 conditional trigger.
 **Tasks/review.** [status-M86.md](status-M86.md), 3 rows, review 0/10. The
 [coordinator](../../../kinet/docs/stage12.md) holds the shared order and triggers.
 
-M83/M84/M85 remain accepted/retired. M87-M89 are required catalog work; M86 remains conditional with an additional M89 compatibility prerequisite.
+M83/M84/M85 and M87–M89 remain accepted/retired. S07 is accepted/retired
+after whole review 2; M86 remains conditional with accepted M89/S07
+compatibility prerequisites.
 Original Stage 11 is accepted across the five owner ledgers.
 Completed source repair and version discovery remain in the history index.
 Other candidates still require fresh reconciliation and approval.

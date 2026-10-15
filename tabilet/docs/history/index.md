@@ -5,6 +5,7 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 
 | Milestone | Outcome | Retired | Record | Summary |
 |---|---|---|---|---|
+| S07 | completed | 2026-10-15 | [S07](status-S07.md) | Six rows/whole2; catalog lifecycle safety, nested roots, explicit catalogs and model fallback; Ubuntu harness retained |
 | M89 | completed | 2026-10-11 | [M89](status-M89.md) | Three rows/whole1; vendor-neutral query, contract, and recommendation planners |
 | M88 | completed | 2026-10-11 | [M88](status-M88.md) | Three rows/whole1; catalog management CLI and guarded remote discovery |
 | M87 | completed | 2026-10-11 | [M87](status-M87.md) | Four rows/whole1; explicit catalog roots, safe snapshots, and bounded decision projections |

@@ -130,7 +130,7 @@ disposable stores/caches/browser profiles and unique output directories.
 
 ## Dependencies and handoff
 
-**Upstream.** UWS:C11 (accepted and published), plus [M89](../docs/history/status-M89.md) accepted with M87/M88 contracts.
+**Upstream.** UWS:C11 (accepted and published), plus [M89](../docs/history/status-M89.md) accepted with M87/M88 contracts and [S07](../docs/history/status-S07.md) accepted compatibility remediation at source `fb94a77db9e17c9750bdf39e0ae7fe4df318109f`. Original operational triggers remain.
 
 **Downstream.** [Kinet:M55](../../../kinet/tabilet/memory-bank/status-M55.md).
 
