@@ -92,9 +92,16 @@ markers or permits reuse of this milestone ID.
 
 The approved proposal adds accepted M89 (including M87/M88) before M86. Original C11 publication and authorized M54 inventory triggers remain unchanged. Preserve accepted root/snapshot/decision/discovery/planning contracts in M86.2 and qualify consumers in M86.3. This is downstream compatibility, not duplicate finding ownership. Baseline `2b74e96f0dd38aeb228d585f750d79194bdc7d06`, clean before planning; rows stay pending and review 0/10.
 
+## Integration compatibility prerequisite — 2026-10-15
+
+The approved integration plan adds S07 acceptance before M86 execution. Preserve
+all original C11/M54 operational triggers, pending rows and review 0/10.
+S07 restores M87–M89 compatibility without reopening their retired records.
+Ramen is excluded from this integration's verification.
+
 ## Dispatch and lease boundaries
 
-**Depends on.** UWS:C11 and APItools:M89. All required prerequisites must have
+**Depends on.** UWS:C11, APItools:M89 and APItools:S07. All required prerequisites must have
 accepted closure at exact revisions; sibling producer adoption also needs
 independently verified publication. A priority position never supplies authority.
 
@@ -123,7 +130,7 @@ disposable stores/caches/browser profiles and unique output directories.
 
 ## Dependencies and handoff
 
-**Upstream.** UWS:C11 (accepted and published), plus [M89](status-M89.md) accepted with M87/M88 contracts.
+**Upstream.** UWS:C11 (accepted and published), plus [M89](../docs/history/status-M89.md) accepted with M87/M88 contracts.
 
 **Downstream.** [Kinet:M55](../../../kinet/tabilet/memory-bank/status-M55.md).
 
@@ -135,7 +142,7 @@ Accepted M85 candidate and shape contracts stay unchanged.
 |---|---|---|
 | M86.1 — Adopt HCL-free UWS core | `[ ]` | Adopt exact accepted/published C11 ordinarily with `GOWORK=off` and no workspace/directory substitution. Prove HashiCorp/Horizon HCL modules are absent from APItools selected and compiled closures, with tidy/go.sum evidence. C11 adapted migration fixtures are pre-publication compatibility evidence, not this actual adoption proof. |
 | M86.2 — Source-family regression | `[ ]` | Regression tests for all eight source families: OpenAPI/Swagger, Discovery, Smithy, AsyncAPI, GraphQL, OpenRPC, gRPC/protobuf and OData. Covers shape tables, candidates and diagnostics, with exact digests unchanged. Preserve accepted M87-M89 explicit-root, snapshot/projection, remote-policy and optional-planning regression contracts. |
-| M86.3 — Qualify and publish | `[ ]` | Consumer builds (OpenUdon, Kinet workers and Ramen catalog APIs), tidy check, and publication handoff under named authority; verify accepted M89 contracts survive adoption. |
+| M86.3 — Qualify and publish | `[ ]` | Consumer builds (OpenUdon, Kinet workers), tidy check, and publication handoff under named authority; verify accepted M89 contracts survive adoption. |
 
 ## Acceptance and verification
 
