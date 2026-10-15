@@ -2,7 +2,11 @@ package apitools
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -272,5 +276,88 @@ func TestPrepareAndValidateStepContractDraft(t *testing.T) {
 	diags := ValidateStepContractDraft(emptyPurpose)
 	if len(diags) == 0 {
 		t.Fatalf("expected diagnostics from ValidateStepContractDraft")
+	}
+}
+
+func TestInvalidModelPlansRetainDeterministicFallback(t *testing.T) {
+	invalid := []string{"null", "{}", `{"purpose":"override"}`, `{"purpose":null,"effect":"write"}`, `{"purpose":42,"effect":"read"}`, `{"purpose":"override","effect":false}`, `{"purpose":"override","effect":"write","provider_keys":{},"keywords":[]}`, `{"purpose":"override","effect":"write","inputs":[]}`, `{"purpose":"override","effect":"write","inputs":{"id":null}}`, `{"purpose":"override","effect":"write","inputs":{"id":{"type":null}}}`, `{"purpose":"override","effect":"write","inputs":{"id":{"type":"string","required":"yes"}}}`}
+	invalid = append(invalid,
+		`{"purpose":"`+strings.Repeat("x", DefaultPromptTextRunes+1)+`","effect":"write","provider_keys":[],"keywords":[],"inputs":{}}`,
+		strings.Repeat(" ", MaxCatalogDecisionBytes)+`{}`,
+	)
+	ctx := context.Background()
+	wantPlan, _ := PlanSearchQuery(ctx, nil, "list github users")
+	wantDraft, _ := PlanDiscoveryRequest(ctx, nil, "list github users")
+	for i, content := range invalid {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			mock := &mockTestLLMClient{completeFunc: func(context.Context, CompletionRequest) (CompletionResponse, error) {
+				return CompletionResponse{Content: content}, nil
+			}}
+			gotPlan, err := PlanSearchQuery(ctx, mock, "list github users")
+			if err != nil || !reflect.DeepEqual(gotPlan, wantPlan) {
+				t.Errorf("query fallback: %#v %v", gotPlan, err)
+			}
+			gotDraft, err := PlanDiscoveryRequest(ctx, mock, "list github users")
+			if err != nil || !reflect.DeepEqual(gotDraft, wantDraft) {
+				t.Errorf("discovery fallback: %#v %v", gotDraft, err)
+			}
+		})
+	}
+}
+
+func TestModelPlanFencesAndEmptyInputs(t *testing.T) {
+	budget := DefaultPromptBudget()
+	query := "```json\n" + `{"provider_keys":["github"],"keywords":["users"],"effect":"READ","purpose":"list users"}` + "\n```"
+	if plan, ok := parseQueryPlanResponse(query, budget); !ok || plan.Effect != OperationEffectRead {
+		t.Fatalf("fenced query: %#v %v", plan, ok)
+	}
+	draft, ok := parseDiscoveryRequestResponse("```json\n"+`{"purpose":"list users","effect":"idempotent_write","inputs":{}}`+"\n```", "original", budget)
+	if !ok || !draft.Ready || draft.Request.Contract.Effect != OperationEffectWrite {
+		t.Fatalf("valid draft: %#v %v", draft, ok)
+	}
+	found := false
+	for _, d := range draft.Diagnostics {
+		found = found || d.Code == "contract.input_missing"
+	}
+	if !found {
+		t.Fatal("missing clarification")
+	}
+}
+
+func TestModelPlanStructuralAndFieldBudgets(t *testing.T) {
+	budget := DefaultPromptBudget()
+	validQuery := `{"provider_keys":[],"keywords":["users"],"purpose":"list users","effect":"read"}`
+	var query map[string]any
+	json.Unmarshal([]byte(validQuery), &query)
+	for _, mutate := range []func(map[string]any){
+		func(m map[string]any) { m["keywords"] = make([]string, budget.MaxCollectionItems+1) },
+		func(m map[string]any) { m["provider_keys"] = []any{nil} },
+		func(m map[string]any) { m["keywords"] = []string{strings.Repeat("x", budget.MaxIdentifierRunes+1)} },
+		func(m map[string]any) { m["effect"] = "" },
+		func(m map[string]any) { m["effect"] = "invalid" },
+	} {
+		json.Unmarshal([]byte(validQuery), &query)
+		mutate(query)
+		data, _ := json.Marshal(query)
+		if _, ok := parseQueryPlanResponse(string(data), budget); ok {
+			t.Fatalf("accepted invalid query: %s", data)
+		}
+	}
+	inputs := map[string]any{}
+	for i := 0; i <= budget.MaxFields; i++ {
+		inputs[fmt.Sprint("field", i)] = map[string]any{"type": "string"}
+	}
+	data, _ := json.Marshal(map[string]any{"purpose": "list users", "effect": "read", "inputs": inputs})
+	for _, raw := range []string{
+		string(data),
+		`{"purpose":"list users","effect":"read","inputs":{"id":{"type":"string","required":null}}}`,
+		`{"purpose":"list users","effect":"read","inputs":{"id":{"type":"string","required":123}}}`,
+		`{"purpose":"list users","effect":"read","inputs":null}`,
+		"[" + validQuery + "]",
+		validQuery + " " + validQuery,
+	} {
+		if _, ok := parseDiscoveryRequestResponse(raw, "original", budget); ok {
+			t.Fatalf("accepted invalid discovery plan: %.200s", raw)
+		}
 	}
 }

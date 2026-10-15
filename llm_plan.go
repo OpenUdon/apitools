@@ -3,8 +3,10 @@ package apitools
 import (
 	"context"
 	"encoding/json"
+	"github.com/OpenUdon/apitools/internal/sourceguard"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // DefaultLLMTimeout is the default deadline for LLM completion requests.
@@ -129,28 +131,43 @@ func (c *Client) PlanDiscoveryRequest(ctx context.Context, llm LLMClient, taskDe
 }
 
 func parseQueryPlanResponse(content string, budget PromptBudget) (CatalogQueryPlan, bool) {
-	raw := extractJSON(content)
-	if len(raw) == 0 || len(raw) > MaxCatalogDecisionBytes {
+	raw := planningJSON(content)
+	if raw == "" {
 		return CatalogQueryPlan{}, false
 	}
 
 	var parsed struct {
-		ProviderKeys []string `json:"provider_keys"`
-		Keywords     []string `json:"keywords"`
-		Effect       string   `json:"effect"`
-		Purpose      string   `json:"purpose"`
+		ProviderKeys []*string `json:"provider_keys"`
+		Keywords     []*string `json:"keywords"`
+		Effect       *string   `json:"effect"`
+		Purpose      *string   `json:"purpose"`
 	}
 
 	if err := json.Unmarshal([]byte(raw), &parsed); err != nil {
 		return CatalogQueryPlan{}, false
 	}
 
-	effect := normalizeEffect(parsed.Effect)
-	purpose, _ := sanitizePromptString(parsed.Purpose, budget.MaxTextRunes)
+	if parsed.Purpose == nil || parsed.Effect == nil || !supportedPlanEffect(parsed.Effect) || parsed.ProviderKeys == nil || parsed.Keywords == nil ||
+		strings.TrimSpace(*parsed.Purpose) == "" || utf8.RuneCountInString(*parsed.Purpose) > budget.MaxTextRunes ||
+		len(parsed.ProviderKeys) > budget.MaxCollectionItems || len(parsed.Keywords) > budget.MaxCollectionItems {
+		return CatalogQueryPlan{}, false
+	}
+	for _, values := range [][]*string{parsed.ProviderKeys, parsed.Keywords} {
+		for _, v := range values {
+			if v == nil || utf8.RuneCountInString(*v) > budget.MaxIdentifierRunes {
+				return CatalogQueryPlan{}, false
+			}
+		}
+	}
+	effect := normalizeEffect(*parsed.Effect)
+	purpose, _ := sanitizePromptString(*parsed.Purpose, budget.MaxTextRunes)
+	if strings.TrimSpace(purpose) == "" {
+		return CatalogQueryPlan{}, false
+	}
 
 	var providerKeys []string
 	for _, key := range parsed.ProviderKeys {
-		k := strings.ToLower(strings.TrimSpace(key))
+		k := strings.ToLower(strings.TrimSpace(*key))
 		if k != "" && !strings.ContainsAny(k, " *?") {
 			if safe, _ := sanitizePromptString(k, budget.MaxIdentifierRunes); safe != "" {
 				providerKeys = append(providerKeys, safe)
@@ -160,7 +177,7 @@ func parseQueryPlanResponse(content string, budget PromptBudget) (CatalogQueryPl
 
 	var keywords []string
 	for _, kw := range parsed.Keywords {
-		w := strings.ToLower(strings.TrimSpace(kw))
+		w := strings.ToLower(strings.TrimSpace(*kw))
 		if w != "" && !strings.ContainsAny(w, " *?") {
 			if safe, _ := sanitizePromptString(w, budget.MaxIdentifierRunes); safe != "" {
 				keywords = append(keywords, safe)
@@ -177,17 +194,17 @@ func parseQueryPlanResponse(content string, budget PromptBudget) (CatalogQueryPl
 }
 
 func parseDiscoveryRequestResponse(content, originalTask string, budget PromptBudget) (DiscoveryRequestDraft, bool) {
-	raw := extractJSON(content)
-	if len(raw) == 0 || len(raw) > MaxCatalogDecisionBytes {
+	raw := planningJSON(content)
+	if raw == "" {
 		return DiscoveryRequestDraft{}, false
 	}
 
 	var parsed struct {
-		Purpose string `json:"purpose"`
-		Effect  string `json:"effect"`
-		Inputs  map[string]struct {
-			Type     string `json:"type"`
-			Required *bool  `json:"required"`
+		Purpose *string `json:"purpose"`
+		Effect  *string `json:"effect"`
+		Inputs  map[string]*struct {
+			Type     *string         `json:"type"`
+			Required json.RawMessage `json:"required"`
 		} `json:"inputs"`
 	}
 
@@ -195,16 +212,22 @@ func parseDiscoveryRequestResponse(content, originalTask string, budget PromptBu
 		return DiscoveryRequestDraft{}, false
 	}
 
-	purpose := strings.TrimSpace(parsed.Purpose)
-	if purpose == "" {
-		purpose = originalTask
+	if parsed.Purpose == nil || parsed.Effect == nil || !supportedPlanEffect(parsed.Effect) || parsed.Inputs == nil ||
+		strings.TrimSpace(*parsed.Purpose) == "" || utf8.RuneCountInString(*parsed.Purpose) > budget.MaxTextRunes ||
+		len(parsed.Inputs) > budget.MaxFields {
+		return DiscoveryRequestDraft{}, false
 	}
-	purpose, _ = sanitizePromptString(purpose, budget.MaxTextRunes)
-
-	effect := normalizeEffect(parsed.Effect)
+	purpose, _ := sanitizePromptString(*parsed.Purpose, budget.MaxTextRunes)
+	if strings.TrimSpace(purpose) == "" {
+		return DiscoveryRequestDraft{}, false
+	}
+	effect := normalizeEffect(*parsed.Effect)
 
 	inputs := make(map[string]ContractValue)
 	for name, in := range parsed.Inputs {
+		if in == nil || in.Type == nil || strings.TrimSpace(*in.Type) == "" || utf8.RuneCountInString(name) > budget.MaxIdentifierRunes || utf8.RuneCountInString(*in.Type) > budget.MaxIdentifierRunes {
+			return DiscoveryRequestDraft{}, false
+		}
 		trimmedName := strings.TrimSpace(name)
 		// Disallow wildcards or invalid names (resolving F12)
 		if trimmedName == "" || strings.ContainsAny(trimmedName, " *?") {
@@ -215,10 +238,14 @@ func parseDiscoveryRequestResponse(content, originalTask string, budget PromptBu
 			continue
 		}
 		reqBool := true
-		if in.Required != nil {
-			reqBool = *in.Required
+		if len(in.Required) != 0 {
+			var required *bool
+			if err := json.Unmarshal(in.Required, &required); err != nil || required == nil {
+				return DiscoveryRequestDraft{}, false
+			}
+			reqBool = *required
 		}
-		safeType, _ := sanitizePromptString(in.Type, budget.MaxIdentifierRunes)
+		safeType, _ := sanitizePromptString(*in.Type, budget.MaxIdentifierRunes)
 		if safeType == "" {
 			safeType = "string"
 		}
@@ -239,7 +266,8 @@ func parseDiscoveryRequestResponse(content, originalTask string, budget PromptBu
 		Contract:      contract,
 	}
 
-	return PrepareDiscoveryRequestDraft(req, budget), true
+	draft := PrepareDiscoveryRequestDraft(req, budget)
+	return draft, draft.Ready
 }
 
 func normalizeEffect(effectStr string) OperationEffect {
@@ -381,4 +409,43 @@ func extractJSON(content string) string {
 		content = content[firstOpen : lastClose+1]
 	}
 	return content
+}
+
+// planningJSON accepts a single JSON object, optionally inside a JSON fence.
+// Bound the complete response before allocating fence lines or decoding fields.
+func planningJSON(content string) string {
+	if len(content) == 0 || len(content) > MaxCatalogDecisionBytes {
+		return ""
+	}
+	raw := strings.TrimSpace(content)
+	if strings.HasPrefix(raw, "```") {
+		first := strings.IndexByte(raw, '\n')
+		if first < 0 || !strings.HasSuffix(raw, "```") {
+			return ""
+		}
+		fence := strings.TrimSpace(raw[:first])
+		if fence != "```" && fence != "```json" {
+			return ""
+		}
+		raw = strings.TrimSpace(raw[first+1 : len(raw)-3])
+	}
+	if !strings.HasPrefix(raw, "{") || !strings.HasSuffix(raw, "}") {
+		return ""
+	}
+	if err := sourceguard.CheckJSON("model plan", []byte(raw)); err != nil {
+		return ""
+	}
+	return raw
+}
+
+func supportedPlanEffect(effect *string) bool {
+	if effect == nil {
+		return false
+	}
+	switch strings.ToLower(strings.TrimSpace(*effect)) {
+	case "read", "write", "idempotent_write", "unknown":
+		return true
+	default:
+		return false
+	}
 }
