@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/OpenUdon/apitools/internal/sourceguard"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -155,4 +159,82 @@ func catalogCLIOptions(fs *flag.FlagSet, options catalog.RootOptions) catalog.Ro
 		resolved.IndexPath = catalog.DefaultOperationIndexPath
 	}
 	return resolved
+}
+
+// All lifecycle commands share the same confined, bounded catalog decoder.
+func readCatalogMetadata(root, relative string) (*catalog.Catalog, error) {
+	if relative == "" {
+		return nil, nil
+	}
+	if strings.TrimSpace(root) == "" {
+		return nil, fmt.Errorf("custom catalog requires an explicit root")
+	}
+	if !safeCatalogRelative(relative) {
+		return nil, fmt.Errorf("invalid custom catalog path")
+	}
+	file, err := artifactio.ReadFile(root, relative, artifactio.ReadOptions{MaxBytes: 4 << 20})
+	if err != nil {
+		return nil, fmt.Errorf("cannot read custom catalog metadata: %w", err)
+	}
+	if err := sourceguard.CheckJSON("custom catalog", file.Data); err != nil {
+		return nil, err
+	}
+	dec := json.NewDecoder(bytes.NewReader(file.Data))
+	dec.DisallowUnknownFields()
+	var cat *catalog.Catalog
+	if err := dec.Decode(&cat); err != nil {
+		return nil, fmt.Errorf("invalid custom catalog metadata: %w", err)
+	}
+	if cat == nil {
+		return nil, fmt.Errorf("custom catalog must be an object")
+	}
+	var trailing any
+	if err := dec.Decode(&trailing); err != io.EOF {
+		return nil, fmt.Errorf("trailing custom catalog metadata")
+	}
+	if err := cat.Validate(); err != nil {
+		return nil, err
+	}
+	return cat, nil
+}
+
+func catalogIdentity(cat *catalog.Catalog, provider, specID, kind string) error {
+	if !safeCatalogID(provider) || !safeCatalogID(specID) {
+		return fmt.Errorf("provider and spec IDs must be safe catalog identifiers")
+	}
+	selected := catalog.BuiltInCatalog()
+	if cat != nil {
+		selected = *cat
+	}
+	p, ok := selected.FindProvider(provider)
+	if !ok || p.ID != provider {
+		return fmt.Errorf("unknown provider %q in selected catalog; declare custom identities with --catalog", provider)
+	}
+	for _, ref := range p.SpecReferences {
+		if ref.ID != specID {
+			continue
+		}
+		normalized := kind
+		switch kind {
+		case "swagger2":
+			normalized = "openapi"
+		case "aws-smithy":
+			normalized = "smithy-json"
+		}
+		if normalized == string(ref.Kind) || kind == "advisory-overlay" && (ref.Kind == catalog.SpecKindHumanDocs || ref.Kind == catalog.SpecKindOpenAPI) {
+			return nil
+		}
+		return fmt.Errorf("artifact kind %q disagrees with selected catalog reference %q", kind, specID)
+	}
+	return fmt.Errorf("unknown spec %q for provider %q in selected catalog; declare custom identities with --catalog", specID, provider)
+}
+
+func nonemptyCatalogFiles(paths ...string) []string {
+	var files []string
+	for _, path := range paths {
+		if path != "" {
+			files = append(files, path)
+		}
+	}
+	return files
 }

@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -11,7 +9,6 @@ import (
 
 	"github.com/OpenUdon/apitools"
 	"github.com/OpenUdon/apitools/catalog"
-	"github.com/OpenUdon/apitools/internal/artifactio"
 	"github.com/OpenUdon/apitools/sqlitecache"
 )
 
@@ -51,24 +48,12 @@ func runCatalogIndex(args []string, out, errOut io.Writer) int {
 			fmt.Fprintln(errOut, "catalog input and index output overlap")
 			return exitUsage
 		}
-		file, err := artifactio.ReadFile(rootOpts.Directory, *catalogPath, artifactio.ReadOptions{MaxBytes: 4 << 20})
+		cat, err := readCatalogMetadata(rootOpts.Directory, *catalogPath)
 		if err != nil {
-			fmt.Fprintln(errOut, "cannot read confined catalog metadata")
+			fmt.Fprintln(errOut, err)
 			return exitRuntime
 		}
-		var cat catalog.Catalog
-		decoder := json.NewDecoder(bytes.NewReader(file.Data))
-		decoder.DisallowUnknownFields()
-		if err := decoder.Decode(&cat); err != nil {
-			fmt.Fprintln(errOut, "invalid custom catalog metadata")
-			return exitRuntime
-		}
-		var trailing any
-		if err := decoder.Decode(&trailing); err != io.EOF {
-			fmt.Fprintln(errOut, "trailing custom catalog metadata")
-			return exitRuntime
-		}
-		options.Catalog = &cat
+		options.Catalog = cat
 	}
 	ctx := context.Background()
 	index, err := apitools.BuildCatalogOperationIndex(ctx, options)

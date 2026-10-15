@@ -131,8 +131,10 @@ func TestCatalogAddDispatchAndExecution(t *testing.T) {
 	out.Reset()
 	errOut.Reset()
 
+	writeLifecycleCatalog(t, catDir, map[string][]string{"petstore": {"pets-v1"}, "pet-store": {"internal"}})
+
 	// Add valid spec from outside root
-	if code := run([]string{"catalog", "add", specFile, "--root", catDir, "--provider", "petstore", "--spec", "pets-v1"}, &out, &errOut); code != exitSuccess {
+	if code := run([]string{"catalog", "add", specFile, "--root", catDir, "--provider", "petstore", "--spec", "pets-v1", "--catalog", "catalog.json"}, &out, &errOut); code != exitSuccess {
 		t.Fatalf("add failed: %d %s", code, errOut.String())
 	}
 	if !strings.Contains(out.String(), "added petstore/pets-v1") {
@@ -163,7 +165,7 @@ func TestCatalogAddDispatchAndExecution(t *testing.T) {
 	}
 	out.Reset()
 	errOut.Reset()
-	if code := run([]string{"catalog", "add", insidePath, "--root", catDir, "--json"}, &out, &errOut); code != exitSuccess {
+	if code := run([]string{"catalog", "add", insidePath, "--root", catDir, "--catalog", "catalog.json", "--json"}, &out, &errOut); code != exitSuccess {
 		t.Fatalf("add inside root failed: %d %s", code, errOut.String())
 	}
 	var artifactRes struct {
@@ -208,6 +210,8 @@ func TestCatalogImportDispatchAndExecution(t *testing.T) {
 		t.Fatalf("init failed: %d %s", code, errOut.String())
 	}
 
+	writeLifecycleCatalog(t, catDir, map[string][]string{"remote-test": {"remote-spec"}})
+
 	// Setup local test server with valid OpenAPI spec
 	specContent := `{"openapi":"3.0.0","info":{"title":"Remote API","version":"2.0.0"},"paths":{"/remote":{"get":{"operationId":"getRemote","responses":{"200":{"description":"ok"}}}}}}`
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -220,7 +224,7 @@ func TestCatalogImportDispatchAndExecution(t *testing.T) {
 	errOut.Reset()
 	// Import with client allowing unsafe hosts
 	code := runCatalogImportWithClient(
-		[]string{server.URL + "/openapi.json", "--root", catDir, "--provider", "remote-test", "--name", "remote-spec"},
+		[]string{server.URL + "/openapi.json", "--root", catDir, "--provider", "remote-test", "--name", "remote-spec", "--catalog", "catalog.json"},
 		&out,
 		&errOut,
 		func(cachePath string) (*apitools.Client, func(), error) {

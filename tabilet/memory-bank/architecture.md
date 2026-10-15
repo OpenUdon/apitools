@@ -913,3 +913,10 @@ Open/OpenWithOptions retain their database-directory-relative cache semantics
 and schema v3. Lifecycle/index CLI path flags distinguish omission from explicit
 values: canonical environment precedes legacy aliases and defaults; explicit
 empty registry/index flags select their built-in defaults.
+
+S07 lifecycle init/add/import/index/search share one confined custom-catalog
+decoder (4 MiB, shared JSON structural limits, unknown/trailing-field rejection,
+catalog validation). A nil selection preserves built-in index identity. Explicit
+custom metadata governs provider/spec/kind validation, registration and both
+index-backed and metadata-only search. Unknown identities are rejected before
+downloads or registry/source mutation; input metadata cannot be a source target.

@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
@@ -75,31 +73,12 @@ func runCatalogInit(args []string, out, errOut io.Writer) int {
 		return exitRuntime
 	}
 	// Custom metadata must be readable and valid before initialization mutates.
-	var customCatalog *catalog.Catalog
-	if *catalogPath != "" {
-		file, err := artifactio.ReadFile(rootDir, *catalogPath, artifactio.ReadOptions{MaxBytes: 4 << 20})
-		if err != nil {
-			fmt.Fprintln(errOut, err)
-			return exitRuntime
-		}
-		var cat catalog.Catalog
-		dec := json.NewDecoder(bytes.NewReader(file.Data))
-		dec.DisallowUnknownFields()
-		if err := dec.Decode(&cat); err != nil {
-			fmt.Fprintln(errOut, err)
-			return exitRuntime
-		}
-		if err := cat.Validate(); err != nil {
-			fmt.Fprintln(errOut, err)
-			return exitRuntime
-		}
-		var trailing any
-		if err := dec.Decode(&trailing); err != io.EOF {
-			fmt.Fprintln(errOut, "trailing custom catalog metadata")
-			return exitRuntime
-		}
-		customCatalog = &cat
+	customCatalog, err := readCatalogMetadata(rootDir, *catalogPath)
+	if err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
 	}
+
 	// Create root directory and specs directory
 	if err := os.MkdirAll(rootDir, 0o755); err != nil {
 		fmt.Fprintln(errOut, err)
@@ -186,9 +165,10 @@ func runCatalogAdd(args []string, out, errOut io.Writer) int {
 	sourceURL := fs.String("source-url", "", "Optional original source URL")
 	rootFlag := fs.String("root", "", "Explicit catalog root directory (or use APITOOLS_CATALOG_ROOT)")
 	registry := fs.String("registry", "", "Registration database path relative to root")
+	catalogPath := fs.String("catalog", "", "Optional custom catalog JSON path relative to root")
 	jsonOut := fs.Bool("json", false, "Write JSON output")
 	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), "Usage: apitools catalog add <file> [--provider <id>] [--spec <id>] [--kind openapi] [--source-url <url>] [--root DIRECTORY] [--registry cache.sqlite] [--json]")
+		fmt.Fprintln(fs.Output(), "Usage: apitools catalog add <file> [--provider <id>] [--spec <id>] [--kind openapi] [--source-url <url>] [--catalog catalog.json] [--root DIRECTORY] [--registry cache.sqlite] [--json]")
 		fs.PrintDefaults()
 	}
 	if code, done := parseCommandFlags(fs, parseArgs, out, errOut); done {
@@ -294,6 +274,16 @@ func runCatalogAdd(args []string, out, errOut io.Writer) int {
 		return exitRuntime
 	}
 
+	selectedCatalog, err := readCatalogMetadata(paths.Directory, *catalogPath)
+	if err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
+	}
+	if err := catalogIdentity(selectedCatalog, provider, specID, kind); err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
+	}
+
 	// Determine destination path inside root
 	var relPath string
 	relToRoot, err := filepath.Rel(paths.Directory, absFile)
@@ -302,6 +292,11 @@ func runCatalogAdd(args []string, out, errOut io.Writer) int {
 	} else {
 
 		relPath = filepath.ToSlash(filepath.Join("specs", provider, filepath.Base(absFile)))
+	}
+
+	if err := validateCatalogMutationPaths(rootOpts, nonemptyCatalogFiles(*catalogPath, relPath), nil); err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
 	}
 
 	artifact := sqlitecache.CatalogArtifact{
@@ -350,9 +345,10 @@ func runCatalogImportWithClient(args []string, out, errOut io.Writer, newClient 
 	rootFlag := fs.String("root", "", "Explicit catalog root directory (or use APITOOLS_CATALOG_ROOT)")
 	registry := fs.String("registry", "", "Registration database path relative to root")
 	timeout := fs.Duration("timeout", apitools.DefaultTimeout, "Import download timeout")
+	catalogPath := fs.String("catalog", "", "Optional custom catalog JSON path relative to root")
 	jsonOut := fs.Bool("json", false, "Write JSON output")
 	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), "Usage: apitools catalog import <url> [--provider <id>] [--name <stem>] [--root DIRECTORY] [--registry cache.sqlite] [--timeout 30s] [--json]")
+		fmt.Fprintln(fs.Output(), "Usage: apitools catalog import <url> [--provider <id>] [--name <stem>] [--catalog catalog.json] [--root DIRECTORY] [--registry cache.sqlite] [--timeout 30s] [--json]")
 		fs.PrintDefaults()
 	}
 	if code, done := parseCommandFlags(fs, parseArgs, out, errOut); done {
@@ -426,6 +422,21 @@ func runCatalogImportWithClient(args []string, out, errOut io.Writer, newClient 
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
 	}
+	stem := strings.TrimSpace(*nameFlag)
+	if stem == "" {
+		parsed, _ := url.Parse(trimmedURL)
+		stem = strings.ToLower(strings.TrimSuffix(filepath.Base(parsed.Path), filepath.Ext(parsed.Path)))
+	}
+	selectedCatalog, err := readCatalogMetadata(paths.Directory, *catalogPath)
+	if err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
+	}
+	if err := catalogIdentity(selectedCatalog, provider, stem, "openapi"); err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
+	}
+
 	targetDir, err := os.MkdirTemp("", "apitools-catalog-import-*")
 	if err != nil {
 		fmt.Fprintln(errOut, err)
@@ -449,7 +460,7 @@ func runCatalogImportWithClient(args []string, out, errOut io.Writer, newClient 
 	importReport, err := client.ImportWithReport(ctx, apitools.ImportOptions{
 		URL:       trimmedURL,
 		Dir:       targetDir,
-		Name:      *nameFlag,
+		Name:      stem,
 		CacheMode: apitools.CacheModeBypass,
 	})
 	if err != nil {
@@ -465,9 +476,9 @@ func runCatalogImportWithClient(args []string, out, errOut io.Writer, newClient 
 		return exitRuntime
 	}
 
-	stem := *nameFlag
-	if stem == "" {
-		stem = strings.TrimSuffix(filepath.Base(imported.Path), filepath.Ext(imported.Path))
+	if err := validateCatalogMutationPaths(rootOpts, nonemptyCatalogFiles(*catalogPath, relPath), nil); err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
 	}
 
 	artifact := sqlitecache.CatalogArtifact{
@@ -597,9 +608,10 @@ func runCatalogSearchWithClient(args []string, out, errOut io.Writer, newClient 
 	remote := fs.Bool("remote", false, "Enable remote catalog lookup")
 	providerURL := fs.String("provider-url", "", "Provider URL or hostname for RFC 9727 discovery")
 	limit := fs.Int("limit", 10, "Maximum result count")
+	catalogPath := fs.String("catalog", "", "Optional custom catalog JSON path relative to root")
 	jsonOut := fs.Bool("json", false, "Write JSON output")
 	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), "Usage: apitools catalog search <query> [--root DIRECTORY] [--registry cache.sqlite] [--index operations.v1.json] [--remote] [--provider-url URL] [--limit 10] [--json]")
+		fmt.Fprintln(fs.Output(), "Usage: apitools catalog search <query> [--root DIRECTORY] [--registry cache.sqlite] [--index operations.v1.json] [--catalog catalog.json] [--remote] [--provider-url URL] [--limit 10] [--json]")
 		fs.PrintDefaults()
 	}
 	if code, done := parseCommandFlags(fs, parseArgs, out, errOut); done {
@@ -635,9 +647,19 @@ func runCatalogSearchWithClient(args []string, out, errOut io.Writer, newClient 
 		IndexPath:    *indexPath,
 	})
 
+	selectedCatalog, err := readCatalogMetadata(rootOpts.Directory, *catalogPath)
+	if err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
+	}
+
 	// If root is configured and exists, search the index via DiscoverCatalogOperations
 	if rootOpts.Directory != "" {
 		paths, err := catalog.ResolveRoot(rootOpts)
+		if err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitRuntime
+		}
 		if err == nil {
 			indexFile := paths.IndexPath
 			if fi, err := os.Lstat(indexFile); err == nil && fi.Mode().IsRegular() {
@@ -645,6 +667,7 @@ func runCatalogSearchWithClient(args []string, out, errOut io.Writer, newClient 
 				discoveryOpts := apitools.CatalogDiscoveryOptions{
 					Index: apitools.CatalogIndexOptions{
 						Root:              rootOpts,
+						Catalog:           selectedCatalog,
 						ReadRegistrations: sqlitecache.ReadCatalogSpecArtifacts,
 					},
 					Request: apitools.CatalogDiscoveryRequest{
@@ -707,8 +730,11 @@ func runCatalogSearchWithClient(args []string, out, errOut io.Writer, newClient 
 		}
 	}
 
-	// Fallback when no root/index is available: search built-in providers
+	// Fallback when no root/index is available: search the selected metadata catalog
 	cat := catalog.BuiltInCatalog()
+	if selectedCatalog != nil {
+		cat = *selectedCatalog
+	}
 	type providerMatch struct {
 		ID          string `json:"id"`
 		DisplayName string `json:"display_name"`

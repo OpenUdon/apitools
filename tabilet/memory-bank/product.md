@@ -126,7 +126,10 @@ execution.
 - **Auth summary**: prompt-safe credential and configuration metadata derived
   from OpenAPI security schemes and known dialect hints.
 - **Provider catalog**: curated metadata for popular services, official or
-  machine-readable spec sources, local aliases, and security overlays.
+  machine-readable spec sources, local aliases, and security overlays. Lifecycle
+  add/import/index/search use the built-in catalog or one explicitly selected
+  custom catalog; custom identities must be declared before registration. A
+  declaration supplies metadata, never inferred official authority or licensing.
 - **Security overlay**: explicit supplemental auth/security metadata kept
   separate from upstream specs when provider documents are incomplete.
 - **Advisory endpoint overlay**: a service-specific OpenAPI-shaped advisory

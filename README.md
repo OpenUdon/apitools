@@ -792,3 +792,32 @@ available:
 (cd ../openudon && go test ./...)
 (cd ../udon && go test ./...)
 ```
+
+### Local catalog lifecycle and custom identities
+
+`catalog init`, `add`, `import`, `index`, `search` and `snapshot` use an
+explicit `--root` or `APITOOLS_CATALOG_ROOT`. Registry/index paths are relative
+to that root, including nested paths. Explicit flags override
+`APITOOLS_CATALOG_REGISTRY/INDEX`, then `CATALOG_REGISTRY/INDEX`, then
+`KINET_CATALOG_REGISTRY/INDEX`; defaults are `cache.sqlite` and
+`operations.v1.json`. Reads never build or repair the index automatically.
+
+For a provider/spec identity outside the built-in catalog, supply a reviewed
+custom catalog JSON file inside the root using `--catalog catalog.json` on
+init/add/import/index/search. This selects the complete catalog; use the same
+file for registration, indexing and searching. The bounded decoder validates
+provider/spec metadata; it does not assign official authority or licensing.
+Unknown provider/spec IDs and mismatched source kinds fail before source writes
+or downloads. Import uses `--name` as its spec ID (or the URL filename stem).
+
+```bash
+apitools catalog init --root /path/to/root --catalog catalog.json
+apitools catalog add /path/to/source.json --root /path/to/root --catalog catalog.json --provider my-service --spec my-api
+apitools catalog index --root /path/to/root --catalog catalog.json
+apitools catalog search "list users" --root /path/to/root --catalog catalog.json --json
+```
+
+Source mutations reject traversal, symlinks, special files and differing file
+collisions; identical content is reused. Snapshots publish a complete private
+stage to a new/empty target or reuse an identical snapshot. A differing nonempty
+target is refused, and failure preserves its files.
