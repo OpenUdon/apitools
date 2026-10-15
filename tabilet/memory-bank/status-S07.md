@@ -17,7 +17,7 @@ Protected publication is authorized only by the human plan after qualification.
 | S07.3 — Nested registry and environment | `[+]` | F06/F09 P2: additive root-aware SQLite opener and explicit flag > canonical env > aliases > defaults. Verified nested init/add/index/search/snapshot, root-relative registry reads, legacy opener semantics and canonical/alias/explicit/empty/default precedence with focused tests; existing SQLite/CLI gates pass. |
 | S07.4 — Explicit custom catalogs | `[+]` | F07/F08 P2: bounded --catalog plumbing for add/import/search; one selected catalog governs validation/registration/index/search. Unknown identities fail before writes. Verified offline custom add/import/index/search round trip with nested env-selected registry/index, wrong-catalog identity refusal, metadata fallback and unknown-provider/spec no-write/no-download cases; strict bounded decoder and all Catalog CLI gates pass. |
 | S07.5 — Model response fallback | `[+]` | F10 P2: reject null/empty/missing/wrong-type/over-budget plans while preserving valid fences, normalized effects and missing-input clarification. Red: invalid-response tests reproduced suppressed fallback for null/empty/missing/oversized plans. Green: focused Plan/InvalidModel/ModelPlan/ClientLLM/PrepareAndValidate tests cover structural and field budgets, fences, normalized effects and clarification. |
-| S07.6 — Combined qualification | `[ ]` | Full/standalone tests/vet, focused race, generation/quality, CLI, OpenUdon/Udon disposable checks, docs, review and retirement. No Ramen. |
+| S07.6 — Combined qualification | `[~]` | Full/standalone tests/vet, focused race, generation/quality, CLI, OpenUdon/Udon disposable checks, docs, review and retirement. No Ramen. |
 
 ## Review
 
