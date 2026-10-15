@@ -592,26 +592,44 @@ unexamined coverage; a large artifact is not automatically complete evidence.
 M81.4 consumes these helpers and preserves that distinction in its index.
 
 M81.2 adds `catalog.RootOptions`/`ResolveRoot` for explicit root, registry and
-index path configuration. No root selects no implicit directory; M80
-discovery returns metadata-only leads and insufficient evidence. The
-selected root rejects symlinks at or below it while resolving symlinked
-ancestors. Relative registry/index paths cannot overlap or escape the root.
-Resolution creates no files. `sqlitecache.ReadCatalogArtifacts` uses a
-read-only SQLite transaction and shared row validation without migration,
-pruning or access-time updates, including legacy registry schemas 1–3; newer
-schemas refuse. Snapshot bounds are five seconds, 10,000 rows and 32 MiB
-aggregate registration text before decoding. Missing registry/index remains
-missing evidence. M80 discovery and M81 index generation/read/publication
-and selected-artifact export are delivered and published at M80 source
-`fb132631c9827eae5f2ec4503d03f21eabfb4113`. The synthetic shared-artifact fixture
-is under `testdata/catalog-root` with an explicit disposable preparation recipe.
+index path configuration. M87.1 adds `RootOptionsWithEnvironment`,
+`RootOptionsFromEnvironment`, and `ResolveDefaultRoot` with precedence
+(explicit CLI options > APITOOLS_CATALOG_* > CATALOG_* > KINET_CATALOG_*).
+No root selects no implicit directory; M80 discovery returns metadata-only
+leads and insufficient evidence. The selected root rejects symlinks at or
+below it while resolving symlinked ancestors. Relative registry/index paths
+cannot overlap or escape the root. Resolution creates no files.
+`sqlitecache.ReadCatalogArtifacts` uses a read-only SQLite transaction and
+shared row validation without migration, pruning or access-time updates,
+including legacy registry schemas 1–3; newer schemas refuse. Snapshot
+bounds are five seconds, 10,000 rows and 32 MiB aggregate registration text
+before decoding. Missing registry/index remains missing evidence. M80 discovery
+and M81 index generation/read/publication and selected-artifact export are
+delivered and published at M80 source `fb132631c9827eae5f2ec4503d03f21eabfb4113`.
+The synthetic shared-artifact fixture is under `testdata/catalog-root` with an
+explicit disposable preparation recipe. M87.2 adds `catalog.SnapshotRoot` for
+safe read-only catalog copies. It preserves nested relative paths for registry,
+index, and selected source without flattening, copies external metadata, enforces
+individual ceilings (64 MiB registry/index, 2 MiB metadata, 8 MiB selected source),
+checks active WAL/journal sidecars and collisions, executes full-set drift checks
+across all sources, and normalizes destination SQLite databases to DELETE journal
+mode without mutating producer files.
 
 - Go module path: `github.com/OpenUdon/apitools`.
 - The versioned step-candidate wire contract and source-family matrix are
   documented in [`docs/operation-candidates.md`](../../docs/operation-candidates.md).
 - Public root package APIs include `Client`, `Search`, `Import`,
   additive `ImportWithReport`, `LocalFiles`, `BuildOperationInventory`, `LoadOperationIndex`,
-  `BuildAuthoringAPIDocuments`, auth summaries, and operation selection.
+  `BuildAuthoringAPIDocuments`, auth summaries, operation selection, and M87.3's
+  `ProjectCatalogDecision`/`CatalogDecisionView` projecting discovery reports into
+  bounded 64-KiB decision models with source-distinguishable prompt rendering and
+  local-reference selectable indexing, and M89's vendor-neutral `LLMClient` completion
+  interface, `PlanSearchQuery`, `PlanDiscoveryRequest`, deterministic contract/request
+  draft preparers (`PrepareStepContractDraft`, `PrepareDiscoveryRequestDraft`) enforcing
+  strict PromptBudget bounds, standard StepContract effect vocabularies (normalizing
+  idempotent_write to write and rejecting wildcard inputs), and `RecommendCandidate`
+  restricting assistance to final Selectable candidates while revalidating bounds and
+  falling back deterministically without executing or approving operations.
   Step-candidate contracts are additive types in `step_metadata.go`; the
   versioned request carries purpose, typed inputs/outputs, and effect, while
   the result envelope pairs existing operation data with exact source identity,
@@ -627,8 +645,15 @@ is under `testdata/catalog-root` with an explicit disposable preparation recipe.
 - `Search` sources include `apis-guru`, experimental `lap-registry`,
   provider-scoped experimental `rfc9727`, and legacy `public-apis`. `auto`
   uses that order and consults RFC 9727 only when `SearchOptions.ProviderURL`
-  is non-empty. Search cache keys include the provider URL.
+  is non-empty. Search cache keys include the provider URL. Opt-in catalog remote
+  discovery in `DiscoverCatalogOperations` similarly uses `SourceAuto` and accepts
+  installation-side `CatalogDiscoveryOptions.ProviderURL` for provider-scoped RFC 9727
+  fallback discovery.
 - CLI entry point: `go run ./cmd/apitools`.
+- CLI commands include `search`, `versions`, `import`, and `catalog` with
+  lifecycle subcommands `init`, `add`, `import`, `index`, `search`, `snapshot`,
+  and `refresh` supporting explicit and environment-resolved roots alongside
+  built-in inspection commands.
 - CLI parsing uses one non-terminating flag adapter. Genuine help exits 0 on
   stdout, usage errors exit 2 on stderr, and runtime failures exit 1 on stderr;
   the parser decides whether `--help` is a flag or a value instead of scanning

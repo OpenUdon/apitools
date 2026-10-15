@@ -29,11 +29,23 @@ func runCatalogIndex(args []string, out, errOut io.Writer) int {
 	if code, done := parseCommandFlags(fs, args, out, errOut); done {
 		return code
 	}
-	if *root == "" || fs.NArg() != 0 {
+	rootOpts := catalog.RootOptionsWithEnvironment(catalog.RootOptions{
+		Directory:    *root,
+		RegistryPath: *registry,
+		IndexPath:    *indexPath,
+	})
+	if rootOpts.Directory == "" || fs.NArg() != 0 {
 		fmt.Fprintln(errOut, "an explicit --root and no positional arguments are required")
 		return exitUsage
 	}
-	options := apitools.CatalogIndexOptions{Root: catalog.RootOptions{Directory: *root, RegistryPath: *registry, IndexPath: *indexPath}, ReadRegistrations: sqlitecache.ReadCatalogSpecArtifacts}
+	options := apitools.CatalogIndexOptions{
+		Root: catalog.RootOptions{
+			Directory:    rootOpts.Directory,
+			RegistryPath: rootOpts.RegistryPath,
+			IndexPath:    rootOpts.IndexPath,
+		},
+		ReadRegistrations: sqlitecache.ReadCatalogSpecArtifacts,
+	}
 	if *catalogPath != "" {
 		if filepath.Clean(strings.TrimSpace(*catalogPath)) == filepath.Clean(strings.TrimSpace(*indexPath)) {
 			fmt.Fprintln(errOut, "catalog input and index output overlap")

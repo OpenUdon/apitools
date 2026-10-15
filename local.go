@@ -135,3 +135,11 @@ func hasOpenAPIFileExt(path string) bool {
 		return false
 	}
 }
+
+// ValidateLocalSpecContent parses and validates local specification content.
+func ValidateLocalSpecContent(ctx context.Context, content []byte) (SpecMetadata, error) {
+	if metadata, ok := localSpecMetadata(ctx, content); ok {
+		return metadata, nil
+	}
+	return SpecMetadata{}, errors.New("content is not a valid OpenAPI or Swagger document")
+}

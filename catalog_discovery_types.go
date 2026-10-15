@@ -63,6 +63,7 @@ type CatalogDiscoveryOptions struct {
 	Index         CatalogIndexOptions     `json:"-"`
 	RemoteEnabled bool                    `json:"-"`
 	RemoteClient  *Client                 `json:"-"`
+	ProviderURL   string                  `json:"-"`
 }
 
 type CatalogDiscoveryScope struct {

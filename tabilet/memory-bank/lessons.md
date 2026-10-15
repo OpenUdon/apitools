@@ -106,3 +106,24 @@ cache failures/restored exact lockfiles. No source workaround or user-cache muta
 - **Lesson:** Exercise actual selection as well as SDK Build/Assess/Verify. Apply coherent ignored-input semantics at the owner. Preserve existing reference capability boundaries; an added per-parameter traversal can multiply work across operations even under a raw byte bound. Bound fixture confirmation and retain unknown unsupported references.
 - **Why:** Shape-only M84 proof left W18 blocked; M85 corrected candidate semantics. Whole1 caught an unnecessary unbounded chain extension before publication, and removal preserved the original single-hop/escaped contract.
 - **Evidence:** [M85](../docs/history/status-M85.md), final whole3, exact source409d/current SDK16/CLI8/ordinary proof; [M50-NATIVE-F01](../../../kinet/docs/m50-candidate-header-finding.md) preserves failed prior integration.
+
+## Safe catalog snapshots require full-set drift verification and relative path preservation
+
+- **Applies when:** Snapshotting, copying, or projecting read-only catalog roots for consumers.
+- **Lesson:** Preserve nested relative paths rather than flattening with `filepath.Base`. Snapshot metadata and selected source alongside registry/index files under distinct bounded ceilings. Recheck the entire source set for file additions, removals, modifications, and active WAL/journal sidecars before destination normalization. Destination-only SQLite journal normalization to `DELETE` mode must not touch source databases.
+- **Why it matters:** Flattening relative paths breaks consumers expecting nested registry/index layouts. Omitting metadata or selected source causes downstream validation failures. In-flight writes or concurrent updates during copying can produce corrupt or inconsistent snapshots.
+- **Evidence:** [M87](../docs/history/status-M87.md), review findings F02, F03, F04; `catalog/snapshot.go` and `catalog/snapshot_test.go`.
+
+## Catalog remote discovery fallback requires provider URL forwarding and strict URL safety
+
+- **Applies when:** Broadening remote catalog discovery from single-source to cascaded multi-source (`SourceAuto`).
+- **Lesson:** `SourceAuto` cascades across multiple catalog backends (APIs.guru, LAP Registry, RFC 9727, public-apis). For RFC 9727 discovery to succeed, an installation-side `ProviderURL` must be explicitly provided and plumbed to `SearchOptions.ProviderURL`. Validate the provider URL against SSRF, unpermitted private hosts, and non-canonical schemes before dispatching queries.
+- **Why it matters:** Hardcoding a single source disables RFC 9727 provider-directed discovery; conversely, unvalidated remote hosts can lead to private network traversal or SSRF vulnerabilities.
+- **Evidence:** [M88](../docs/history/status-M88.md), review finding F06; `catalog_discovery_remote.go` and `catalog_discovery_remote_test.go`.
+
+## LLM touchpoints must use standard effect vocabularies and selectable-only candidate boundaries
+
+- **Applies when:** Formulating operation contracts and candidate recommendations with pluggable LLM assistants.
+- **Lesson:** Normalize model-generated effects to standard `OperationEffect` values (`read`, `write`, `unknown`, or omitted) and strictly reject unapproved values such as `idempotent_write`. Avoid fabricating wildcard inputs when parameters are missing; instead, expose missing evidence via informational diagnostics (`contract.input_missing`). In candidate recommendation, restrict assistance strictly to verified `Selectable` candidates; never recommend unqualified, omitted, or hallucinated candidate indexes. Always revalidate serialized JSON and prompt bounds after attaching explanation text.
+- **Why it matters:** Non-standard effect strings cause qualification failures. Wildcard inputs conceal missing parameter dependencies. Recommending non-selectable candidates violates human confirmation boundaries and can authorize incorrect operations.
+- **Evidence:** [M89](../docs/history/status-M89.md), review findings F10, F11, F12, F13; `llm_plan.go`, `llm_recommend.go`, `llm_plan_test.go`, and `llm_recommend_test.go`.

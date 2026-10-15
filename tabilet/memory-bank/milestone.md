@@ -1,5 +1,21 @@
 # Milestones
 
+## Approved catalog track — 2026-10-11
+
+The user approved six new milestones / 21 pending rows across APItools, Kinet and Ramen. This is a separate serial catalog track in the current horizon, not a replacement of Stage 12 browser work. Existing scopes, conditional triggers, grants, non-pending states and review counters retain their recorded meaning. The supplied plans remain source evidence; these corrected milestone/status contracts supersede their unsafe proposed assumptions. No target behavior is implemented by planning.
+
+**Decisions.** Explicit roots/no implicit cache fallback; APItools interfaces with consumer-owned model adapters and deterministic standalone CLI; no native/hosted Kinet remote expansion. Kinet retains host snapshot custody and worker-only source semantics.
+
+**Dependencies.** APItools:M87 -> M88 -> M89; M88 -> Ramen:M81; M89 + Ramen:M81 -> Ramen:M82; M89 + Kinet:M53 -> Kinet:M57. M89 additionally precedes conditional APItools:M86; M57 additionally precedes conditional Kinet:M55. M86/M55 retain every original prerequisite and operational trigger. Exact accepted/public producer adoption remains mandatory.
+
+**Priority/ownership.** New-track priority is upstream M87/M88/M89, Ramen M81/M82, then Kinet M57 after existing M53. Existing Stage 12 entries retain relative priority. Never interrupt an active owner or overlap catalog/same-package worker writers. All new units are Parallel-safe:no; one coordinator serializes integration and records. Missing publication authority blocks its consumer, not its recognition as required work.
+
+**Review lineage.** Catalog roadmap review (2026-10-11), baseline not supplied; F01-F13 are confirmed prospective plan defects. Source/local severity: F01-F02 P1, F03-F13 P2. One primary owner each: M87.R2 F02-F04; M87.R3 F08-F09; M88.R2 F06; M89.R1 F10-F12; M89.R2 F13; Kinet M57.R1 F05, M57.R2 F01, M57.R4 F07. Owner statuses preserve evidence/full baselines without a separate review ledger. No closing-review iteration starts at intake.
+
+**Intake checks.** Focused APItools root/discovery/candidate/RFC checks passed; Kinet authorwire passed. Kinet catalogflow/catalogquestion/catalogwire checks were setup-blocked by missing offline golang.org/x/text v0.14.0. All source baselines were clean. Optional audit toolkit unavailable; no audit storage created. These checks do not establish future-feature acceptance.
+
+**Launch custody.** Kinet's integrated suggested.txt covers the entire affected horizon; APItools/Ramen references cover complete local horizons and name external prerequisites. These are alternatives, never independent concurrent ledger owners. Preserve existing human decisions and verify a refreshed file SHA256 against actual approval before activating grants. Catalog units receive no effective grant; Stage 12 scopes never transfer. Planning performs no commit, publication, deployment or live action.
+
 ## Stage 12 approved planning — 2026-10-09
 
 **Approved reconciliation.** Stage 12 planning review, 2026-10-09; source priority
@@ -337,7 +353,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C) |
+| M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89 accepted |
 
 Closed milestones are recorded in the history index.
 
@@ -359,19 +375,22 @@ without workspace/directory replacement is distinct from C11 pre-publication
 adapted fixtures; Kinet:M55 later proves final worker adoption.
 
 **Acceptance.** No HCL module remains in the APItools graph. Source-family
-behavior, shape and candidate contracts and digests are unchanged.
+behavior, shape and candidate contracts and digests are unchanged. M86.2 also
+preserves accepted M87-M89 root/snapshot/decision/discovery/planning fixtures;
+M86.3 qualifies those Kinet/Ramen APIs. M89 acceptance cannot activate the original
+C11/M54 conditional trigger.
 
 **Downstream.** Kinet:M55.
 
 **Tasks/review.** [status-M86.md](status-M86.md), 3 rows, review 0/10. The
 [coordinator](../../../kinet/docs/stage12.md) holds the shared order and triggers.
 
-M83/M84/M85 remain accepted/retired; M86 is the only active (conditional) APItools unit.
+M83/M84/M85 remain accepted/retired. M87-M89 are required catalog work; M86 remains conditional with an additional M89 compatibility prerequisite.
 Original Stage 11 is accepted across the five owner ledgers.
 Completed source repair and version discovery remain in the history index.
 Other candidates still require fresh reconciliation and approval.
 
-**Depends on.** UWS:C11. All required prerequisites must have
+**Depends on.** UWS:C11 and APItools:M89. All required prerequisites must have
 accepted closure at exact revisions; sibling producer adoption also needs
 independently verified publication. A priority position never supplies authority.
 
@@ -466,6 +485,8 @@ the work automatically.
 
 | Direction | Why Deferred | Promotion Trigger |
 |---|---|---|
+| Automatic catalog-root discovery | M87 keeps explicit roots and metadata-only no-root outcomes; no implicit cache lookup/creation. | A named consumer and approved compatibility/privacy review justify implicit discovery. |
+| APItools-owned HTTP model adapters | M89 uses consumer-owned model clients; standalone APItools remains deterministic. | A standalone adopter approves provider transport, opt-in, credential/privacy and offline-test contracts. |
 | Next provider-catalog expansion | No provider batch or user-verifiable outcome has been approved after the completed historical catalog batches. The [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md) also proposes a structured license/redistribution audit and workflow-ready typed overlays; those remain separate from M80's discovery report, which must expose unknown evidence. GoDaddy is absent from the catalog; its official Domains specs (`https://developer.godaddy.com/openapi/domains-v1.json` through `domains-v3.json`) were observed on 2026-10-01, and curating v1 or v2 would need a source-reviewed refresh correction for a publisher `properties.type` string defect. | Approve a bounded provider-owned source batch, its source/auth/license review rules, or a bounded license/typed-overlay upgrade with acceptance evidence. Proposed catalog IDs remain unallocated until fresh reconciliation and approval. |
 | Embedded baseline catalog root | M81's approved decision 3 keeps catalog roots caller-supplied. Embedding the 141 committed advisory overlays (about 2 MB) and their index would give published consumers a zero-setup offline root, but it widens distribution before the committed-overlay redistribution audit proposed in the [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md) and adds binary size for every consumer. | The committed-overlay redistribution audit completes, and a consumer needs a zero-setup offline root. |
 | Search default-behavior refinements | `Client.Search` keeps APIs.guru's `preferred` version and falls back to a lexicographic sort of version keys when it is missing (`providers.go`), and `auto` stops at the first source with matches (`client.go`). Changing either default alters results that OpenUdon and other callers rely on, so S05 reports versions through a separate opt-in command instead. Separately, the retired M80.4 remote tier sets `client.Cache = nil` with `CacheModeBypass` (`catalog_discovery_remote.go`), so each remote lookup re-downloads the whole APIs.guru directory list; S05 avoids that cost for its own checks but does not change the retired behavior. | Approve a default-behavior change with consumer reconciliation, observe APIs.guru entries whose `preferred` version is missing or unusable, or measure the directory download as a latency problem for a consumer. |
