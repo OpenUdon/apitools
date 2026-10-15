@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -295,5 +296,77 @@ func TestSnapshotRootDriftDefense(t *testing.T) {
 	err = SnapshotRoot(paths, destRoot2, SnapshotOptions{})
 	if !errors.Is(err, ErrActiveJournal) {
 		t.Fatalf("expected ErrActiveJournal, got %v", err)
+	}
+}
+
+func TestSnapshotPreservesExistingTargets(t *testing.T) {
+	for _, missing := range []bool{false, true} {
+		t.Run(fmt.Sprint(missing), func(t *testing.T) {
+			src, target := t.TempDir(), t.TempDir()
+			os.WriteFile(filepath.Join(src, DefaultRegistryPath), []byte("new"), 0600)
+			old := filepath.Join(target, DefaultRegistryPath)
+			os.WriteFile(old, []byte("old"), 0600)
+			paths, err := ResolveRoot(RootOptions{Directory: src})
+			if err != nil {
+				t.Fatal(err)
+			}
+			opts := SnapshotOptions{}
+			if missing {
+				opts.SelectedSourcePath = "missing.json"
+			}
+			if err := SnapshotRoot(paths, target, opts); err == nil {
+				t.Fatal("accepted differing target")
+			}
+			got, err := os.ReadFile(old)
+			if err != nil || string(got) != "old" {
+				t.Fatalf("lost existing data: %q %v", got, err)
+			}
+		})
+	}
+}
+
+func TestSnapshotRejectsDestinationAndSourceSymlinks(t *testing.T) {
+	for _, source := range []bool{false, true} {
+		t.Run(fmt.Sprint(source), func(t *testing.T) {
+			src, target, outside := t.TempDir(), t.TempDir(), t.TempDir()
+			os.WriteFile(filepath.Join(outside, "api.json"), []byte("original"), 0600)
+			os.Mkdir(filepath.Join(src, "specs"), 0700)
+			os.WriteFile(filepath.Join(src, "specs", "api.json"), []byte("replacement"), 0600)
+			if source {
+				os.RemoveAll(filepath.Join(src, "specs"))
+				os.Symlink(outside, filepath.Join(src, "specs"))
+			} else {
+				os.Symlink(outside, filepath.Join(target, "specs"))
+			}
+			paths, err := ResolveRoot(RootOptions{Directory: src})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := SnapshotRoot(paths, target, SnapshotOptions{SelectedSourcePath: "specs/api.json"}); err == nil {
+				t.Fatal("accepted symlink")
+			}
+			got, _ := os.ReadFile(filepath.Join(outside, "api.json"))
+			if string(got) != "original" {
+				t.Fatalf("external file changed: %q", got)
+			}
+		})
+	}
+}
+
+func TestSnapshotEmptyTargetAndIdenticalReuse(t *testing.T) {
+	src, target := t.TempDir(), t.TempDir()
+	os.WriteFile(filepath.Join(src, DefaultOperationIndexPath), []byte("{}"), 0600)
+	paths, err := ResolveRoot(RootOptions{Directory: src})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 2; i++ {
+		if err := SnapshotRoot(paths, target, SnapshotOptions{}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	os.WriteFile(filepath.Join(target, "extra"), []byte("keep"), 0600)
+	if err := SnapshotRoot(paths, target, SnapshotOptions{}); err == nil {
+		t.Fatal("accepted differing nonempty target")
 	}
 }

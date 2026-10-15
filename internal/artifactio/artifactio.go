@@ -516,7 +516,8 @@ func (tx *DirTransaction) TargetPath(relative string) (string, error) {
 }
 
 // Commit publishes the complete staged tree. An identical destination is
-// reused. A differing destination requires Force and is backed up until the
+// reused. An empty destination is accepted. A differing nonempty destination
+// requires Force and is backed up until the
 // staged rename succeeds.
 func (tx *DirTransaction) Commit() (bool, error) {
 	if tx == nil || tx.done {
@@ -557,7 +558,12 @@ func (tx *DirTransaction) Commit() (bool, error) {
 		}
 		return true, nil
 	}
-	if !tx.force {
+	entries, err := os.ReadDir(tx.target)
+	if err != nil {
+		_ = os.RemoveAll(tx.stage)
+		return false, err
+	}
+	if !tx.force && len(entries) != 0 {
 		_ = os.RemoveAll(tx.stage)
 		return false, fmt.Errorf("%w at directory %q", ErrCollision, tx.target)
 	}

@@ -613,7 +613,10 @@ index, and selected source without flattening, copies external metadata, enforce
 individual ceilings (64 MiB registry/index, 2 MiB metadata, 8 MiB selected source),
 checks active WAL/journal sidecars and collisions, executes full-set drift checks
 across all sources, and normalizes destination SQLite databases to DELETE journal
-mode without mutating producer files.
+mode without mutating producer files. S07 confines source reads to regular,
+non-symlink paths and stages the complete snapshot through artifactio. Publication
+accepts new/empty targets or identical reuse, rejects differing nonempty trees,
+and rollback removes only private staging. Normalization precedes publication.
 
 - Go module path: `github.com/OpenUdon/apitools`.
 - The versioned step-candidate wire contract and source-family matrix are

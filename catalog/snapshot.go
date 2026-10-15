@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/OpenUdon/apitools/internal/artifactio"
+
 	_ "modernc.org/sqlite"
 )
 
@@ -53,12 +55,22 @@ type SnapshotOptions struct {
 // enforces ceilings, verifies that no source files drifted during copying, and normalizes
 // destination SQLite databases to DELETE journal mode.
 //
-// Failures clean up any created files in targetDir and leave no producer mutation.
+// Failures discard only private staging. Existing targets and producer files are preserved.
+// New or empty targets are accepted; identical snapshots are reused.
 func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) error {
 	dir := strings.TrimSpace(paths.Directory)
 	if dir == "" {
 		return errors.New("cannot snapshot an unconfigured catalog root")
 	}
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		return err
+	}
+	parent, err := filepath.EvalSymlinks(filepath.Dir(absDir))
+	if err != nil {
+		return err
+	}
+	dir = filepath.Join(parent, filepath.Base(absDir))
 	info, err := os.Lstat(dir)
 	if err != nil {
 		return err
@@ -77,6 +89,22 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 	}
 	if filepath.Dir(absTarget) == absTarget {
 		return errors.New("snapshot destination cannot be filesystem root")
+	}
+	// Resolve existing destination ancestors before testing overlap, including
+	// aliases into the source root. No directories are created by this check.
+	ancestor := filepath.Dir(absTarget)
+	tail := filepath.Base(absTarget)
+	for {
+		resolved, resolveErr := filepath.EvalSymlinks(ancestor)
+		if resolveErr == nil {
+			absTarget = filepath.Join(resolved, tail)
+			break
+		}
+		if !errors.Is(resolveErr, os.ErrNotExist) {
+			return resolveErr
+		}
+		tail = filepath.Join(filepath.Base(ancestor), tail)
+		ancestor = filepath.Dir(ancestor)
 	}
 	if rootsOverlap(dir, absTarget) {
 		return ErrRootOverlap
@@ -164,25 +192,17 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 	}
 	defer srcRoot.Close()
 
-	// Ensure destination directory exists and is a regular directory
-	if targetInfo, err := os.Lstat(absTarget); err == nil {
-		if !targetInfo.IsDir() || targetInfo.Mode()&os.ModeSymlink != 0 {
-			return fmt.Errorf("snapshot destination %q must be a regular directory", absTarget)
-		}
-	} else if errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(absTarget, 0o700); err != nil {
-			return err
-		}
-	} else {
+	tx, err := artifactio.BeginDir(absTarget, false)
+	if err != nil {
 		return err
 	}
-
-	var createdFiles []string
-	rollback := func() {
-		for _, f := range createdFiles {
-			_ = os.Remove(f)
-		}
+	defer tx.Rollback()
+	rollback := func() { _ = tx.Rollback() }
+	stage := func(relative string, data []byte) error {
+		_, err := tx.Stage(relative, data, 0600)
+		return err
 	}
+	var stagedReg string
 
 	// 1. Copy registry if present (optional evidence)
 	var regData []byte
@@ -190,12 +210,12 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 	regData, err = readConfinedFile(srcRoot, relReg, maxReg)
 	if err == nil {
 		regExisted = true
-		dest := filepath.Join(absTarget, relReg)
-		if err := writeDestinationFile(dest, regData); err != nil {
+		result, stageErr := tx.Stage(relReg, regData, 0600)
+		stagedReg = result.Path
+		if err := stageErr; err != nil {
 			rollback()
 			return err
 		}
-		createdFiles = append(createdFiles, dest)
 	} else if !errors.Is(err, os.ErrNotExist) {
 		rollback()
 		return fmt.Errorf("reading registry: %w", err)
@@ -207,12 +227,10 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 	idxData, err = readConfinedFile(srcRoot, relIdx, maxIdx)
 	if err == nil {
 		idxExisted = true
-		dest := filepath.Join(absTarget, relIdx)
-		if err := writeDestinationFile(dest, idxData); err != nil {
+		if err := stage(relIdx, idxData); err != nil {
 			rollback()
 			return err
 		}
-		createdFiles = append(createdFiles, dest)
 	} else if !errors.Is(err, os.ErrNotExist) {
 		rollback()
 		return fmt.Errorf("reading index: %w", err)
@@ -226,12 +244,10 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 			rollback()
 			return fmt.Errorf("reading selected source %q: %w", options.SelectedSourcePath, err)
 		}
-		dest := filepath.Join(absTarget, options.SelectedSourcePath)
-		if err := writeDestinationFile(dest, selData); err != nil {
+		if err := stage(options.SelectedSourcePath, selData); err != nil {
 			rollback()
 			return err
 		}
-		createdFiles = append(createdFiles, dest)
 	}
 
 	// 4. Copy metadata if configured (required evidence)
@@ -242,12 +258,10 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 			rollback()
 			return fmt.Errorf("reading metadata %q: %w", options.MetadataSource, err)
 		}
-		dest := filepath.Join(absTarget, options.MetadataDestination)
-		if err := writeDestinationFile(dest, metaData); err != nil {
+		if err := stage(options.MetadataDestination, metaData); err != nil {
 			rollback()
 			return err
 		}
-		createdFiles = append(createdFiles, dest)
 	}
 
 	// 5. Full-set drift check
@@ -301,7 +315,7 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 
 	// 6. Destination-only SQLite journal mode normalization
 	if regExisted {
-		destReg := filepath.Join(absTarget, relReg)
+		destReg := stagedReg
 		if shouldNormalizeSQLite(destReg, options.NormalizeJournal) {
 			if err := normalizeJournalMode(destReg); err != nil {
 				rollback()
@@ -310,7 +324,8 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 		}
 	}
 
-	return nil
+	_, err = tx.Commit()
+	return err
 }
 
 func checkActiveJournals(registryPath string) error {
@@ -327,6 +342,16 @@ func checkActiveJournals(registryPath string) error {
 }
 
 func readConfinedFile(root *os.Root, relPath string, maxBytes int64) ([]byte, error) {
+	if _, err := rootFilePath(root, relPath, ""); err != nil {
+		return nil, err
+	}
+	before, err := root.Lstat(relPath)
+	if err != nil {
+		return nil, err
+	}
+	if !before.Mode().IsRegular() {
+		return nil, fmt.Errorf("file %q is not regular", relPath)
+	}
 	f, err := root.Open(relPath)
 	if err != nil {
 		return nil, err
@@ -336,8 +361,8 @@ func readConfinedFile(root *os.Root, relPath string, maxBytes int64) ([]byte, er
 	if err != nil {
 		return nil, err
 	}
-	if !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("file %q is not a regular file", relPath)
+	if !info.Mode().IsRegular() || !os.SameFile(before, info) {
+		return nil, fmt.Errorf("file %q is not a stable regular file", relPath)
 	}
 	if info.Size() > maxBytes {
 		return nil, fmt.Errorf("file %q size %d exceeds maximum of %d bytes", relPath, info.Size(), maxBytes)
@@ -357,40 +382,8 @@ func readExternalFile(path string, maxBytes int64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	info, err := os.Lstat(abs)
-	if err != nil {
-		return nil, err
-	}
-	if !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("file %q is not a regular file", path)
-	}
-	if info.Mode()&os.ModeSymlink != 0 {
-		return nil, fmt.Errorf("file %q cannot be a symlink", path)
-	}
-	if info.Size() > maxBytes {
-		return nil, fmt.Errorf("file %q size %d exceeds maximum of %d bytes", path, info.Size(), maxBytes)
-	}
-	f, err := os.Open(abs)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	data, err := io.ReadAll(io.LimitReader(f, maxBytes+1))
-	if err != nil {
-		return nil, err
-	}
-	if int64(len(data)) > maxBytes {
-		return nil, fmt.Errorf("file %q exceeds maximum of %d bytes", path, maxBytes)
-	}
-	return data, nil
-}
-
-func writeDestinationFile(destPath string, data []byte) error {
-	parent := filepath.Dir(destPath)
-	if err := os.MkdirAll(parent, 0o700); err != nil {
-		return err
-	}
-	return os.WriteFile(destPath, data, 0o600)
+	file, err := artifactio.ReadFile(filepath.Dir(abs), filepath.Base(abs), artifactio.ReadOptions{MaxBytes: maxBytes})
+	return file.Data, err
 }
 
 func shouldNormalizeSQLite(path string, forceNormalize bool) bool {

@@ -12,7 +12,7 @@ Protected publication is authorized only by the human plan after qualification.
 
 | Item | State | Notes |
 |---|---|---|
-| S07.1 — Transactional snapshots | `[ ]` | F01/F02 P1, F05 P2: destination symlinks, destructive rollback, FIFO/source symlinks. Reuse artifactio transactions; preserve existing targets on failure, identical reuse, empty/new targets, collisions, drift and destination-only normalization. |
+| S07.1 — Transactional snapshots | `[+]` | F01/F02 P1, F05 P2: destination symlinks, destructive rollback, FIFO/source symlinks. Reuse artifactio transactions; preserve existing targets on failure, identical reuse, empty/new targets, collisions, drift and destination-only normalization. Red: preservation/symlink tests reproduced F01/F02. Green: go test ./catalog ./internal/artifactio, including bounded Linux FIFO refusal, empty/identical reuse and existing journal/collision gates; git diff --check. |
 | S07.2 — Validate lifecycle mutations | `[ ]` | F03/F04 P1: provider/initialization traversal. Validate paths/identities before writes, reject symlinks/special files, reuse identical sources and reject different collisions; registration failure preserves prior artifacts. |
 | S07.3 — Nested registry and environment | `[ ]` | F06/F09 P2: additive root-aware SQLite opener and explicit flag > canonical env > aliases > defaults. |
 | S07.4 — Explicit custom catalogs | `[ ]` | F07/F08 P2: bounded --catalog plumbing for add/import/search; one selected catalog governs validation/registration/index/search. Unknown identities fail before writes. |
