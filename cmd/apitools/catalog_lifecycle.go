@@ -66,6 +66,40 @@ func runCatalogInit(args []string, out, errOut io.Writer) int {
 		return exitRuntime
 	}
 
+	extraFiles := []string{}
+	if *catalogPath != "" {
+		extraFiles = append(extraFiles, *catalogPath)
+	}
+	if err := validateCatalogMutationPaths(rootOpts, extraFiles, []string{"specs"}); err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
+	}
+	// Custom metadata must be readable and valid before initialization mutates.
+	var customCatalog *catalog.Catalog
+	if *catalogPath != "" {
+		file, err := artifactio.ReadFile(rootDir, *catalogPath, artifactio.ReadOptions{MaxBytes: 4 << 20})
+		if err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitRuntime
+		}
+		var cat catalog.Catalog
+		dec := json.NewDecoder(bytes.NewReader(file.Data))
+		dec.DisallowUnknownFields()
+		if err := dec.Decode(&cat); err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitRuntime
+		}
+		if err := cat.Validate(); err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitRuntime
+		}
+		var trailing any
+		if err := dec.Decode(&trailing); err != io.EOF {
+			fmt.Fprintln(errOut, "trailing custom catalog metadata")
+			return exitRuntime
+		}
+		customCatalog = &cat
+	}
 	// Create root directory and specs directory
 	if err := os.MkdirAll(rootDir, 0o755); err != nil {
 		fmt.Fprintln(errOut, err)
@@ -101,21 +135,7 @@ func runCatalogInit(args []string, out, errOut io.Writer) int {
 		},
 		ReadRegistrations: sqlitecache.ReadCatalogSpecArtifacts,
 	}
-	if *catalogPath != "" {
-		file, err := artifactio.ReadFile(rootDir, *catalogPath, artifactio.ReadOptions{MaxBytes: 4 << 20})
-		if err != nil {
-			fmt.Fprintln(errOut, "cannot read custom catalog metadata")
-			return exitRuntime
-		}
-		var cat catalog.Catalog
-		dec := json.NewDecoder(bytes.NewReader(file.Data))
-		dec.DisallowUnknownFields()
-		if err := dec.Decode(&cat); err != nil {
-			fmt.Fprintln(errOut, "invalid custom catalog metadata")
-			return exitRuntime
-		}
-		indexOpts.Catalog = &cat
-	}
+	indexOpts.Catalog = customCatalog
 
 	ctx := context.Background()
 	index, err := apitools.BuildCatalogOperationIndex(ctx, indexOpts)
@@ -214,24 +234,13 @@ func runCatalogAdd(args []string, out, errOut io.Writer) int {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
 	}
-	info, err := os.Lstat(absFile)
+	source, err := artifactio.ReadFile(filepath.Dir(absFile), filepath.Base(absFile), artifactio.ReadOptions{})
 	if err != nil {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
 	}
-	if !info.Mode().IsRegular() {
-		fmt.Fprintf(errOut, "spec file %q is not a regular file\n", filePath)
-		return exitRuntime
-	}
-	if info.Size() > artifactio.DefaultMaxBytes {
-		fmt.Fprintf(errOut, "spec file exceeds maximum allowed size (%d bytes)\n", artifactio.DefaultMaxBytes)
-		return exitRuntime
-	}
-	data, err := os.ReadFile(absFile)
-	if err != nil {
-		fmt.Fprintln(errOut, err)
-		return exitRuntime
-	}
+	data := source.Data
+
 	if len(data) == 0 {
 		fmt.Fprintln(errOut, "spec file is empty")
 		return exitRuntime
@@ -280,32 +289,20 @@ func runCatalogAdd(args []string, out, errOut io.Writer) int {
 	}
 	provider = strings.ToLower(provider)
 
+	if !safeCatalogID(provider) || !safeCatalogID(specID) {
+		fmt.Fprintln(errOut, "provider and spec IDs must be safe catalog identifiers")
+		return exitRuntime
+	}
+
 	// Determine destination path inside root
 	var relPath string
 	relToRoot, err := filepath.Rel(paths.Directory, absFile)
 	if err == nil && !strings.HasPrefix(relToRoot, "..") && !filepath.IsAbs(relToRoot) {
 		relPath = filepath.ToSlash(relToRoot)
 	} else {
-		destDir := filepath.Join(paths.Directory, "specs", provider)
-		if err := os.MkdirAll(destDir, 0o755); err != nil {
-			fmt.Fprintln(errOut, err)
-			return exitRuntime
-		}
-		destPath := filepath.Join(destDir, filepath.Base(absFile))
-		if err := os.WriteFile(destPath, data, 0o644); err != nil {
-			fmt.Fprintln(errOut, err)
-			return exitRuntime
-		}
+
 		relPath = filepath.ToSlash(filepath.Join("specs", provider, filepath.Base(absFile)))
 	}
-
-	// Open cache and store artifact
-	cache, err := sqlitecache.Open(paths.RegistryPath)
-	if err != nil {
-		fmt.Fprintln(errOut, err)
-		return exitRuntime
-	}
-	defer cache.Close()
 
 	artifact := sqlitecache.CatalogArtifact{
 		ProviderID: provider,
@@ -318,7 +315,7 @@ func runCatalogAdd(args []string, out, errOut io.Writer) int {
 	}
 
 	ctx := context.Background()
-	if err := cache.StoreCatalogArtifact(ctx, artifact); err != nil {
+	if err := storeCatalogSource(ctx, paths, data, artifact); err != nil {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
 	}
@@ -421,16 +418,25 @@ func runCatalogImportWithClient(args []string, out, errOut io.Writer, newClient 
 		provider = "imported"
 	}
 
-	targetDir := filepath.Join(paths.Directory, "specs", provider)
-	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+	if !safeCatalogID(provider) || *nameFlag != "" && !safeCatalogID(*nameFlag) {
+		fmt.Fprintln(errOut, "provider and name must be safe catalog identifiers")
+		return exitRuntime
+	}
+	if err := validateCatalogMutationPaths(rootOpts, nil, []string{"specs", filepath.Join("specs", provider)}); err != nil {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
 	}
+	targetDir, err := os.MkdirTemp("", "apitools-catalog-import-*")
+	if err != nil {
+		fmt.Fprintln(errOut, err)
+		return exitRuntime
+	}
+	defer os.RemoveAll(targetDir)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	client, closeCache, err := newClient(paths.RegistryPath)
+	client, closeCache, err := newClient("")
 	if err != nil {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
@@ -452,25 +458,17 @@ func runCatalogImportWithClient(args []string, out, errOut io.Writer, newClient 
 	}
 
 	imported := importReport.Imported
-	relPath, err := filepath.Rel(paths.Directory, imported.Path)
+	relPath := filepath.ToSlash(filepath.Join("specs", provider, filepath.Base(imported.Path)))
+	source, err := artifactio.ReadFile(targetDir, filepath.Base(imported.Path), artifactio.ReadOptions{MaxBytes: artifactio.DefaultMaxBytes, SHA256: imported.SHA256, Bytes: imported.Bytes})
 	if err != nil {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
 	}
-	relPath = filepath.ToSlash(relPath)
 
 	stem := *nameFlag
 	if stem == "" {
 		stem = strings.TrimSuffix(filepath.Base(imported.Path), filepath.Ext(imported.Path))
 	}
-
-	// Store in SQLite cache as catalog artifact
-	cache, err := sqlitecache.Open(paths.RegistryPath)
-	if err != nil {
-		fmt.Fprintln(errOut, err)
-		return exitRuntime
-	}
-	defer cache.Close()
 
 	artifact := sqlitecache.CatalogArtifact{
 		ProviderID: provider,
@@ -481,7 +479,7 @@ func runCatalogImportWithClient(args []string, out, errOut io.Writer, newClient 
 		SHA256:     imported.SHA256,
 		Bytes:      imported.Bytes,
 	}
-	if err := cache.StoreCatalogArtifact(ctx, artifact); err != nil {
+	if err := storeCatalogSource(ctx, paths, source.Data, artifact); err != nil {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
 	}

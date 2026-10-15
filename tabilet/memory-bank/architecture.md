@@ -899,3 +899,10 @@ YAML numeric-key normalization is restricted to integral 100–599 response code
 ### M83 whole-review GraphQL/YAML proof refinements
 
 GraphQL native selections preserve response keys, underlying fields, deterministic typed argument identity and child selections. Repeated compatible fields/arguments merge across self-aliases, argument/object order and compatible child unions; known conflicts at child response paths refuse. String argument proof uses native lexemes and proper quoted/block-string values, never lossy prompt text. Lexer/balanced delimiter handling charges punctuation only. Child merge validation charges the existing 100,000-node projection budget and retains at most 8 MiB of response-path/argument identity. Full GraphQL validation, fragments, conditional presence and return-type proof remain outside the complete schema claim. Numeric YAML response recognition includes native callback/webhook contexts without adding projection/execution, and bounds lexeme/magnitude before arithmetic.
+
+S07 lifecycle mutation guards validate configuration, root-relative destinations,
+provider/spec IDs and existing path components before mkdir, database open or
+source publication. Local reads use bounded artifactio regular-file checks;
+imports download into private temporary staging. Catalog source publication uses
+atomic identical-content reuse and refuses differing collisions. Failed
+registration removes only a newly created source, preserving pre-existing files.
