@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"unicode/utf8"
 )
 
 // DecisionRecommendation represents an advisory candidate recommendation and rationale.
@@ -159,15 +160,15 @@ func deterministicRecommendCandidate(candidates []CatalogDecisionCandidate, goal
 }
 
 func parseRecommendationResponse(content string, selectable []int, budget PromptBudget) (DecisionRecommendation, bool) {
-	raw := extractJSON(content)
-	if len(raw) == 0 || len(raw) > MaxCatalogDecisionBytes {
+	raw := planningJSON(content)
+	if raw == "" {
 		return DecisionRecommendation{}, false
 	}
 
 	var parsed struct {
-		RecommendedIndex int    `json:"recommended_index"`
-		Rationale        string `json:"rationale"`
-		Caveats          string `json:"caveats"`
+		RecommendedIndex *int    `json:"recommended_index"`
+		Rationale        *string `json:"rationale"`
+		Caveats          string  `json:"caveats"`
 	}
 
 	if err := json.Unmarshal([]byte(raw), &parsed); err != nil {
@@ -175,15 +176,15 @@ func parseRecommendationResponse(content string, selectable []int, budget Prompt
 	}
 
 	// Must be in selectable set (resolving F13: ranking is not selection authority; cannot recommend outside selectable set)
-	if !slices.Contains(selectable, parsed.RecommendedIndex) {
+	if parsed.RecommendedIndex == nil || parsed.Rationale == nil || strings.TrimSpace(*parsed.Rationale) == "" || utf8.RuneCountInString(*parsed.Rationale) > budget.MaxTextRunes || utf8.RuneCountInString(parsed.Caveats) > budget.MaxTextRunes || !slices.Contains(selectable, *parsed.RecommendedIndex) {
 		return DecisionRecommendation{}, false
 	}
 
-	rationale, _ := sanitizePromptString(parsed.Rationale, budget.MaxTextRunes)
+	rationale, _ := sanitizePromptString(*parsed.Rationale, budget.MaxTextRunes)
 	caveats, _ := sanitizePromptString(parsed.Caveats, budget.MaxTextRunes)
 
 	return DecisionRecommendation{
-		RecommendedIndex: parsed.RecommendedIndex,
+		RecommendedIndex: *parsed.RecommendedIndex,
 		Rationale:        rationale,
 		Caveats:          caveats,
 	}, true

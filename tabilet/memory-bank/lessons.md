@@ -114,6 +114,13 @@ cache failures/restored exact lockfiles. No source workaround or user-cache muta
 - **Why it matters:** Flattening relative paths breaks consumers expecting nested registry/index layouts. Omitting metadata or selected source causes downstream validation failures. In-flight writes or concurrent updates during copying can produce corrupt or inconsistent snapshots.
 - **Evidence:** [M87](../docs/history/status-M87.md), review findings F02, F03, F04; `catalog/snapshot.go` and `catalog/snapshot_test.go`.
 
+Snapshot publication stages a complete tree and confines rollback to owned
+staging; pre-existing targets are either identical/empty or refused. Use the
+catalog root, rather than a nested registry's directory, as the artifact base.
+Validate identities against the same explicitly selected catalog before
+registration and search. Evidence: S07 snapshot preservation, root-aware cache
+and custom-catalog round-trip tests.
+
 ## Catalog remote discovery fallback requires provider URL forwarding and strict URL safety
 
 - **Applies when:** Broadening remote catalog discovery from single-source to cascaded multi-source (`SourceAuto`).
@@ -124,6 +131,13 @@ cache failures/restored exact lockfiles. No source workaround or user-cache muta
 ## LLM touchpoints must use standard effect vocabularies and selectable-only candidate boundaries
 
 - **Applies when:** Formulating operation contracts and candidate recommendations with pluggable LLM assistants.
-- **Lesson:** Normalize model-generated effects to standard `OperationEffect` values (`read`, `write`, `unknown`, or omitted) and strictly reject unapproved values such as `idempotent_write`. Avoid fabricating wildcard inputs when parameters are missing; instead, expose missing evidence via informational diagnostics (`contract.input_missing`). In candidate recommendation, restrict assistance strictly to verified `Selectable` candidates; never recommend unqualified, omitted, or hallucinated candidate indexes. Always revalidate serialized JSON and prompt bounds after attaching explanation text.
+- **Lesson:** Normalize supported model-generated effects to standard `OperationEffect` values (`read`, `write`, `unknown`); `idempotent_write` maps to `write`. Reject missing or unsupported planning effects. Avoid fabricating wildcard inputs when parameters are missing; instead, expose missing evidence via informational diagnostics (`contract.input_missing`). In candidate recommendation, restrict assistance strictly to verified `Selectable` candidates; never recommend unqualified, omitted, or hallucinated candidate indexes. Always revalidate serialized JSON and prompt bounds after attaching explanation text.
 - **Why it matters:** Non-standard effect strings cause qualification failures. Wildcard inputs conceal missing parameter dependencies. Recommending non-selectable candidates violates human confirmation boundaries and can authorize incorrect operations.
 - **Evidence:** [M89](../docs/history/status-M89.md), review findings F10, F11, F12, F13; `llm_plan.go`, `llm_recommend.go`, `llm_plan_test.go`, and `llm_recommend_test.go`.
+
+Reject incomplete or mistyped completion objects and bound the entire response
+before fence extraction. Sanitizing or truncating a valid JSON object's fields
+does not make an invalid or oversized completion a usable plan. Deterministic
+fallback preserves useful intent when model assistance fails. Evidence:
+[S07 qualification](../../docs/s07-qualification.md), invalid planning and
+recommendation completion regressions.

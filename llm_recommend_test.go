@@ -193,3 +193,22 @@ func TestClientRecommendCandidate(t *testing.T) {
 		t.Fatalf("unexpected client.RecommendCandidate: rec=%#v err=%v", rec, err)
 	}
 }
+
+func TestRecommendationInvalidStructureAndCompleteResponseBudget(t *testing.T) {
+	budget := DefaultPromptBudget()
+	valid := `{"recommended_index":1,"rationale":"clear match"}`
+	for _, raw := range []string{
+		"null", "{}", `{"recommended_index":1}`, `{"recommended_index":1,"rationale":null}`,
+		`{"recommended_index":1,"rationale":""}`,
+		`{"recommended_index":1,"rationale":12}`,
+		strings.Repeat(" ", MaxCatalogDecisionBytes) + valid,
+		`{"recommended_index":1,"rationale":"` + strings.Repeat("x", budget.MaxTextRunes+1) + `"}`,
+	} {
+		if _, ok := parseRecommendationResponse(raw, []int{1}, budget); ok {
+			t.Fatalf("accepted invalid recommendation: %.120s", raw)
+		}
+	}
+	if _, ok := parseRecommendationResponse("```json\n"+valid+"\n```", []int{1}, budget); !ok {
+		t.Fatal("rejected valid fence")
+	}
+}

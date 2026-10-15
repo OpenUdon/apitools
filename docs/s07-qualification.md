@@ -22,7 +22,8 @@ before repair. Other cases were revalidated against source and offline tests.
 
 ## Verification
 
-At implementation `9fd831d182b9ceed63900545c0dd2886276738bd`:
+Initial implementation qualification at `9fd831d182b9ceed63900545c0dd2886276738bd`
+(review fixes are requalified below):
 
 - `go test ./...` and `go vet ./...`: pass in the existing workspace.
 - `GOWORK=off GOPROXY=off go test ./...` and standalone vet: pass.
@@ -54,4 +55,49 @@ Disposable logs/configuration are under
 `/tmp/apitools-s07-verification.r6Xkug`; this is diagnostic storage, not a
 permanent source contract or consumer adoption/pin change.
 
-Whole review and final consumer outcomes remain pending.
+Both complete consumer suites pass with GOWORK=off, GOPROXY=off and
+GOFLAGS='-mod=mod -modfile=/tmp/apitools-s07-verification.r6Xkug/<consumer>/candidate.mod'.
+The temporary modfiles replace APItools and available workspace dependencies
+with their inspected local checkouts. Both consumers also pass vet under the
+disposable workspace. Consumer heads, clean status and go.mod/go.sum SHA-256
+hashes match the captured baselines. Udon tests generated untracked synthetic
+HCL fixtures under three relative srv/ trees; their shape/timestamps were checked
+and the invocation-owned trees were moved into disposable diagnostic storage.
+This proves local candidate compatibility, not ordinary published adoption.
+
+Required pre-review qualification passes; review iteration 1 fixes are complete,
+with whole review iteration 2 pending.
+
+## Review iteration 1 fixes
+
+Complete-response and required-rationale validation now also protects candidate
+recommendations. Its regression reproduced acceptance of a missing rationale
+before the fix. Deterministic local consistency checks cover content changes,
+source removal/addition and symlink replacement. A corrupt SQLite normalization
+failure preserves existing destination files and removes staging. Sidecar
+hierarchy and symlink-aliased overlap tests reject unsafe destinations.
+The outdated maintained effect lesson is corrected; its original wording is
+retained in the knowledge journal. Focused tests pass.
+
+Final consumer runs use immutable archive copies of the captured baseline
+commits in disposable source directories, so generated fixture outputs stay
+outside the original sibling worktrees. Their temporary modfiles still point
+at the final APItools integration checkout.
+
+## Environment retro
+
+P2 planning candidate: a deterministic consumer-check wrapper should propagate
+temporary modfiles to nested Go commands, use immutable source copies, and
+compare original heads/status/pin hashes afterward. This run demonstrates the
+recipe; it creates no new milestone or workflow requirement. Lower candidate:
+cache-report smoke should use a disposable empty cache rather than parse a
+developer's populated review corpus. No audit or new capability was enabled.
+
+No evolution bump: S07 restores existing contracts and preserves package
+ownership, source families, remote opt-in, consumer pins and frozen evidence.
+
+Final workspace/standalone APItools tests and vet, both focused race commands,
+generation/quality and both complete consumer test/vet suites pass after the
+review fixes. OpenUdon's first archive-based run reported private-store setup
+refusal; the unchanged focused package passed, and a complete run with explicit
+isolated TMPDIR passed. No consumer test was skipped or modified.

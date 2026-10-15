@@ -361,3 +361,10 @@ S07 focused lifecycle gate: `go test ./catalog ./sqlitecache ./cmd/apitools
 additive `sqlitecache.OpenCatalog`; existing cache openers and schemas remain.
 Omitted CLI registry/index flags honor APITOOLS_CATALOG_*, then CATALOG_*,
 then KINET_CATALOG_*; explicit flags win and empty path flags select defaults.
+
+Consumer compatibility qualification can use immutable source copies plus
+temporary modfiles pointing APItools at the integration candidate. Propagate an
+absolute `GOFLAGS=-modfile=...` to nested `GOWORK=off` subprocesses; never edit
+consumer pins for a producer check. Compare original consumer heads, status and
+manifest hashes afterward. S07's commands and outcomes are in
+[qualification](../../docs/s07-qualification.md).

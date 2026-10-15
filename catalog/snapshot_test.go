@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"errors"
@@ -368,5 +369,100 @@ func TestSnapshotEmptyTargetAndIdenticalReuse(t *testing.T) {
 	os.WriteFile(filepath.Join(target, "extra"), []byte("keep"), 0600)
 	if err := SnapshotRoot(paths, target, SnapshotOptions{}); err == nil {
 		t.Fatal("accepted differing nonempty target")
+	}
+}
+
+func TestSnapshotContentAndPresenceDrift(t *testing.T) {
+	for _, change := range []string{"modified", "removed", "added", "symlink"} {
+		t.Run(change, func(t *testing.T) {
+			src := t.TempDir()
+			rel := "evidence.json"
+			path := filepath.Join(src, rel)
+			before := []byte("before")
+			existed := change != "added"
+			if existed {
+				if err := os.WriteFile(path, before, 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			root, err := os.OpenRoot(src)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer root.Close()
+			if err := checkSnapshotFile(root, rel, 1024, before, existed); err != nil {
+				t.Fatalf("unchanged evidence: %v", err)
+			}
+			switch change {
+			case "modified", "added":
+				err = os.WriteFile(path, []byte("changed"), 0600)
+			case "removed":
+				err = os.Remove(path)
+			case "symlink":
+				if err = os.Remove(path); err == nil {
+					err = os.Symlink(filepath.Join(t.TempDir(), "outside"), path)
+				}
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := checkSnapshotFile(root, rel, 1024, before, existed); !errors.Is(err, ErrSnapshotDrift) {
+				t.Fatalf("missed %s drift: %v", change, err)
+			}
+		})
+	}
+}
+
+func TestSnapshotNormalizationFailurePreservesTargetAndRemovesStage(t *testing.T) {
+	src, parent := t.TempDir(), t.TempDir()
+	target := filepath.Join(parent, "snapshot")
+	if err := os.Mkdir(target, 0700); err != nil {
+		t.Fatal(err)
+	}
+	old := []byte("existing")
+	if err := os.WriteFile(filepath.Join(target, "keep"), old, 0600); err != nil {
+		t.Fatal(err)
+	}
+	// SQLite magic triggers normalization, but the body is deliberately invalid.
+	if err := os.WriteFile(filepath.Join(src, DefaultRegistryPath), append([]byte("SQLite format 3\x00"), make([]byte, 84)...), 0600); err != nil {
+		t.Fatal(err)
+	}
+	paths, err := ResolveRoot(RootOptions{Directory: src})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := SnapshotRoot(paths, target, SnapshotOptions{NormalizeJournal: true}); err == nil {
+		t.Fatal("accepted corrupt SQLite")
+	}
+	got, err := os.ReadFile(filepath.Join(target, "keep"))
+	if err != nil || !bytes.Equal(got, old) {
+		t.Fatal("lost existing target")
+	}
+	entries, err := os.ReadDir(parent)
+	if err != nil || len(entries) != 1 {
+		t.Fatalf("left staging: %v %v", entries, err)
+	}
+}
+
+func TestSnapshotRefusesSidecarHierarchyAndAliasedOverlap(t *testing.T) {
+	src, parent := t.TempDir(), t.TempDir()
+	paths, err := ResolveRoot(RootOptions{Directory: src})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, suffix := range []string{"-wal", "-shm", "-journal"} {
+		if err := SnapshotRoot(paths, filepath.Join(parent, "snapshot"), SnapshotOptions{MetadataSource: filepath.Join(src, "any.json"), MetadataDestination: DefaultRegistryPath + suffix + "/nested"}); err == nil {
+			t.Fatal("accepted sidecar hierarchy collision")
+		}
+	}
+	alias := filepath.Join(parent, "alias")
+	if err := os.Symlink(src, alias); err != nil {
+		t.Fatal(err)
+	}
+	if err := SnapshotRoot(paths, filepath.Join(alias, "child", "snapshot"), SnapshotOptions{}); !errors.Is(err, ErrRootOverlap) {
+		t.Fatalf("aliased overlap: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(src, "child")); !os.IsNotExist(err) {
+		t.Fatal("overlap mutated producer")
 	}
 }

@@ -378,3 +378,21 @@ checker policy; no new dependency or waiver is planned.
 - **Why it matters:** A correct shape can coexist with false candidate required inputs and legitimately block publication; a host workaround would fork native semantics.
 - **Evidence:** [M50-NATIVE-F01](../../../kinet/docs/m50-candidate-header-finding.md), actual local/rootless worker ced5468, published APItools0c; [M85](status-M85.md) is approved remediation, not delivered proof.
 ``````
+
+## 2026-10-15 — S07 corrects maintained effect-normalization guidance
+
+Original: tabilet/memory-bank/lessons.md, “LLM touchpoints must use standard effect
+vocabularies and selectable-only candidate boundaries.” The old instruction to
+reject idempotent_write contradicted the accepted implementation and integration
+requirement. S07 retains normalization to write and rejection of unsupported
+effects. Replacement: [maintained lesson](../../memory-bank/lessons.md#llm-touchpoints-must-use-standard-effect-vocabularies-and-selectable-only-candidate-boundaries);
+evidence: llm_plan.go and normalization/invalid-response regression tests.
+
+````markdown
+## LLM touchpoints must use standard effect vocabularies and selectable-only candidate boundaries
+
+- **Applies when:** Formulating operation contracts and candidate recommendations with pluggable LLM assistants.
+- **Lesson:** Normalize model-generated effects to standard `OperationEffect` values (`read`, `write`, `unknown`, or omitted) and strictly reject unapproved values such as `idempotent_write`. Avoid fabricating wildcard inputs when parameters are missing; instead, expose missing evidence via informational diagnostics (`contract.input_missing`). In candidate recommendation, restrict assistance strictly to verified `Selectable` candidates; never recommend unqualified, omitted, or hallucinated candidate indexes. Always revalidate serialized JSON and prompt bounds after attaching explanation text.
+- **Why it matters:** Non-standard effect strings cause qualification failures. Wildcard inputs conceal missing parameter dependencies. Recommending non-selectable candidates violates human confirmation boundaries and can authorize incorrect operations.
+- **Evidence:** [M89](../docs/history/status-M89.md), review findings F10, F11, F12, F13; `llm_plan.go`, `llm_recommend.go`, `llm_plan_test.go`, and `llm_recommend_test.go`.
+````

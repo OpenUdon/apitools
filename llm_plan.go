@@ -3,10 +3,11 @@ package apitools
 import (
 	"context"
 	"encoding/json"
-	"github.com/OpenUdon/apitools/internal/sourceguard"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/OpenUdon/apitools/internal/sourceguard"
 )
 
 // DefaultLLMTimeout is the default deadline for LLM completion requests.
@@ -386,29 +387,6 @@ func deterministicPlanDiscoveryRequest(taskDescription string, budget PromptBudg
 	}
 
 	return PrepareDiscoveryRequestDraft(req, budget)
-}
-
-func extractJSON(content string) string {
-	content = strings.TrimSpace(content)
-	if strings.HasPrefix(content, "```") {
-		lines := strings.Split(content, "\n")
-		if len(lines) >= 2 {
-			start := 1
-			end := len(lines) - 1
-			for end > start && !strings.HasPrefix(strings.TrimSpace(lines[end]), "```") {
-				end--
-			}
-			if end > start {
-				content = strings.TrimSpace(strings.Join(lines[start:end], "\n"))
-			}
-		}
-	}
-	firstOpen := strings.Index(content, "{")
-	lastClose := strings.LastIndex(content, "}")
-	if firstOpen >= 0 && lastClose > firstOpen {
-		content = content[firstOpen : lastClose+1]
-	}
-	return content
 }
 
 // planningJSON accepts a single JSON object, optionally inside a JSON fence.

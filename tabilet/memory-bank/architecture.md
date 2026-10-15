@@ -921,9 +921,11 @@ custom metadata governs provider/spec/kind validation, registration and both
 index-backed and metadata-only search. Unknown identities are rejected before
 downloads or registry/source mutation; input metadata cannot be a source target.
 
-S07 model planning rejects null/empty or incomplete structures, wrong field
-types, unsupported effects and over-budget responses before accepting a model
-plan. Complete-response bytes, JSON structure, collection/field counts and text
+S07 model planning and recommendation reject null/empty or incomplete structures,
+wrong field types, unsupported effects and over-budget responses before accepting
+a model plan. Complete-response bytes, JSON structure, collection/field counts and text
 runes are bounded before projection. A single JSON object or supported JSON
 fence is accepted. Invalid output uses deterministic fallback; empty inputs
 retain clarification, and idempotent_write still normalizes to write.
+Recommendations require an explicit selectable index and nonempty bounded
+rationale.

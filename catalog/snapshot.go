@@ -174,7 +174,7 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 		}
 		// Sidecar overlap checks against registry
 		for _, suffix := range []string{"-wal", "-shm", "-journal"} {
-			if destPaths[i] != relReg && filepath.Clean(destPaths[i]) == filepath.Clean(relReg+suffix) {
+			if destPaths[i] != relReg && rootsOverlap(filepath.Clean(destPaths[i]), filepath.Clean(relReg+suffix)) {
 				return fmt.Errorf("destination path %q overlaps registry sidecar", destPaths[i])
 			}
 		}
@@ -265,38 +265,15 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 	}
 
 	// 5. Full-set drift check
-	// Recheck registry
-	if regExisted {
-		after, err := readConfinedFile(srcRoot, relReg, maxReg)
-		if err != nil || !bytes.Equal(regData, after) {
-			rollback()
-			return ErrSnapshotDrift
-		}
-	} else {
-		if _, err := srcRoot.Lstat(relReg); !errors.Is(err, os.ErrNotExist) {
-			rollback()
-			return ErrSnapshotDrift
-		}
+	if err := checkSnapshotFile(srcRoot, relReg, maxReg, regData, regExisted); err != nil {
+		return err
 	}
-	// Recheck index
-	if idxExisted {
-		after, err := readConfinedFile(srcRoot, relIdx, maxIdx)
-		if err != nil || !bytes.Equal(idxData, after) {
-			rollback()
-			return ErrSnapshotDrift
-		}
-	} else {
-		if _, err := srcRoot.Lstat(relIdx); !errors.Is(err, os.ErrNotExist) {
-			rollback()
-			return ErrSnapshotDrift
-		}
+	if err := checkSnapshotFile(srcRoot, relIdx, maxIdx, idxData, idxExisted); err != nil {
+		return err
 	}
-	// Recheck selected source
 	if options.SelectedSourcePath != "" {
-		after, err := readConfinedFile(srcRoot, options.SelectedSourcePath, maxSel)
-		if err != nil || !bytes.Equal(selData, after) {
-			rollback()
-			return ErrSnapshotDrift
+		if err := checkSnapshotFile(srcRoot, options.SelectedSourcePath, maxSel, selData, true); err != nil {
+			return err
 		}
 	}
 	// Recheck metadata
@@ -328,10 +305,26 @@ func SnapshotRoot(paths RootPaths, targetDir string, options SnapshotOptions) er
 	return err
 }
 
+// Check both content and presence; missing optional evidence becoming present
+// during staging is drift just as removal or modification of copied evidence is.
+func checkSnapshotFile(root *os.Root, relative string, maxBytes int64, before []byte, existed bool) error {
+	if !existed {
+		if _, err := root.Lstat(relative); !errors.Is(err, os.ErrNotExist) {
+			return ErrSnapshotDrift
+		}
+		return nil
+	}
+	after, err := readConfinedFile(root, relative, maxBytes)
+	if err != nil || !bytes.Equal(before, after) {
+		return ErrSnapshotDrift
+	}
+	return nil
+}
+
 func checkActiveJournals(registryPath string) error {
 	for _, suffix := range []string{"-wal", "-journal"} {
 		info, err := os.Lstat(registryPath + suffix)
-		if err == nil && info.Size() > 0 {
+		if err == nil && (!info.Mode().IsRegular() || info.Size() > 0) {
 			return fmt.Errorf("%w: active journal sidecar %s", ErrActiveJournal, suffix)
 		}
 		if err != nil && !errors.Is(err, os.ErrNotExist) {

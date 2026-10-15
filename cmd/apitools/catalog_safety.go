@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/OpenUdon/apitools/internal/sourceguard"
 	"io"
 	"os"
 	"path/filepath"
@@ -15,6 +14,8 @@ import (
 	"github.com/OpenUdon/apitools/catalog"
 	"github.com/OpenUdon/apitools/internal/artifactio"
 	"github.com/OpenUdon/apitools/sqlitecache"
+
+	"github.com/OpenUdon/apitools/internal/sourceguard"
 )
 
 func safeCatalogRelative(value string) bool {
