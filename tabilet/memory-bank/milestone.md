@@ -8,6 +8,7 @@ implementation, task commits, verification and the milestone review gate in this
 repository. It authorizes no push, tag, publication, consumer-pin change, Kinet or
 OpenUdon change, audit or live operation: the user publishes this repository
 separately, and Ramen adopts the published revision under its conditional M101.
+S08 is accepted/retired after one review iteration; see the history index.
 Source baseline `bdc6d9250bdcb59fe20526ab72e97e811d6eec84`, clean worktree.
 
 ## Approved integration remediation — 2026-10-15
@@ -342,7 +343,7 @@ Exact history and observed publication evidence resolve through the history inde
 Apitools and Authoring are published, and OpenUdon passes standalone test/vet
 against its pinned APItools revision.
 
-S08 (an exported guarded document fetch for Ramen:M101) is pending and local only.
+S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired after one review iteration; it is committed locally and not yet published.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
 (`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
@@ -377,7 +378,6 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 | ID | Status file | State |
 | --- | --- | --- |
 | M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89/S07 accepted |
-| S08 | [status-S08.md](status-S08.md) | Pending; local only, no publication authorized |
 
 Closed milestones are recorded in the history index.
 
@@ -442,43 +442,6 @@ substitution requirements for ordinary published adoption remain in force.
 **Parallel-safe.** no. Execute sequentially; this milestone is on a required integration/contract chain.
 At most one live milestone per package. All tests use private lease ports,
 disposable stores/caches/browser profiles and unique output directories.
-
-### S08 — Exported guarded document fetch
-
-**Stage/owner.** APItools (lane S: import safety). Requested by Ramen:M101; Ramen's
-2026-10-19 artifacts review found that its GUI downloader used `http.DefaultClient`
-and so bypassed the host guard that `Import` applies.
-
-**Scope.** Add `(*Client).FetchDocument(ctx, rawURL) (FetchedDocument, error)`, a thin
-exported wrapper over `downloadBoundedWithAccept`. `FetchedDocument` holds `Content`
-([]byte), `FinalURL` (*url.URL) and `ContentType` (string). It applies the client's
-existing host and port checks at dial time and on every redirect, its timeout, its byte
-limit (wire and decoded gzip) and its `AllowUnsafeHosts`/`AllowedPorts` settings. A
-non-2xx response returns the existing `HTTPStatusError`. It validates no document
-content, performs no caching and reads no credentials. Existing behavior of `Import`,
-`ValidateURL` and `Search` is unchanged. README, CHANGELOG and `architecture.md` record
-the method.
-
-**Acceptance.** `FetchDocument` refuses `localhost`, loopback, private, link-local and
-scoped hosts; uses the shared redirect-safe client, so a redirect to a private host is
-refused (proved by the existing `TestRedirectToPrivateHostRejected`, since a public
-origin is not reachable offline and `AllowUnsafeHosts` also lifts the redirect check); enforces the byte limit
-and the timeout; returns the final URL and Content-Type of an allowed fetch; returns
-`HTTPStatusError` for a non-2xx response; and reaches a loopback server only when
-`AllowUnsafeHosts` is set. `GOWORK=off go vet ./...`, `GOWORK=off go test ./...`,
-`go test -race` on the new tests and `git diff --check` pass offline.
-
-**Depends on.** Nothing open.
-
-**Downstream impacts.** Ramen:M101 (conditional on the user publishing this repository
-and Ramen re-pinning). No sibling pin changes here.
-
-**Write set.** `download.go` (or a new `fetch.go`), its tests, `README.md`,
-`CHANGELOG.md`, `tabilet/memory-bank/` records. No other source file.
-
-**Contracts read.** The existing `downloadBoundedWithAccept` behavior and its tests.
-
-**Parallel-safe.** no. Execute sequentially.
 
 ## Requested Changes After Initialization
 

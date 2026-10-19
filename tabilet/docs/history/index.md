@@ -5,6 +5,7 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 
 | Milestone | Outcome | Retired | Record | Summary |
 |---|---|---|---|---|
+| S08 | completed | 2026-10-19 | [S08](status-S08.md) | Two rows plus a test row/whole1; exported guarded `Client.FetchDocument` (host and port guard, redirect checks, timeout, byte limits; no validation or cache); unpublished. |
 | S07 | completed | 2026-10-15 | [S07](status-S07.md) | Six rows/whole2; catalog lifecycle safety, nested roots, explicit catalogs and model fallback; Ubuntu harness retained |
 | M89 | completed | 2026-10-11 | [M89](status-M89.md) | Three rows/whole1; vendor-neutral query, contract, and recommendation planners |
 | M88 | completed | 2026-10-11 | [M88](status-M88.md) | Three rows/whole1; catalog management CLI and guarded remote discovery |
