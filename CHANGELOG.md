@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Add `Client.FetchDocument` and `FetchedDocument`: the guarded, bounded
+  download used by `Import`, exported for consumers that fetch documents
+  themselves. It applies the same host and port checks (dial time and every
+  redirect), timeout, and wire and decoded byte limits, and honours
+  `AllowUnsafeHosts` and `AllowedPorts`. It does not validate the body or use
+  the cache. Existing behavior is unchanged.
+
 ## v0.1.0 - 2026-05-21
 
 Initial tagged release of `github.com/OpenUdon/apitools`.

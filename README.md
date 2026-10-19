@@ -24,6 +24,11 @@ Keep these responsibilities in `apitools`:
   gRPC/protobuf, and OData sources.
 - Safely download OpenAPI, Swagger, and catalog-registered API source documents over HTTP(S), with unsafe host
   rejection, redirect limits, request timeouts, and response-size limits.
+  `Client.FetchDocument` exposes the same guarded, bounded download for a
+  consumer that stores or inspects documents itself (companion schema files,
+  documentation pages, other source kinds): it returns the bytes, the final URL
+  and the Content-Type, validates and caches nothing, and treats the result as
+  untrusted data.
 - Validate OpenAPI 3.0, OpenAPI 3.1, and Swagger 2.0 roots well enough for
   import and authoring workflows.
 - Import OpenAPI/Swagger or materialize registered source documents into

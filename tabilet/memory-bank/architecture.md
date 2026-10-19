@@ -276,6 +276,8 @@ an alternative remains unresolved.
 service hint / project text / URL / local openapi directory
   -> Client.Search, Discoverer, LocalFiles, or Client.Import
   -> safe download or bounded local read
+     (Client.FetchDocument exposes the guarded download alone, without
+      validation or caching, for a consumer that stores documents itself)
   -> OpenAPI/Swagger validation and metadata extraction
   -> OperationInventory / OperationIndex / AuthoringAPIDocument
   -> downstream OpenUdon authoring, review, and package evidence
