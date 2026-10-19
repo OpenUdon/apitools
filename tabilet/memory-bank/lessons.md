@@ -141,3 +141,10 @@ does not make an invalid or oversized completion a usable plan. Deterministic
 fallback preserves useful intent when model assistance fails. Evidence:
 [S07 qualification](../../docs/s07-qualification.md), invalid planning and
 recommendation completion regressions.
+
+## A refusal test passes for the wrong reason unless the error is the guard's
+
+- **Applies when:** Testing that a network guard refuses a host, port or redirect, especially offline.
+- **Lesson:** An unreachable address also returns an error, so "got an error" proves nothing about the guard. Assert the guard's own refusal text, and prove the test by swapping in an unguarded fetch and watching it fail.
+- **Why it matters:** The first `FetchDocument` refusal test passed against a plain `http.DefaultClient` because nothing listened on `127.0.0.1:80`. Only the mutation showed it; requiring the "private", "localhost" or "scoped" message made it fail as it should.
+- **Evidence:** [S08](../docs/history/status-S08.md); `fetch_document_test.go` `TestFetchDocumentRejectsUnsafeHosts`.

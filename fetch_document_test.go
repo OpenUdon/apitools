@@ -146,3 +146,14 @@ func TestFetchDocumentReachesLoopbackOnlyWhenAllowed(t *testing.T) {
 		t.Fatalf("an allowing client: content %q, err %v", doc.Content, err)
 	}
 }
+
+func TestFetchDocumentRefusesAnUnlistedPort(t *testing.T) {
+	// A public literal address, so the refusal comes from the port policy and no
+	// DNS lookup or connection is involved.
+	for _, raw := range []string{"http://93.184.216.34:8080/openapi.yaml", "https://93.184.216.34:8443/openapi.yaml"} {
+		_, err := (&Client{}).FetchDocument(context.Background(), raw)
+		if err == nil || !strings.Contains(err.Error(), "refusing URL port") {
+			t.Fatalf("%s: err = %v, want the port policy's refusal", raw, err)
+		}
+	}
+}
