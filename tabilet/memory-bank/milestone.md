@@ -460,7 +460,9 @@ content, performs no caching and reads no credentials. Existing behavior of `Imp
 the method.
 
 **Acceptance.** `FetchDocument` refuses `localhost`, loopback, private, link-local and
-scoped hosts and a public host that redirects to a private one; enforces the byte limit
+scoped hosts; uses the shared redirect-safe client, so a redirect to a private host is
+refused (proved by the existing `TestRedirectToPrivateHostRejected`, since a public
+origin is not reachable offline and `AllowUnsafeHosts` also lifts the redirect check); enforces the byte limit
 and the timeout; returns the final URL and Content-Type of an allowed fetch; returns
 `HTTPStatusError` for a non-2xx response; and reaches a loopback server only when
 `AllowUnsafeHosts` is set. `GOWORK=off go vet ./...`, `GOWORK=off go test ./...`,
