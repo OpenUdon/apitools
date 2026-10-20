@@ -1,5 +1,32 @@
 # Milestones
 
+## Approved ranked catalog search — 2026-10-20
+
+The user approved Milestone S09 on 2026-10-20 through `memory-bank-propose`, at the
+request of Ramen:M110 (approved the same day with Ramen:M109). It authorizes serial
+APItools:S09 implementation, task commits, verification and the milestone review gate
+in this repository. It authorizes no push, tag, publication, consumer-pin change,
+Kinet or OpenUdon change, audit or live operation: the user publishes this repository
+separately, and Ramen adopts the published revision under its conditional M110.
+This is new requested work, not a review finding, so no P1/P2 label applies.
+Source baseline `87f14076460626cda0a598bb958a90d348d0f5f4` (`main`, equal to
+`origin/main`), clean worktree.
+
+**Evidence.** By code reading at the baseline and throwaway probes in Ramen against
+the pinned revision `v0.0.0-20261019142639-87f140764606`. The `catalog` package
+exports exact-key lookup (`Catalog.FindProvider`, `FindBuiltInProvider`,
+`ResolveProviders`) and listing (`ListProviders`) but no free-text search. Ramen
+keeps two copies of a matcher (`internal/gui/artifacts.go` `searchBuiltInCatalog`,
+`internal/apiservice/service.go` `searchBuiltInCatalogItems`) that require every
+query token as a substring of a corpus including spec URLs and notes and return
+matches in catalog order: `github` matches 297 of 316 providers and GitHub's own
+entries fall outside the first 15.
+
+**Decisions (approved 2026-10-20).** Library only; an `apitools catalog search`
+subcommand and whole-word matching are not part of S09. Matching stays substring and
+all-words so no match Ramen finds today is lost; S09 adds ranking. Candidate C3
+(`ResolveProviders` splitting multi-word names) is unchanged.
+
 ## Approved guarded document fetch — 2026-10-19
 
 The user approved Milestone S08 on 2026-10-19 through `memory-bank-propose`, at the
@@ -343,7 +370,7 @@ Exact history and observed publication evidence resolve through the history inde
 Apitools and Authoring are published, and OpenUdon passes standalone test/vet
 against its pinned APItools revision.
 
-S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired after one review iteration; it is committed locally and not yet published.
+S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired after one review iteration; it is published on `origin/main` at `87f14076460626cda0a598bb958a90d348d0f5f4`, which Ramen pins. S09 (a ranked search over the built-in catalog for Ramen:M110) is approved and pending.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
 (`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
@@ -378,10 +405,43 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 | ID | Status file | State |
 | --- | --- | --- |
 | M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89/S07 accepted |
+| S09 | [status-S09.md](status-S09.md) | Pending; ranked built-in catalog search for Ramen:M110 |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
+
+### S09 — Ranked search over the built-in catalog
+
+**Stage/owner.** APItools (lane S: discovery). Requested by Ramen:M110, which replaces
+Ramen's two unranked catalog matchers with this search.
+
+**Scope.** In package `catalog`, add `ProviderMatchRank` (1 name, 2 category, 3
+other), `ProviderMatch{Provider Provider; Rank ProviderMatchRank}`,
+`(Catalog).SearchProviders(query string, limit int) []ProviderMatch` and
+`SearchBuiltInProviders(query string, limit int) []ProviderMatch`. The query is
+lowercased, split on whitespace and trimmed of surrounding punctuation; every word
+must be a substring of the provider's text. A match's rank is the lowest-priority
+field any word needed: 1 for the provider ID, display name or alias; 2 for category
+or workflow relevance; 3 for anything else (quirks, spec reference IDs, kinds, URLs
+and source notes, and the text of the provider's security overlays). A provider whose
+ID, display name or alias equals the whole query (normalized as `FindProvider` does)
+comes first; the rest are ordered by rank, then provider ID. A limit of 0 or less
+returns every match; an empty query returns none. Results are independent copies; the
+search reads no network or file. Existing exported behavior is unchanged. README,
+CHANGELOG and `docs/catalog-discovery.md` (or `architecture.md`) record the API.
+
+**Acceptance.** Over the built-in catalog: `github` returns GitHub first and providers
+matched only through spec URLs at rank 3; `stripe` and `openweathermap` return their
+own provider first at rank 1; `cloudflare dns` returns only providers matching both
+words; case and surrounding punctuation are ignored; the limit holds; two calls return
+identical results; on a small test catalog, a word found only in overlay text gives
+rank 3; an empty query returns none; mutating a returned provider does not change the
+catalog. `GOWORK=off go vet ./...`, `GOWORK=off go test ./...` and `git diff --check`
+pass offline. A new exported API with no change to existing ones needs no OpenUdon or
+Udon consumer check.
+
+**Depends on.** Nothing open. Ramen:M110 depends on S09's publication.
 
 
 
