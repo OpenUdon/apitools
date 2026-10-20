@@ -19,8 +19,8 @@ exports exact-key lookup (`Catalog.FindProvider`, `FindBuiltInProvider`,
 keeps two copies of a matcher (`internal/gui/artifacts.go` `searchBuiltInCatalog`,
 `internal/apiservice/service.go` `searchBuiltInCatalogItems`) that require every
 query token as a substring of a corpus including spec URLs and notes and return
-matches in catalog order: `github` matches 297 of 316 providers and GitHub's own
-entries fall outside the first 15.
+matches in catalog order: `github` returns 297 catalog entries (one per spec
+reference, not per provider) and GitHub's own entries fall outside the first 15.
 
 **Decisions (approved 2026-10-20).** Library only; an `apitools catalog search`
 subcommand and whole-word matching are not part of S09. Matching stays substring and
