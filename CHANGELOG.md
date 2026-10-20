@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add `catalog.SearchBuiltInProviders`, `Catalog.SearchProviders`,
+  `ProviderMatch` and `ProviderMatchRank`: a ranked free-text search over
+  provider metadata. Every query word must match; a provider is ranked by the
+  lowest-priority text a word needed (ID, name and aliases, then category and
+  workflow relevance, then quirks, spec references and security overlays), an
+  exact provider key comes first, and ties break by provider ID. It reads only
+  the catalog and returns copies. Existing behavior is unchanged.
 - Add `Client.FetchDocument` and `FetchedDocument`: the guarded, bounded
   download used by `Import`, exported for consumers that fetch documents
   themselves. It applies the same host and port checks (dial time and every

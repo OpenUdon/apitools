@@ -662,6 +662,12 @@ _, _ = advisory, err
 quality := catalog.BuiltInCatalogQualityReport(catalog.CatalogQualityOptions{})
 _ = quality
 
+// Free-text search over the built-in providers, best match first.
+for _, match := range catalog.SearchBuiltInProviders("github", 15) {
+	_ = match.Provider.ID // "github" first, rank catalog.ProviderMatchName
+	_ = match.Rank
+}
+
 resolutions, err := catalog.ResolveProvidersWithOptions(catalog.ProviderResolutionOptions{
 	ProviderKeys: []string{"slack"},
 })
@@ -677,6 +683,18 @@ materialized, err := catalog.MaterializeProvider(ctx, catalog.MaterializeOptions
 })
 _, _ = materialized, err
 ```
+
+`catalog.SearchBuiltInProviders` and `Catalog.SearchProviders` search provider
+metadata by free text. The query is lowercased and split on whitespace, with
+punctuation around each word ignored, and every word must appear in the
+provider's text. A match's `Rank` is the lowest-priority text a word needed:
+`ProviderMatchName` for the provider ID, display name or aliases,
+`ProviderMatchCategory` for the category or workflow relevance, and
+`ProviderMatchOther` for quirks, spec reference IDs, kinds, URLs and notes, and
+security overlays. A provider whose ID, name or alias equals the whole query
+comes first, the rest are ordered by rank and then ID, and a limit of zero or
+less returns every match. The search reads only the catalog and returns copies.
+It is not `apitools catalog search`, which ranks operations in a catalog root.
 
 Catalog security audits are available from the root package:
 
