@@ -9,6 +9,7 @@ in this repository. It authorizes no push, tag, publication, consumer-pin change
 Kinet or OpenUdon change, audit or live operation: the user publishes this repository
 separately, and Ramen adopts the published revision under its conditional M110.
 This is new requested work, not a review finding, so no P1/P2 label applies.
+S09 is accepted/retired after one review iteration; see the history index.
 Source baseline `87f14076460626cda0a598bb958a90d348d0f5f4` (`main`, equal to
 `origin/main`), clean worktree.
 
@@ -370,7 +371,7 @@ Exact history and observed publication evidence resolve through the history inde
 Apitools and Authoring are published, and OpenUdon passes standalone test/vet
 against its pinned APItools revision.
 
-S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired after one review iteration; it is published on `origin/main` at `87f14076460626cda0a598bb958a90d348d0f5f4`, which Ramen pins. S09 (a ranked search over the built-in catalog for Ramen:M110) is approved and pending.
+S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired after one review iteration; it is published on `origin/main` at `87f14076460626cda0a598bb958a90d348d0f5f4`, which Ramen pins. S09 (a ranked search over the built-in catalog for Ramen:M110) is accepted and retired after one review iteration; it is committed locally and not yet published, and Ramen:M110 waits on its publication.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
 (`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
@@ -405,45 +406,10 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 | ID | Status file | State |
 | --- | --- | --- |
 | M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89/S07 accepted |
-| S09 | [status-S09.md](status-S09.md) | Pending; ranked built-in catalog search for Ramen:M110 |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
-
-### S09 — Ranked search over the built-in catalog
-
-**Stage/owner.** APItools (lane S: discovery). Requested by Ramen:M110, which replaces
-Ramen's two unranked catalog matchers with this search.
-
-**Scope.** In package `catalog`, add `ProviderMatchRank` (1 name, 2 category, 3
-other), `ProviderMatch{Provider Provider; Rank ProviderMatchRank}`,
-`(Catalog).SearchProviders(query string, limit int) []ProviderMatch` and
-`SearchBuiltInProviders(query string, limit int) []ProviderMatch`. The query is
-lowercased, split on whitespace and trimmed of surrounding punctuation; every word
-must be a substring of the provider's text. A match's rank is the lowest-priority
-field any word needed: 1 for the provider ID, display name or alias; 2 for category
-or workflow relevance; 3 for anything else (quirks, spec reference IDs, kinds, URLs
-and source notes, and the text of the provider's security overlays). A provider whose
-ID, display name or alias equals the whole query (normalized as `FindProvider` does)
-comes first; the rest are ordered by rank, then provider ID. A limit of 0 or less
-returns every match; an empty query returns none. Results are independent copies; the
-search reads no network or file. Existing exported behavior is unchanged. README,
-CHANGELOG and `docs/catalog-discovery.md` (or `architecture.md`) record the API.
-
-**Acceptance.** Over the built-in catalog: `github` returns GitHub first and providers
-matched only through spec URLs at rank 3; `stripe` and `openweathermap` return their
-own provider first at rank 1; `cloudflare dns` returns only providers matching both
-words; case and surrounding punctuation are ignored; the limit holds; two calls return
-identical results; on a small test catalog, a word found only in overlay text gives
-rank 3; an empty query returns none; mutating a returned provider does not change the
-catalog. `GOWORK=off go vet ./...`, `GOWORK=off go test ./...` and `git diff --check`
-pass offline. A new exported API with no change to existing ones needs no OpenUdon or
-Udon consumer check.
-
-**Depends on.** Nothing open. Ramen:M110 depends on S09's publication.
-
-
 
 ### M86 — HCL-free UWS adoption (conditional)
 
@@ -583,7 +549,7 @@ the work automatically.
 | Network and local-scan hardening batch | Review "apitools Code Review" Pass 1 (baseline `a5699e5`) findings #7 (LAP registry validates every entry by DNS before scoring/limit and fails the whole search on one bad `source_url`, `remote_discovery.go`), #9 (unsafe-IP list omits `240.0.0.0/4`, IPv4-compatible `::/96`, and `fec0::/10`, `download.go`), #11 (OpenAPI metadata paths skip the `sourceguard.CheckJSON`/`CheckYAML` preflight, `validation.go`, `local.go`, `local_source_discovery.go`), #12 (`.bin` is always treated as a protobuf descriptor, `local_source_discovery.go`), #13 (regular-file-to-FIFO swap between `Lstat` and `Open` can block, `local_read.go`, `internal/artifactio`), and #14 (`Discoverer` exposes no port/transport options, `discovery.go`). All were revalidated at `a5699e570fb5d6288fdd255c71d229fb062b50b3` as Lower severity; no supported scenario fails and no private-host or root-escape path was found. | Approve a hardening batch after S02, or promote any item earlier if it becomes reachable in a supported deployment or a downstream consumer depends on it. |
 | Egress proxy support for guarded downloads | Review "apitools Code Review" Pass 1 finding #8: the guarded transport has `Proxy: nil`, and the only alternative, `AllowUnsafeHosts`, drops all host checks (`download.go`). Supporting a proxy trades dial-time IP filtering for proxy trust, which is a product/security decision. | An operator needs mandatory-proxy egress, and an approved policy defines target pre-validation, proxy trust, and the documented DNS-rebinding limitation. |
 | Lifecycle and scan cleanup follow-ups | Uncommitted-diff review (2026-09-26) Lower items not required by S02, S03, or S04 acceptance: `operationlifecycle` recomputes tokens and purpose for every operation on each role (performance only); offline `search` still applies the cache TTL while offline `import` ignores it (consistency decision); `isUnicodeTagCharacter` largely repeats the Cf category check in `prompt_safety.go` (cosmetic). | Promote when lifecycle ranking becomes a measured hotspot, an operator needs offline search of expired entries, or `prompt_safety.go` is next edited. |
-| Catalog and tooling hardening batch | Review "apitools Code Review" Passes 2 and 4 (revalidated at `e015231`), all Lower severity: C3 `ResolveProviders(query)` splits multi-word display names on whitespace (`catalog/materialize.go`; CLI and OpenUdon pass explicit keys); C4 `FindSpecReference` trims the provider ID for identity but not for the spec lookup (`catalog/index.go`); C5 `preferredSpecReference` ignores `asyncapi`, `openrpc`, `graphql`, `grpc-protobuf`, and `odata` kinds (no built-in provider affected); X2 `Import` creates the target directory before validating or downloading (`import.go`); X3 the installed `staticcheck` predates the module's Go version and no `govulncheck` gate runs (`tech-stack.md`). | Approve a hardening batch, or promote an item when a consumer depends on the query API, a provider relies on a newer-kind-only source, or a static/vulnerability gate is required for release. |
+| Catalog and tooling hardening batch | Review "apitools Code Review" Passes 2 and 4 (revalidated at `e015231`), all Lower severity: C3 `ResolveProviders(query)` splits multi-word display names on whitespace (`catalog/materialize.go`; CLI and OpenUdon pass explicit keys; S09's `SearchProviders` is the free-text alternative and leaves this unchanged); C4 `FindSpecReference` trims the provider ID for identity but not for the spec lookup (`catalog/index.go`); C5 `preferredSpecReference` ignores `asyncapi`, `openrpc`, `graphql`, `grpc-protobuf`, and `odata` kinds (no built-in provider affected); X2 `Import` creates the target directory before validating or downloading (`import.go`); X3 the installed `staticcheck` predates the module's Go version and no `govulncheck` gate runs (`tech-stack.md`). | Approve a hardening batch, or promote an item when a consumer depends on the query API, a provider relies on a newer-kind-only source, or a static/vulnerability gate is required for release. |
 
 ## Out of scope
 
