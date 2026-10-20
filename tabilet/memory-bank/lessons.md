@@ -148,3 +148,10 @@ recommendation completion regressions.
 - **Lesson:** An unreachable address also returns an error, so "got an error" proves nothing about the guard. Assert the guard's own refusal text, and prove the test by swapping in an unguarded fetch and watching it fail.
 - **Why it matters:** The first `FetchDocument` refusal test passed against a plain `http.DefaultClient` because nothing listened on `127.0.0.1:80`. Only the mutation showed it; requiring the "private", "localhost" or "scoped" message made it fail as it should.
 - **Evidence:** [S08](../docs/history/status-S08.md); `fetch_document_test.go` `TestFetchDocumentRejectsUnsafeHosts`.
+
+## Count the unit the owner stores, not the unit a consumer lists
+
+- **Applies when:** Quoting a count across repositories as planning evidence, such as how many catalog items a query matches.
+- **Lesson:** Name the unit and measure it in the owning repository. A consumer's result list can repeat one item per spec reference or per operation, so its row count is not the owner's item count.
+- **Why it matters:** The S09 planning evidence said `github` "matches 297 of 316 providers". Ramen's 297 were catalog entries, one per spec reference; the ranked search finds 93 providers. The claim reached two milestone files before the implementation measured it.
+- **Evidence:** [S09](../docs/history/status-S09.md) row S09.1 note; `catalog/search_test.go` `TestSearchBuiltInProvidersPutsURLOnlyMatchesLast`.

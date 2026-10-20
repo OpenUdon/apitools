@@ -35,7 +35,9 @@ const searchPunctuation = ",.:;\"'()[]{}"
 // SearchBuiltInProviders searches the built-in catalog. See
 // Catalog.SearchProviders.
 func SearchBuiltInProviders(query string, limit int) []ProviderMatch {
-	return BuiltInCatalog().SearchProviders(query, limit)
+	// The search only reads the catalog and returns copies of what it finds, so
+	// it can read the built-in data without cloning all of it first.
+	return Catalog{Providers: builtInProviders, SecurityOverlays: builtInSecurityOverlays}.SearchProviders(query, limit)
 }
 
 // SearchProviders returns the providers that match a free-text query, best
@@ -101,11 +103,8 @@ func (c Catalog) SearchProviders(query string, limit int) []ProviderMatch {
 				break
 			}
 		}
-		if !matched && !exact {
-			continue
-		}
 		if !matched {
-			rank = ProviderMatchName
+			continue
 		}
 		found = append(found, candidate{match: ProviderMatch{Provider: cloneProvider(provider), Rank: rank}, exact: exact})
 	}

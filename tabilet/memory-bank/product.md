@@ -130,6 +130,10 @@ execution.
   add/import/index/search use the built-in catalog or one explicitly selected
   custom catalog; custom identities must be declared before registration. A
   declaration supplies metadata, never inferred official authority or licensing.
+  A ranked free-text provider search (`catalog.SearchProviders`) requires every
+  query word to match and ranks a provider by the lowest-priority text a word
+  needed: ID, name and aliases, then category and workflow relevance, then
+  quirks, spec references and overlays.
 - **Security overlay**: explicit supplemental auth/security metadata kept
   separate from upstream specs when provider documents are incomplete.
 - **Advisory endpoint overlay**: a service-specific OpenAPI-shaped advisory

@@ -199,7 +199,7 @@ func TestSearchProvidersPutsAnExactProviderKeyFirst(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %v, want %v", got, want)
 	}
-	// An exact key is a rank 1 match even when no single word matches the text.
+	// A multi-word query equals the normalized key of the display name.
 	cat = Catalog{Providers: []Provider{{ID: "ab-cd", DisplayName: "AB CD"}}}
 	if got := cat.SearchProviders("ab cd", 0); len(got) != 1 || got[0].Rank != ProviderMatchName {
 		t.Fatalf("got %v", got)
