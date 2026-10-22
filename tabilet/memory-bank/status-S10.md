@@ -17,5 +17,5 @@ with backticks: `` `[ ]` ``, `` `[~]` ``, `` `[+]` ``, `` `[!]` ``, `` `[X]` ``,
 
 | Item | State | Notes |
 | --- | --- | --- |
-| S10.1: Keep top-level fields when truncating OpenAPI and Google Discovery response summaries | `[ ]` | Tests first: Storage bucket keeps `name`, `id`, `location`, `storageClass` (60 or fewer, sorted, truncation issue kept); synthetic OpenAPI response; small response and request fields unchanged; more than 60 top-level fields. Verify `GOWORK=off go vet ./...`, `GOWORK=off go test ./...`, `git diff --check`, and the read-only OpenUdon consumer check. |
+| S10.1: Keep top-level fields when truncating OpenAPI and Google Discovery response summaries | `[X]` | `responseFieldSummaries` (`inventory_request.go`) keeps every top-level field first (first 60 by path), then nested fields by path, sorted by path; replaces cut-then-append of `name`/`id`. Google inventory operations now also report `schema.field_summary_truncated` (candidates use the native walker and are unaffected). Tests in `inventory_response_fields_test.go`, fixture `testdata/inventory/google-storage-discovery.json`. `GOWORK=off go vet`, `go test ./...`, `git diff --check` pass; OpenUdon `go test ./...` from a scratch copy with `replace` passes unchanged. |
 | S10.2: Document the change | `[ ]` | CHANGELOG "Unreleased" and `architecture.md`. Depends on S10.1. |

@@ -390,7 +390,7 @@ func addGoogleDiscoveryInventory(inventory *OperationInventory, doc APISourceDoc
 
 func googleDiscoveryOperationSummary(documentName string, doc APISourceDocument, model *upstreamdiscovery.Model, op *upstreamdiscovery.Operation) OperationSummary {
 	operationID := firstNonEmpty(op.ID, op.OperationID)
-	return OperationSummary{
+	summary := OperationSummary{
 		ID:                   operationID,
 		DocumentName:         documentName,
 		DocumentPath:         doc.Path,
@@ -412,6 +412,17 @@ func googleDiscoveryOperationSummary(documentName string, doc APISourceDocument,
 		},
 		Provenance: firstNonEmpty(doc.Path, documentName) + "#" + operationID,
 	}
+	if schema := googleDiscoveryResponseSchema(model, op); requestFieldSummaryWouldTruncate(schema) {
+		addOperationIssue(&summary, "schema.field_summary_truncated", "response fields exceeded the local summary count or depth bound", "")
+	}
+	return summary
+}
+
+func googleDiscoveryResponseSchema(model *upstreamdiscovery.Model, op *upstreamdiscovery.Operation) map[string]any {
+	if model == nil || op == nil || strings.TrimSpace(op.ResponseRef) == "" {
+		return nil
+	}
+	return model.Schemas[strings.TrimPrefix(op.ResponseRef, "#/components/schemas/")]
 }
 
 func googleDiscoveryRequestParameters(params []*upstreamdiscovery.Parameter) []ParameterSummary {
@@ -484,7 +495,7 @@ func googleDiscoveryResponseBodySummary(model *upstreamdiscovery.Model, op *upst
 }
 
 func googleDiscoveryResponseFields(schema map[string]any) []RequestFieldSummary {
-	return appendMissingTopLevelResponseFields(requestFieldSummaries(schema, "", false, 0), schema, "name", "id")
+	return responseFieldSummaries(schema, false)
 }
 
 func googleDiscoveryRequestFields(schema map[string]any, operationID string) []RequestFieldSummary {

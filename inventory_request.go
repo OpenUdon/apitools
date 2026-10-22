@@ -139,11 +139,10 @@ func responseBodySummary(ctx context.Context, root map[string]any, operation map
 				recordNullableResponseSchema(op, rawSchema)
 				schema := schemaSummary(rawSchema)
 				summary.Schema = &schema
-				summary.Fields = requestFieldSummaries(rawSchema, "", true, 0)
+				summary.Fields = responseFieldSummaries(rawSchema, true)
 				if requestFieldSummaryWouldTruncate(rawSchema) {
 					addOperationIssue(op, "schema.field_summary_truncated", "response fields exceeded the local summary count or depth bound", "")
 				}
-				summary.Fields = appendMissingTopLevelResponseFields(summary.Fields, rawSchema, "name", "id")
 				if len(summary.Fields) == 0 && !looksLikeCredentialName("body") {
 					summary.Fields = []RequestFieldSummary{requestFieldSummary("body", false, rawSchema)}
 				}
@@ -167,11 +166,10 @@ func responseBodySummary(ctx context.Context, root map[string]any, operation map
 		recordNullableResponseSchema(op, rawSchema)
 		schema := schemaSummary(rawSchema)
 		summary.Schema = &schema
-		summary.Fields = requestFieldSummaries(rawSchema, "", true, 0)
+		summary.Fields = responseFieldSummaries(rawSchema, true)
 		if requestFieldSummaryWouldTruncate(rawSchema) {
 			addOperationIssue(op, "schema.field_summary_truncated", "response fields exceeded the local summary count or depth bound", "")
 		}
-		summary.Fields = appendMissingTopLevelResponseFields(summary.Fields, rawSchema, "name", "id")
 		if len(summary.Fields) == 0 && !looksLikeCredentialName("body") {
 			summary.Fields = []RequestFieldSummary{requestFieldSummary("body", false, rawSchema)}
 		}
@@ -214,38 +212,6 @@ func responseSchemaMayBeNullable(schema map[string]any, depth int, visited *int)
 		}
 	}
 	return responseSchemaMayBeNullable(mapValue(schema["items"]), depth+1, visited)
-}
-
-func appendMissingTopLevelResponseFields(fields []RequestFieldSummary, schema map[string]any, names ...string) []RequestFieldSummary {
-	properties := mapValue(schema["properties"])
-	if len(properties) == 0 {
-		return fields
-	}
-	seen := map[string]bool{}
-	required := map[string]bool{}
-	for _, name := range stringSlice(schema["required"]) {
-		required[name] = true
-	}
-	for _, field := range fields {
-		seen[field.Path] = true
-	}
-	for _, name := range names {
-		if seen[name] {
-			continue
-		}
-		property := mapValue(properties[name])
-		if len(property) == 0 {
-			continue
-		}
-		field := requestFieldSummary(name, required[name], property)
-		field.Nullable = boolValue(schema["nullable"]) || field.Nullable
-		fields = append(fields, field)
-		seen[name] = true
-	}
-	sort.SliceStable(fields, func(i, j int) bool {
-		return fields[i].Path < fields[j].Path
-	})
-	return fields
 }
 
 func successfulResponseStatuses(responses map[string]any) []string {
@@ -502,9 +468,43 @@ const (
 	maxRequestFields     = 60
 )
 
+// maxResponseFieldWork bounds the nested response fields collected before the
+// final selection. Top-level fields are always collected.
+const maxResponseFieldWork = 1000
+
+type collectedField struct {
+	field RequestFieldSummary
+	depth int
+}
+
+// fieldCollector walks a schema depth-first in property-name order. With
+// exemptTop set, top-level fields do not count toward limit, so a large nested
+// field cannot hide later top-level fields.
+type fieldCollector struct {
+	limit     int
+	exemptTop bool
+	counted   int
+	out       []collectedField
+}
+
+func (c *fieldCollector) add(field RequestFieldSummary, depth int) {
+	c.out = append(c.out, collectedField{field: field, depth: depth})
+	if !(c.exemptTop && depth <= 1) {
+		c.counted++
+	}
+}
+
+func (c *fieldCollector) full(depth int) bool {
+	return c.counted >= c.limit && !(c.exemptTop && depth <= 1)
+}
+
 func requestFieldSummaries(schema map[string]any, path string, required bool, depth int) []RequestFieldSummary {
-	var out []RequestFieldSummary
-	collectRequestFields(schema, path, required, false, depth, &out)
+	c := fieldCollector{limit: maxRequestFields}
+	collectRequestFields(schema, path, required, false, depth, &c)
+	out := make([]RequestFieldSummary, 0, len(c.out))
+	for _, item := range c.out {
+		out = append(out, item.field)
+	}
 	sort.SliceStable(out, func(i, j int) bool {
 		return out[i].Path < out[j].Path
 	})
@@ -514,22 +514,65 @@ func requestFieldSummaries(schema map[string]any, path string, required bool, de
 	return out
 }
 
-func collectRequestFields(schema map[string]any, path string, required, nullable bool, depth int, out *[]RequestFieldSummary) {
-	if len(*out) >= maxRequestFields || depth > maxRequestFieldDepth {
+// responseFieldSummaries summarizes response fields within the existing depth
+// bound. When more than maxRequestFields remain, it keeps every top-level field
+// first (by path, at most maxRequestFields), then nested fields by path, and
+// returns the kept fields sorted by path.
+func responseFieldSummaries(schema map[string]any, required bool) []RequestFieldSummary {
+	c := fieldCollector{limit: maxResponseFieldWork, exemptTop: true}
+	collectRequestFields(schema, "", required, false, 0, &c)
+	sort.SliceStable(c.out, func(i, j int) bool {
+		return c.out[i].field.Path < c.out[j].field.Path
+	})
+	if len(c.out) <= maxRequestFields {
+		out := make([]RequestFieldSummary, 0, len(c.out))
+		for _, item := range c.out {
+			out = append(out, item.field)
+		}
+		return out
+	}
+	keep := make([]bool, len(c.out))
+	kept := 0
+	for i, item := range c.out {
+		if item.depth <= 1 && kept < maxRequestFields {
+			keep[i] = true
+			kept++
+		}
+	}
+	for i, item := range c.out {
+		if kept >= maxRequestFields {
+			break
+		}
+		if !keep[i] && item.depth > 1 {
+			keep[i] = true
+			kept++
+		}
+	}
+	out := make([]RequestFieldSummary, 0, kept)
+	for i, item := range c.out {
+		if keep[i] {
+			out = append(out, item.field)
+		}
+	}
+	return out
+}
+
+func collectRequestFields(schema map[string]any, path string, required, nullable bool, depth int, c *fieldCollector) {
+	if c.full(depth) || depth > maxRequestFieldDepth {
 		return
 	}
 	nullable = nullable || boolValue(schema["nullable"])
 	if len(schema) == 0 {
 		if path != "" && !looksLikeCredentialName(path) {
-			*out = append(*out, RequestFieldSummary{Path: path, Required: required, Nullable: nullable})
+			c.add(RequestFieldSummary{Path: path, Required: required, Nullable: nullable}, depth)
 		}
 		return
 	}
 	if path != "" && !looksLikeCredentialName(path) {
 		field := requestFieldSummary(path, required, schema)
 		field.Nullable = nullable
-		*out = append(*out, field)
-		if len(*out) >= maxRequestFields || depth == maxRequestFieldDepth {
+		c.add(field, depth)
+		if c.counted >= c.limit || depth == maxRequestFieldDepth {
 			return
 		}
 	}
@@ -544,8 +587,8 @@ func collectRequestFields(schema map[string]any, path string, required, nullable
 			if path != "" {
 				childPath = path + "." + name
 			}
-			collectRequestFields(mapValue(properties[name]), childPath, required && requiredSet[name], nullable, depth+1, out)
-			if len(*out) >= maxRequestFields {
+			collectRequestFields(mapValue(properties[name]), childPath, required && requiredSet[name], nullable, depth+1, c)
+			if c.counted >= c.limit && !(c.exemptTop && depth == 0) {
 				return
 			}
 		}
@@ -556,7 +599,7 @@ func collectRequestFields(schema map[string]any, path string, required, nullable
 		if path != "" {
 			itemPath = path + "[]"
 		}
-		collectRequestFields(items, itemPath, required, nullable, depth+1, out)
+		collectRequestFields(items, itemPath, required, nullable, depth+1, c)
 	}
 }
 
