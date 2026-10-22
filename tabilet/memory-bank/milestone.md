@@ -29,46 +29,7 @@ and `location` (Ramen `tests/google/RUN.md` Run 2, limit 9).
 truncated; keep the output sorted by path as today; leave request-field summaries and the native
 walkers that refuse rather than truncate unchanged; Smithy outputs stay a candidate direction.
 
-### S10 — Keep top-level response fields when a response summary is truncated
-
-**Stage/owner.** APItools (lane S: inventories and prompt-safe summaries). Requested by
-Ramen:M128, which adopts the published revision.
-
-**Scope.** For OpenAPI and Google Discovery response bodies, collect the response fields within the
-existing depth and work bounds, and when more than 60 remain, keep every top-level field first (by
-path), then nested fields by path, up to 60; then sort the kept fields by path. This replaces the
-cut-then-append of `name`/`id` for these response paths, so the later prompt-safety trim removes
-nothing. When more than 60 top-level fields exist, the first 60 by path are kept. The existing
-`schema.field_summary_truncated` issue is still reported. Request-field summaries, the native
-schema walkers (AsyncAPI, OpenRPC and the rest, which refuse over budget) and the public types are
-unchanged. CHANGELOG and `architecture.md` record the behavior.
-
-**Rows.**
-- S10.1: the selection for OpenAPI and Google Discovery response fields, with tests written first:
-  Google Storage `storage.buckets.get` keeps `name`, `id`, `location` and `storageClass`, has at most
-  60 fields, is sorted by path and still reports the truncation issue (the Storage Discovery document
-  copied into `testdata/`); a synthetic OpenAPI response with more than 60 fields behaves the same;
-  a response under the budget is unchanged; request-field summaries are unchanged; more than 60
-  top-level fields keep the first 60 by path.
-- S10.2: CHANGELOG "Unreleased" entry and the `architecture.md` note.
-
-**Acceptance.** The tests above pass; `GOWORK=off go vet ./...`, `GOWORK=off go test ./...` and
-`git diff --check` pass offline. Because the kept fields of truncated responses change, a read-only
-consumer check runs OpenUdon's tests against the S10 candidate from a scratch copy with a `replace`
-directive (no OpenUdon edit); a difference is reported for OpenUdon's own planning, not fixed here.
-
-**Depends on.** Nothing open. Ramen:M128 depends on S10's publication.
-
-```yaml
-AUTHORIZATION_REQUIREMENTS:
-  git.commit:
-    via: goal-policy
-    executor: assigned-agent
-  cli.local:
-    via: goal-policy
-    executor: assigned-agent
-    scope: declared-implementation-and-verification, including a read-only OpenUdon test run from a scratch copy
-```
+S10 is accepted/retired after one review iteration; see the history index.
 
 ## Approved ranked catalog search — 2026-10-20
 
@@ -441,7 +402,7 @@ Exact history and observed publication evidence resolve through the history inde
 Apitools and Authoring are published, and OpenUdon passes standalone test/vet
 against its pinned APItools revision.
 
-S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired after one review iteration; it is published on `origin/main` at `87f14076460626cda0a598bb958a90d348d0f5f4`, which Ramen pins. S09 (a ranked search over the built-in catalog for Ramen:M110) is accepted and retired after one review iteration; it is published on `origin/main` at `8389a15f2bf811072c09fff1e9a10a2946315b57`, which Ramen pins. S10 (keep top-level response fields when a response summary is truncated, for Ramen:M128) is approved on 2026-10-22 and pending.
+S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired after one review iteration; it is published on `origin/main` at `87f14076460626cda0a598bb958a90d348d0f5f4`, which Ramen pins. S09 (a ranked search over the built-in catalog for Ramen:M110) is accepted and retired after one review iteration; it is published on `origin/main` at `8389a15f2bf811072c09fff1e9a10a2946315b57`, which Ramen pins. S10 (keep top-level response fields when a response summary is truncated, for Ramen:M128) is accepted and retired after one review iteration; it is committed locally and unpublished, and Ramen adopts it after the user publishes.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
 (`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
@@ -476,7 +437,6 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 | ID | Status file | State |
 | --- | --- | --- |
 | M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89/S07 accepted |
-| S10 | [status-S10.md](status-S10.md) | Pending; keep top-level response fields when truncating (for Ramen:M128) |
 
 Closed milestones are recorded in the history index.
 
