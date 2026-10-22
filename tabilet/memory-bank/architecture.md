@@ -267,6 +267,12 @@ silently changing the interpretation.
 during inventory construction, so a reviewed larger bound is not irreversibly
 truncated by the default before grouping.
 
+OpenAPI and Google Discovery inventories summarize response fields with `responseFieldSummaries`: within the existing
+depth bound, every top-level field is kept first (the first 60 by path when more exist), then nested fields by path
+up to 60, and the kept fields are sorted by path, so a large nested field cannot hide `name`, `id` or `location`.
+`schema.field_summary_truncated` is still reported when the summary is cut (Google Discovery inventory operations now
+report it too). Request-field summaries keep the depth-first cut, and native schema walkers still refuse over budget.
+
 OpenAPI security requirements remain ordered OR alternatives whose members are
 AND requirements; an empty alternative explicitly permits anonymous access.
 Downstream Authoring v2 preserves the sets, OpenUdon selects one stable

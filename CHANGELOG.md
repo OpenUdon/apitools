@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Keep top-level response fields when an OpenAPI or Google Discovery response
+  summary is truncated: every top-level field is kept first (the first 60 by path
+  when more exist), then nested fields by path, up to 60, sorted by path. Large
+  resources such as Google Storage buckets no longer lose `name`, `id` and
+  `location`. Google Discovery operations now also report
+  `schema.field_summary_truncated`. Request-field summaries and public types are
+  unchanged.
 - Add `catalog.SearchBuiltInProviders`, `Catalog.SearchProviders`,
   `ProviderMatch` and `ProviderMatchRank`: a ranked free-text search over
   provider metadata. Every query word must match; a provider is ranked by the
