@@ -1,5 +1,75 @@
 # Milestones
 
+## Approved response-field truncation — 2026-10-22
+
+The user approved Milestone S10 on 2026-10-22 through `memory-bank-propose`, at the request of
+Ramen:M128 (conditional on this change). It authorizes serial APItools:S10 implementation, task
+commits, verification, a read-only OpenUdon consumer check and the milestone review gate in this
+repository. It authorizes no push, tag, publication, consumer-pin change, Kinet, OpenUdon or Udon
+change, audit or live operation: the user publishes this repository separately, and Ramen adopts the
+published revision under its M128. This is new requested work, not a review finding, so no P1/P2
+label applies. Source baseline `8389a15f2bf811072c09fff1e9a10a2946315b57` (`main`, equal to
+`origin/main`), clean worktree.
+
+**Evidence.** By code reading at the baseline and a throwaway probe in Ramen against the pinned
+revision `v0.0.0-20261020105524-8389a15f2bf8` (`BuildAPISourceOperationInventory`). Google Storage
+`storage.buckets.get` returns exactly 60 response fields, cut in path order depth-first by
+`requestFieldSummaries` (`inventory_request.go`, `maxRequestFields`): `acl` through
+`ipFilter.vpcNetworkSources[]...`, so `location`, `name` and every later top-level field are lost.
+`googleDiscoveryResponseFields` (`source_inventory.go`) appends a missing `name`/`id` after the cut,
+but `sanitizeRequestFields` (`prompt_safety.go`, `DefaultPromptFieldItems` 60) trims the list to 60
+again and drops the appended `name`; `id` survives only because it sorts inside the first 60. The
+OpenAPI response path (`responseBodySummary`, `inventory_request.go`) uses the same cut-then-append
+pattern. AWS Smithy operations carry no response body in this inventory (no S3 or IAM operation has
+one), so they are not affected; summarizing Smithy outputs is a separate feature (candidate below).
+Ramen binds a read role's top-level scalar response fields, so a large resource loses `name`, `id`
+and `location` (Ramen `tests/google/RUN.md` Run 2, limit 9).
+
+**Decisions (approved 2026-10-22).** Change only which response fields are kept when a summary is
+truncated; keep the output sorted by path as today; leave request-field summaries and the native
+walkers that refuse rather than truncate unchanged; Smithy outputs stay a candidate direction.
+
+### S10 — Keep top-level response fields when a response summary is truncated
+
+**Stage/owner.** APItools (lane S: inventories and prompt-safe summaries). Requested by
+Ramen:M128, which adopts the published revision.
+
+**Scope.** For OpenAPI and Google Discovery response bodies, collect the response fields within the
+existing depth and work bounds, and when more than 60 remain, keep every top-level field first (by
+path), then nested fields by path, up to 60; then sort the kept fields by path. This replaces the
+cut-then-append of `name`/`id` for these response paths, so the later prompt-safety trim removes
+nothing. When more than 60 top-level fields exist, the first 60 by path are kept. The existing
+`schema.field_summary_truncated` issue is still reported. Request-field summaries, the native
+schema walkers (AsyncAPI, OpenRPC and the rest, which refuse over budget) and the public types are
+unchanged. CHANGELOG and `architecture.md` record the behavior.
+
+**Rows.**
+- S10.1: the selection for OpenAPI and Google Discovery response fields, with tests written first:
+  Google Storage `storage.buckets.get` keeps `name`, `id`, `location` and `storageClass`, has at most
+  60 fields, is sorted by path and still reports the truncation issue (the Storage Discovery document
+  copied into `testdata/`); a synthetic OpenAPI response with more than 60 fields behaves the same;
+  a response under the budget is unchanged; request-field summaries are unchanged; more than 60
+  top-level fields keep the first 60 by path.
+- S10.2: CHANGELOG "Unreleased" entry and the `architecture.md` note.
+
+**Acceptance.** The tests above pass; `GOWORK=off go vet ./...`, `GOWORK=off go test ./...` and
+`git diff --check` pass offline. Because the kept fields of truncated responses change, a read-only
+consumer check runs OpenUdon's tests against the S10 candidate from a scratch copy with a `replace`
+directive (no OpenUdon edit); a difference is reported for OpenUdon's own planning, not fixed here.
+
+**Depends on.** Nothing open. Ramen:M128 depends on S10's publication.
+
+```yaml
+AUTHORIZATION_REQUIREMENTS:
+  git.commit:
+    via: goal-policy
+    executor: assigned-agent
+  cli.local:
+    via: goal-policy
+    executor: assigned-agent
+    scope: declared-implementation-and-verification, including a read-only OpenUdon test run from a scratch copy
+```
+
 ## Approved ranked catalog search — 2026-10-20
 
 The user approved Milestone S09 on 2026-10-20 through `memory-bank-propose`, at the
@@ -371,7 +441,7 @@ Exact history and observed publication evidence resolve through the history inde
 Apitools and Authoring are published, and OpenUdon passes standalone test/vet
 against its pinned APItools revision.
 
-S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired after one review iteration; it is published on `origin/main` at `87f14076460626cda0a598bb958a90d348d0f5f4`, which Ramen pins. S09 (a ranked search over the built-in catalog for Ramen:M110) is accepted and retired after one review iteration; it is committed locally and not yet published, and Ramen:M110 waits on its publication.
+S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired after one review iteration; it is published on `origin/main` at `87f14076460626cda0a598bb958a90d348d0f5f4`, which Ramen pins. S09 (a ranked search over the built-in catalog for Ramen:M110) is accepted and retired after one review iteration; it is published on `origin/main` at `8389a15f2bf811072c09fff1e9a10a2946315b57`, which Ramen pins. S10 (keep top-level response fields when a response summary is truncated, for Ramen:M128) is approved on 2026-10-22 and pending.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
 (`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
@@ -406,6 +476,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 | ID | Status file | State |
 | --- | --- | --- |
 | M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89/S07 accepted |
+| S10 | [status-S10.md](status-S10.md) | Pending; keep top-level response fields when truncating (for Ramen:M128) |
 
 Closed milestones are recorded in the history index.
 
@@ -550,6 +621,7 @@ the work automatically.
 | Egress proxy support for guarded downloads | Review "apitools Code Review" Pass 1 finding #8: the guarded transport has `Proxy: nil`, and the only alternative, `AllowUnsafeHosts`, drops all host checks (`download.go`). Supporting a proxy trades dial-time IP filtering for proxy trust, which is a product/security decision. | An operator needs mandatory-proxy egress, and an approved policy defines target pre-validation, proxy trust, and the documented DNS-rebinding limitation. |
 | Lifecycle and scan cleanup follow-ups | Uncommitted-diff review (2026-09-26) Lower items not required by S02, S03, or S04 acceptance: `operationlifecycle` recomputes tokens and purpose for every operation on each role (performance only); offline `search` still applies the cache TTL while offline `import` ignores it (consistency decision); `isUnicodeTagCharacter` largely repeats the Cf category check in `prompt_safety.go` (cosmetic). | Promote when lifecycle ranking becomes a measured hotspot, an operator needs offline search of expired entries, or `prompt_safety.go` is next edited. |
 | Catalog and tooling hardening batch | Review "apitools Code Review" Passes 2 and 4 (revalidated at `e015231`), all Lower severity: C3 `ResolveProviders(query)` splits multi-word display names on whitespace (`catalog/materialize.go`; CLI and OpenUdon pass explicit keys; S09's `SearchProviders` is the free-text alternative and leaves this unchanged); C4 `FindSpecReference` trims the provider ID for identity but not for the spec lookup (`catalog/index.go`); C5 `preferredSpecReference` ignores `asyncapi`, `openrpc`, `graphql`, `grpc-protobuf`, and `odata` kinds (no built-in provider affected); X2 `Import` creates the target directory before validating or downloading (`import.go`); X3 the installed `staticcheck` predates the module's Go version and no `govulncheck` gate runs (`tech-stack.md`). | Approve a hardening batch, or promote an item when a consumer depends on the query API, a provider relies on a newer-kind-only source, or a static/vulnerability gate is required for release. |
+| Summarize AWS Smithy operation outputs | `BuildAPISourceOperationInventory` records request bodies for Smithy operations but no response body (no S3 or IAM operation has one, S10 planning probe), so consumers get no response fields for AWS resources. S10 keeps to the truncation of existing response summaries. | A consumer (for example Ramen's read-role response bindings for AWS lanes) needs Smithy output fields. |
 
 ## Out of scope
 
