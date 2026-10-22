@@ -79,6 +79,6 @@ with backticks: `` `[ ]` ``, `` `[~]` ``, `` `[+]` ``, `` `[!]` ``, `` `[X]` ``,
 
 | Item | State | Notes |
 | --- | --- | --- |
-| S10.1: Keep top-level fields when truncating OpenAPI and Google Discovery response summaries | `[X]` | `responseFieldSummaries` (`inventory_request.go`) keeps every top-level field first (first 60 by path), then nested fields by path, sorted by path; replaces cut-then-append of `name`/`id`. Google inventory operations now also report `schema.field_summary_truncated` (candidates use the native walker and are unaffected). Tests in `inventory_response_fields_test.go`, fixture `testdata/inventory/google-storage-discovery.json`. `GOWORK=off go vet`, `go test ./...`, `git diff --check` pass; OpenUdon `go test ./...` from a scratch copy with `replace` passes unchanged. |
-| S10.2: Document the change | `[X]` | CHANGELOG "Unreleased" entry and `architecture.md` note (Data Flow, prompt budget section). |
+| S10.1: Keep top-level fields when truncating OpenAPI and Google Discovery response summaries | `[+]` | `responseFieldSummaries` (`inventory_request.go`) keeps every top-level field first (first 60 by path), then nested fields by path, sorted by path; replaces cut-then-append of `name`/`id`. Google inventory operations now also report `schema.field_summary_truncated` (candidates use the native walker and are unaffected). Tests in `inventory_response_fields_test.go`, fixture `testdata/inventory/google-storage-discovery.json`. `GOWORK=off go vet`, `go test ./...`, `git diff --check` pass; OpenUdon `go test ./...` from a scratch copy with `replace` passes unchanged. |
+| S10.2: Document the change | `[+]` | CHANGELOG "Unreleased" entry and `architecture.md` note (Data Flow, prompt budget section). |
 `````
