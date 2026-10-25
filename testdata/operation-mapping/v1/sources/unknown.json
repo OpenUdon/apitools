@@ -1,0 +1,42 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Unknown schema fixture",
+    "version": "fixture-v1"
+  },
+  "servers": [
+    {
+      "url": "https://fixture.example.invalid"
+    }
+  ],
+  "security": [],
+  "paths": {
+    "/unknown": {
+      "post": {
+        "operationId": "unknown",
+        "parameters": [
+          {
+            "name": "value",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "https://no-fetch.example.invalid/schema"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "synthetic response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

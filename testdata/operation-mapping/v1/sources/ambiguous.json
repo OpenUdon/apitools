@@ -1,0 +1,49 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Ambiguous fixture",
+    "version": "fixture-v1"
+  },
+  "servers": [
+    {
+      "url": "https://fixture.example.invalid"
+    }
+  ],
+  "security": [],
+  "paths": {
+    "/one": {
+      "get": {
+        "operationId": "lookup",
+        "responses": {
+          "200": {
+            "description": "synthetic response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/two": {
+      "get": {
+        "operationId": "lookup",
+        "responses": {
+          "200": {
+            "description": "synthetic response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

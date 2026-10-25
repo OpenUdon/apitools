@@ -1,0 +1,85 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Business message fixture",
+    "version": "fixture-v1"
+  },
+  "servers": [
+    {
+      "url": "https://fixture.example.invalid"
+    }
+  ],
+  "security": [],
+  "paths": {
+    "/channels/{channel_id}/messages": {
+      "post": {
+        "operationId": "sendMessage",
+        "summary": "Send a synthetic business message",
+        "parameters": [
+          {
+            "name": "channel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "synthetic response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message_id"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

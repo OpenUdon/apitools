@@ -273,9 +273,18 @@ func excludedMappingField(shape binding.OperationShape, ref OperationFieldRefere
 		return true
 	}
 	if ref.Location == "header" {
-		switch strings.ToLower(ref.Name) {
+		lower := strings.ToLower(ref.Name)
+		switch lower {
 		case "authorization", "proxy-authorization", "cookie", "set-cookie", "host", "content-type", "content-length", "accept", "user-agent":
 			return true
+		}
+		// Match the conservative header policy already used by resource
+		// authoring. Session/signature and opaque key headers may carry secrets
+		// even when a source omits their security scheme.
+		for _, word := range []string{"token", "secret", "password", "passwd", "key", "auth", "credential", "session", "signature"} {
+			if strings.Contains(lower, word) {
+				return true
+			}
 		}
 	}
 	if ref.Direction == "input" {

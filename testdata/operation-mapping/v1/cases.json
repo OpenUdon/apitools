@@ -1,0 +1,1779 @@
+{
+  "version": "apitools.operation-mapping/v1",
+  "sources": {
+    "business": {
+      "path": "sources/business.json",
+      "kind": "openapi",
+      "sha256": "17f3693b85299444e0d8d5f648bca3b5f28348baa3afb9e3bba16f8cd016b23c"
+    },
+    "resource": {
+      "path": "sources/resource.json",
+      "kind": "openapi",
+      "sha256": "462b9206828557af364ffaf993cf1a139b8008c2cf3a79552ba3856ac88b624f"
+    },
+    "ambiguous": {
+      "path": "sources/ambiguous.json",
+      "kind": "openapi",
+      "sha256": "17cfe84a3ab3b0dc651d925baa49d65b8478f30602ea391da4e1619a2d18b59a"
+    },
+    "unknown": {
+      "path": "sources/unknown.json",
+      "kind": "openapi",
+      "sha256": "d9081abd88644e6142e67920d804bb0b3d3c21b297c89d3ddc7b9026d0dd8634"
+    }
+  },
+  "cases": [
+    {
+      "name": "business-message",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "channel_id",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "locale",
+          "field": "language",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Request-Id",
+          "field": "trace",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "message",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "compatible",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible"
+      ],
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "resource-role",
+      "source": "resource",
+      "selector_kind": "id",
+      "selector_value": "updateRecord",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "zone_id",
+          "field": "zone",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "record_id",
+          "field": "record",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Revision",
+          "field": "revision",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "integer"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "dry_run",
+          "field": "preview",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "boolean"
+            }
+          },
+          "required": false
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "record_definition",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "ttl": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "ttl"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "observed_resource",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              },
+              "required": [
+                "result"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "compatible",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible"
+      ],
+      "want_excluded": 1,
+      "want_native_selector": "#/paths/~1zones~1{zone_id}~1dns_records~1{record_id}/patch"
+    },
+    {
+      "name": "placeholder",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "channel_id",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "locale",
+          "field": "language",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Request-Id",
+          "field": "trace",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "message",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "required": true,
+          "placeholder": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "indeterminate",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.placeholder",
+        "mapping.schema_compatible"
+      ],
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "incompatible-input-type",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "channel_id",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "integer"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "locale",
+          "field": "language",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Request-Id",
+          "field": "trace",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "message",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "incompatible",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_incompatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible"
+      ],
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "missing-input-field",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "missing",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "locale",
+          "field": "language",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Request-Id",
+          "field": "trace",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "message",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "incompatible",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.field_missing",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible"
+      ],
+      "want_unmapped": 1,
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "missing-response-field",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "channel_id",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "locale",
+          "field": "language",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Request-Id",
+          "field": "trace",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "message",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "missing",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "incompatible",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.field_missing"
+      ],
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "required-from-optional",
+      "source": "resource",
+      "selector_kind": "id",
+      "selector_value": "updateRecord",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "zone_id",
+          "field": "zone",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": false
+        },
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "record_id",
+          "field": "record",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Revision",
+          "field": "revision",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "integer"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "dry_run",
+          "field": "preview",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "boolean"
+            }
+          },
+          "required": false
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "record_definition",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "ttl": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "ttl"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "observed_resource",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              },
+              "required": [
+                "result"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "incompatible",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.required",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible"
+      ],
+      "want_excluded": 1,
+      "want_native_selector": "#/paths/~1zones~1{zone_id}~1dns_records~1{record_id}/patch"
+    },
+    {
+      "name": "required-from-unknown",
+      "source": "resource",
+      "selector_kind": "id",
+      "selector_value": "updateRecord",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "zone_id",
+          "field": "zone",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "record_id",
+          "field": "record",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Revision",
+          "field": "revision",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "integer"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "dry_run",
+          "field": "preview",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "boolean"
+            }
+          },
+          "required": false
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "record_definition",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "ttl": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "ttl"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "observed_resource",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              },
+              "required": [
+                "result"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "indeterminate",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.presence_unknown",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible"
+      ],
+      "want_excluded": 1,
+      "want_native_selector": "#/paths/~1zones~1{zone_id}~1dns_records~1{record_id}/patch"
+    },
+    {
+      "name": "required-body-property-missing",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "channel_id",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "locale",
+          "field": "language",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Request-Id",
+          "field": "trace",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "message",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": []
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "indeterminate",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_indeterminate",
+        "mapping.schema_compatible"
+      ],
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "nested-output-type-conflict",
+      "source": "resource",
+      "selector_kind": "id",
+      "selector_value": "updateRecord",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "zone_id",
+          "field": "zone",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "record_id",
+          "field": "record",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Revision",
+          "field": "revision",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "integer"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "dry_run",
+          "field": "preview",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "boolean"
+            }
+          },
+          "required": false
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "record_definition",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "ttl": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "ttl"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "observed_resource",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              },
+              "required": [
+                "result"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "incompatible",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_incompatible"
+      ],
+      "want_excluded": 1,
+      "want_native_selector": "#/paths/~1zones~1{zone_id}~1dns_records~1{record_id}/patch"
+    },
+    {
+      "name": "security-query-excluded",
+      "source": "resource",
+      "selector_kind": "id",
+      "selector_value": "updateRecord",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "zone_id",
+          "field": "zone",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "record_id",
+          "field": "record",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Revision",
+          "field": "revision",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "integer"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "dry_run",
+          "field": "preview",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "boolean"
+            }
+          },
+          "required": false
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "record_definition",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "ttl": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "ttl"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "observed_resource",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              },
+              "required": [
+                "result"
+              ]
+            }
+          }
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "access",
+          "field": "service_access",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        }
+      ],
+      "want_outcome": "indeterminate",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.credential_excluded"
+      ],
+      "want_excluded": 1,
+      "want_native_selector": "#/paths/~1zones~1{zone_id}~1dns_records~1{record_id}/patch"
+    },
+    {
+      "name": "duplicate-input-target",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "channel_id",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "locale",
+          "field": "language",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Request-Id",
+          "field": "trace",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "message",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        },
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "channel_id",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        }
+      ],
+      "want_outcome": "incompatible",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.duplicate"
+      ],
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "duplicate-consumer-output",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "channel_id",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "locale",
+          "field": "language",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Request-Id",
+          "field": "trace",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "message",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "incompatible",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.duplicate"
+      ],
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "credential-body-excluded",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "channel_id",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "locale",
+          "field": "language",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Request-Id",
+          "field": "trace",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "message",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "accessToken": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "indeterminate",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.credential_excluded",
+        "mapping.schema_compatible"
+      ],
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "truncated-report",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "path",
+          "name": "channel_id",
+          "field": "channel",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "locale",
+          "field": "language",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "header",
+          "name": "X-Request-Id",
+          "field": "trace",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "input",
+          "location": "body",
+          "name": "body",
+          "field": "message",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "required": true
+        },
+        {
+          "direction": "output",
+          "location": "body",
+          "name": "body",
+          "field": "receipt",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message_id"
+              ]
+            }
+          }
+        }
+      ],
+      "want_outcome": "indeterminate",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible",
+        "mapping.schema_compatible"
+      ],
+      "truncated": true,
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "stale-source",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [],
+      "want_outcome": "incompatible",
+      "want_status": "missing",
+      "want_field_codes": [],
+      "stale_digest": true,
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "candidate-selector-drift",
+      "source": "business",
+      "selector_kind": "id",
+      "selector_value": "sendMessage",
+      "mappings": [],
+      "want_outcome": "incompatible",
+      "want_status": "resolved",
+      "want_field_codes": [],
+      "candidate_selector": "#/paths/~1different/post",
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1channels~1{channel_id}~1messages/post"
+    },
+    {
+      "name": "ambiguous-native-id",
+      "source": "ambiguous",
+      "selector_kind": "id",
+      "selector_value": "lookup",
+      "mappings": [],
+      "want_outcome": "indeterminate",
+      "want_status": "ambiguous",
+      "want_field_codes": [],
+      "want_excluded": 0
+    },
+    {
+      "name": "unknown-native-schema",
+      "source": "unknown",
+      "selector_kind": "id",
+      "selector_value": "unknown",
+      "mappings": [
+        {
+          "direction": "input",
+          "location": "query",
+          "name": "value",
+          "field": "value",
+          "schema": {
+            "known": true,
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": true
+        }
+      ],
+      "want_outcome": "indeterminate",
+      "want_status": "resolved",
+      "want_field_codes": [
+        "mapping.schema_unknown"
+      ],
+      "want_excluded": 0,
+      "want_native_selector": "#/paths/~1unknown/post"
+    }
+  ]
+}
