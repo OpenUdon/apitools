@@ -1,6 +1,6 @@
 {
   "version": "apitools.m91-published-proof.v1",
-  "state": "All four M91 task units qualify, including approved exact Udon metadata correction/full compatibility; fresh whole2 started, not accepted yet",
+  "state": "accepted/retired after authoritative fresh whole2; M91-W1 resolved; Lower/P3 M91-W2 current summaries reconciled",
   "receipts": {
     "m91-publication-independent.json": {
       "version": "stage13.github-publication-verified.v1",
@@ -3368,5 +3368,15 @@
     "individual_RUN_SKIP_counts": "not retained by ordinary go test package output; live-gated tests not qualified",
     "budget": "correctedreadiness2 and conditionalfull1 each consumed/ENDED, no replay",
     "stdout_wording_correction": "One private launcher status print mistakenly said1136package records; hash-bound identity receipt correctly records892. Corrected reporting only; no check rerun or acceptance/graph change."
+  },
+  "whole_review": {
+    "iteration": 2,
+    "candidate": "3954824c6bfdd036f2f8c5f9b57a17b385b51d59",
+    "model": "gpt-6.1-sol",
+    "effort": "xhigh",
+    "all5coverage": true,
+    "P1": 0,
+    "P2": 0,
+    "Lower": "M91-W2 stale current summaries resolved in closure; no production/test change or verification repeat"
   }
 }

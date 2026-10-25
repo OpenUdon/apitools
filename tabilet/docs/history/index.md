@@ -5,6 +5,7 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 
 | Milestone | Outcome | Retired | Record | Summary |
 |---|---|---|---|---|
+| M91 | completed | 2026-10-25 | [M91](status-M91.md) | Pure eligibility/mapping; exact publication/ordinary49test consumer/existingOpenUdon+Udon compatibility pass; fresh Sol/xhigh whole2 PASS/P3 reconciled; six inherited static diagnostics, absentVCS and failures retained. |
 | S10 | completed | 2026-10-22 | [S10](status-S10.md) | Two rows/whole1; OpenAPI and Google Discovery response summaries keep every top-level field (first 60 by path), then nested fields; Google inventory reports the truncation issue; unpublished. |
 | S09 | completed | 2026-10-20 | [S09](status-S09.md) | Two rows/whole1; ranked `catalog.SearchProviders` and `SearchBuiltInProviders` (every word must match; rank by ID/name/aliases, then category, then other text; exact key first); unpublished. |
 | S08 | completed | 2026-10-19 | [S08](status-S08.md) | Two rows plus a test row/whole1; exported guarded `Client.FetchDocument` (host and port guard, redirect checks, timeout, byte limits; no validation or cache); unpublished. |

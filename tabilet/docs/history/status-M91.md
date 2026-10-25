@@ -1,8 +1,82 @@
+# Retired milestone M91 - Common eligibility and mapping helpers
+
+**Milestone.** M91
+**Outcome.** completed
+**Retired.** 2026-10-25
+**Source status.** tabilet/memory-bank/status-M91.md
+**Source specification.** tabilet/memory-bank/milestone.md#stg13-m91
+**Evidence.** 3954824c6bfdd036f2f8c5f9b57a17b385b51d59
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 2
+**Verification.** Qualified0ff local full1 PASS30.768s/race1 PASS89.189s; inherited staticexit1sixdiagnostics/absentVCS retained. Exact d8creation-only publication1 PASS1.720709s/independentGitHub identities; ordinaryacquisition1 PASS9.797954s/exact sums/origin/707files. Reusabletypedconsumer49RUN49PASS/vet/build/correctedprobe selected92/compiled41/no replacements. ExistingOpenUdon full1 PASS27.075342s; approvedexactUdoncopy readiness2 PASS0.958568s/346frozen identities/892packages, full1 PASS81.822281s/test-vet-build-CLI/compiled76/exactM91/no directoryreplace/original692files unchanged. All earlier failures and unqualified scopes retained.
+**Consolidated into.** [product](../../memory-bank/product.md), [architecture](../../memory-bank/architecture.md), [tech-stack](../../memory-bank/tech-stack.md), [lessons](../../memory-bank/lessons.md); docs/m91-published-proof.json, reusable fixture and exact W22/M136 handoffs. Actual pre-closure HEAD; uncommitted review/P3/retirement metadata is not claimed in that commit.
+
+## Milestone specification
+
+````markdown
+<a id="stg13-m91"></a>
+
+### M91 — Common eligibility and mapping helpers
+
+**Stage/owner.** Kinet STG-13; APItools. **State.** Completed; all four task rows and fresh whole2 pass.
+**Depends on.** None.
+**Downstream.** [Kinet:W22](../../../kinet/tabilet/memory-bank/status-W22.md), [Ramen:M136](../../../ramen/tabilet/memory-bank/status-M136.md)
+**Outcome.** APItools exposes small additive helpers for candidate eligibility and field mapping, with shared conformance cases and product-specific admission kept in consumers.
+
+**Write set.** APItools public operation metadata/eligibility/mapping helpers, operationlifecycle integration where needed, versioned fixtures and SDK documentation. Package-local documentation/status follows the owning change; sibling changes have their own owners. **Parallel-safe: no.**
+
+**Acceptance.**
+
+- Preserve source digest, native operation selector, requiredness/type/incompleteness and credential exclusions. Ambiguous or unsupported mappings remain explicit unresolved choices.
+- Helpers are metadata-only: no credentials, provider transport, execution, universal planner, product imports or automatic approval. Existing API consumers continue to build.
+
+**Verification.** Focused operation-shape/candidate/mapping/operationlifecycle tests across supported source identities; standalone tests/vet and existing affected static/race gates. Apply the [shared verification policy](../../../kinet/docs/stage13.md#verification-policy), including `GOWORK=off` for every adoption/closure check. Clean implementation source `0ff4ef561dcc5f784a630b1559ac688bca35802d` passes full local qualification (30.768s) and affected races (89.189s), with 77 selected/39 compiled modules and no replacements. [Qualification](../../docs/m91-producer-qualification.md) preserves six current static observations under the existing M85 policy, actual absent VCS stamps, and all earlier failures. [Published ordinary proof](../../docs/m91-published-proof.json) records exact source/acquisition/reusable typed consumer and both available existing-consumer checks. Fresh whole2 passes; no zero-checker/global-clean/live claim follows.
+
+**Review provenance.** Kinet Stage 13 plan review (`kinet-stage13.md`), 2026-10-25; source commit baseline not supplied. Review H4 (High/local P2) and M1 (Medium/local Lower): the parent go.work substitutes sibling modules, and U16/P06 supply no APItools contract prerequisite. M91.4 owns explicit standalone publication evidence; dispatch priority retains the product-first order. Revalidated at APItools `fe54b3ba939427d86ebbdd4a47b0dccb519cc26c` with the existing uncommitted Stage 13 planning inspected; source/history changes were not absorbed. This is review intake, not a closing review iteration.
+
+**Execution policy.** Future execution follows the [coordinator](../../../kinet/docs/stage13.md#verification-policy) and effective goal policy. Planning activates no action, grant or old budget; required publication is independently verified before consumption.
+
+```yaml
+AUTHORIZATION_REQUIREMENTS:
+  git.commit:
+    via: goal-policy
+    executor: coordinator
+  cli.local:
+    via: goal-policy
+    executor: coordinator
+    scope:
+      repository: /home/peter/Workspace/apitools
+      task: declared-implementation-and-verification
+  git.push:
+    via: explicit
+    executor: coordinator
+    scope:
+      repository: /home/peter/Workspace/apitools
+      remote: git@github.com-tabilet:OpenUdon/apitools.git
+      ref: refs/heads/stage13/m91-operation-mapping-d8c3555d
+      revision: d8c3555d365bd0414b4d89fcab7074542983e5c6
+      mode: fast-forward
+      creation_only: true
+      expected_ref: absent; empty expected-ref lease
+```
+
+**Task/review owner.** [status-M91.md](status-M91.md) owns the 4 pending rows and persisted review; [the coordinator](../../../kinet/docs/stage13.md) owns cross-package acceptance and priority.
+
+**Scoped execution approval — 2026-10-25.** The owner said “I approve” after both exact linked proposals. The [approval record](../../../kinet/docs/stage13-scoped-approval-20261025.json) binds the reviewed hashes. Only this exact new review branch, disclosed source-test CI, two named module acquisitions and exact disposable compatibility inputs are excepted from the no-push/external-mutation policy. Main denials remain; publication, consumption and acceptance are not yet claimed. Existing review counter1 and every earlier outcome remain.
+
+**Final acceptance.** Both original acceptance lines and all four tasks fulfilled. Fresh whole2 passes all five lenses/no P1/P2; sole Lower stale-state summaries reconciled. Original source full/race, exact independently verified publication/acquisition, reusable49test ordinary consumer and existing OpenUdon/Udon checks qualify at exact recorded scopes. Inherited checker diagnostics, absent VCS stamps and failures remain; W22/M136 actual product adoption is downstream.
+
+````
+
+## Status record
+
+````markdown
 # M91 — Common eligibility and mapping helpers
 
 **Stage/owner:** STG-13; APItools.
 **Planning approval:** Owner-approved full rescope on 2026-10-25 (approval: “I aapaprove”), following the earlier whole-stage approval. Planning only; no execution, commit or grant activation.
-**State:** All four original task rows qualify. Exact publication/acquisition, reusable typed consumer and both available existing-consumer compatibility checks pass. Fresh authoritative whole2 started; no milestone acceptance yet. Static/VCS limits and earlier failures remain.
+**State:** Completed and accepted at fresh whole2/10. All four original task rows, exact producer publication/ordinary acquisition, reusable typed consumer and available OpenUdon/Udon compatibility pass. Inherited static/VCS and original failures remain.
 **Specification:** [milestone.md](milestone.md#stg13-m91).
 **Depends on:** None.
 **Source baseline:** `fe54b3ba939427d86ebbdd4a47b0dccb519cc26c`; existing dirty planning/history was inspected and preserved. Reconcile live source and exact accepted producers before implementation.
@@ -33,7 +107,15 @@ Required verification: Focused operation-shape/candidate/mapping/operationlifecy
 
 Review gate iterations: 2
 
-Task reviews: M91.1 scope/inventory, M91.2 implementation and M91.3 conformance checks passed. M91.4 narrow DEFAULT evidence/readiness review passed for local proof only; required ordinary publication/consumer evidence is missing. Authoritative whole-milestone review: 1/10 completed with evidence blocker M91-W1; no pass or final acceptance is claimed. Follow the package's existing persisted review and closure procedure; planning, terminal rows and successful builds do not establish acceptance.
+All four task reviews and authoritative fresh whole2 pass. WHOLE_MILESTONE_REVIEW
+gpt-6.1-sol/xhigh reviewed the full baseline1aa42bbbd6cce01b902e1ce612243ec0b61b928a
+through3954824c6bfdd036f2f8c5f9b57a17b385b51d59. All five lenses pass; no P1/P2
+remain, prior evidence finding M91-W1 resolved. One Lower/P3 M91-W2 identified
+stale current status/stack/lesson/spec summaries; coordinator reconciles them
+during closure, preserving phase evidence below. This metadata-only correction
+changes no helper/schema/corpus/test/dependency input and needs no new run or
+whole iteration. Existing six static diagnostics/actualexit1, absent VCS stamps
+and all failed preflights/probe-oracle corrections remain explicit, not waived.
 
 ## Authoritative whole review iteration 1 — blocked on evidence
 
@@ -125,3 +207,25 @@ milestone; whole1, all inherited static observations, missing VCS stamps and
 earlier failed preflights/oracle remain. Grants for exact pushes/acquisitions/
 Udon correction/readiness/full are consumed/ended with no replay. Current
 source/helper/corpus behavior is unchanged; no final acceptance until whole2.
+
+## Final authoritative whole2 — passed and reconciled
+
+All five lenses pass: correctness/reliability, security/privacy,
+compatibility/contracts, tests/docs and acceptance/scope. No P1/P2; sole
+Lower/P3 M91-W2 stale current summaries is resolved in final status/stack/
+lesson/spec. Reviewer inspected exact resolution/schema/presence/duplicates/
+placeholders/cancellation, metadata-only credential exclusions and no-fetch
+bounds, both test files,19cases/foursources/eightfamily preservation and full
+acceptance fidelity. Helpers remain exactly qualified0ff, no missing/partial/
+incorrect acceptance or unrequested implementation.
+
+Read-only review checked all79retained output hashes/sizes, all707published
+Git/ZIP/extracted files, ordinary49RUN49PASS/reusabletypedprobe/selected92/
+compiled41/no replacements, existingOpenUdon full/source1215files, existing
+Udon approvedmetadata/frozen346graph/892errorfreepackages/compiled76 and all
+692originaltracked/non-modulecopy source files. Prior evidenceP2M91-W1 is
+resolved. Reviewer ran no test/build/network/cache/mutation. All exact action
+grants are consumed/ended; no main/futurepush/download/oldgrant/UNKNOWN reset.
+Current facts/lesson and W22/M136 exact producer handoffs are consolidated;
+actual product adoption remains downstream. Stage13 stays open.
+````

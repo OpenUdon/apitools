@@ -19,8 +19,8 @@ identical binaries; separate Git cleanliness/revision evidence is retained.
 The 19 shared actual-source cases cover business and fake Cloudflare mappings;
 eight-family partial shapes remain unresolved. [Local proof](../../docs/m91-local-proof.json)
 and [qualification](../../docs/m91-producer-qualification.md) retain logs, counts,
-source/corpus and precise limitations. [Live status](status-M91.md) owns whole
-review1/remaining evidence blocker. [Published proof](../../docs/m91-published-proof.json)
+source/corpus and precise limitations. [Live status](../docs/history/status-M91.md) owns whole
+passed whole2/accepted retirement. [Published proof](../../docs/m91-published-proof.json)
 records actual exact publication/acquisition and reusable combined consumer49RUN/
 49PASS, selected92/compiled41/no replacements, plus existing OpenUdon full1
 PASS27.075342s. Approved Udon exact seven-root/cached-sum correction now passes readiness2

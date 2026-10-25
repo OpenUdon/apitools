@@ -85,8 +85,8 @@ then require ordinary input coverage. Unknown presence, partial/truncated
 shapes and placeholders stay unresolved. Do not turn nested prompt paths,
 transport/security headers or inferred credentials into typed mappings.
 [Shared conformance](../../testdata/operation-mapping/v1/README.md) retains positive
-and refusal cases; [M91 status](status-M91.md) separately retains unpublished
-producer/consumer evidence gaps after local qualification.
+and refusal cases; [M91 status](../docs/history/status-M91.md) retains exact published producer/ordinary consumer and both existing-consumer
+compatibility proofs, including original failures and scope limits.
 
 ## Bind version evidence to an exact publisher and native identity
 

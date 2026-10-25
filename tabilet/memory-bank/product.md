@@ -14,10 +14,10 @@ M91.1–.3 are committed and locally qualified. Whole review1 found no productio
 P1/P2 defect. Independently verified exact source publication/acquisition, reusable
 ordinary typed consumer and existing OpenUdon compatibility now pass. Remaining
 approved Udon-copy metadata correction/readiness/full1 now pass; fresh whole2
-is started and M91 is not yet accepted.
+passes and M91 is accepted/retired.
 New Kinet W22 and Ramen M136 adoption stays downstream, not an additional M91
 prerequisite. [SDK contract](../../docs/operation-mapping-v1.md),
-[qualification](../../docs/m91-producer-qualification.md) and [active status](status-M91.md)
+[qualification](../../docs/m91-producer-qualification.md) and [active status](../docs/history/status-M91.md)
 retain exact scope, source and review1. [Published consumer proof](../../docs/m91-published-proof.json)
 records actual effects; its push/acquisition grants are consumed, no replay.
 
