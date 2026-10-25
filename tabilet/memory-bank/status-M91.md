@@ -2,7 +2,7 @@
 
 **Stage/owner:** STG-13; APItools.
 **Planning approval:** Owner-approved full rescope on 2026-10-25 (approval: “I aapaprove”), following the earlier whole-stage approval. Planning only; no execution, commit or grant activation.
-**State:** M91.1 complete; M91.2 next; review 0/10. Source publication remains denied by the human's “commit in all packages but no push” instruction.
+**State:** M91.1–M91.2 complete; M91.3 next; review 0/10. Source publication remains denied by the human's “commit in all packages but no push” instruction.
 **Specification:** [milestone.md](milestone.md#stg13-m91).
 **Depends on:** None.
 **Source baseline:** `fe54b3ba939427d86ebbdd4a47b0dccb519cc26c`; existing dirty planning/history was inspected and preserved. Reconcile live source and exact accepted producers before implementation.
@@ -16,7 +16,7 @@
 | Item | State | Notes |
 |---|---|---|
 | M91.1 — Define common eligibility and mapping rules | `[+]` | Inventoried existing APItools ranking/shapes/lifecycle, Kinet mapping/native projection and Ramen role/save bindings against actual sources. [Frozen common behavior](../../docs/operation-mapping-v1.md) scopes explicit exact-shape eligibility and whole-field schema mappings, retaining consumer admission, nested authoring and security authority. Task review checked scope and source locations; `git diff --check` passed. No implementation or whole review claimed. |
-| M91.2 — Implement additive pure helpers | `[ ]` | Provide deterministic eligibility and typed field/binding matching with requiredness and credential exclusions; keep native source/operation identity intact and avoid provider transport or runtime calls. |
+| M91.2 — Implement additive pure helpers | `[+]` | Added `AssessOperationEligibility` and `MatchOperationFields`, reusing UWS table resolution/schema validation and existing credential-name policy. Exact source/native identity, unknown/truncated/ambiguous states, whole-schema direction, requiredness, placeholders and credential exclusions are retained; no transport/runtime/product imports. Task review corrected unresolved-pair coverage and cancellation propagation. Go1.26.6, `GOWORK=off GOPROXY=off GOSUMDB=off GOAUTH=off GOTOOLCHAIN=local GOFLAGS=-mod=readonly`: focused new mapping/eligibility tests passed (0.077s); affected existing shape/selection/candidate checks passed (1.150s). `git diff --check` passed. |
 | M91.3 — Add shared positive and refusal cases | `[ ]` | Cover supported shapes, path/query/header/body/response bindings, placeholders, incompatible types, missing fields, stale identities and ambiguous matches. Exercise both product use cases without broad new protocol features. |
 | M91.4 — Qualify and hand off exact producer | `[ ]` | Run focused and required standalone checks with GOWORK=off; record go env GOWORK=off, exact selected/compiled dependency identities and absence of directory replacements for adoption/publication proof. Prepare independently verified ordinary publication and consumer fixtures. APItools:M90 stays reserved and unscheduled. |
 
@@ -33,4 +33,4 @@ Planned verification: Focused operation-shape/candidate/mapping/operationlifecyc
 
 Review gate iterations: 0
 
-Task reviews: M91.1 scope/inventory review passed. Whole-milestone review: 0/10, not started. Follow the package's existing persisted review and closure procedure; planning, terminal rows and successful builds do not establish acceptance.
+Task reviews: M91.1 scope/inventory and M91.2 implementation/focused checks passed. Whole-milestone review: 0/10, not started. Follow the package's existing persisted review and closure procedure; planning, terminal rows and successful builds do not establish acceptance.

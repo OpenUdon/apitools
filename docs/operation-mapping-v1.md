@@ -42,7 +42,8 @@ evidence. Eligibility describes metadata sufficiency, never product admission.
 
 `MatchOperationFields` assesses explicit named input/output mappings over that
 same selection. Each pair names one declared native field by direction,
-location and name, plus the consumer field's schema and presence guarantee.
+location and name, plus the consumer field's schema. Input pairs also carry the
+consumer field's presence guarantee in `Required`; output pairs omit that field.
 It compares whole field schemas through the existing UWS binding validator:
 consumer schema flows into an input; operation schema flows into an output.
 Objects and arrays retain their required properties and item schemas. No dotted
@@ -76,3 +77,36 @@ Malformed metadata returns the existing bounded shape-contract error;
 cancellation returns the context error. Neither path exposes parser excerpts.
 Versioned conformance cases live under `testdata/operation-mapping/v1` and use
 disposable business-message and fake Cloudflare resource metadata only.
+
+## SDK use
+
+After independently verifying the table against admitted local source bytes,
+the consumer supplies an exact `binding.Binding` and explicit field pairs:
+
+```go
+guaranteed := true
+report, err := apitools.MatchOperationFields(ctx, verifiedTable,
+    apitools.OperationMappingRequest{
+        Selection: apitools.OperationEligibilityRequest{
+            Binding: exactBinding,
+            Candidate: &selectedCandidate,
+            Truncated: candidateReport.Truncated,
+        },
+        Mappings: []apitools.OperationFieldMapping{{
+            OperationFieldReference: apitools.OperationFieldReference{
+                Direction: "input", Location: "path", Name: "zone_id",
+            },
+            Field: "zone", Required: &guaranteed,
+            Schema: binding.Schema{Known: true,
+                JSON: json.RawMessage(`{"type":"string"}`)},
+        }},
+    })
+```
+
+Check the error, overall outcome, per-field codes, excluded inputs and native
+shape. Do not convert compatible into an executable or approved state. An
+optional input can be omitted, and a declared required input must be covered.
+Input pairs may share a consumer field; multiple outputs may read the same
+native field into distinct consumer fields. Duplicating an input target or a
+consumer output remains a conflict. Mapping order is retained in the report;
+the input table is unchanged and the selected shape is a private snapshot.

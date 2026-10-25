@@ -1,0 +1,125 @@
+package apitools_test
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"reflect"
+	"strings"
+	"testing"
+
+	"github.com/OpenUdon/apitools"
+	"github.com/OpenUdon/uws/binding"
+)
+
+func mappingFixture() (binding.ShapeTable, apitools.OperationMappingRequest) {
+	source := binding.Source{ID: "fixture", Kind: "openapi", SHA256: strings.Repeat("a", 64)}
+	schema := binding.Schema{Known: true, JSON: json.RawMessage(`{"type":"string"}`)}
+	required := true
+	shape := binding.OperationShape{Source: source, Selector: binding.Selector{Kind: "ref", Value: "#/paths/~1items/post", Key: "#/paths/~1items/post"},
+		Protocol: "http", Method: "POST", Path: "/items", Complete: true,
+		Inputs:   []binding.Input{{Location: "query", Name: "name", Required: true, Schema: schema}},
+		Outputs:  []binding.Output{{Location: "body", Name: "body", Schema: schema}},
+		Security: binding.Security{Known: true, Alternatives: []binding.SecurityAlternative{{}}}}
+	table := binding.ShapeTable{Version: binding.TableVersion, Sources: []binding.Source{source}, Operations: []binding.OperationShape{shape}}
+	request := apitools.OperationMappingRequest{Selection: apitools.OperationEligibilityRequest{Binding: binding.Binding{Source: source, SelectorKind: "ref", SelectorValue: shape.Selector.Value}},
+		Mappings: []apitools.OperationFieldMapping{{OperationFieldReference: apitools.OperationFieldReference{Direction: "input", Location: "query", Name: "name"}, Field: "item_name", Schema: schema, Required: &required},
+			{OperationFieldReference: apitools.OperationFieldReference{Direction: "output", Location: "body", Name: "body"}, Field: "result", Schema: schema}}}
+	return table, request
+}
+
+func TestOperationMappingExactIdentityAndSchemaDirection(t *testing.T) {
+	table, request := mappingFixture()
+	before, _ := table.Marshal()
+	report, err := apitools.MatchOperationFields(t.Context(), table, request)
+	if err != nil || report.Outcome != binding.Compatible || len(report.Fields) != 2 || len(report.UnmappedRequired) != 0 {
+		t.Fatalf("declared mappings: %#v, %v", report, err)
+	}
+	after, _ := table.Marshal()
+	if string(before) != string(after) || !reflect.DeepEqual(*report.Eligibility.Shape, table.Operations[0]) {
+		t.Fatal("source metadata mutated or lost")
+	}
+	table.Operations[0].Inputs[0].Name = "changed"
+	if report.Eligibility.Shape.Inputs[0].Name != "name" {
+		t.Fatal("result did not retain a private source snapshot")
+	}
+
+	table, request = mappingFixture()
+	request.Mappings[0].Schema.JSON = json.RawMessage(`{"type":"integer"}`)
+	report, err = apitools.MatchOperationFields(t.Context(), table, request)
+	if err != nil || report.Fields[0].Outcome != binding.Incompatible || report.Outcome != binding.Incompatible {
+		t.Fatalf("type conflict coerced: %#v, %v", report, err)
+	}
+	request.Mappings[0].Schema.JSON = json.RawMessage(`{"type":"string","maxLength":3}`)
+	request.Mappings[1].Schema.JSON = json.RawMessage(`{"type":"string","maxLength":3}`)
+	report, err = apitools.MatchOperationFields(t.Context(), table, request)
+	if err != nil || report.Fields[0].Outcome != binding.Compatible || report.Fields[1].Outcome != binding.Indeterminate {
+		t.Fatalf("directional constraint proof: %#v, %v", report, err)
+	}
+}
+
+func TestOperationMappingRequiredPlaceholderAndCredentialRefusals(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		edit func(*binding.ShapeTable, *apitools.OperationMappingRequest)
+		code string
+		want binding.Outcome
+	}{
+		{"optional", func(_ *binding.ShapeTable, r *apitools.OperationMappingRequest) {
+			v := false
+			r.Mappings[0].Required = &v
+		}, "mapping.required", binding.Incompatible},
+		{"unknown presence", func(_ *binding.ShapeTable, r *apitools.OperationMappingRequest) { r.Mappings[0].Required = nil }, "mapping.presence_unknown", binding.Indeterminate},
+		{"placeholder", func(_ *binding.ShapeTable, r *apitools.OperationMappingRequest) { r.Mappings[0].Placeholder = true }, "mapping.placeholder", binding.Indeterminate},
+		{"unknown schema", func(t *binding.ShapeTable, _ *apitools.OperationMappingRequest) {
+			t.Operations[0].Inputs[0].Schema.Known = false
+		}, "mapping.schema_unknown", binding.Indeterminate},
+		{"security location", func(t *binding.ShapeTable, _ *apitools.OperationMappingRequest) {
+			t.Operations[0].Security.Alternatives[0].Requirements = []binding.SecurityRequirement{{Scheme: "key", Type: "apiKey", Location: "query", Name: "name"}}
+		}, "mapping.credential_excluded", binding.Indeterminate},
+		{"consumer credential", func(_ *binding.ShapeTable, r *apitools.OperationMappingRequest) { r.Mappings[0].Field = "accessToken" }, "mapping.credential_excluded", binding.Indeterminate},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			table, request := mappingFixture()
+			tc.edit(&table, &request)
+			report, err := apitools.MatchOperationFields(t.Context(), table, request)
+			if err != nil || report.Fields[0].Code != tc.code || report.Outcome != tc.want {
+				t.Fatalf("got %#v, %v", report, err)
+			}
+		})
+	}
+}
+
+func TestOperationEligibilityStaleAmbiguousTruncatedAndCancellation(t *testing.T) {
+	table, request := mappingFixture()
+	request.Selection.Binding.Source.SHA256 = strings.Repeat("b", 64)
+	report, err := apitools.AssessOperationEligibility(t.Context(), table, request.Selection)
+	if err != nil || report.Status != binding.Missing || report.Outcome != binding.Incompatible {
+		t.Fatalf("stale identity: %#v, %v", report, err)
+	}
+	table, request = mappingFixture()
+	request.Selection.Truncated = true
+	report, err = apitools.AssessOperationEligibility(t.Context(), table, request.Selection)
+	if err != nil || report.Outcome != binding.Indeterminate || !reflect.DeepEqual(report.Codes, []string{"operation.truncated"}) {
+		t.Fatalf("truncated: %#v, %v", report, err)
+	}
+	request.Selection.Truncated = false
+	second := table.Operations[0]
+	second.Selector = binding.Selector{Kind: "ref", Value: "other", Key: "other"}
+	alias := binding.Selector{Kind: "id", Value: "shared", Key: table.Operations[0].Selector.Key}
+	table.Operations[0].Aliases = []binding.Selector{alias}
+	alias.Key = second.Selector.Key
+	second.Aliases = []binding.Selector{alias}
+	table.Operations = append(table.Operations, second)
+	request.Selection.Binding.SelectorKind, request.Selection.Binding.SelectorValue = "id", "shared"
+	report, err = apitools.AssessOperationEligibility(t.Context(), table, request.Selection)
+	if err != nil || report.Status != binding.Ambiguous || report.Shape != nil || report.Outcome != binding.Indeterminate {
+		t.Fatalf("ambiguous native choice: %#v, %v", report, err)
+	}
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	_, err = apitools.MatchOperationFields(ctx, table, request)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatal(err)
+	}
+}
