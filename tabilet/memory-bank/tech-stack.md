@@ -20,9 +20,14 @@ The 19 shared actual-source cases cover business and fake Cloudflare mappings;
 eight-family partial shapes remain unresolved. [Local proof](../../docs/m91-local-proof.json)
 and [qualification](../../docs/m91-producer-qualification.md) retain logs, counts,
 source/corpus and precise limitations. [Live status](status-M91.md) owns whole
-review1/evidence blocker. Required ordinary publication, consumer fixtures and
-existing-consumer compatibility remain unperformed; no local replacement or
-unchanged old consumer pin proves M91 adoption.
+review1/remaining evidence blocker. [Published proof](../../docs/m91-published-proof.json)
+records actual exact publication/acquisition and reusable combined consumer49RUN/
+49PASS, selected92/compiled41/no replacements, plus existing OpenUdon full1
+PASS27.075342s. Udon readonly metadata prerequisite stops before compilation;
+exact seven-root/cached-sum/346-node correction is proposed only. Original
+337-node graph is before correction; no qualification or unchanged-graph claim.
+All failed preflights/probe oracle corrections remain, no unchanged retry.
+Push/acquisition grants ended; no local replacement/old pin proves new adoption.
 
 ## Accepted M85 qualification — 2026-10-09
 

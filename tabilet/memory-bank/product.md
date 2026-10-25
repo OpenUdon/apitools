@@ -11,12 +11,14 @@ No discovery, ranking, transport, credential resolution, execution, universal
 planner or cross-product import is introduced. HCL support stays unchanged.
 
 M91.1–.3 are committed and locally qualified. Whole review1 found no production
-P1/P2 defect; required ordinary publication/reusable consumer proof and available
-existing-consumer checks remain its P2 evidence blocker. M91 is not accepted.
+P1/P2 defect. Independently verified exact source publication/acquisition, reusable
+ordinary typed consumer and existing OpenUdon compatibility now pass. Remaining
+Udon-copy dependency metadata correction awaits narrow approval; M91 is not accepted.
 New Kinet W22 and Ramen M136 adoption stays downstream, not an additional M91
 prerequisite. [SDK contract](../../docs/operation-mapping-v1.md),
 [qualification](../../docs/m91-producer-qualification.md) and [active status](status-M91.md)
-retain exact scope, source and review1; no push or module acquisition is implied.
+retain exact scope, source and review1. [Published consumer proof](../../docs/m91-published-proof.json)
+records actual effects; its push/acquisition grants are consumed, no replay.
 
 ## Accepted M85 candidate/input coherence — 2026-10-09
 

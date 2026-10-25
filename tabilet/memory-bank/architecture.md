@@ -17,7 +17,8 @@ from ordinary mapping, while complete symbolic security evidence remains in the
 shape. Up to 64 explicit pairs are assessed without values, expressions, guessed
 names, nested extraction or transport. Kinet and Ramen own their own admission
 and orchestration. [Contract/corpus](../../docs/operation-mapping-v1.md) and
-[live M91 status](status-M91.md) retain the local-only qualification boundary.
+[live M91 status](status-M91.md) retain exact producer/ordinary consumer qualification and the remaining Udon
+metadata prerequisite; actual product admission/adoption stays downstream.
 
 ## Accepted M85 effective-input projection — 2026-10-09
 

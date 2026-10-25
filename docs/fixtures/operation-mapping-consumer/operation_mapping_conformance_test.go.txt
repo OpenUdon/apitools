@@ -1,0 +1,218 @@
+package main
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"testing"
+
+	"github.com/OpenUdon/apitools"
+	"github.com/OpenUdon/uws/binding"
+)
+
+func TestOperationMappingV1Conformance(t *testing.T) {
+	root := filepath.Join(os.Getenv("M91_MODULE_DIR"), "testdata/operation-mapping/v1")
+	var corpus struct {
+		Version string `json:"version"`
+		Sources map[string]struct {
+			Path, Kind, SHA256 string
+		} `json:"sources"`
+		Cases []struct {
+			Name               string                           `json:"name"`
+			Source             string                           `json:"source"`
+			SelectorKind       string                           `json:"selector_kind"`
+			SelectorValue      string                           `json:"selector_value"`
+			Mappings           []apitools.OperationFieldMapping `json:"mappings"`
+			Truncated          bool                             `json:"truncated"`
+			StaleDigest        bool                             `json:"stale_digest"`
+			CandidateSelector  string                           `json:"candidate_selector"`
+			WantOutcome        binding.Outcome                  `json:"want_outcome"`
+			WantStatus         binding.Status                   `json:"want_status"`
+			WantFieldCodes     []string                         `json:"want_field_codes"`
+			WantUnmapped       int                              `json:"want_unmapped"`
+			WantExcluded       int                              `json:"want_excluded"`
+			WantNativeSelector string                           `json:"want_native_selector"`
+		} `json:"cases"`
+	}
+	data, err := os.ReadFile(filepath.Join(root, "cases.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(data, &corpus); err != nil || corpus.Version != "apitools.operation-mapping/v1" || len(corpus.Cases) < 19 {
+		t.Fatalf("invalid corpus: %v", err)
+	}
+	tables := map[string]binding.ShapeTable{}
+	candidates := map[string][]apitools.OperationCandidate{}
+	for id, source := range corpus.Sources {
+		raw, err := os.ReadFile(filepath.Join(root, source.Path))
+		if err != nil {
+			t.Fatal(err)
+		}
+		digest := sha256.Sum256(raw)
+		if hex.EncodeToString(digest[:]) != source.SHA256 {
+			t.Fatalf("source %s fixture identity drift", id)
+		}
+		input := apitools.OperationSourceInput{Kind: apitools.OperationSourceKind(source.Kind), Name: id, Content: raw}
+		opts := apitools.OperationShapeOptions{Sources: []apitools.ShapeSourceInput{{ID: id, OperationSourceInput: input}}}
+		table, err := apitools.BuildOperationShapeTable(t.Context(), opts)
+		if err != nil {
+			t.Fatalf("source %s: %v", id, err)
+		}
+		if err := apitools.VerifyOperationShapeTable(t.Context(), opts, table); err != nil {
+			t.Fatalf("source reproduction %s: %v", id, err)
+		}
+		tables[id] = table
+		report, err := apitools.BuildOperationCandidates(t.Context(), apitools.OperationCandidateOptions{Sources: []apitools.OperationSourceInput{input}})
+		if err != nil {
+			t.Fatalf("candidate source %s: %v", id, err)
+		}
+		candidates[id] = report.Candidates
+	}
+	for _, tc := range corpus.Cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			table, ok := tables[tc.Source]
+			if !ok {
+				t.Fatal("unknown fixture source")
+			}
+			source := table.Sources[0]
+			if tc.StaleDigest {
+				source.SHA256 = strings.Repeat("0", 64)
+			}
+			selection := apitools.OperationEligibilityRequest{Binding: binding.Binding{Source: source, SelectorKind: tc.SelectorKind, SelectorValue: tc.SelectorValue}, Truncated: tc.Truncated}
+			// Positive candidate linkage uses actual producer metadata, independently
+			// selected by the fixture's reviewed native reference rather than rank.
+			if !tc.StaleDigest {
+				for _, candidate := range candidates[tc.Source] {
+					if candidate.Source.Selector == tc.WantNativeSelector {
+						selection.Candidate = &candidate
+						break
+					}
+				}
+			}
+			if tc.CandidateSelector != "" {
+				if selection.Candidate == nil {
+					t.Fatal("missing native candidate drift input")
+				}
+				selection.Candidate.Source.Selector = tc.CandidateSelector
+			}
+			report, err := apitools.MatchOperationFields(t.Context(), table, apitools.OperationMappingRequest{Selection: selection, Mappings: tc.Mappings})
+			if err != nil || report.Outcome != tc.WantOutcome || report.Eligibility.Status != tc.WantStatus {
+				t.Fatalf("got outcome %s status %s: %#v, %v", report.Outcome, report.Eligibility.Status, report, err)
+			}
+			codes := []string{}
+			for _, field := range report.Fields {
+				codes = append(codes, field.Code)
+			}
+			if !reflect.DeepEqual(codes, tc.WantFieldCodes) || len(report.UnmappedRequired) != tc.WantUnmapped || len(report.ExcludedInputs) != tc.WantExcluded {
+				t.Fatalf("field/coverage evidence: codes=%v unmapped=%v excluded=%v", codes, report.UnmappedRequired, report.ExcludedInputs)
+			}
+			if shape := report.Eligibility.Shape; shape != nil {
+				if shape.Source != table.Sources[0] || shape.Selector.Value != tc.WantNativeSelector {
+					t.Fatalf("lost exact native source/selector: %#v", shape)
+				}
+			}
+		})
+	}
+}
+
+func TestOperationMappingExistingSourceFamiliesRemainUnresolved(t *testing.T) {
+	raw, err := os.ReadFile(filepath.Join(os.Getenv("M91_MODULE_DIR"), "testdata/operation-shapes/m83/eight-families.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	table, err := binding.ParseTable(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	seen := map[string]bool{}
+	for _, shape := range table.Operations {
+		seen[shape.Source.Kind] = true
+		report, err := apitools.AssessOperationEligibility(t.Context(), table, apitools.OperationEligibilityRequest{Binding: binding.Binding{Source: shape.Source, SelectorKind: shape.Selector.Kind, SelectorValue: shape.Selector.Value}})
+		if err != nil || report.Outcome != binding.Indeterminate || report.Status != binding.Resolved || !reflect.DeepEqual(report.Shape, &shape) {
+			t.Fatalf("partial native family %s promoted or lost: %#v, %v", shape.Source.Kind, report, err)
+		}
+	}
+	if len(seen) != 8 {
+		t.Fatal("missing source-family coverage", seen)
+	}
+}
+
+func TestOperationMappingMalformedAndBoundedRequests(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		edit func(*binding.ShapeTable, *apitools.OperationMappingRequest)
+	}{
+		{"pair limit", func(_ *binding.ShapeTable, r *apitools.OperationMappingRequest) {
+			r.Mappings = make([]apitools.OperationFieldMapping, 65)
+		}},
+		{"direction", func(_ *binding.ShapeTable, r *apitools.OperationMappingRequest) { r.Mappings[0].Direction = "execute" }},
+		{"control", func(_ *binding.ShapeTable, r *apitools.OperationMappingRequest) {
+			r.Mappings[0].Field = "private\nvalue"
+		}},
+		{"invalid schema", func(_ *binding.ShapeTable, r *apitools.OperationMappingRequest) {
+			r.Mappings[0].Schema.JSON = json.RawMessage(`{"type":"string"} {}`)
+		}},
+		{"oversized schema", func(_ *binding.ShapeTable, r *apitools.OperationMappingRequest) {
+			r.Mappings[0].Schema.JSON = json.RawMessage(strings.Repeat(" ", binding.MaxSchemaBytes+1))
+		}},
+		{"bad digest", func(t *binding.ShapeTable, _ *apitools.OperationMappingRequest) {
+			t.Sources[0].SHA256 = "private-value"
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			table, request := mappingFixture()
+			tc.edit(&table, &request)
+			_, err := apitools.MatchOperationFields(t.Context(), table, request)
+			if err != apitools.ErrOperationShapeTable || strings.Contains(err.Error(), "private") {
+				t.Fatalf("malformed metadata accepted or error leaked input: %v", err)
+			}
+		})
+	}
+}
+
+func TestOperationMappingSecurityAndTransportHeaderExclusion(t *testing.T) {
+	for _, name := range []string{"Authorization", "HOST", "Content-Type", "X-Session-ID", "X-Signature", "X-Private-Key", "X-Request-Id"} {
+		t.Run(name, func(t *testing.T) {
+			table, request := mappingFixture()
+			table.Operations[0].Inputs[0].Location, table.Operations[0].Inputs[0].Name = "header", name
+			request.Mappings[0].Location, request.Mappings[0].Name = "header", name
+			report, err := apitools.MatchOperationFields(t.Context(), table, request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if name == "X-Request-Id" {
+				if report.Outcome != binding.Compatible || len(report.ExcludedInputs) != 0 {
+					t.Fatal("ordinary trace header refused", report)
+				}
+			} else if report.Outcome != binding.Indeterminate || report.Fields[0].Code != "mapping.credential_excluded" || len(report.ExcludedInputs) != 1 {
+				t.Fatal("protected header became ordinary data", report)
+			}
+		})
+	}
+}
+
+func TestOperationEligibilityCandidateCannotOverrideSourceEvidence(t *testing.T) {
+	for _, drift := range []string{"digest", "kind", "selector"} {
+		t.Run(drift, func(t *testing.T) {
+			table, request := mappingFixture()
+			candidate := apitools.OperationCandidate{Source: apitools.OperationSourceIdentity{Kind: apitools.OperationSourceOpenAPI, SHA256: table.Sources[0].SHA256, Selector: table.Operations[0].Selector.Value}}
+			switch drift {
+			case "digest":
+				candidate.Source.SHA256 = strings.Repeat("b", 64)
+			case "kind":
+				candidate.Source.Kind = apitools.OperationSourceGraphQL
+			case "selector":
+				candidate.Source.Selector = "#/paths/~1other/post"
+			}
+			request.Selection.Candidate = &candidate
+			report, err := apitools.AssessOperationEligibility(t.Context(), table, request.Selection)
+			if err != nil || report.Outcome != binding.Incompatible || report.Shape != nil || !reflect.DeepEqual(report.Codes, []string{"operation.candidate_identity"}) {
+				t.Fatal("candidate overrode native identity", report, err)
+			}
+		})
+	}
+}

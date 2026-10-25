@@ -1,0 +1,27 @@
+package main
+import (
+ "context"
+ "encoding/json"
+ "os"
+ "runtime/debug"
+ "github.com/OpenUdon/apitools"
+ "github.com/OpenUdon/openudon/authoringcard"
+ "github.com/OpenUdon/uws/binding"
+)
+func main() {
+ if len(os.Args)!=3 {panic("exact frozen shape-table and card inputs required")}
+ raw,err:=os.ReadFile(os.Args[1]);if err!=nil{panic(err)}
+ table,err:=binding.ParseTable(raw);if err!=nil{panic(err)}
+ count:=0
+ for _,shape:=range table.Operations {
+  selection:=apitools.OperationEligibilityRequest{Binding:binding.Binding{Source:shape.Source,SelectorKind:shape.Selector.Kind,SelectorValue:shape.Selector.Value}}
+  eligibility,err:=apitools.AssessOperationEligibility(context.Background(),table,selection);if err!=nil||eligibility.Outcome!=binding.Indeterminate{panic("partial eligibility promoted")}
+  mapped,err:=apitools.MatchOperationFields(context.Background(),table,apitools.OperationMappingRequest{Selection:selection});if err!=nil||mapped.Eligibility.Outcome!=binding.Indeterminate||mapped.Outcome==binding.Compatible{panic("partial mapping promoted")}
+  count++
+ }
+ cardRaw,err:=os.ReadFile(os.Args[2]);if err!=nil{panic(err)}
+ card,err:=authoringcard.Parse(cardRaw);if err!=nil{panic(err)}
+ if _,err=authoringcard.RenderText(card);err!=nil{panic(err)}
+ info,ok:=debug.ReadBuildInfo();if !ok{panic("missing BuildInfo")}
+ if err=json.NewEncoder(os.Stdout).Encode(struct{PartialOperations int;CardVersion string;BuildInfo *debug.BuildInfo}{count,card.Version,info});err!=nil{panic(err)}
+}
