@@ -1,5 +1,29 @@
 # Tech Stack
 
+## M91 local qualification checkpoint — 2026-10-25
+
+Exact implementation `0ff4ef561dcc5f784a630b1559ac688bca35802d` in the retained
+clean detached qualification worktree passes full invocation1 (30.768s: tests,
+vet, CLI/catalog) and affected race1 (89.189s). Go1.26.6 is selected explicitly;
+`GOWORK=off GOPROXY=off GOSUMDB=off GOAUTH=off GOTOOLCHAIN=local` and read-only
+existing module resolution retain 77 selected / 39 actual compiled modules
+including the local owner, no replacements and exact version/sum parity.
+
+Affected staticcheck2026.2.1 invocation1 actually exits1 with six inherited
+observations, reconciled against the existing M85 policy. There are no new
+helper-file diagnostics, suppression, waiver, unrelated repair or retry.
+Historical raw output is absent; no byte-identical-output or clean-global claim
+is made. Automatic and one explicit VCS build omit VCS fields despite successful
+identical binaries; separate Git cleanliness/revision evidence is retained.
+
+The 19 shared actual-source cases cover business and fake Cloudflare mappings;
+eight-family partial shapes remain unresolved. [Local proof](../../docs/m91-local-proof.json)
+and [qualification](../../docs/m91-producer-qualification.md) retain logs, counts,
+source/corpus and precise limitations. [Live status](status-M91.md) owns whole
+review1/evidence blocker. Required ordinary publication, consumer fixtures and
+existing-consumer compatibility remain unperformed; no local replacement or
+unchanged old consumer pin proves M91 adoption.
+
 ## Accepted M85 qualification — 2026-10-09
 
 M85 is accepted/retired after four rows and final whole review3. Published

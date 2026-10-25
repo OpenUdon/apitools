@@ -1,5 +1,24 @@
 # Architecture
 
+## M91 additive pure helper boundary — source checkpoint
+
+`operation_mapping.go` resolves explicit binding source/native selectors through
+the existing UWS resolver and preserves a private shape snapshot. Optional
+candidate kind/digest/reference must identify the same native operation. Missing,
+unsupported, truncated, incomplete, ambiguous and unknown evidence cannot become
+a compatible choice. Consumers still reproduce tables from exact source bytes.
+
+Whole-field mappings retain direction/location/name, complete consumer schema,
+input presence and explicit placeholders. Existing directional UWS schema
+containment checks required input coverage and output compatibility; duplicate
+input targets/consumer outputs refuse. Security locations, reserved transport
+headers and credential/session/signature/opaque-key-shaped headers are excluded
+from ordinary mapping, while complete symbolic security evidence remains in the
+shape. Up to 64 explicit pairs are assessed without values, expressions, guessed
+names, nested extraction or transport. Kinet and Ramen own their own admission
+and orchestration. [Contract/corpus](../../docs/operation-mapping-v1.md) and
+[live M91 status](status-M91.md) retain the local-only qualification boundary.
+
 ## Accepted M85 effective-input projection — 2026-10-09
 
 M85 is accepted/retired after four rows and final whole review3. Published

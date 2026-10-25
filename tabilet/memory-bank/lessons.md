@@ -79,6 +79,15 @@ f2c5693ec39ad6981693d2ad126ff26e3fdd564c, restores these contracts after review5
 and complete ordinary owner/consumer proof. Structurally valid tables alone do
 not establish native semantics; changed identities require fresh consumer review.
 
+M91 carries that boundary into reusable mapping helpers: match explicit
+whole native fields with complete directional schemas and consumer presence,
+then require ordinary input coverage. Unknown presence, partial/truncated
+shapes and placeholders stay unresolved. Do not turn nested prompt paths,
+transport/security headers or inferred credentials into typed mappings.
+[Shared conformance](../../testdata/operation-mapping/v1/README.md) retains positive
+and refusal cases; [M91 status](status-M91.md) separately retains unpublished
+producer/consumer evidence gaps after local qualification.
+
 ## Bind version evidence to an exact publisher and native identity
 
 - **Applies when:** Discovering versions across shared hosting and native source families.

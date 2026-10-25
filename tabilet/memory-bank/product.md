@@ -1,5 +1,23 @@
 # Product
 
+## M91 common eligibility/mapping source checkpoint — 2026-10-25
+
+Current source adds pure `AssessOperationEligibility` and `MatchOperationFields`
+helpers over existing UWS source/selector/shape contracts. They retain exact
+identity, partial types, requiredness, security evidence and explicit unresolved
+choices. Mappings name whole native fields and use directional schema checks;
+product adapters retain nested authoring, source admission and final approval.
+No discovery, ranking, transport, credential resolution, execution, universal
+planner or cross-product import is introduced. HCL support stays unchanged.
+
+M91.1–.3 are committed and locally qualified. Whole review1 found no production
+P1/P2 defect; required ordinary publication/reusable consumer proof and available
+existing-consumer checks remain its P2 evidence blocker. M91 is not accepted.
+New Kinet W22 and Ramen M136 adoption stays downstream, not an additional M91
+prerequisite. [SDK contract](../../docs/operation-mapping-v1.md),
+[qualification](../../docs/m91-producer-qualification.md) and [active status](status-M91.md)
+retain exact scope, source and review1; no push or module acquisition is implied.
+
 ## Accepted M85 candidate/input coherence — 2026-10-09
 
 M85 is accepted/retired after four rows and final whole review3. Published
