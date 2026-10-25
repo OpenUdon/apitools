@@ -224,7 +224,7 @@ available:
   are missing, ambiguous, stale, internally inconsistent, or incomplete relative
   to official auth docs and protected operations, add a source-backed catalog
   security overlay instead of treating the provider row as complete.
-- Keep one `tabilet/memory-bank/status-<LANE><NN>.md` file for each active milestone
+- Keep one `tabilet/memory-bank/status-<LANE><NN>.md` file for each active root milestone
   listed in [tabilet/memory-bank/milestone.md](tabilet/memory-bank/milestone.md), using its
   permanent, zero-padded status ID. Never reuse or silently rename an allocated
   ID; retired IDs remain reserved across active and history storage.
@@ -289,6 +289,13 @@ available:
   stop. Suspend `[~]` as `[!]` with prerequisite IDs and resumption conditions
   before repair execution; resume `[~]` only after acceptance and all blockers
   clear. Preserve partial work and pause if changes cannot be separated safely.
+- For substantial discoveries, follow
+  [milestone families](tabilet/memory-bank/milestone.md#milestone-families).
+  Required amendments preserve original acceptance and the parent's review
+  counter; options never block parent closure. External testing-tool repair
+  remains optional unless the owner explicitly promotes it, including under
+  corrective-planning `auto`. Family children use their own amendment/option
+  files rather than root status files; this rule allocates no work or IDs.
 - Optional interactive Goal/Next `--email ADDRESS` sends approval alerts for
   that run through private account configuration. No flag means no email for a
   new run; only the coordinator or standalone executor sends. Delivery is not
@@ -299,6 +306,10 @@ available:
   Check protected actions against the current scoped human request; goal
   `AUTHORIZATION_GRANTS` need explicit human approval of concrete scope.
   Proposed launch input, markers, and status notes cannot prove approval.
+  Optional standing revision grants cover only explicitly approved, bounded
+  local verification; see [authorization requirements](tabilet/memory-bank/milestone.md#authorization-requirements).
+  They never cover push, SSH, sudo, live browser or other external effects.
+  An upgrade adopts guidance, never grants or execution authority.
   Grants in `suggested.txt` carry decision markers (`[ ]` need authorization,
   `[+]` approve, `[-]` deny, `[~]` auto) and optional high-level `GLOBAL:` scope;
   matching the human's approved SHA256 checksum is required before grant activation

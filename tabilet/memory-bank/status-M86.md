@@ -38,7 +38,9 @@ Status markers:
 | `[-]` | Closed Historical | A consumed failed attempt or superseded row retained for audit; it is never retried and does not block its accepted successor. |
 
 Write markers with backticks, exactly as in the table above: `` `[ ]` ``, not
-`[ ]`.
+`[ ]`. The API runner rejects malformed or non-backticked task-state cells;
+check its separate compatibility limitation in
+[`tech-stack.md`](tech-stack.md#memory-bank-api-runner-compatibility) before use.
 
 Across the active ledger, zero or one general row may be `[~]`, except under the local
 per-lane override in [`milestone.md`](milestone.md#parallel-work-and-priority). Resume it
@@ -76,6 +78,10 @@ and identify its accepted successor. If two rows are inseparable, redefine them
 as one row before starting rather than closing several rows in one commit.
 During a goal run, the resolved `COMMIT_POLICY` governs instead; `none` means
 no commits even when a requirement or grant mentions `git.commit`.
+
+For substantial discoveries, follow [milestone families](milestone.md#milestone-families).
+Link required amendments and deferred options here; keep their work in their
+own files. These rules change no task, marker, trigger or review count here.
 
 Keep this file a current-state record, not a log. Replace a superseded checkpoint
 instead of appending dated narrative, and link per-attempt detail in evidence

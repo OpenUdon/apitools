@@ -288,6 +288,43 @@ module dependency is used. The offline operation index command is delivered by M
 | Memory-bank API runner | `../skills/harness/tackle-memory-bank-api-loop .` | Discovers every canonical lane file and either reports no actionable rows without an API call or selects work across lanes using the milestone priority. | Python 3 and `LLM_MODEL`; API credentials and explicit host-shell acknowledgement only when actionable work is executed. |
 | Patch check | `git diff --check` | No whitespace errors. | Git. |
 
+## Verification and testing standards
+
+- Preserve the existing verification commands, milestone-specific gates and
+  explicit limits. Standard testing adds no light-profile time caps.
+- Run focused checks during task work and the required full regression once
+  per unchanged closure candidate. Repeat affected checks after fixes, failures
+  or unresolved coverage; separate compilation time from test execution.
+  Required race and other acceptance gates remain required.
+- Preserve meaningful success and failure coverage through a replacement
+  implementation before removing the old implementation's tests. Remove tests
+  only when their behavior has moved to its successor or has been removed.
+- Acceptance readiness: identify missing final-acceptance inputs, capabilities
+  and authority early. Before each counted expensive attempt, run a fast
+  preflight of the applicable fixtures, schemas, commands and launchers.
+  Missing real acceptance evidence remains missing; mocks do not replace it.
+  External testing-tool repair is optional unless explicitly promoted by the
+  owner under the milestone-family rules.
+- A human-approved standing verification budget follows the selected goal
+  protocol and the [authorization rules](milestone.md#authorization-requirements).
+  Persist invocation usage and respect remaining attempts, stop conditions and
+  all smaller tool or authorization caps. These standards activate no grant.
+
+## Memory-bank API runner compatibility
+
+The separately installed `../skills/harness/tackle-memory-bank-api-loop`
+recognizes root and child filenames, the six task markers, and literal
+retirement envelopes. Its current specification parser assumes level-two
+milestone headings. It rejects the frozen M87, M88, M89, S07, S08, S09 and S10
+records because their retained specifications use level-three headings, and it
+does not extract M86's active specification for the same reason.
+
+Automated API-runner execution and retirement compatibility remain blocked
+until a separately authorized runner repair/check supports this harness's
+actual heading structure. Preserve the existing project retirement rules,
+frozen records and M86 specification; do not normalize history to satisfy the
+tool. This rule upgrade neither changes the external runner nor launches it.
+
 ## CI And Tooling
 
 - Public repo guidance lives in README.

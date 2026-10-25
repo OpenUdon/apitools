@@ -213,6 +213,74 @@ dependency and downstream reconciliation between them, the memory-bank goal
 protocol bundled with the skills is optional; any equivalent works as well.
 An optional `tabilet/GOAL.md` addendum narrows it without restating it.
 
+## Milestone families
+
+Keep the original delivery outcome stable. Small directly related fixes stay
+in the current task. Substantial required work uses amendment records; optional
+features, broader coverage and environmental conveniences use option records.
+An amendment identifies the original unmet requirement, its evidence, and why
+a simpler valid implementation or verification route cannot satisfy it.
+External testing-tool repair remains optional unless the owner explicitly
+promotes it, including under `CORRECTIVE_PLANNING: auto`. Mocks prove only what
+they exercise and cannot replace required real acceptance. Missing original
+acceptance needs repair or an explicit owner disposition.
+
+Children use `amend-<parent>-<NN>.md` or `option-<parent>-<NN>.md` under
+`tabilet/memory-bank/`. Both kinds share one permanent 01–99 sequence per root,
+reserved across active and retired storage. No recursive families, ID reuse or
+silent renaming. Root lanes and archive numbering remain independent. Allocate
+records through existing approved planning or corrective-planning authority;
+this rule allocates no records or IDs and does not reopen frozen acceptance.
+Unpromoted candidate directions remain unnumbered in their existing register.
+
+Each child owns its specification, task table when planned, and review in one
+file. Its level-two heading names its child ID and title, followed by exactly
+one unfenced `Parent:` declaration naming the root. Ordinary Markdown bold and
+trailing whitespace are accepted. Subsections are allowed. Keep concise links
+in the parent and roadmap rather than duplicate child specifications. An
+initial option may be a brief finding without task rows.
+
+Finish independent parent work, accept required amendments, then resume the
+parent's deferred acceptance checks and final review. Affected required rows
+stay `[!]`, naming their amendment blockers and resumption conditions;
+completed work and valid evidence remain complete. Each child has its own
+bounded review. Its closure cannot replace parent acceptance or reset the
+parent's persisted review counter. `Parent:` is a relationship, not a dependency
+on the completed parent; never introduce that circular edge.
+
+For strict `STATUS_ORDER`, place a parent immediately before its required active
+amendments, before downstream milestones. The contiguous family expands to
+parent work, amendments, then parent closure; each ID appears once.
+`STATUS_PRIORITY` adds no ordering edges. Required children inherit the parent's
+dispatch priority; independent ready work may proceed when a family is blocked.
+Existing dependencies, write ownership, parallel-safety and Stage 12 restrictions
+still apply. Same-package family membership supplies no concurrent authority.
+
+`OPTION_POLICY: confirm` is the default; `ignore` leaves options deferred
+throughout the current goal. During parent execution, record optional findings
+briefly without detailed planning, repeated inspection or implementation.
+Under `confirm`, only after parent closure consolidate useful options into one
+proposed batch and wait for an actual owner decision. Silence is not approval.
+Under `ignore`, omit refinement, prompts and execution while preserving the
+backlog. Options never block parent closure. Selected options need a newly
+approved execution horizon and do not reopen the parent. Neither this policy
+nor launch-update `auto` supplies extra actions, budgets or scope.
+
+An in-progress option still counts toward ledger ownership. The unscoped API
+loop never selects options automatically; resume an explicitly approved owner
+through the applicable Goal/Next or controller path. Preserve grants, attempt
+usage, review counters and the serial Python controller's restrictions.
+
+Retire children under their original filenames using the ordinary literal
+envelope, retaining their complete source, specification, `Parent:` and ID.
+Both Source status and Source specification name the original child file.
+Required amendments must be accepted before parent retirement. Completed
+parents may retire with deferred options linked to the frozen parent. An
+explicitly declined rowless option may retire as cancelled, or under approved
+supersession, with its owner Disposition, Review `not applicable` and Review
+iterations `0`; supersession names its accepted successor. This narrow exception
+needs no invented implementation rows and proves no product delivery.
+
 ## Authorization requirements
 
 Each milestone specification may contain `AUTHORIZATION_REQUIREMENTS`. It
@@ -269,7 +337,18 @@ Under the optional bundled goal protocol, `AUTHORIZATION_GRANTS` belongs
 to the resolved human-approved request, not to this file. Requirements,
 proposed grants, status notes, and `suggested.txt` are evidence, not approval.
 Check authority before the action; pause affected work and dependents when it
-is missing. Independent authorized work may continue under the governing
+is missing. Changed inputs to a protected action are changed scope unless an
+effective human-approved local verification grant's standing revision envelope
+covers them under the selected goal protocol. That optional envelope fixes its
+boundary, permitted revisions, recovery steps, stop conditions and invocation
+budget. It never covers push, SSH, sudo, live browser or other external effects.
+Temporary paths outside the workspace require explicit envelope coverage.
+Protected runs consume the approved budget, failed or cancelled runs included;
+the owner reserves attempts before dispatch and persists usage across resumes.
+Fast preflight checks do not consume that budget. Only an explicitly approved
+budget may replace the default verification-attempt limit; other existing caps
+still apply. No envelope, grant or budget is activated by adopting these rules.
+Independent authorized work may continue under the governing
 order and ownership rules. Required unperformed task or acceptance actions
 prevent closure; listing an action here alone does not require its performance.
 Outside a goal, use the current scoped human request and applicable project
@@ -289,7 +368,10 @@ An approved `auto` allows the Goal/Next owner to prepare and check necessary
 repair planning against the original delivery outcome, owning repositories,
 existing action grants and all limits, then apply it under standing approval.
 Prefer a matching open milestone when its scope and dependency position fit;
-otherwise create a new repair milestone with permanent identity and lineage.
+otherwise use a required amendment for the original open parent, or a new root
+remediation when no open parent owns the unmet outcome. Follow
+[milestone families](#milestone-families), preserving permanent identity and
+lineage; closed history stays frozen.
 Preserve completed/frozen history, row outcomes and review counters. New
 features, scope or permission expansion, higher limits, collisions and unknown
 checksum drift still require human direction. Children only report needed work.
@@ -405,8 +487,8 @@ against its pinned APItools revision.
 S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired after one review iteration; it is published on `origin/main` at `87f14076460626cda0a598bb958a90d348d0f5f4`, which Ramen pins. S09 (a ranked search over the built-in catalog for Ramen:M110) is accepted and retired after one review iteration; it is published on `origin/main` at `8389a15f2bf811072c09fff1e9a10a2946315b57`, which Ramen pins. S10 (keep top-level response fields when a response summary is truncated, for Ramen:M128) is accepted and retired after one review iteration; it is committed locally and unpublished, and Ramen adopts it after the user publishes.
 
 `apitools` is a public OpenAPI tooling module and CLI. Its planning harness
-(`AGENTS.md`, `tabilet/GOAL.md`, `tabilet/memory-bank/`, and
-`tabilet/evolution/`) is tracked in this repository; the earlier private
+(`AGENTS.md`, `tabilet/memory-bank/`, `tabilet/evolution/`, and an optional
+`tabilet/GOAL.md` project addendum) is maintained in this repository; the earlier private
 `../tofu/apitools` symlinked harness is no longer used.
 
 ## Status Files
@@ -675,7 +757,11 @@ per run. For a row whose acceptance depends on one:
 - Each expensive run is one attempt. Persist the row's attempt count in its
   status notes; a session change does not reset it. Stop after three
   consecutive failed attempts at the same stage (or the limit the milestone
-  sets), or when the failing stage lies outside the behavior the milestone owns.
+  or an explicitly human-approved goal budget sets), or when the failing stage
+  lies outside the behavior the milestone owns. Run the fast preflight checks
+  in the project's [acceptance-readiness rule](tech-stack.md#verification-and-testing-standards)
+  before each counted expensive attempt. Diagnostic or simulated checks cannot
+  substitute for required real acceptance.
   Mark the row `[!]` with a short diagnosis and options, such as a correction, a
   rescope or an environment change, and ask the user. Approval to continue sets
   a new explicit limit. Never repeat an unchanged failed attempt.
