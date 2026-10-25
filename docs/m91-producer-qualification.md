@@ -114,3 +114,9 @@ identities, fixture handoff and remaining authority/evidence. This was not a
 whole-milestone five-lens review; it consumes no whole-review iteration.
 Consumed invocations remain full1 / affected-static1 / race1 / explicit-VCS
 build1, with no retries. Format and patch checks pass.
+
+Coordinator documentation updates add the README guide link and align the
+owning milestone/status summaries with this local readiness. Production,
+fixtures, module pins and test inputs remain the qualified
+`0ff4ef561dcc5f784a630b1559ac688bca35802d` bytes;
+the passing full/race evidence is reused for this documentation-only delta.

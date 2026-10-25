@@ -8,6 +8,8 @@ and legacy-wrapper retirement are separate unnumbered candidates.
 
 **Current APItools Stage 13 horizon.** APItools:M91. One serial execution owner; parallel-safe no. The Kinet launch reference includes only the eight active milestones. This current section governs over earlier dated checkpoints.
 
+**Execution progress.** The separately approved local goal has completed M91.1–.3 and M91.4's local producer qualification. Publication, ordinary consumer evidence and authoritative whole review remain pending; all pushes remain denied. The planning approval above supplies historical scope, not execution authority.
+
 Preserve supported Ramen/Udon HCL input/output and supporting UWS codecs;
 Ramen remains YAML-first. Stage 12 stays closed. Withdrawn Kinet:M54/M55,
 Udon:M54, UWS:C11 and APItools:M86, accepted/retired evidence, all historical
@@ -16,14 +18,14 @@ audit stays disabled. No old permission, budget or trigger is reactivated.
 
 | ID | Status file | State | Dependencies |
 |---|---|---|---|
-| M91 | [status-M91.md](status-M91.md) | Pending; 4 rows; review 0/10 | None. |
+| M91 | [status-M91.md](status-M91.md) | 3 rows complete; .4 locally qualified, blocked on publication/ordinary consumer evidence; review 0/10 | None. |
 | M92 | [status-M92.md](status-M92.md) | Withdrawn; 3 rows `[X]`; undelivered; review 0/10 | None active; original dependencies retained in the withdrawn record. |
 
 <a id="stg13-m91"></a>
 
 ### M91 — Common eligibility and mapping helpers
 
-**Stage/owner.** Kinet STG-13; APItools. **State.** Approved planning; 4 pending rows; review 0/10.
+**Stage/owner.** Kinet STG-13; APItools. **State.** M91.1–.3 complete; M91.4 locally qualified, with publication, ordinary consumer evidence and authoritative whole review pending; review 0/10.
 **Depends on.** None.
 **Downstream.** [Kinet:W22](../../../kinet/tabilet/memory-bank/status-W22.md), [Ramen:M136](../../../ramen/tabilet/memory-bank/status-M136.md)
 **Outcome.** APItools exposes small additive helpers for candidate eligibility and field mapping, with shared conformance cases and product-specific admission kept in consumers.
@@ -35,7 +37,7 @@ audit stays disabled. No old permission, budget or trigger is reactivated.
 - Preserve source digest, native operation selector, requiredness/type/incompleteness and credential exclusions. Ambiguous or unsupported mappings remain explicit unresolved choices.
 - Helpers are metadata-only: no credentials, provider transport, execution, universal planner, product imports or automatic approval. Existing API consumers continue to build.
 
-**Verification.** Focused operation-shape/candidate/mapping/operationlifecycle tests across supported source identities; standalone tests/vet and existing affected static/race gates. Apply the [shared verification policy](../../../kinet/docs/stage13.md#verification-policy), including `GOWORK=off` for every adoption/closure check. All implementation evidence remains pending.
+**Verification.** Focused operation-shape/candidate/mapping/operationlifecycle tests across supported source identities; standalone tests/vet and existing affected static/race gates. Apply the [shared verification policy](../../../kinet/docs/stage13.md#verification-policy), including `GOWORK=off` for every adoption/closure check. Clean implementation source `0ff4ef561dcc5f784a630b1559ac688bca35802d` passes full local qualification (30.768s) and affected races (89.189s), with 77 selected/39 compiled modules and no replacements. [Qualification](../../docs/m91-producer-qualification.md) preserves six current static observations under the existing M85 policy, actual absent VCS stamps, and unperformed ordinary publication/consumer proof. No zero-checker or final-acceptance claim follows.
 
 **Review provenance.** Kinet Stage 13 plan review (`kinet-stage13.md`), 2026-10-25; source commit baseline not supplied. Review H4 (High/local P2) and M1 (Medium/local Lower): the parent go.work substitutes sibling modules, and U16/P06 supply no APItools contract prerequisite. M91.4 owns explicit standalone publication evidence; dispatch priority retains the product-first order. Revalidated at APItools `fe54b3ba939427d86ebbdd4a47b0dccb519cc26c` with the existing uncommitted Stage 13 planning inspected; source/history changes were not absorbed. This is review intake, not a closing review iteration.
 

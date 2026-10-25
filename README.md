@@ -524,6 +524,10 @@ sources' incomplete summaries remain explicit as documented in the M81 evidence.
 
 ## Go Usage
 
+The [operation eligibility and mapping guide](docs/operation-mapping-v1.md)
+describes explicit native-identity and typed field checks. These helpers return
+metadata; consumers retain source admission, credentials and exact approval.
+
 ```go
 import apitools "github.com/OpenUdon/apitools"
 
