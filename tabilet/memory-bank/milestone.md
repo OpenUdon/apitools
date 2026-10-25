@@ -1,3 +1,132 @@
+## Approved Stage 13 planning — 2026-10-25
+
+The owner approved the revised **8-milestone / 34-pending-task** STG-13 plan after
+the Kinet Stage 13 plan review (`kinet-stage13.md`). Owner-approved full rescope on 2026-10-25 (approval: “I aapaprove”), following the earlier whole-stage approval. Planning only; no execution, commit or grant activation.
+Seven former cleanup milestones / 24 rows remain withdrawn history; HCL removal
+and legacy-wrapper retirement are separate unnumbered candidates.
+[Coordinator and acceptance](../../../kinet/docs/stage13.md); [stage overview](../../../kinet/tabilet/stages.md#stg-13).
+
+**Current APItools Stage 13 horizon.** APItools:M91. One serial execution owner; parallel-safe no. The Kinet launch reference includes only the eight active milestones. This current section governs over earlier dated checkpoints.
+
+Preserve supported Ramen/Udon HCL input/output and supporting UWS codecs;
+Ramen remains YAML-first. Stage 12 stays closed. Withdrawn Kinet:M54/M55,
+Udon:M54, UWS:C11 and APItools:M86, accepted/retired evidence, all historical
+UNKNOWNs and consumed grants remain unchanged. Stage 14 stays unscheduled;
+audit stays disabled. No old permission, budget or trigger is reactivated.
+
+| ID | Status file | State | Dependencies |
+|---|---|---|---|
+| M91 | [status-M91.md](status-M91.md) | Pending; 4 rows; review 0/10 | None. |
+| M92 | [status-M92.md](status-M92.md) | Withdrawn; 3 rows `[X]`; undelivered; review 0/10 | None active; original dependencies retained in the withdrawn record. |
+
+<a id="stg13-m91"></a>
+
+### M91 — Common eligibility and mapping helpers
+
+**Stage/owner.** Kinet STG-13; APItools. **State.** Approved planning; 4 pending rows; review 0/10.
+**Depends on.** None.
+**Downstream.** [Kinet:W22](../../../kinet/tabilet/memory-bank/status-W22.md), [Ramen:M136](../../../ramen/tabilet/memory-bank/status-M136.md)
+**Outcome.** APItools exposes small additive helpers for candidate eligibility and field mapping, with shared conformance cases and product-specific admission kept in consumers.
+
+**Write set.** APItools public operation metadata/eligibility/mapping helpers, operationlifecycle integration where needed, versioned fixtures and SDK documentation. Package-local documentation/status follows the owning change; sibling changes have their own owners. **Parallel-safe: no.**
+
+**Acceptance.**
+
+- Preserve source digest, native operation selector, requiredness/type/incompleteness and credential exclusions. Ambiguous or unsupported mappings remain explicit unresolved choices.
+- Helpers are metadata-only: no credentials, provider transport, execution, universal planner, product imports or automatic approval. Existing API consumers continue to build.
+
+**Verification.** Focused operation-shape/candidate/mapping/operationlifecycle tests across supported source identities; standalone tests/vet and existing affected static/race gates. Apply the [shared verification policy](../../../kinet/docs/stage13.md#verification-policy), including `GOWORK=off` for every adoption/closure check. All implementation evidence remains pending.
+
+**Review provenance.** Kinet Stage 13 plan review (`kinet-stage13.md`), 2026-10-25; source commit baseline not supplied. Review H4 (High/local P2) and M1 (Medium/local Lower): the parent go.work substitutes sibling modules, and U16/P06 supply no APItools contract prerequisite. M91.4 owns explicit standalone publication evidence; dispatch priority retains the product-first order. Revalidated at APItools `fe54b3ba939427d86ebbdd4a47b0dccb519cc26c` with the existing uncommitted Stage 13 planning inspected; source/history changes were not absorbed. This is review intake, not a closing review iteration.
+
+**Execution policy.** Future execution follows the [coordinator](../../../kinet/docs/stage13.md#verification-policy) and effective goal policy. Planning activates no action, grant or old budget; required publication is independently verified before consumption.
+
+```yaml
+AUTHORIZATION_REQUIREMENTS:
+  git.commit:
+    via: goal-policy
+    executor: coordinator
+  cli.local:
+    via: goal-policy
+    executor: coordinator
+    scope:
+      repository: /home/peter/Workspace/apitools
+      task: declared-implementation-and-verification
+  git.push:
+    via: explicit
+    executor: coordinator
+    scope:
+      repository: /home/peter/Workspace/apitools
+      remote: git@github.com-tabilet:OpenUdon/apitools.git
+      ref: refs/heads/main
+      mode: fast-forward
+```
+
+**Task/review owner.** [status-M91.md](status-M91.md) owns the 4 pending rows and persisted review; [the coordinator](../../../kinet/docs/stage13.md) owns cross-package acceptance and priority.
+
+<a id="stg13-m92"></a>
+
+### M92 — Published HCL-free UWS adoption
+
+**State.** Withdrawn by the owner on 2026-10-25; 3 untouched rows are `[X]`, review 0/10 unchanged. Withdrawn by the owner-approved 2026-10-25 rescope: retain supported HCL in Ramen/Udon and the supporting UWS codecs. This obligation is undelivered, not accepted. HCL removal and legacy-wrapper retirement move to separate unnumbered Candidate Directions; no replacement is scheduled and no active milestone depends on this row.
+**Active dependencies/downstream.** None. M61 now owns product integration without this cleanup; it does not deliver the withdrawn removal outcome.
+**Disposition and preserved task text.** [status-M92.md](status-M92.md). See the [unnumbered candidates](../../../kinet/tabilet/memory-bank/milestone.md#candidate-directions).
+
+The following original specification is frozen planning history. Its dependency,
+verification, execution-policy and authorization declarations are non-effective.
+
+<details>
+<summary>Original withdrawn specification (undelivered)</summary>
+
+````text
+### M92 — Published HCL-free UWS adoption
+
+**Stage/owner.** Kinet STG-13; APItools. **State.** Approved planning; 3 pending rows; review 0/10.
+**Depends on.** [UWS:C13](../../../uws/tabilet/memory-bank/status-C13.md), [APItools:M91](status-M91.md)
+**Downstream.** [Udon:M56](../../../udon/tabilet/memory-bank/status-M56.md), [OpenUdon:P15](../../../openudon/tabilet/memory-bank/status-P15.md), [Ramen:M137](../../../ramen/tabilet/memory-bank/status-M137.md), [Kinet:M61](../../../kinet/tabilet/memory-bank/status-M61.md)
+**Outcome.** APItools consumes the published HCL-free UWS core and keeps metadata/authoring helpers compatible without UWS HCL input or wrappers.
+
+**Write set.** APItools public UWS adapters, metadata serializers, tests/docs and ordinary module pins; retain M91 helper behavior. Package-local documentation and status follow the owning change. Other repositories have their own owners. **Parallel-safe: no.**
+
+**Lineage.** Fresh successor to withdrawn APItools:M86. APItools:M90 catalog-root ingestion stays reserved and unscheduled.
+
+**Acceptance.**
+
+- Exact published C13 is adopted ordinarily; UWS core/APItools selected and compiled closures have no HCL dependency.
+- Source metadata and M91 fixtures retain their identities and behavior; no runtime or credential ownership is added.
+
+**Verification.** Standalone tests/vet, operation/candidate/mapping fixtures and selected/compiled dependency proof; focused HCL/wrapper refusal and JSON/YAML preservation cases. Preserve existing package verification standards, attempt limits and review gates. Use focused checks during coherent changes and required closure checks; reuse valid evidence, rerun affected checks after fixes and distinguish executed, mocked, compile-only and deferred proof. No implementation tests have run under this plan.
+
+**Execution policy.** Future launch proposes workspace-contained local work, task commits, corrective-planning auto and option-ignore. Planning activates no grants. No live model/provider/browser, sudo, SSH, deployment or real user-ledger access is implicit. Substantial necessary discoveries use amendments; external testing-tool repair remains optional. No old budget, authority or historical UNKNOWN is reset.
+
+```yaml
+AUTHORIZATION_REQUIREMENTS:
+  git.commit:
+    via: goal-policy
+    executor: coordinator
+  cli.local:
+    via: goal-policy
+    executor: coordinator
+    scope:
+      repository: /home/peter/Workspace/apitools
+      task: declared-implementation-and-verification
+  git.push:
+    via: explicit
+    executor: coordinator
+    scope:
+      repository: /home/peter/Workspace/apitools
+      remote: git@github.com-tabilet:OpenUdon/apitools.git
+      ref: refs/heads/main
+      mode: fast-forward
+```
+
+**Task/review owner.** [status-M92.md](status-M92.md) owns the 3 rows and persisted review; [the coordinator](../../../kinet/docs/stage13.md) owns cross-package acceptance and order.
+````
+
+</details>
+
+**Owner-approved Stage 12 closure and Phase C deferral — 2026-10-25.** The owner approved the recommendation to defer Phase C and close Stage 12 after required work was accepted. All five untouched conditional units (Kinet:M54/M55, Udon:M54, UWS:C11 and APItools:M86), nineteen rows total, are withdrawn together as `[X]`; none is implemented or accepted by this disposition. Their original IDs, task text, contracts and review counters are retained. Deferred HCL-removal intent belongs to Kinet STG-13 provisional context only, without executable successors. Future work requires a fresh approved plan/IDs and fresh concrete authority; old triggers cannot reactivate withdrawn rows. Original dependency edges below are historical, with no active dependents left in this family. No deployment or inventory is required to close Stage 12. HCL input removal is UNDELIVERED; existing behavior stays. W8M remains the only Stage 12 website qualification target. All accepted evidence, historical UNKNOWNs, counters, denials and disabled audit persist. No execution, publication, inventory or deployment is authorized.
+
 # Milestones
 
 ## Approved response-field truncation — 2026-10-22
@@ -493,6 +622,8 @@ S08 (an exported guarded document fetch for Ramen:M101) is accepted and retired 
 
 ## Status Files
 
+New Stage 13 records are indexed in [Approved Stage 13 planning](#approved-stage-13-planning--2026-10-25) above. Existing records below retain their earlier dispositions.
+
 Each linked `status-<LANE><NN>.md` file records task rows, task notes, boundary
 checks, and the review state for that milestone. Completed files stay here
 until they are retired under
@@ -518,13 +649,15 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| M86 | [status-M86.md](status-M86.md) | Pending; conditional (Kinet STG-12 Phase C); M89/S07 accepted |
+| M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
 
 ### M86 — HCL-free UWS adoption (conditional)
+
+**Disposition.** Withdrawn from Stage 12 by owner approval on 2026-10-25; all original rows `[X]`, review 0/10 unchanged. Deferred intent: Kinet STG-13, not an executable successor. Original scope/acceptance/dependencies below are preserved historical requirements, not dispatch instructions.
 
 **Stage/owner.** Kinet STG-12 Phase C; APItools. Dispatch priority position 18/19.
 
@@ -549,8 +682,7 @@ C11/M54 conditional trigger.
 [coordinator](../../../kinet/docs/stage12.md) holds the shared order and triggers.
 
 M83/M84/M85 and M87–M89 remain accepted/retired. S07 is accepted/retired
-after whole review 2; M86 remains conditional with accepted M89/S07
-compatibility prerequisites.
+after whole review 2; M86 is withdrawn `[X]` by the 2026-10-25 Stage 12 rescope. Accepted M89/S07 compatibility evidence is preserved.
 Original Stage 11 is accepted across the five owner ledgers.
 Completed source repair and version discovery remain in the history index.
 Other candidates still require fresh reconciliation and approval.

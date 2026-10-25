@@ -1,8 +1,10 @@
 # M86 — HCL-free UWS adoption (conditional)
 
+**Owner-approved Stage 12 closure and Phase C deferral — 2026-10-25.** The owner approved the recommendation to defer Phase C and close Stage 12 after required work was accepted. All five untouched conditional units (Kinet:M54/M55, Udon:M54, UWS:C11 and APItools:M86), nineteen rows total, are withdrawn together as `[X]`; none is implemented or accepted by this disposition. Their original IDs, task text, contracts and review counters are retained. Deferred HCL-removal intent belongs to Kinet STG-13 provisional context only, without executable successors. Future work requires a fresh approved plan/IDs and fresh concrete authority; old triggers cannot reactivate withdrawn rows. Original dependency edges below are historical, with no active dependents left in this family. No deployment or inventory is required to close Stage 12. HCL input removal is UNDELIVERED; existing behavior stays. W8M remains the only Stage 12 website qualification target. All accepted evidence, historical UNKNOWNs, counters, denials and disabled audit persist. No execution, publication, inventory or deployment is authorized.
+
 **Stage:** Kinet STG-12, Phase C. **Owner:** APItools.
-**State:** Pending and conditional. No row has started. Review 0/10.
-**Trigger:** [UWS:C11](../../../uws/tabilet/memory-bank/status-C11.md) is accepted
+**State:** Withdrawn from Stage 12; all original rows `[X]`. Not implemented or accepted. Review 0/10 unchanged.
+**Original trigger (withdrawn):** [UWS:C11](../../../uws/tabilet/memory-bank/status-C11.md) is accepted
 and published. That in turn requires a clean, authorized
 [Kinet:M54](../../../kinet/tabilet/memory-bank/status-M54.md) inventory. If the
 trigger is absent, the goal skips this milestone without completing or
@@ -146,9 +148,9 @@ Accepted M85 candidate and shape contracts stay unchanged.
 
 | Item | State | Notes |
 |---|---|---|
-| M86.1 — Adopt HCL-free UWS core | `[ ]` | Adopt exact accepted/published C11 ordinarily with `GOWORK=off` and no workspace/directory substitution. Prove HashiCorp/Horizon HCL modules are absent from APItools selected and compiled closures, with tidy/go.sum evidence. C11 adapted migration fixtures are pre-publication compatibility evidence, not this actual adoption proof. |
-| M86.2 — Source-family regression | `[ ]` | Regression tests for all eight source families: OpenAPI/Swagger, Discovery, Smithy, AsyncAPI, GraphQL, OpenRPC, gRPC/protobuf and OData. Covers shape tables, candidates and diagnostics, with exact digests unchanged. Preserve accepted M87-M89 explicit-root, snapshot/projection, remote-policy and optional-planning regression contracts. |
-| M86.3 — Qualify and publish | `[ ]` | Consumer builds (OpenUdon, Kinet workers), tidy check, and publication handoff under named authority; verify accepted M89 contracts survive adoption. |
+| M86.1 — Adopt HCL-free UWS core | `[X]` | Adopt exact accepted/published C11 ordinarily with `GOWORK=off` and no workspace/directory substitution. Prove HashiCorp/Horizon HCL modules are absent from APItools selected and compiled closures, with tidy/go.sum evidence. C11 adapted migration fixtures are pre-publication compatibility evidence, not this actual adoption proof. **Withdrawn 2026-10-25:** owner-approved Stage 12 closure; avoid adding deployment/tooling work solely for conditional HCL cleanup. Deferred intent: Kinet STG-13, not scheduled. Original dependencies withdrawn together; no delivered acceptance. A replacement needs fresh approved IDs/authority. |
+| M86.2 — Source-family regression | `[X]` | Regression tests for all eight source families: OpenAPI/Swagger, Discovery, Smithy, AsyncAPI, GraphQL, OpenRPC, gRPC/protobuf and OData. Covers shape tables, candidates and diagnostics, with exact digests unchanged. Preserve accepted M87-M89 explicit-root, snapshot/projection, remote-policy and optional-planning regression contracts. **Withdrawn 2026-10-25:** owner-approved Stage 12 closure; avoid adding deployment/tooling work solely for conditional HCL cleanup. Deferred intent: Kinet STG-13, not scheduled. Original dependencies withdrawn together; no delivered acceptance. A replacement needs fresh approved IDs/authority. |
+| M86.3 — Qualify and publish | `[X]` | Consumer builds (OpenUdon, Kinet workers), tidy check, and publication handoff under named authority; verify accepted M89 contracts survive adoption. **Withdrawn 2026-10-25:** owner-approved Stage 12 closure; avoid adding deployment/tooling work solely for conditional HCL cleanup. Deferred intent: Kinet STG-13, not scheduled. Original dependencies withdrawn together; no delivered acceptance. A replacement needs fresh approved IDs/authority. |
 
 ## Acceptance and verification
 
