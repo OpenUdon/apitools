@@ -2,7 +2,7 @@
 
 **Stage/owner:** STG-13; APItools.
 **Planning approval:** Owner-approved full rescope on 2026-10-25 (approval: “I aapaprove”), following the earlier whole-stage approval. Planning only; no execution, commit or grant activation.
-**State:** M91.1–M91.3 complete; M91.4 locally qualified with publication/ordinary evidence pending. Authoritative whole review iteration 1 completed with one P2 evidence blocker and no production-code P1/P2 defect. The full gate has not passed. The human's no-push instruction remains binding.
+**State:** M91.1–M91.3 complete; M91.4 locally qualified with publication/ordinary evidence pending. Authoritative whole review iteration 1 completed with one P2 evidence blocker and no production-code P1/P2 defect. The full gate has not passed. The human's no-push instruction remains binding outside the two exact later-approved new review branches.
 **Specification:** [milestone.md](milestone.md#stg13-m91).
 **Depends on:** None.
 **Source baseline:** `fe54b3ba939427d86ebbdd4a47b0dccb519cc26c`; existing dirty planning/history was inspected and preserved. Reconcile live source and exact accepted producers before implementation.
@@ -66,3 +66,14 @@ author-worker/business-flow adoption belongs to W22; Ramen resource-lifecycle
 adoption belongs to M136. Their completion is not an M91 prerequisite. The
 whole gate remains blocked on M91-W1; after its evidence is obtained, the next
 complete review is iteration 2 of the same ten-iteration gate. No counter resets.
+
+## Scoped continuation approval — 2026-10-25
+
+The invoking human “I approve” approved both exact reviewed scopes identified
+in the [approval record](../../../kinet/docs/stage13-scoped-approval-20261025.json).
+The coordinator may create only the named frozen review branch, acquire only
+the two exact modules after independent publication verification, and qualify
+the named ordinary consumer fixtures. Main/other pushes, deployment and all
+other acquisitions remain denied. Publication/consumption are still unperformed;
+the row stays suspended while Kinet:M59 owns serial execution. Review counter1,
+prior findings and all consumed checks remain; no acceptance is claimed.

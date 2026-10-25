@@ -8,7 +8,7 @@ and legacy-wrapper retirement are separate unnumbered candidates.
 
 **Current APItools Stage 13 horizon.** APItools:M91. One serial execution owner; parallel-safe no. The Kinet launch reference includes only the eight active milestones. This current section governs over earlier dated checkpoints.
 
-**Execution progress.** The separately approved local goal has completed M91.1–.3 and M91.4's local producer qualification. Whole review 1/10 found no production-code P1/P2 defect and remains blocked on required publication/consumer evidence; all pushes remain denied. The planning approval above supplies historical scope, not execution authority.
+**Execution progress.** The separately approved local goal has completed M91.1–.3 and M91.4's local producer qualification. Whole review 1/10 found no production-code P1/P2 defect; required publication/consumer evidence is now scoped-authorized but unperformed. Main pushes remain denied. The planning approval above supplies historical scope, not execution authority.
 
 Preserve supported Ramen/Udon HCL input/output and supporting UWS codecs;
 Ramen remains YAML-first. Stage 12 stays closed. Withdrawn Kinet:M54/M55,
@@ -60,11 +60,16 @@ AUTHORIZATION_REQUIREMENTS:
     scope:
       repository: /home/peter/Workspace/apitools
       remote: git@github.com-tabilet:OpenUdon/apitools.git
-      ref: refs/heads/main
+      ref: refs/heads/stage13/m91-operation-mapping-d8c3555d
+      revision: d8c3555d365bd0414b4d89fcab7074542983e5c6
       mode: fast-forward
+      creation_only: true
+      expected_ref: absent; empty expected-ref lease
 ```
 
 **Task/review owner.** [status-M91.md](status-M91.md) owns the 4 pending rows and persisted review; [the coordinator](../../../kinet/docs/stage13.md) owns cross-package acceptance and priority.
+
+**Scoped execution approval — 2026-10-25.** The owner said “I approve” after both exact linked proposals. The [approval record](../../../kinet/docs/stage13-scoped-approval-20261025.json) binds the reviewed hashes. Only this exact new review branch, disclosed source-test CI, two named module acquisitions and exact disposable compatibility inputs are excepted from the no-push/external-mutation policy. Main denials remain; publication, consumption and acceptance are not yet claimed. Existing review counter1 and every earlier outcome remain.
 
 <a id="stg13-m92"></a>
 
