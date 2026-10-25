@@ -2,7 +2,7 @@
 
 **Stage/owner:** STG-13; APItools.
 **Planning approval:** Owner-approved full rescope on 2026-10-25 (approval: “I aapaprove”), following the earlier whole-stage approval. Planning only; no execution, commit or grant activation.
-**State:** Exact publication/acquisition, reusable combined typed consumer and existing OpenUdon compatibility pass. M91.4 suspended on exact Udon-copy metadata correction scope; no Udon full attempt/fresh whole2 yet. M91.1–.3 complete; whole counter1/10 and static/VCS limits remain.
+**State:** All four original task rows qualify. Exact publication/acquisition, reusable typed consumer and both available existing-consumer compatibility checks pass. Fresh authoritative whole2 started; no milestone acceptance yet. Static/VCS limits and earlier failures remain.
 **Specification:** [milestone.md](milestone.md#stg13-m91).
 **Depends on:** None.
 **Source baseline:** `fe54b3ba939427d86ebbdd4a47b0dccb519cc26c`; existing dirty planning/history was inspected and preserved. Reconcile live source and exact accepted producers before implementation.
@@ -18,7 +18,7 @@
 | M91.1 — Define common eligibility and mapping rules | `[+]` | Inventoried existing APItools ranking/shapes/lifecycle, Kinet mapping/native projection and Ramen role/save bindings against actual sources. [Frozen common behavior](../../docs/operation-mapping-v1.md) scopes explicit exact-shape eligibility and whole-field schema mappings, retaining consumer admission, nested authoring and security authority. Task review checked scope and source locations; `git diff --check` passed. No implementation or whole review claimed. |
 | M91.2 — Implement additive pure helpers | `[+]` | Added `AssessOperationEligibility` and `MatchOperationFields`, reusing UWS table resolution/schema validation and existing credential-name policy. Exact source/native identity, unknown/truncated/ambiguous states, whole-schema direction, requiredness, placeholders and credential exclusions are retained; no transport/runtime/product imports. Task review corrected unresolved-pair coverage and cancellation propagation. Go1.26.6, `GOWORK=off GOPROXY=off GOSUMDB=off GOAUTH=off GOTOOLCHAIN=local GOFLAGS=-mod=readonly`: focused new mapping/eligibility tests passed (0.077s); affected existing shape/selection/candidate checks passed (1.150s). `git diff --check` passed. |
 | M91.3 — Add shared positive and refusal cases | `[+]` | Added [19 versioned actual-source cases](../../testdata/operation-mapping/v1/README.md), corpus SHA256 `1f456c87fb0d4a594a2b26fdff5328f71a445157cf0feba990e17929e07fd847`, business-message and fake Cloudflare resource sources. Covers all planned field locations, exact candidate/native identities, schemas/requiredness, placeholder/duplicate/type/missing/stale/ambiguous/security refusals; existing frozen eight-family partial shapes stay unresolved. Task review added conservative session/signature/opaque-key header exclusions matching inventoried Ramen policy. Focused mapping/eligibility plus existing lifecycle tests passed (root 0.172s, lifecycle 0.071s) under the same standalone offline Go1.26.6 profile; `git diff --check` passed. |
-| M91.4 — Qualify and hand off exact producer | `[!]` | Local full/race and inherited six-diagnostic/VCS limits retained. Exact d8 review-branch publication1 and ordinary acquisition1 pass; independent ref/tree/time/sums/origin and707Git/ZIP/extracted files agree. Reusable combined typed consumer49RUN49PASS, vet/build and corrected actual probe pass; selected92/compiled41/no replacements. Existing e486 OpenUdon consumer full1 PASS27.075342s. Exact da05 Udon copy stops before compilation on indirect metadata; corrected exact metadata/346-node graph proposal awaits actual approval, full envelope unspent. [All receipts/failures](../../docs/m91-published-proof.json). Whole counter1 retained; no fresh whole2 yet. |
+| M91.4 — Qualify and hand off exact producer | `[+]` | Local full/race and inherited six-diagnostic/VCS limits retained. Exact d8 publication/ordinary acquisition and707Git/ZIP/extracted files verified. Reusable consumer49RUN49PASS/vet/build/corrected probe, selected92/compiled41/no replacements. Existing OpenUdon full1 PASS27.075342s. Approved exact da05 Udon-copy metadata correction: readiness2 PASS0.958568s/346frozen identities/892packages; full1 PASS81.822281s tests/vet/build/CLI/actual new M91 BuildInfo. Original Udon untouched, existing version-only Moby replacement retained; grants consumed. [Exact proof](../../docs/m91-published-proof.json). Fresh whole2 started, original failures retained. |
 
 ## Acceptance and verification
 
@@ -31,7 +31,7 @@ Required verification: Focused operation-shape/candidate/mapping/operationlifecy
 
 ## Review
 
-Review gate iterations: 1
+Review gate iterations: 2
 
 Task reviews: M91.1 scope/inventory, M91.2 implementation and M91.3 conformance checks passed. M91.4 narrow DEFAULT evidence/readiness review passed for local proof only; required ordinary publication/consumer evidence is missing. Authoritative whole-milestone review: 1/10 completed with evidence blocker M91-W1; no pass or final acceptance is claimed. Follow the package's existing persisted review and closure procedure; planning, terminal rows and successful builds do not establish acceptance.
 
@@ -93,3 +93,35 @@ follows the unperformed ordinary consumer/existing-consumer evidence.
 Approved d8 creation-only push1 PASS1.720709s and exact ordinary acquisition1 PASS9.797954s; independent GitHub ref/tree/time, both sums/origin and all707Git/ZIP/extracted files agree. Actions consumed/ended, no replay. [Exact proof](../../docs/m91-published-proof.json) retains every receipt, selected92/actual41compiled includingmain/no replacements, reusable inputs and all failed checks. Combined consumer conformance tests 49RUN/49PASS/zeroFAILskip, vet/build pass; failed new probe oracle corrected at source and changed probe build/run/BuildInfo PASS1.648532s. Unchanged tests/vet reused;13operations/eightfamilies and typed card execute. Producer code/corpus/acceptance unchanged.
 
 Exact e486 OpenUdon disposable consumer full1 PASS27.075342s (public boundary/alltests/vet/build/publicprobe/BuildInfo). Exact da05 Udon copy readonly readiness1 FAIL1.033451s before compilation: missing indirect requirements. Nonmutating offline tidy-diff diagnostic1 exit1/diffproduced/stderr0 identifies seven root declarations/additional cached sums; original/copy module files unchanged, full envelope unspent. Root promotion may expand/prune-selected graph: freeze precise proposed result before asking approval, no unchanged337 claim. Current version-only Docker/Moby replacement remains, no directory replacement. Kinet docs/stage13-udon-compatibility-correction.md is proposed only. Row suspended, zero general rows in progress; whole1 partly unresolved, nextwhole2 not started. All original scope, limits, failures, UNKNOWNs and audit-off preserved.
+
+## Exact Udon-copy correction actually approved — 2026-10-25
+
+Invoking human I approve binds frozen Kinet proposal89852c and graphc5b729.
+Root resumes M91.4: apply only exact two prepared metadata files to disposable
+da05 copy, ONE corrected readonly readiness2<=120s and, only after graph matches
+all346frozen identities and packages are ready, the existing unspent full1<=1200s.
+No new full allowance, source/owner Udon mutation, download/push/private action,
+acceptance waiver or reviewcounter change. Earlier failures and graph337/whole1
+remain. Selection is no success; only this row is general in progress.
+
+## Fresh authoritative whole2 — started
+
+Actual human I approve binds exact89852c correction. Approved metadata bytes
+are applied only to disposable da05 copy; readonly readiness2 PASS0.958568s,
+all346frozen graph identities/892package records/errorfree. Conditional original
+full1 PASS81.822281s: tests68.498508s, vet6.839445s, build3.632932s, CLIbuild
+2.725535s, help0.115339s and actualBuildInfo0.008447s, all exit0/originalWait/no
+timeout. Output uses regular-file captures; no pipe-EOF claim. CLI stderr is
+normal help usage, not a failure/zero-stderr claim. Exact new M91 dependency
+version/sum agrees selected versus compiled; all original692tracked files and
+all non-module disposable sources match da05. No source repair or original
+Udon mutation. Individual RUN/skip counts are not retained by ordinary package
+output and no live browser/provider/private-runtime qualification is inferred.
+
+Root inspected the complete task4 evidence/reusable inputs/current module
+proof and original-source preservation; task review passes. M91-W1 evidence
+is now resolved at original scope. Fresh read-only whole2/10 reviews the entire
+milestone; whole1, all inherited static observations, missing VCS stamps and
+earlier failed preflights/oracle remain. Grants for exact pushes/acquisitions/
+Udon correction/readiness/full are consumed/ended with no replay. Current
+source/helper/corpus behavior is unchanged; no final acceptance until whole2.

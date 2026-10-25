@@ -13,7 +13,8 @@ planner or cross-product import is introduced. HCL support stays unchanged.
 M91.1–.3 are committed and locally qualified. Whole review1 found no production
 P1/P2 defect. Independently verified exact source publication/acquisition, reusable
 ordinary typed consumer and existing OpenUdon compatibility now pass. Remaining
-Udon-copy dependency metadata correction awaits narrow approval; M91 is not accepted.
+approved Udon-copy metadata correction/readiness/full1 now pass; fresh whole2
+is started and M91 is not yet accepted.
 New Kinet W22 and Ramen M136 adoption stays downstream, not an additional M91
 prerequisite. [SDK contract](../../docs/operation-mapping-v1.md),
 [qualification](../../docs/m91-producer-qualification.md) and [active status](status-M91.md)

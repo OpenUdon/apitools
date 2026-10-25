@@ -8,7 +8,7 @@ and legacy-wrapper retirement are separate unnumbered candidates.
 
 **Current APItools Stage 13 horizon.** APItools:M91. One serial execution owner; parallel-safe no. The Kinet launch reference includes only the eight active milestones. This current section governs over earlier dated checkpoints.
 
-**Execution progress.** The separately approved local goal has completed M91.1–.3 and M91.4's local producer qualification. Whole review 1/10 found no production-code P1/P2 defect; exact publication/ordinary reusable consumer and existing OpenUdon checks now pass; remaining Udon-copy metadata correction needs narrow approval before its existing full check. Main pushes remain denied. The planning approval above supplies historical scope, not execution authority.
+**Execution progress.** The separately approved local goal has completed M91.1–.3 and M91.4's local producer qualification. Whole review 1/10 found no production-code P1/P2 defect; exact publication/ordinary reusable consumer and existing OpenUdon checks now pass; approved exact Udon metadata correction/readiness/full1 now pass; fresh whole2 is started. Main pushes remain denied. The planning approval above supplies historical scope, not execution authority.
 
 Preserve supported Ramen/Udon HCL input/output and supporting UWS codecs;
 Ramen remains YAML-first. Stage 12 stays closed. Withdrawn Kinet:M54/M55,
@@ -18,14 +18,14 @@ audit stays disabled. No old permission, budget or trigger is reactivated.
 
 | ID | Status file | State | Dependencies |
 |---|---|---|---|
-| M91 | [status-M91.md](status-M91.md) | 3 rows complete; publication/ordinary consumer/OpenUdon compatibility pass; Udon exact metadata prerequisite pending; whole1 retained | None. |
+| M91 | [status-M91.md](status-M91.md) | Four task rows pass; producer/reusable consumer/OpenUdon+Udon compatibility pass; whole2 started | None. |
 | M92 | [status-M92.md](status-M92.md) | Withdrawn; 3 rows `[X]`; undelivered; review 0/10 | None active; original dependencies retained in the withdrawn record. |
 
 <a id="stg13-m91"></a>
 
 ### M91 — Common eligibility and mapping helpers
 
-**Stage/owner.** Kinet STG-13; APItools. **State.** M91.1–.3 complete; M91.4 has published ordinary consumer/OpenUdon evidence and is suspended on exact Udon-copy metadata approval. Whole1 retained.
+**Stage/owner.** Kinet STG-13; APItools. **State.** All four rows qualify; exact publication/ordinary/new and existing consumer evidence pass; fresh whole2 started.
 **Depends on.** None.
 **Downstream.** [Kinet:W22](../../../kinet/tabilet/memory-bank/status-W22.md), [Ramen:M136](../../../ramen/tabilet/memory-bank/status-M136.md)
 **Outcome.** APItools exposes small additive helpers for candidate eligibility and field mapping, with shared conformance cases and product-specific admission kept in consumers.

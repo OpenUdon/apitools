@@ -23,9 +23,10 @@ source/corpus and precise limitations. [Live status](status-M91.md) owns whole
 review1/remaining evidence blocker. [Published proof](../../docs/m91-published-proof.json)
 records actual exact publication/acquisition and reusable combined consumer49RUN/
 49PASS, selected92/compiled41/no replacements, plus existing OpenUdon full1
-PASS27.075342s. Udon readonly metadata prerequisite stops before compilation;
-exact seven-root/cached-sum/346-node correction is proposed only. Original
-337-node graph is before correction; no qualification or unchanged-graph claim.
+PASS27.075342s. Approved Udon exact seven-root/cached-sum correction now passes readiness2
+(346frozen identities/892packages) and full1=81.822281s, with actual compiled
+M91 identity and unchanged original source. Original337 remains pre-correction
+evidence; no unchanged-graph or live/private-runtime claim.
 All failed preflights/probe oracle corrections remain, no unchanged retry.
 Push/acquisition grants ended; no local replacement/old pin proves new adoption.
 

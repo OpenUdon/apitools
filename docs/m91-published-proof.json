@@ -1,6 +1,6 @@
 {
   "version": "apitools.m91-published-proof.v1",
-  "state": "publication/acquisition/reusableconsumer/existingOpenUdonPASS; Udonmetadata prerequisite pending; no fresh whole2 or acceptance",
+  "state": "All four M91 task units qualify, including approved exact Udon metadata correction/full compatibility; fresh whole2 started, not accepted yet",
   "receipts": {
     "m91-publication-independent.json": {
       "version": "stage13.github-publication-verified.v1",
@@ -2629,6 +2629,744 @@
   "git_zip_proof_path": "/tmp/k13-8f7f/m91-acquired-git-file-proof.json",
   "git_zip_proof_sha256": "c6b1fac3adc86fc03e669a27f53b9743abbb19de8c02de3a37d2116655f5d244",
   "retained_failures": "Minimal consumer old-transitive-cache readiness1 refused offline. Combined producer profile reuses qualified P14 graph with no replacement/cachecopy/download/productpin change. Qualification1 tests/vet/build passed, new probe incorrectly required every partial empty mapping indeterminate; missing required fields legitimately make mapping incompatible. Only probe assertion fixed to retain indeterminate eligibility and never-compatible empty mapping; changed probe build/run/BuildInfo passed, unchanged tests/vet reused. Metadata validator eightoperations assertion corrected to13operations/eightfamilies before writes, no checks repeated. Parent fixture-output mkdir path corrected before file writes; no artifact or source was erased.",
-  "udon": "Readonly package readiness stopped before compilation, requires seven indirect root declarations and additional cached sums. Nonmutating tidy-diff prepared exact bytes. Post-correction graph is being frozen independently, not claimed unchanged. No full Udon attempt spent; exact correction needs approval.",
-  "limits": "All exact pushes/acquisitions CONSUMED/ENDED. No followup/main/futurepush/download/newcache/live/browser/container/privateworker/privilege/realledger/deploy. Existing six static diagnostics/absentVCS remain; original outcomes/wholecounter1/UNKNOWNs/auditoff unchanged."
+  "udon": "Exact approved correction applied only to disposable copy. Actual346-module graph matches frozen proposal;892package records load without errors; full1 passes tests/vet/build/CLI and compiled M91 identity. Original Udon tracked source/pins/ledger/addendum untouched, original version-only Moby replacement retained, no directory replacement.",
+  "limits": "All exact pushes/acquisitions CONSUMED/ENDED. No followup/main/futurepush/download/newcache/live/browser/container/privateworker/privilege/realledger/deploy. Existing six static diagnostics/absentVCS remain; original outcomes/wholecounter1/UNKNOWNs/auditoff unchanged.",
+  "udon_qualification": {
+    "approval": {
+      "version": "stage13.udon-copy-correction-approval.v1",
+      "human": "I approve",
+      "source": "Current invoking user message immediately after the final report/request linking exact89852c correction; this is actual human authority, not prior tool accepted:true",
+      "proposal": "docs/stage13-udon-compatibility-correction.md",
+      "proposal_sha256": "89852c24d5565f0a332c1dd02d6042c6ae60f3cd296ec220f0296dcf010e48bb",
+      "graph_sha256": "c5b7294da7a0f51acd4841ae851ef2bd2746a83f91b64d1a670f9b3157ad7078",
+      "grant_id": "stg13-m91-udon-copy-metadata-correction",
+      "executor": "coordinator",
+      "scope": "Only exact two prepared metadata files in existing disposable da05 source copy; seven indirect declarations, nine additional graph nodes and two disclosed upgrades; compare corrected actual graph before full1",
+      "budget": "ONE corrected readonly readiness<=120s; conditional originally approved still-unspent ONE full1 test/vet/build/CLI<=1200s, no extra full attempt",
+      "preservation": "No original Udon mutation or source/test-code change, downloads/newcache, live/browser/container/privateworker/privilege/push/deploy, old grant activation or acceptance waiver. All earlier failures/counters and whole1 preserved."
+    },
+    "readiness2": {
+      "kind": "stage13.existing-consumer-compatibility.v1",
+      "work": "/home/peter/Workspace/kinet.goal/stg13-producer-consumers/udon-existing",
+      "snapshot": {
+        "repository": "/home/peter/Workspace/udon",
+        "revision": "da05f866fbc4d611a94f1eeb00faf08e51e84db7",
+        "copy_method": "git archive exact tracked source; no original mutation",
+        "tree": "98d6cea2c5af41435947d98e2e152b858758e9f0",
+        "only_copy_delta": [
+          "go.mod APItools exact requirement",
+          "go.sum exact APItools sums"
+        ],
+        "go_mod_sha256": "7541d463d823c0276f1c9d657870eceefded02c5c0ecc92e0ace32683c888867",
+        "go_sum_sha256": "ff9b25355d9c54553bb7ade677ba38728d7768fbeefc0d945f1f9974a2ea2fc1"
+      },
+      "offline": true,
+      "commands": [
+        {
+          "argv": [
+            "/home/peter/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.6.linux-amd64/bin/go",
+            "list",
+            "-m",
+            "-json",
+            "all"
+          ],
+          "wall_seconds": 0.065945,
+          "exit": 0,
+          "original_wait": true,
+          "timed_out": false,
+          "outputs": [
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-readiness2.0.stdout.log",
+              "bytes": 126121,
+              "sha256": "3dc02bf62f704a807b5c2214e5e7e78d541ca21b6500d8e7e7bce7083359bfc6"
+            },
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-readiness2.0.stderr.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ]
+        },
+        {
+          "argv": [
+            "/home/peter/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.6.linux-amd64/bin/go",
+            "list",
+            "-deps",
+            "-test",
+            "-json",
+            "./..."
+          ],
+          "wall_seconds": 0.873318,
+          "exit": 0,
+          "original_wait": true,
+          "timed_out": false,
+          "outputs": [
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-readiness2.1.stdout.log",
+              "bytes": 4961233,
+              "sha256": "641991077d67bb16bdbc6d3591540477739bc6fac41ce3ed71e4206984999670"
+            },
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-readiness2.1.stderr.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ]
+        }
+      ],
+      "wall_seconds": 0.958568,
+      "passed": true,
+      "regular_file_capture_no_pipe_eof_claim": true
+    },
+    "identity": {
+      "version": "stage13.udon-copy-current-readiness.v1",
+      "result": "PASS",
+      "selected": 346,
+      "packages": 892,
+      "graph_matches_approved_sha256": "c5b7294da7a0f51acd4841ae851ef2bd2746a83f91b64d1a670f9b3157ad7078",
+      "metadata_files": [
+        {
+          "name": "go.mod",
+          "before_sha256": "7541d463d823c0276f1c9d657870eceefded02c5c0ecc92e0ace32683c888867",
+          "proposed_sha256": "146d3fbf5f98e567424733b7175c0aafabbf2d50d841a541707b8f4712729317",
+          "proposed_path": "/tmp/k13-8f7f/udon-compatibility-proposal/go.mod.proposed"
+        },
+        {
+          "name": "go.sum",
+          "before_sha256": "ff9b25355d9c54553bb7ade677ba38728d7768fbeefc0d945f1f9974a2ea2fc1",
+          "proposed_sha256": "78e5a3c2efa0cfcdcb54f13d1374396c82bd29c103db862c1fb03b298b05f37e",
+          "proposed_path": "/tmp/k13-8f7f/udon-compatibility-proposal/go.sum.proposed"
+        }
+      ],
+      "original_version_only_replacement_preserved": true,
+      "directory_replacements": 0,
+      "readiness": "/tmp/k13-8f7f/udon-existing-readiness2.json",
+      "full1": "still unspent/conditionally selected now",
+      "approval": "Kinet docs/stage13-udon-compatibility-approval.json"
+    },
+    "full1": {
+      "kind": "stage13.existing-consumer-compatibility.v1",
+      "work": "/home/peter/Workspace/kinet.goal/stg13-producer-consumers/udon-existing",
+      "snapshot": {
+        "repository": "/home/peter/Workspace/udon",
+        "revision": "da05f866fbc4d611a94f1eeb00faf08e51e84db7",
+        "copy_method": "git archive exact tracked source; no original mutation",
+        "tree": "98d6cea2c5af41435947d98e2e152b858758e9f0",
+        "only_copy_delta": [
+          "go.mod APItools exact requirement",
+          "go.sum exact APItools sums"
+        ],
+        "go_mod_sha256": "7541d463d823c0276f1c9d657870eceefded02c5c0ecc92e0ace32683c888867",
+        "go_sum_sha256": "ff9b25355d9c54553bb7ade677ba38728d7768fbeefc0d945f1f9974a2ea2fc1"
+      },
+      "offline": true,
+      "commands": [
+        {
+          "argv": [
+            "/home/peter/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.6.linux-amd64/bin/go",
+            "test",
+            "./...",
+            "-count=1",
+            "-timeout=15m"
+          ],
+          "wall_seconds": 68.498508,
+          "exit": 0,
+          "original_wait": true,
+          "timed_out": false,
+          "outputs": [
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.0.stdout.log",
+              "bytes": 2143,
+              "sha256": "8d0254cb2a942a9ce788d6a5f68a2a722e76bb95be65678dc1232ccdc416d20a"
+            },
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.0.stderr.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ]
+        },
+        {
+          "argv": [
+            "/home/peter/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.6.linux-amd64/bin/go",
+            "vet",
+            "./..."
+          ],
+          "wall_seconds": 6.839445,
+          "exit": 0,
+          "original_wait": true,
+          "timed_out": false,
+          "outputs": [
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.1.stdout.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.1.stderr.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ]
+        },
+        {
+          "argv": [
+            "/home/peter/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.6.linux-amd64/bin/go",
+            "build",
+            "./..."
+          ],
+          "wall_seconds": 3.632932,
+          "exit": 0,
+          "original_wait": true,
+          "timed_out": false,
+          "outputs": [
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.2.stdout.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.2.stderr.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ]
+        },
+        {
+          "argv": [
+            "/home/peter/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.6.linux-amd64/bin/go",
+            "build",
+            "-o",
+            "/home/peter/Workspace/kinet.goal/stg13-producer-consumers/udon-existing-cli",
+            "./cmd/udon"
+          ],
+          "wall_seconds": 2.725535,
+          "exit": 0,
+          "original_wait": true,
+          "timed_out": false,
+          "outputs": [
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.3.stdout.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.3.stderr.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ]
+        },
+        {
+          "argv": [
+            "/home/peter/Workspace/kinet.goal/stg13-producer-consumers/udon-existing-cli",
+            "--help"
+          ],
+          "wall_seconds": 0.115339,
+          "exit": 0,
+          "original_wait": true,
+          "timed_out": false,
+          "outputs": [
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.4.stdout.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.4.stderr.log",
+              "bytes": 545,
+              "sha256": "0ee77fb5f1d4f732393100fcb9efb404c63f18d85d60abfd3bf9de2e080926d6"
+            }
+          ]
+        },
+        {
+          "argv": [
+            "/home/peter/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.6.linux-amd64/bin/go",
+            "version",
+            "-m",
+            "-json",
+            "/home/peter/Workspace/kinet.goal/stg13-producer-consumers/udon-existing-cli"
+          ],
+          "wall_seconds": 0.008447,
+          "exit": 0,
+          "original_wait": true,
+          "timed_out": false,
+          "outputs": [
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.5.stdout.log",
+              "bytes": 11197,
+              "sha256": "77bd95c3e23916f332a7310953545362c5fa3be189a458999d048ca158d3f29c"
+            },
+            {
+              "path": "/tmp/k13-8f7f/udon-existing-full1.5.stderr.log",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ]
+        }
+      ],
+      "wall_seconds": 81.822281,
+      "passed": true,
+      "regular_file_capture_no_pipe_eof_claim": true,
+      "approved_metadata_correction": {
+        "version": "stage13.udon-copy-current-readiness.v1",
+        "result": "PASS",
+        "selected": 346,
+        "packages": 892,
+        "graph_matches_approved_sha256": "c5b7294da7a0f51acd4841ae851ef2bd2746a83f91b64d1a670f9b3157ad7078",
+        "metadata_files": [
+          {
+            "name": "go.mod",
+            "before_sha256": "7541d463d823c0276f1c9d657870eceefded02c5c0ecc92e0ace32683c888867",
+            "proposed_sha256": "146d3fbf5f98e567424733b7175c0aafabbf2d50d841a541707b8f4712729317",
+            "proposed_path": "/tmp/k13-8f7f/udon-compatibility-proposal/go.mod.proposed"
+          },
+          {
+            "name": "go.sum",
+            "before_sha256": "ff9b25355d9c54553bb7ade677ba38728d7768fbeefc0d945f1f9974a2ea2fc1",
+            "proposed_sha256": "78e5a3c2efa0cfcdcb54f13d1374396c82bd29c103db862c1fb03b298b05f37e",
+            "proposed_path": "/tmp/k13-8f7f/udon-compatibility-proposal/go.sum.proposed"
+          }
+        ],
+        "original_version_only_replacement_preserved": true,
+        "directory_replacements": 0,
+        "readiness": "/tmp/k13-8f7f/udon-existing-readiness2.json",
+        "full1": "still unspent/conditionally selected now",
+        "approval": "Kinet docs/stage13-udon-compatibility-approval.json"
+      }
+    },
+    "compiled_BuildInfo": {
+      "GoVersion": "go1.26.6",
+      "Path": "github.com/genelet/udon/cmd/udon",
+      "Main": {
+        "Path": "github.com/genelet/udon",
+        "Version": "(devel)"
+      },
+      "Deps": [
+        {
+          "Path": "cloud.google.com/go/compute/metadata",
+          "Version": "v0.9.0",
+          "Sum": "h1:pDUj4QMoPejqq20dK0Pg2N4yG9zIkYGdBtwLoEkH9Zs="
+        },
+        {
+          "Path": "github.com/Azure/go-ntlmssp",
+          "Version": "v0.0.0-20221128193559-754e69321358",
+          "Sum": "h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8="
+        },
+        {
+          "Path": "github.com/OpenUdon/apitools",
+          "Version": "v0.0.0-20261025104756-d8c3555d365b",
+          "Sum": "h1:15m7LNGRKIjcqswPvOGBkZ0hFTDTkGWB6z1MAsFttQM="
+        },
+        {
+          "Path": "github.com/OpenUdon/asyncapi",
+          "Version": "v0.1.0",
+          "Sum": "h1:ZfGDJHknYUKfEZIC6VrhpdiwDVStMoZnyYmr3AVbQH4="
+        },
+        {
+          "Path": "github.com/OpenUdon/awssmithy",
+          "Version": "v0.0.0-20260920023826-d8920534a28f",
+          "Sum": "h1:iNWolgB4rK18Spb9o/zFUpNjxqTNDvS/JSpnUVJrvJ4="
+        },
+        {
+          "Path": "github.com/OpenUdon/browsertools",
+          "Version": "v0.0.0-20261010115646-1859f5e34367",
+          "Sum": "h1:xjsFcA8O/fP/D20rxonAzWKnFvxtzYVOJQmwXEb4Nbk="
+        },
+        {
+          "Path": "github.com/OpenUdon/evidence",
+          "Version": "v0.0.0-20260815084845-0c17258b9736",
+          "Sum": "h1:m66ctgDRK/pv45OfAyrKmjE/XmgehlAXYCCjYK4V1Tw="
+        },
+        {
+          "Path": "github.com/OpenUdon/googlediscovery",
+          "Version": "v0.0.0-20260520203137-c02129a009fc",
+          "Sum": "h1:drM11+jXvEjjpuWisSFurkQXvqrWO1o4PDIwLv1HqLI="
+        },
+        {
+          "Path": "github.com/OpenUdon/graphqlschema",
+          "Version": "v0.0.0-20260920024303-d5ccb57fb010",
+          "Sum": "h1:1LMBl15k2tMsjMImDHLhD5tdrmlo6OADRSC09yoe6fs="
+        },
+        {
+          "Path": "github.com/OpenUdon/oas",
+          "Version": "v0.0.0-20260507023120-7fb319711323",
+          "Sum": "h1:IIS4CeB6dcbkAdcSInrBYcVUZum1fhVfInfB2+f0bxA="
+        },
+        {
+          "Path": "github.com/OpenUdon/odata",
+          "Version": "v0.0.0-20260920024344-74508823d40f",
+          "Sum": "h1:pDIe1jVP8HylqcVMa8VuB7wPrK7yA9M53cfMfcGgOB0="
+        },
+        {
+          "Path": "github.com/OpenUdon/schema",
+          "Version": "v0.0.0-20260507023912-6ea3308bb955",
+          "Sum": "h1:dwQPNJKFpa6ndPagc3bKvS8ITuVopArFVsE2JgVFJfY="
+        },
+        {
+          "Path": "github.com/OpenUdon/uws",
+          "Version": "v0.0.0-20261009220914-f01a2542410c",
+          "Sum": "h1:TTjAn0++TdGHY0vahbXw3XsICQaavBytoqTSHu0K6o0="
+        },
+        {
+          "Path": "github.com/OpenUdon/uws/hcl",
+          "Version": "v0.0.0-20261008043726-b099f6803277",
+          "Sum": "h1:OJsmDK/RcFpyMAMGy84DjcX6kNalYH/E0Q/C3XwD5Uo="
+        },
+        {
+          "Path": "github.com/agext/levenshtein",
+          "Version": "v1.2.3",
+          "Sum": "h1:YB2fHEn0UJagG8T1rrWknE3ZQzWM06O8AMAatNn7lmo="
+        },
+        {
+          "Path": "github.com/agnivade/levenshtein",
+          "Version": "v1.2.1",
+          "Sum": "h1:EHBY3UOn1gwdy/VbFwgo4cxecRznFk7fKWN1KOX7eoM="
+        },
+        {
+          "Path": "github.com/antchfx/xmlquery",
+          "Version": "v1.5.1",
+          "Sum": "h1:T9I4Ns1EXiWHy0IqKupGhnfTQtJwlGrpXtauYOoNv78="
+        },
+        {
+          "Path": "github.com/antchfx/xpath",
+          "Version": "v1.3.6",
+          "Sum": "h1:s0y+ElRRtTQdfHP609qFu0+c6bglDv20pqOViQjjdPI="
+        },
+        {
+          "Path": "github.com/apparentlymart/go-cidr",
+          "Version": "v1.1.0",
+          "Sum": "h1:2mAhrMoF+nhXqxTzSZMUzDHkLjmIHC+Zzn4tdgBZjnU="
+        },
+        {
+          "Path": "github.com/apparentlymart/go-textseg/v15",
+          "Version": "v15.0.0",
+          "Sum": "h1:uYvfpb3DyLSCGWnctWKGj857c6ew1u1fNQOlOtuGxQY="
+        },
+        {
+          "Path": "github.com/basgys/goxml2json",
+          "Version": "v1.1.0",
+          "Sum": "h1:4ln5i4rseYfXNd86lGEB+Vi652IsIXIvggKM/BhUKVw="
+        },
+        {
+          "Path": "github.com/bmatcuk/doublestar",
+          "Version": "v1.3.4",
+          "Sum": "h1:gPypJ5xD31uhX6Tf54sDPUOBXTqKH4c9aPY66CyQrS0="
+        },
+        {
+          "Path": "github.com/bramvdbogaerde/go-scp",
+          "Version": "v1.5.0",
+          "Sum": "h1:a9BinAjTfQh273eh7vd3qUgmBC+bx+3TRDtkZWmIpzM="
+        },
+        {
+          "Path": "github.com/cespare/xxhash/v2",
+          "Version": "v2.3.0",
+          "Sum": "h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs="
+        },
+        {
+          "Path": "github.com/dustin/go-humanize",
+          "Version": "v1.0.1",
+          "Sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY="
+        },
+        {
+          "Path": "github.com/genelet/determined",
+          "Version": "v1.13.6-0.20260507030526-45652b387d33",
+          "Sum": "h1:ai9Xc+aMw8ruHsJTi9ZZnKeUDDel3H2AtR5WySaOhAE="
+        },
+        {
+          "Path": "github.com/genelet/grand",
+          "Version": "v0.0.0-20260920032733-d68766f819ee",
+          "Sum": "h1:41IAZhRvktfAwVflJLV1DtzRjf9P88fkRwqiRXkC/ZE="
+        },
+        {
+          "Path": "github.com/genelet/hcllight",
+          "Version": "v0.0.0-20260924142232-cd0e35cf01aa",
+          "Sum": "h1:RbusuqW5oTknAo5choTAOYZKMX1yZVDdV/3ZRqqK54M="
+        },
+        {
+          "Path": "github.com/genelet/horizon",
+          "Version": "v1.14.6",
+          "Sum": "h1:XcCBSDDxC61fGBpaqJUNOWoSTd3NPvpP5MDYDSEfuNs="
+        },
+        {
+          "Path": "github.com/genelet/oas",
+          "Version": "v0.0.0-20251230202742-6861c891a9d1",
+          "Sum": "h1:Ei+xVK2fYgSiltLaUU3E2Z7p/+VjqWrVwNNp4EcBe0Q="
+        },
+        {
+          "Path": "github.com/go-asn1-ber/asn1-ber",
+          "Version": "v1.5.8-0.20250403174932-29230038a667",
+          "Sum": "h1:BP4M0CvQ4S3TGls2FvczZtj5Re/2ZzkV9VwqPHH/3Bo="
+        },
+        {
+          "Path": "github.com/go-ini/ini",
+          "Version": "v1.67.0",
+          "Sum": "h1:z6ZrTEZqSWOTyH2FlglNbNgARyHG8oLW9gMELqKr06A="
+        },
+        {
+          "Path": "github.com/go-ldap/ldap/v3",
+          "Version": "v3.4.12",
+          "Sum": "h1:1b81mv7MagXZ7+1r7cLTWmyuTqVqdwbtJSjC0DAp9s4="
+        },
+        {
+          "Path": "github.com/golang/groupcache",
+          "Version": "v0.0.0-20210331224755-41bb18bfe9da",
+          "Sum": "h1:oI5xCqsCo564l8iNU+DwB5epxmsaqB+rhGL0m5jtYqE="
+        },
+        {
+          "Path": "github.com/google/go-cmp",
+          "Version": "v0.7.0",
+          "Sum": "h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8="
+        },
+        {
+          "Path": "github.com/google/uuid",
+          "Version": "v1.6.0",
+          "Sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0="
+        },
+        {
+          "Path": "github.com/hashicorp/go-uuid",
+          "Version": "v1.0.3",
+          "Sum": "h1:2gKiV6YVmrJ1i2CKKa9obLvRieoRGviZFL26PcT/Co8="
+        },
+        {
+          "Path": "github.com/hashicorp/hcl/v2",
+          "Version": "v2.24.0",
+          "Sum": "h1:2QJdZ454DSsYGoaE6QheQZjtKZSUs9Nh2izTWiwQxvE="
+        },
+        {
+          "Path": "github.com/klauspost/compress",
+          "Version": "v1.18.2",
+          "Sum": "h1:iiPHWW0YrcFgpBYhsA6D1+fqHssJscY/Tm/y2Uqnapk="
+        },
+        {
+          "Path": "github.com/klauspost/cpuid/v2",
+          "Version": "v2.2.11",
+          "Sum": "h1:0OwqZRYI2rFrjS4kvkDnqJkKHdHaRnCm68/DY4OxRzU="
+        },
+        {
+          "Path": "github.com/klauspost/crc32",
+          "Version": "v1.3.0",
+          "Sum": "h1:sSmTt3gUt81RP655XGZPElI0PelVTZ6YwCRnPSupoFM="
+        },
+        {
+          "Path": "github.com/kr/fs",
+          "Version": "v0.1.0",
+          "Sum": "h1:Jskdu9ieNAYnjxsi0LbQp1ulIKZV1LAFgK1tWhpZgl8="
+        },
+        {
+          "Path": "github.com/minio/crc64nvme",
+          "Version": "v1.1.1",
+          "Sum": "h1:8dwx/Pz49suywbO+auHCBpCtlW1OfpcLN7wYgVR6wAI="
+        },
+        {
+          "Path": "github.com/minio/md5-simd",
+          "Version": "v1.1.2",
+          "Sum": "h1:Gdi1DZK69+ZVMoNHRXJyNcxrMA4dSxoYHZSQbirFg34="
+        },
+        {
+          "Path": "github.com/minio/minio-go/v7",
+          "Version": "v7.1.0",
+          "Sum": "h1:QEt5IStDpxgGjEdtOgpiZ5QhmSl3ax7qy61vi2SwHO8="
+        },
+        {
+          "Path": "github.com/mitchellh/copystructure",
+          "Version": "v1.2.0",
+          "Sum": "h1:vpKXTN4ewci03Vljg/q9QvCGUDttBOGBIa15WveJJGw="
+        },
+        {
+          "Path": "github.com/mitchellh/go-homedir",
+          "Version": "v1.1.0",
+          "Sum": "h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y="
+        },
+        {
+          "Path": "github.com/mitchellh/go-wordwrap",
+          "Version": "v1.0.1",
+          "Sum": "h1:TLuKupo69TCn6TQSyGxwI1EblZZEsQ0vMlAFQflz0v0="
+        },
+        {
+          "Path": "github.com/mitchellh/reflectwalk",
+          "Version": "v1.0.2",
+          "Sum": "h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zxSIeXaQ="
+        },
+        {
+          "Path": "github.com/philhofer/fwd",
+          "Version": "v1.2.0",
+          "Sum": "h1:e6DnBTl7vGY+Gz322/ASL4Gyp1FspeMvx1RNDoToZuM="
+        },
+        {
+          "Path": "github.com/pkg/sftp",
+          "Version": "v1.13.10",
+          "Sum": "h1:+5FbKNTe5Z9aspU88DPIKJ9z2KZoaGCu6Sr6kKR/5mU="
+        },
+        {
+          "Path": "github.com/remyoudompheng/bigfft",
+          "Version": "v0.0.0-20230129092748-24d4a6f8daec",
+          "Sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE="
+        },
+        {
+          "Path": "github.com/rs/xid",
+          "Version": "v1.6.0",
+          "Sum": "h1:fV591PaemRlL6JfRxGDEPl69wICngIQ3shQtzfy2gxU="
+        },
+        {
+          "Path": "github.com/santhosh-tekuri/jsonschema/v6",
+          "Version": "v6.0.2",
+          "Sum": "h1:KRzFb2m7YtdldCEkzs6KqmJw4nqEVZGK7IN2kJkjTuQ="
+        },
+        {
+          "Path": "github.com/theory/jsonpath",
+          "Version": "v0.12.0",
+          "Sum": "h1:NQeuE0ohHHhss0DoxU9Xu2IpTTrlx9x4mv4F3pcmDME="
+        },
+        {
+          "Path": "github.com/tinylib/msgp",
+          "Version": "v1.6.1",
+          "Sum": "h1:ESRv8eL3u+DNHUoSAAQRE50Hm162zqAnBoGv9PzScPY="
+        },
+        {
+          "Path": "github.com/vektah/gqlparser/v2",
+          "Version": "v2.5.33",
+          "Sum": "h1:lRp8aIeNUNbimf/axZd7ETg24q06hBtPaas+TcvI/7E="
+        },
+        {
+          "Path": "github.com/zclconf/go-cty",
+          "Version": "v1.17.0",
+          "Sum": "h1:seZvECve6XX4tmnvRzWtJNHdscMtYEx5R7bnnVyd/d0="
+        },
+        {
+          "Path": "github.com/zclconf/go-cty-yaml",
+          "Version": "v1.1.0",
+          "Sum": "h1:nP+jp0qPHv2IhUVqmQSzjvqAWcObN0KBkUl2rWBdig0="
+        },
+        {
+          "Path": "github.com/zeebo/xxh3",
+          "Version": "v1.1.0",
+          "Sum": "h1:s7DLGDK45Dyfg7++yxI0khrfwq9661w9EN78eP/UZVs="
+        },
+        {
+          "Path": "go.yaml.in/yaml/v3",
+          "Version": "v3.0.5",
+          "Sum": "h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw="
+        },
+        {
+          "Path": "golang.org/x/crypto",
+          "Version": "v0.53.0",
+          "Sum": "h1:QZ4Muo8THX6CizN2vPPd5fBGHyogrdK9fG4wLPFUsto="
+        },
+        {
+          "Path": "golang.org/x/mod",
+          "Version": "v0.37.0",
+          "Sum": "h1:vF1DjpVEshcIqoEaauuHebaLk1O1forxjxBaVn884JQ="
+        },
+        {
+          "Path": "golang.org/x/net",
+          "Version": "v0.56.0",
+          "Sum": "h1:Rw8j/hFzGvJUZwNBXnAtf5sVDVt+65SK2C7IxCxZt5o="
+        },
+        {
+          "Path": "golang.org/x/oauth2",
+          "Version": "v0.34.0",
+          "Sum": "h1:hqK/t4AKgbqWkdkcAeI8XLmbK+4m4G5YeQRrmiotGlw="
+        },
+        {
+          "Path": "golang.org/x/sync",
+          "Version": "v0.21.0",
+          "Sum": "h1:HLII4xRRTtCRkxYp4HNFF0Js/Og6q2i++KXbg0gHCwM="
+        },
+        {
+          "Path": "golang.org/x/sys",
+          "Version": "v0.46.0",
+          "Sum": "h1:noSf2Fq6F8DBgS+LysIkx7rIExoNHJsxOAtPp4rthXw="
+        },
+        {
+          "Path": "golang.org/x/term",
+          "Version": "v0.44.0",
+          "Sum": "h1:0rLvDRCtNj0gZkyIXhCyOb2OAzEhLVqc4B+hrsBhrmc="
+        },
+        {
+          "Path": "golang.org/x/text",
+          "Version": "v0.39.0",
+          "Sum": "h1:UbZz4pLOvn600D6Oh6GGEI6VAmndrEBLv8/6BEXzyus="
+        },
+        {
+          "Path": "google.golang.org/protobuf",
+          "Version": "v1.36.11",
+          "Sum": "h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE="
+        },
+        {
+          "Path": "gopkg.in/yaml.v3",
+          "Version": "v3.0.1",
+          "Sum": "h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA="
+        },
+        {
+          "Path": "modernc.org/libc",
+          "Version": "v1.72.0",
+          "Sum": "h1:IEu559v9a0XWjw0DPoVKtXpO2qt5NVLAnFaBbjq+n8c="
+        },
+        {
+          "Path": "modernc.org/mathutil",
+          "Version": "v1.7.1",
+          "Sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU="
+        },
+        {
+          "Path": "modernc.org/memory",
+          "Version": "v1.11.0",
+          "Sum": "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="
+        },
+        {
+          "Path": "modernc.org/sqlite",
+          "Version": "v1.50.0",
+          "Sum": "h1:eMowQSWLK0MeiQTdmz3lqoF5dqclujdlIKeJA11+7oM="
+        }
+      ],
+      "Settings": [
+        {
+          "Key": "-buildmode",
+          "Value": "exe"
+        },
+        {
+          "Key": "-compiler",
+          "Value": "gc"
+        },
+        {
+          "Key": "CGO_ENABLED",
+          "Value": "1"
+        },
+        {
+          "Key": "CGO_CFLAGS"
+        },
+        {
+          "Key": "CGO_CPPFLAGS"
+        },
+        {
+          "Key": "CGO_CXXFLAGS"
+        },
+        {
+          "Key": "CGO_LDFLAGS"
+        },
+        {
+          "Key": "GOARCH",
+          "Value": "amd64"
+        },
+        {
+          "Key": "GOOS",
+          "Value": "linux"
+        },
+        {
+          "Key": "GOAMD64",
+          "Value": "v1"
+        }
+      ]
+    },
+    "compiled_count_including_main": 76,
+    "selected": 346,
+    "packages": 892,
+    "tracked_original_files_compared": 692,
+    "original_source_matches_da05": true,
+    "copy_all_non_module_tracked_files_match_da05": true,
+    "full_test_package_success_lines": 29,
+    "individual_RUN_SKIP_counts": "not retained by ordinary go test package output; live-gated tests not qualified",
+    "budget": "correctedreadiness2 and conditionalfull1 each consumed/ENDED, no replay",
+    "stdout_wording_correction": "One private launcher status print mistakenly said1136package records; hash-bound identity receipt correctly records892. Corrected reporting only; no check rerun or acceptance/graph change."
+  }
 }
