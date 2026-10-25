@@ -2,8 +2,8 @@
 
 This is local, unpublished producer evidence. M91.1–M91.3 are implemented;
 M91.4 remains incomplete for required publication and consumer handoff. Whole
-review is **0/10, not started**. No publication, dependency acquisition or new
-consumer adoption is established by these checks.
+review **1/10 completed with an evidence blocker**. No publication, dependency
+acquisition or new consumer adoption is established by these checks.
 
 The implementation was frozen at
 `0ff4ef561dcc5f784a630b1559ac688bca35802d`, following integration baseline
@@ -108,6 +108,13 @@ The source worktree, private raw logs/results/binaries and checker cache remain
 retained for coordinator reconciliation under the approved roots. Whole
 acceptance, fresh bounded whole review, shared-memory consolidation and
 retirement remain coordinator work after missing required evidence is resolved.
+
+The fresh read-only whole reviewer inspected all five lenses and found no
+production-code P1/P2 defect or P3 finding. Its P2 M91-W1 retains the required
+ordinary publication, reusable consumer proof and available existing-consumer
+checks. New W22/M136 adoption remains downstream work, not an additional M91
+prerequisite. The full gate has not passed; the next complete review is
+iteration 2 after the missing evidence is obtained.
 
 M91.4's narrow DEFAULT task review checked commands/results, source and module
 identities, fixture handoff and remaining authority/evidence. This was not a

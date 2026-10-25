@@ -8,7 +8,7 @@ and legacy-wrapper retirement are separate unnumbered candidates.
 
 **Current APItools Stage 13 horizon.** APItools:M91. One serial execution owner; parallel-safe no. The Kinet launch reference includes only the eight active milestones. This current section governs over earlier dated checkpoints.
 
-**Execution progress.** The separately approved local goal has completed M91.1–.3 and M91.4's local producer qualification. Publication, ordinary consumer evidence and authoritative whole review remain pending; all pushes remain denied. The planning approval above supplies historical scope, not execution authority.
+**Execution progress.** The separately approved local goal has completed M91.1–.3 and M91.4's local producer qualification. Whole review 1/10 found no production-code P1/P2 defect and remains blocked on required publication/consumer evidence; all pushes remain denied. The planning approval above supplies historical scope, not execution authority.
 
 Preserve supported Ramen/Udon HCL input/output and supporting UWS codecs;
 Ramen remains YAML-first. Stage 12 stays closed. Withdrawn Kinet:M54/M55,
@@ -18,14 +18,14 @@ audit stays disabled. No old permission, budget or trigger is reactivated.
 
 | ID | Status file | State | Dependencies |
 |---|---|---|---|
-| M91 | [status-M91.md](status-M91.md) | 3 rows complete; .4 locally qualified, blocked on publication/ordinary consumer evidence; review 0/10 | None. |
+| M91 | [status-M91.md](status-M91.md) | 3 rows complete; .4 locally qualified, publication/ordinary evidence pending; whole review 1/10 blocked on evidence | None. |
 | M92 | [status-M92.md](status-M92.md) | Withdrawn; 3 rows `[X]`; undelivered; review 0/10 | None active; original dependencies retained in the withdrawn record. |
 
 <a id="stg13-m91"></a>
 
 ### M91 — Common eligibility and mapping helpers
 
-**Stage/owner.** Kinet STG-13; APItools. **State.** M91.1–.3 complete; M91.4 locally qualified, with publication, ordinary consumer evidence and authoritative whole review pending; review 0/10.
+**Stage/owner.** Kinet STG-13; APItools. **State.** M91.1–.3 complete; M91.4 locally qualified, publication/ordinary evidence pending; authoritative whole review 1/10 blocked on evidence.
 **Depends on.** None.
 **Downstream.** [Kinet:W22](../../../kinet/tabilet/memory-bank/status-W22.md), [Ramen:M136](../../../ramen/tabilet/memory-bank/status-M136.md)
 **Outcome.** APItools exposes small additive helpers for candidate eligibility and field mapping, with shared conformance cases and product-specific admission kept in consumers.
