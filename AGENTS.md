@@ -92,7 +92,8 @@ Before substantial changes, read these in order:
 
 1. [tabilet/memory-bank/product.md](tabilet/memory-bank/product.md)
 2. [tabilet/memory-bank/architecture.md](tabilet/memory-bank/architecture.md)
-3. [tabilet/memory-bank/tech-stack.md](tabilet/memory-bank/tech-stack.md)
+3. [tabilet/memory-bank/tech-stack.md](tabilet/memory-bank/tech-stack.md) and
+   [tabilet/memory-bank/test-policy.md](tabilet/memory-bank/test-policy.md)
    Consult relevant topics in [tabilet/memory-bank/lessons.md](tabilet/memory-bank/lessons.md)
    for reusable lessons and their evidence.
 4. [tabilet/memory-bank/milestone.md](tabilet/memory-bank/milestone.md)
@@ -197,6 +198,8 @@ available:
   dependencies. Keep trivial comparisons and transformations inline when that
   is clearer than introducing a local abstraction.
 - Run required verification before claiming a change is done.
+- Every test follows [the test policy](tabilet/memory-bank/test-policy.md);
+  it governs test method and grants no authority.
 
 ## Work Cadence
 
@@ -272,9 +275,10 @@ available:
   ID and status path, writes only within its assignment, and returns to the
   orchestrator instead of selecting another milestone from the launch reference.
 - Treat each milestone section as a review unit. After its last row closes,
-  run the milestone review with its persisted ten-iteration fix gate and the
-  required verification before closing it; do not create an empty review
-  commit.
+  run the [milestone review](tabilet/memory-bank/milestone.md#milestone-review-procedure)
+  with its persisted counter, effective `REVIEW_MAX_ITERATIONS` (default 10)
+  and required verification before closing it; do not create an empty review
+  commit. An upgrade never raises an existing limit or resets a counter.
 - `CORRECTIVE_PLANNING` defaults to `confirm`. With human-approved `auto`, the
   Goal/Next owner may prepare and check necessary corrective plans within the
   original delivery outcome, owning repositories, existing grants and limits,
@@ -285,9 +289,9 @@ available:
   Nested Reconcile verifies the invoking human approval source and complete
   request, covered actions, grants and limits; missing provenance retains the
   ordinary approval gate. Never weaken acceptance or cancel unmet obligations.
-  Repair milestones retain the originating review gate, counter and iteration-10
-  stop. Suspend `[~]` as `[!]` with prerequisite IDs and resumption conditions
-  before repair execution; resume `[~]` only after acceptance and all blockers
+  Repair milestones retain the originating review gate, counter and approved
+  iteration limit. Suspend `[~]` as `[!]` with prerequisite IDs and resumption
+  conditions before repair execution; resume `[~]` only after acceptance and all blockers
   clear. Preserve partial work and pause if changes cannot be separated safely.
 - For substantial discoveries, follow
   [milestone families](tabilet/memory-bank/milestone.md#milestone-families).

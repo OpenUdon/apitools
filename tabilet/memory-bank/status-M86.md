@@ -87,8 +87,18 @@ own files. These rules change no task, marker, trigger or review count here.
 
 Keep this file a current-state record, not a log. Replace a superseded checkpoint
 instead of appending dated narrative, and link per-attempt detail in evidence
-files. A row whose acceptance depends on an expensive check records its attempt
-count here under the [verification-attempt gate](milestone.md#verification-attempt-gate).
+files. A row whose acceptance depends on a class R check, or on an explicit
+grant budget, records its attempt count here under the
+[verification-attempt gate](milestone.md#verification-attempt-gate). A class O
+gate under the [test policy](test-policy.md) records the command, the source
+revision or saved diff hash (and artifact identity when one is qualified), PASS
+or FAIL, and one log link; a reused result says its inputs are unchanged. A row's
+focused verification is recorded the same way, and says so when its result came
+from the toolchain's cache. A row that fixes a carried review finding says
+"fixes FND-nn" in its notes (see
+[Open review findings](milestone.md#open-review-findings)). Review follows the
+[milestone procedure](milestone.md#milestone-review-procedure), retaining this
+record's existing review counter and limit.
 
 After the milestone's review, consolidation, and downstream reconciliation
 pass, follow [the retirement procedure](milestone.md#long-term-memory-and-retirement).

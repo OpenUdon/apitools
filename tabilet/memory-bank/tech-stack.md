@@ -320,34 +320,74 @@ module dependency is used. The offline operation index command is delivered by M
 
 ## Verification and testing standards
 
-- Preserve the existing verification commands, milestone-specific gates and
-  explicit limits. Standard testing adds no light-profile time caps.
-- Run focused checks during task work and the required full regression once
-  per unchanged closure candidate. Repeat affected checks after fixes, failures
-  or unresolved coverage; separate compilation time from test execution.
-  Required race and other acceptance gates remain required.
+Every test follows [test-policy.md](test-policy.md), including task rows,
+reviews, goal briefs and launch references. It governs method and grants no
+new authority. Preserve existing verification commands, milestone-specific
+acceptance gates, exact artifacts and explicit limits. Standard testing adds
+no light-profile time caps.
+
+- **Row checks**: `go build ./...`, `go vet ./...`, `go test` on affected whole
+  packages, and `git diff --check`. During edits, use the narrowest useful
+  non-instrumented check; before row completion or task review, run these row
+  checks. Add direct consumers for changed public contracts or persisted
+  behavior, and races on affected concurrent units and consumers of a changed
+  concurrency contract. Preserve the existing OpenUdon/Udon scope, Ramen
+  exclusion and immutable consumer snapshots without changing pins.
+- **Required gates**: whole-project `go build ./...`, `go vet ./...` and
+  `go test -count=1 ./...`; catalog generation/quality, search/import help and
+  `git diff --check` as listed in the test policy's Project specifics; plus
+  the owning milestone's existing CLI, race and consumer gates. Every required
+  test-gate invocation bypasses test-result caches with `-count=1`; compiler
+  and dependency caches remain usable. Existing static-analysis observations
+  retain their recorded dispositions, with no new waiver or clean-run claim.
+- **Stage qualification**: none scheduled in the current APItools horizon;
+  M86 and M92 remain withdrawn. A later approved milestone completing a stage
+  depends on its other milestones and owns end-to-end required qualification
+  using real pinned artifacts. Any class R part retains separate authority.
+- Run required gates immediately before whole review. Reuse a passing class O
+  result only if nothing it reads changed; rerun failed/affected gates after
+  fixes, dependency/base/tool changes or unresolved inputs. If uncertain, rerun.
+  Row checks may use the toolchain's test cache when it sees every input;
+  identify cached results. Record commands, full source revision or saved diff
+  hash, qualified artifact identity, PASS/FAIL and one ignored-scratch log link.
+- Follow the test policy's fixture-variant skip conditions. Keep all required
+  non-instrumented capacity coverage and smaller instrumented tests of the
+  exercised properties. No instrumentation exclusions or new capacity limits
+  are adopted here. Plan any test-unit split separately from the current task.
 - Preserve meaningful success and failure coverage through a replacement
   implementation before removing the old implementation's tests. Remove tests
   only when their behavior has moved to its successor or has been removed.
 - Acceptance readiness: identify missing final-acceptance inputs, capabilities
-  and authority early. Before each counted expensive attempt, run a fast
-  preflight of the applicable fixtures, schemas, commands and launchers.
-  Missing real acceptance evidence remains missing; mocks do not replace it.
-  External testing-tool repair is optional unless explicitly promoted by the
-  owner under the milestone-family rules.
+  and authority early. Before each counted class R attempt, run a fast preflight
+  of the applicable fixtures, schemas, commands and launchers. Class O tests
+  use self-checking runners without separate readiness reviews, supervising
+  controllers, UNKNOWN outcomes or policy-added attempt counters. Missing real
+  acceptance evidence remains missing; mocks do not replace it. External
+  testing-tool repair is optional unless explicitly promoted by the owner.
 - A human-approved standing verification budget follows the selected goal
   protocol and the [authorization rules](milestone.md#authorization-requirements).
-  Persist invocation usage and respect remaining attempts, stop conditions and
-  all smaller tool or authorization caps. These standards activate no grant.
+  Explicit grant reservations, invocation usage, remaining attempts and stop
+  conditions bind even for class O checks. Preserve all smaller authorization
+  and tool caps; these standards activate no grant.
+- Earlier UNKNOWN, aborted and failed class O records remain literal history
+  and do not block new runs. Effective grant usage, class R attempt counts and
+  frozen evidence stay unchanged.
+- Resolve `REVIEW_MAX_ITERATIONS` under the
+  [review procedure](milestone.md#milestone-review-procedure), default 10,
+  independently of commit policy. Apply the minimum declared project/milestone
+  cap. Existing recorded limits and counters remain unchanged; this upgrade
+  raises none. A ceiling above 10 requires explicit human approval at execution.
 
 ## Memory-bank API runner compatibility
 
 The separately installed `../skills/harness/tackle-memory-bank-api-loop`
 recognizes root and child filenames, the six task markers, and literal
-retirement envelopes. Its current specification parser assumes level-two
-milestone headings. It rejects the frozen M87, M88, M89, S07, S08, S09 and S10
-records because their retained specifications use level-three headings, and it
-does not extract M86's active specification for the same reason.
+retirement envelopes. Its active specification parser still assumes level-two
+milestone headings and does not extract M86 or M92's retained level-three
+specifications. The current reader permits level-three historical specifications
+in historical mode; this does not establish compatibility for active execution
+or strict new-retirement validation. Read-only source inspection of the installed
+executable establishes these parser distinctions, not a successful runner run.
 
 Automated API-runner execution and retirement compatibility remain blocked
 until a separately authorized runner repair/check supports this harness's

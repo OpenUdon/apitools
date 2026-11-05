@@ -15,6 +15,24 @@
 
 **Review provenance.** Kinet Stage 13 plan review (`kinet-stage13.md`), 2026-10-25; source commit baseline not supplied. H2/H3 (High/local P1): current Ramen/Udon readers and writers depend on UWS HCL. The owner selected preservation. Original task wording and review counters are retained below.
 
+## Status rules
+
+Use the six backticked markers, ownership and commit rules in
+[milestone.md](milestone.md#status-files) and [AGENTS.md](../../AGENTS.md).
+Authorization requirements remain in the owning specification; a marker or note
+never grants authority. The withdrawal above remains effective.
+
+Follow the [test policy](test-policy.md) and
+[milestone review procedure](milestone.md#milestone-review-procedure). Record
+class O gates and row checks with the command, source revision or saved diff
+hash (and qualified artifact identity), PASS or FAIL, and one log link. Reused
+gate results identify unchanged inputs; focused checks identify cached results.
+Class R checks and explicit grant budgets retain their
+[attempt gate](milestone.md#verification-attempt-gate), counts and limits.
+A row fixing a carried finding names "fixes FND-nn" from
+[Open review findings](milestone.md#open-review-findings). Preserve this record's
+review counter, limit and original task text; these pointers schedule no work.
+
 ## Tasks
 
 | Item | State | Notes |
