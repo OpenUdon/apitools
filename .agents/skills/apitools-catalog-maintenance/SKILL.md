@@ -45,12 +45,15 @@ If the catalog or configuration has changed, inspect the returned run ID.
 With the operator's authority to supersede that run, use
 `apitools catalog maintenance supersede --config FILE --run RUN_ID`.
 This releases the period assignment and keeps the original
-checkpoints and accepted versions. The next authorized `maintenance run`
-services the due month. A manual writer shares the monthly lock.
+checkpoints and accepted versions. Keep the run ID for later inspection.
+Supersession is permanent. The next authorized `maintenance run` services the
+due month. A manual or scheduled writer refuses while the lock is held.
+If a scheduled invocation cannot start, run it after the writer finishes to
+service the current month.
 
-If inspection reports an interrupted SQLite journal, `maintenance run`
-with the configured storage and publisher authority recovers it before
-checking publishers. Then repeat the read-only inspection. When status
+If inspection reports an interrupted SQLite journal, resume the original manual
+run or use `maintenance run` for a scheduled run. Use the configured storage
+and publisher authority. Then repeat the read-only inspection. When status
 reports that the installed proof is out of date, complete and inspect a
 new full run and enable with that run ID.
 

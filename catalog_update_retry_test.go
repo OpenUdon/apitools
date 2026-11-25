@@ -47,14 +47,16 @@ func TestCatalogUpdateDefersMissingRetryArtifactAndChecksLaterProvider(t *testin
 	}
 	provider, _ := catalog.FindBuiltInProvider("attio")
 	source := catalogUpdateReferenceSources(provider)[0]
+	version := catalogupdate.Version{ProviderID: "attio", ReferenceID: source.ReferenceID, Service: "attio",
+		Locator: source.URL, URL: source.URL, Version: "1.0", CatalogPin: object.SHA256, CheckedAt: time.Now().UTC(), Object: object}
 	data, err := json.Marshal(catalogUpdateEvidence{
-		ReviewedBaseline: &catalogUpdateBaselineEvidence{Preferred: catalogupdate.Version{Object: object}},
+		ReviewedBaseline: &catalogUpdateBaselineEvidence{Preferred: version},
 		RetryBlocks:      map[string]catalogUpdateOriginBlock{catalogUpdateArtifactOrigin(source.URL): {OutsideWindow: true}},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Record(ctx, run.ID, catalogupdate.Outcome{ProviderID: "attio", ReferenceID: source.ReferenceID,
+	if err := store.AcceptDirectVersionAndRecord(ctx, version, nil, run.ID, catalogupdate.Outcome{ProviderID: "attio", ReferenceID: source.ReferenceID,
 		Status: catalogupdate.RetryPendingStatus, Object: &object, Evidence: data}); err != nil {
 		t.Fatal(err)
 	}
@@ -73,11 +75,19 @@ func TestCatalogUpdateDefersMissingRetryArtifactAndChecksLaterProvider(t *testin
 	if err != nil || !result.Completed || !checkedStripe {
 		t.Fatalf("missing object blocked later references: completed=%t, stripe=%t, %v", result.Completed, checkedStripe, err)
 	}
+	preferred, err := store.PreferredVersion(ctx, version.ProviderID, version.ReferenceID, version.Service)
+	if err != nil || preferred != version {
+		t.Fatalf("lost the previously accepted version: %+v, %v", preferred, err)
+	}
 	for _, row := range result.Outcomes {
 		if row.ProviderID == "attio" && row.ReferenceID == source.ReferenceID {
+			var note catalogUpdateEvidence
+			if err := json.Unmarshal(row.Evidence, &note); err != nil {
+				t.Fatal(err)
+			}
 			if row.Status != "publisher-retry-deferred" || row.Object == nil || *row.Object != object ||
-				!strings.Contains(string(row.Evidence), "artifact is unavailable") || strings.Contains(string(row.Evidence), "reviewed_baseline") {
-				t.Fatalf("deferral obscured missing historical artifact: %+v", row)
+				!strings.Contains(note.Diagnostic, "unavailable") || note.ReviewedBaseline == nil || note.ReviewedBaseline.Preferred != version {
+				t.Fatalf("deferral lost reviewed adoption or missing-object evidence: %s", row.Evidence)
 			}
 			return
 		}

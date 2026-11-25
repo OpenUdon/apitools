@@ -14,7 +14,7 @@ C09 owns integrated closure for C06–C09 and the [C10 updater repairs](../docs/
 
 ## Review
 
-Review gate iterations: 1
+Review gate iterations: 2
 
 Integrated whole review round 1 started under effective limit 10. Reuse accepted evidence for contributor
 milestones and identify the exact final state. C08 supplies the separate SQLite
@@ -202,8 +202,9 @@ Round 1 observed dispatch 21:42:19Z and handback 21:50:10Z on 2026-11-25.
 F2 through F6 were confirmed in the reviewed source and addressed in this
 repair. F2 uses the same state lock for scheduled, manual and scoped writers.
 F3 now drives real timed retries against a fixture transport through the
-terminal attempt. The one-day wall limit is verified by its explicit context
-deadline and cancellation tests. F4 exercises a real hot journal in disposable
+terminal attempt. The one-day limit is implemented by a context deadline.
+Shorter fixture cancellation proves an interrupted pass stops. The full day
+and cancellation during the retry timer were not exercised. F4 uses a hot journal in disposable
 state and guides read-only callers to the guarded writer. F5 shows a stale
 installed provider-scope proof alongside schedule presence. F6 reports a
 missing historical digest and completes the later provider without relying on
@@ -253,3 +254,60 @@ restored the unrelated crontab bytes with byte-identical SQLite and export.
 Whole root, CLI and storage races passed in 181.596s. All required
 corrective gates are clean. No review counter was charged for the harness
 correction.
+
+Integrated whole round 2 started at exact commit
+`c2bbbe58d245eebca93bf1d468119d8b7e1797fd` under effective limit 10.
+The [committed delta](../../dist/c09-goal/c09-integrated-round2-delta.diff)
+SHA-256 is `d964bdbf54fa59fdca5c3052626bfc71d8c61fadb669d3060e4702c7bf115a88`.
+The [scoped packet](../../dist/c09-goal/c09-integrated-round2-review.txt)
+SHA-256 is `88c0e2fe7cc6e8f0d195b4ea75a2ee02349cd9cc1cee49033cb76562129bc3a1`.
+Recheck the prior blocker, the exact repair and its direct consumers. New
+working-tree notes reserve this iteration and do not change product inputs.
+
+Integrated whole round 2 passed with zero blockers and closed F1. Opus 5.5
+high dispatched at 22:03:58Z and handed back at 22:08:55Z on 2026-11-25.
+[Report](../../dist/c09-goal/c09-whole-round2-report.md) and
+[dispatch proof](../../dist/c09-goal/c09-whole-round2-dispatch.json).
+The fresh reviewer confirmed F2 through F5 and that F6 no longer aborts a
+run. It found new P2 N1 where F6 had dropped the existing C10 documented
+adoption evidence from the stored outcome after its cached object was lost.
+The [red regression](../../dist/c09-goal/c09-whole-round2-n1-red.log) proves
+the adoption omission after the accepted preference itself is saved. Keep
+the original baseline evidence and verified preference, and record missing
+cached bytes as a separate fact. The change is local to terminal evidence
+reporting.
+
+Round 2 Lower dispositions. O1 and O8 are addressed in the guide and skill
+with immediate lock refusal, current-month recovery, permanent supersession
+and keeping an inspectable run ID. O2 keeps ordinary directory initialization
+for explicit writable configuration. O3 is a documented bound and focused
+proof limitation. O4 keeps the product export read-only; the guide names both
+resume paths according to the interrupted run type. O5 can be diagnosed on
+the refusing run and the skill gives recovery. O6 assumes the documented
+installed CLI and preserves the underlying state error. O7 bounds cache
+measurement and exposes an explicit error when totals are unavailable.
+O9's remaining narrow cases are covered by source invariants and the wider
+lock, refusal and recovery fixtures. O10 receives exact, reproducible consumer
+commands with both snapshot revisions. O11 is supplementary structural skill
+inspection, separate from product tests and required CLI checks.
+
+Integrated corrective gate `c09-whole-r2-a1` started at
+`c2bbbe58d245eebca93bf1d468119d8b7e1797fd` with implementation and ordinary
+documentation diff SHA-256
+`b548bdd3633b94fd6a80bd467eee7fd2d6af49c9083ef39591b29c2fa466c4d9`.
+Run focused accepted-baseline and reporting tests, build, vet, full pinned
+ordinary tests, catalog generation and quality, CLI help, diff validation,
+focused race and exact-source consumer checks. Reuse whole concurrency races
+for unchanged scheduler and storage locking after running the affected
+retry and reporting cases under race.
+[Required gate receipts](../../dist/c09-goal/c09-whole-round2-corrective-gates.log).
+
+The regression turned green with the complete accepted preference, adopted
+baseline and missing-cache diagnostic in the completed run. Focused checks
+passed in 8.282s, pinned full tests in 119.432s and monthly, retry and reporting
+races in 42.592s. Build, vet, catalog generation and quality, CLI help and
+diff validation passed. Exact-candidate offline OpenUdon and Udon passed in
+80.784s and 70.191s, overlapping the pinned APItools run. Command traces
+identify the [consumer snapshots](../../dist/c09-goal/c09-whole-round2-consumer-inputs.log),
+[OpenUdon](../../dist/c09-goal/c09-whole-round2-openudon.log) and
+[Udon](../../dist/c09-goal/c09-whole-round2-udon.log).

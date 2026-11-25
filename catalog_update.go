@@ -272,9 +272,8 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 					Status: "publisher-retry-deferred", Evidence: data, Object: row.Object, PreviousRetryEvidence: row.Evidence}
 				err = store.Record(ctx, report.RunID, deferred)
 				if deferred.Object != nil && (errors.Is(err, fs.ErrNotExist) || errors.Is(err, catalogupdate.ErrObjectIntegrity)) {
-					details.Diagnostic += " The previously accepted artifact is unavailable and remains historical evidence only."
-					details.ReviewedBaseline = nil
-					deferred.Object = nil // Keep the historical digest without relying on its cached bytes.
+					details.Diagnostic += " The cached bytes for the previously accepted artifact are unavailable."
+					deferred.Object = nil // Keep the previous digest and adoption evidence without reopening the object.
 					deferred.Evidence, err = json.Marshal(details)
 					if err == nil {
 						err = store.Record(ctx, report.RunID, deferred)
