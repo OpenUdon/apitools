@@ -194,3 +194,17 @@ recommendation completion regressions.
 - **Lesson:** Name the unit and measure it in the owning repository. A consumer's result list can repeat one item per spec reference or per operation, so its row count is not the owner's item count.
 - **Why it matters:** The S09 planning evidence said `github` "matches 297 of 316 providers". Ramen's 297 were catalog entries, one per spec reference; the ranked search finds 93 providers. The claim reached two milestone files before the implementation measured it.
 - **Evidence:** [S09](../docs/history/status-S09.md) row S09.1 note; `catalog/search_test.go` `TestSearchBuiltInProvidersPutsURLOnlyMatchesLast`.
+
+## Separate operation evidence from retrieval relevance
+
+- **Applies when:** A ranked search result identifies an operation backed by a reviewed source.
+- **Lesson:** Stemming and embedding similarity can propose results. Confirm substantive operation terms against the selected label before asserting a matching selector and digest. Use catalog identity normalization for exact provider matches. Keep weak suggestions available when fallback yields no result.
+- **Why it matters:** Porter stemming treated “accounting” as an account-operation request. The resulting coverage label hid accounting providers and skipped public discovery.
+- **Evidence:** [C08](../docs/history/status-C08.md), whole reviews 1 and 2 and built CLI regression checks.
+
+## Cache validated embedding batches within the lookup budget
+
+- **Applies when:** A bounded hosted embedding lookup populates a reusable local cache.
+- **Lesson:** Use the query vector to check dimensions before storing complete provider batches. Recheck remaining work against the whole lookup budget when the cached dimension differs. A later lookup can reuse validated batches from a partial run.
+- **Why it matters:** An all-or-nothing cache can resend completed inputs after each late failure, and model names can outlive a vector dimension.
+- **Evidence:** [C08](../docs/history/status-C08.md), whole review 2 and the batch resumption and dimension replacement fixture.

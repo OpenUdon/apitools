@@ -1,6 +1,6 @@
 # C09 — Monthly cron and agent maintenance skill
 
-**Owner.** APItools. **Dependency.** Accepted C08. **Parallel-safe: no.**
+**Owner.** APItools. **Dependency.** Accepted [C08](../docs/history/status-C08.md). **Parallel-safe: no.**
 C09 owns integrated closure for C06–C09 and the [C10 updater repairs](../docs/history/status-C10.md) against the baseline in [C06.1](../docs/history/status-C06.md#status-record). See the [milestone specification](milestone.md#c09--monthly-cron-and-agent-maintenance-skill).
 
 ## Tasks
@@ -17,5 +17,8 @@ C09 owns integrated closure for C06–C09 and the [C10 updater repairs](../docs/
 Review gate iterations: 0
 
 Whole review pending, default limit 10. Reuse accepted evidence for contributor
-milestones and identify the exact final state. Use the [test policy](test-policy.md)
+milestones and identify the exact final state. C08 supplies the separate SQLite
+search index, optional hosted embedding budgets, and local evidence that
+completed vector batches are reused. C09 still owns the repeat-run proof.
+Use the [test policy](test-policy.md)
 and [milestone review procedure](milestone.md#milestone-review-procedure).

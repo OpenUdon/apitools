@@ -5,6 +5,7 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 
 | Milestone | Outcome | Retired | Record | Summary |
 |---|---|---|---|---|
+| C08 | completed | 2026-11-25 | [C08](status-C08.md) | SQLite search for 334 reviewed providers, optional bounded embeddings, and reviewed-first CLI routing. Whole review 2 passed. |
 | C07 | completed | 2026-11-25 | [C07](status-C07.md) | Supervised inventory of 334 providers, source qualification, and advisory coverage. Whole review 2 passed. |
 | C10 | completed | 2026-11-25 | [C10](status-C10.md) | Reviewed pin evidence across retries, immutable locator handling, bounded publisher retries and SQLite history/recovery. Whole review 2 passed. |
 | C06 | completed | 2026-11-25 | [C06](status-C06.md) | Publisher update CLI, SQLite preferences and resume, bounded artifact acquisition and pinned cache. Whole review 6 passed. |

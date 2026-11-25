@@ -1,3 +1,44 @@
+# Retired milestone C08 - Searchable catalog and hosted embeddings
+
+**Milestone.** C08
+**Outcome.** completed
+**Retired.** 2026-11-25
+**Source status.** tabilet/memory-bank/status-C08.md
+**Source specification.** tabilet/memory-bank/milestone.md#c08--searchable-catalog-and-hosted-embeddings
+**Evidence.** e5e5f53fab5e3e1ba904c3753e6c3011f4f635d0
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 2
+**Verification.** Go 1.26.6 build, vet, ordinary full suite with both retained publisher directories, whole root/CLI races with standard fixtures, and all 26 exact publisher selector cases under a separate race run passed. The combined pinned race timed out in the inherited DigitalOcean promotion fixture. Catalog generation and quality, CLI help, built search, local SQLite and TLS embedding fixtures, and the exact OpenUdon consumer suite passed. The ordinary Udon pinned suite passed, and its optional composed workspace retained the offline module setup failure. Closure reuses the exact code gate evidence because its inputs are unchanged. [Verification receipts](../../../dist/c08-goal/).
+**Consolidated into.** [Operator documentation](../../../docs/catalog-search-profiles.md), [product workflows](../../memory-bank/product.md#primary-workflows), [search architecture](../../memory-bank/architecture.md#reviewed-provider-search-c08), and [search evidence lesson](../../memory-bank/lessons.md#separate-operation-evidence-from-retrieval-relevance).
+
+## Milestone specification
+
+````markdown
+### C08 — Searchable catalog and hosted embeddings
+
+**Dependency and owner.** After accepted [C07](../docs/history/status-C07.md). APItools owns public provider
+metadata, the SQLite search index, embedding adapter and CLI behavior.
+[C08 ledger](status-C08.md).
+
+Populate descriptions, normalized categories, keywords and aliases for all
+reviewed providers. Separately describe the operations that our sources
+cover. Return coverage, freshness, provenance and matched capabilities in
+text and JSON. Combine SQLite full-text ranking with optional hosted
+embeddings at a configured OpenAI-compatible HTTPS endpoint. Send reviewed
+public metadata and explicitly submitted query text only. Cache vectors by
+model and content, enforce the configured budget and fall back to lexical
+search when offline, unconfigured, or over budget. Default automatic CLI
+search resolves exact reviewed identities first, then capability matches.
+Insufficient local relevance permits the existing public-directory chain
+for non-core queries. Preserve explicit source selection, offline behavior
+and the existing Go search contract.
+
+````
+
+## Status record
+
+````markdown
 # C08 — Searchable catalog and hosted embeddings
 
 **Owner.** APItools. **Dependency.** Accepted [C07](../docs/history/status-C07.md). **Parallel-safe: no.**
@@ -207,3 +248,4 @@ No evolution bump. C08 delivers the approved v31 catalog search direction.
 C09 remains pending with the accepted search and cache contract available
 for its repeat-run evidence. The protected launch reference stays
 byte-for-byte unchanged per the owner's instruction.
+````
