@@ -16,7 +16,7 @@ import (
 	"github.com/OpenUdon/uws/binding"
 )
 
-func (c *Client) adoptCompatibleCatalogVersion(ctx context.Context, store *catalogupdate.Store,
+func (c *Client) proveCompatibleCatalogVersion(ctx context.Context, store *catalogupdate.Store,
 	held, candidate catalogupdate.Version, kind OperationSourceKind, reviewedKeys []string,
 ) (catalogUpdateComparison, error) {
 	if held.ProviderID != candidate.ProviderID || held.ReferenceID != candidate.ReferenceID ||
@@ -66,14 +66,7 @@ func (c *Client) adoptCompatibleCatalogVersion(ctx context.Context, store *catal
 	if err != nil {
 		return catalogUpdateUnexamined, err
 	}
-	comparison := compareCatalogUpdate(ctx, before, after, reviewedKeys)
-	if comparison != catalogUpdateCompatible {
-		return comparison, nil
-	}
-	if err := store.AcceptVersion(ctx, candidate, &held); err != nil {
-		return catalogUpdateUnexamined, err
-	}
-	return comparison, nil
+	return compareCatalogUpdate(ctx, before, after, reviewedKeys), nil
 }
 
 func sameCatalogUpdateResource(locator, left, right string) bool {

@@ -14,19 +14,20 @@ import (
 )
 
 type catalogUpdateSource struct {
-	ProviderID  string
-	Service     string
-	ReferenceID string
-	Kind        catalog.SpecKind
-	URL         string
-	ResolvedURL string
-	Version     string
-	HeldVersion string
-	Revision    string
-	Stage       string
-	Stable      bool
-	Resolution  string
-	Scope       string
+	ProviderID   string
+	Service      string
+	ReferenceID  string
+	Kind         catalog.SpecKind
+	URL          string
+	ResolvedURL  string
+	Version      string
+	HeldVersion  string
+	HeldRevision string
+	Revision     string
+	Stage        string
+	Stable       bool
+	Resolution   string
+	Scope        string
 }
 
 var catalogUpdateGitCommit = regexp.MustCompile(`^[0-9a-f]{40}$`)
@@ -100,7 +101,7 @@ func catalogUpdateReferenceSources(provider catalog.Provider) []catalogUpdateSou
 		service, version := catalogUpdateReferenceIdentity(ref)
 		sources = append(sources, catalogUpdateSource{
 			ProviderID: provider.ID, Service: service, ReferenceID: ref.ID,
-			Kind: ref.Kind, URL: ref.URL, Version: version, HeldVersion: ref.Version, Revision: ref.Revision,
+			Kind: ref.Kind, URL: ref.URL, Version: version, HeldVersion: ref.Version, HeldRevision: ref.Revision,
 		})
 	}
 	return sources

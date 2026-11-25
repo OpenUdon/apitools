@@ -1,0 +1,408 @@
+package apitools
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/url"
+	"strings"
+	"time"
+
+	"github.com/OpenUdon/apitools/catalog"
+	"github.com/OpenUdon/apitools/internal/catalogupdate"
+)
+
+// CatalogUpdateConfig stores operator-selected paths and existing reviewed
+// operation keys. Provider sources come from the built-in reviewed catalog.
+type CatalogUpdateConfig struct {
+	CacheDir           string              `json:"cache_dir"`
+	StateDB            string              `json:"state_db"`
+	ExpectedVolumeUUID string              `json:"expected_volume_uuid,omitempty"`
+	RetainImmutable    bool                `json:"retain_immutable,omitempty"`
+	ReviewedOperations map[string][]string `json:"reviewed_operations,omitempty"`
+}
+
+type CatalogUpdateOptions struct {
+	Config   CatalogUpdateConfig
+	Provider string
+	All      bool
+	Resume   string
+	DryRun   bool
+	Export   bool
+	OnStart  func(runID string)
+}
+
+const catalogUpdateSchema = "apitools.catalog-update.v1"
+
+type CatalogUpdateReport struct {
+	Schema        string                  `json:"schema"`
+	CatalogSHA256 string                  `json:"catalog_sha256"`
+	RunID         string                  `json:"run_id,omitempty"`
+	Providers     []string                `json:"providers,omitempty"`
+	DryRun        bool                    `json:"dry_run,omitempty"`
+	Completed     bool                    `json:"completed,omitempty"`
+	Outcomes      []catalogupdate.Outcome `json:"outcomes,omitempty"`
+	Export        json.RawMessage         `json:"export,omitempty"`
+}
+
+// UpdateCatalog checks the explicitly selected reviewed provider scope. A
+// dry run resolves that scope without opening state or consulting publishers.
+func (c *Client) UpdateCatalog(ctx context.Context, options CatalogUpdateOptions) (CatalogUpdateReport, error) {
+	report := CatalogUpdateReport{Schema: catalogUpdateSchema, CatalogSHA256: catalog.BuiltInCatalogManifest().CatalogSHA256}
+	selected := 0
+	for _, setting := range []bool{options.All, options.Provider != "", options.Resume != "", options.Export} {
+		if setting {
+			selected++
+		}
+	}
+	if selected != 1 || (options.DryRun && (options.Resume != "" || options.Export)) {
+		return report, errors.New("select exactly one of --all, --provider, --resume or --export; dry-run supports --all and --provider")
+	}
+	if options.Provider != "" {
+		provider, ok := catalog.FindBuiltInProvider(options.Provider)
+		if !ok {
+			return report, fmt.Errorf("unknown reviewed provider %q", options.Provider)
+		}
+		report.Providers = []string{provider.ID}
+	} else if options.All {
+		for _, provider := range catalog.BuiltInProviders() {
+			report.Providers = append(report.Providers, provider.ID)
+		}
+	}
+	if options.DryRun {
+		report.DryRun = true
+		return report, nil
+	}
+	config := options.Config
+	if options.Export {
+		if strings.TrimSpace(config.StateDB) == "" {
+			return report, errors.New("catalog update export requires state_db")
+		}
+		export, err := catalogupdate.ReadVersionExport(ctx, config.StateDB)
+		report.Export = export
+		return report, err
+	}
+	if strings.TrimSpace(config.StateDB) == "" || strings.TrimSpace(config.CacheDir) == "" {
+		return report, errors.New("catalog update requires cache_dir and state_db")
+	}
+	cache, err := catalogupdate.OpenArtifactCache(config.CacheDir, config.ExpectedVolumeUUID, 0)
+	if err != nil {
+		return report, err
+	}
+	defer cache.Close()
+	store, err := catalogupdate.OpenStore(ctx, config.StateDB, cache)
+	if err != nil {
+		return report, err
+	}
+	defer store.Close()
+	var run catalogupdate.Run
+	configBytes, err := json.Marshal(config)
+	if err != nil {
+		return report, err
+	}
+	identity := fmt.Sprintf("%x", sha256.Sum256(append([]byte(report.CatalogSHA256+"\n"), configBytes...)))
+	if options.Resume != "" {
+		run, err = store.ReadRun(ctx, options.Resume)
+	} else {
+		run, err = store.StartRun(ctx, identity, report.Providers)
+	}
+	if err != nil {
+		return report, err
+	}
+	report.RunID, report.Providers = run.ID, run.Providers
+	if run.Catalog != identity {
+		return report, errors.New("catalog or maintenance configuration changed since the update run started")
+	}
+	if options.OnStart != nil && !run.Completed {
+		options.OnStart(run.ID)
+	}
+	return c.continueCatalogUpdate(ctx, store, report, run.Completed, config)
+}
+
+func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate.Store, report CatalogUpdateReport, completed bool, config CatalogUpdateConfig) (CatalogUpdateReport, error) {
+	report.Completed = completed
+	outcomes, err := store.ReadOutcomes(ctx, report.RunID)
+	if err != nil {
+		return report, err
+	}
+	report.Outcomes = outcomes
+	if completed {
+		return report, nil
+	}
+	checked := make(map[string]bool)
+	type checkpoint struct{ provider, reference string }
+	refsChecked := make(map[checkpoint]bool)
+	for _, row := range outcomes {
+		if row.ReferenceID == "" {
+			checked[row.ProviderID] = true
+		} else {
+			refsChecked[checkpoint{row.ProviderID, row.ReferenceID}] = true
+		}
+	}
+	for _, id := range report.Providers {
+		if err := ctx.Err(); err != nil {
+			return report, err
+		}
+		if checked[id] {
+			continue
+		}
+		provider, ok := catalog.FindBuiltInProvider(id)
+		if !ok {
+			return report, fmt.Errorf("reviewed provider %q missing during update", id)
+		}
+		sources := catalogUpdateReferenceSources(provider)
+		status := "checked"
+		if len(sources) == 0 {
+			status = "needs-publisher-spec-or-overlay"
+		}
+		for _, source := range sources {
+			if refsChecked[checkpoint{id, source.ReferenceID}] {
+				continue
+			}
+			_, err := c.checkCatalogUpdateSource(ctx, store, report.RunID, provider, source, config)
+			if err != nil {
+				return report, fmt.Errorf("%s/%s: %w", id, source.ReferenceID, err)
+			}
+		}
+		if err := store.Record(ctx, report.RunID, catalogupdate.Outcome{ProviderID: id, Status: status}); err != nil {
+			return report, err
+		}
+	}
+	if err := store.FinishRun(ctx, report.RunID); err != nil {
+		return report, err
+	}
+	report.Completed = true
+	report.Outcomes, err = store.ReadOutcomes(ctx, report.RunID)
+	return report, err
+}
+
+type catalogUpdateEvidence struct {
+	Source     catalogUpdateSource     `json:"source"`
+	Artifact   *catalogUpdateArtifact  `json:"artifact,omitempty"`
+	Inventory  *catalogUpdateInventory `json:"inventory,omitempty"`
+	Diagnostic string                  `json:"diagnostic,omitempty"`
+}
+
+func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupdate.Store, runID string,
+	provider catalog.Provider, source catalogUpdateSource, config CatalogUpdateConfig,
+) (catalogupdate.Outcome, error) {
+	out := catalogupdate.Outcome{ProviderID: source.ProviderID, ReferenceID: source.ReferenceID}
+	evidence := catalogUpdateEvidence{Source: source}
+	var promotion, expected *catalogupdate.Version
+	emit := func(status, diagnostic string) (catalogupdate.Outcome, error) {
+		out.Status = status
+		evidence.Diagnostic = diagnostic
+		var err error
+		out.Evidence, err = json.Marshal(evidence)
+		if err == nil {
+			if promotion != nil {
+				err = store.AcceptVersionAndRecord(ctx, *promotion, expected, runID, out)
+			} else {
+				err = store.Record(ctx, runID, out)
+			}
+		}
+		return out, err
+	}
+	if source.Kind == catalog.SpecKindDropboxStone {
+		return emit("publisher-source-review", "Check the official Dropbox OpenAPI before substituting Stone provenance.")
+	}
+	resolved, err := c.resolveCatalogUpdateSource(ctx, source)
+	evidence.Source = resolved
+	if err != nil || resolved.Resolution == "unexamined-locator" {
+		return emit("publisher-source-unexamined", "Could not establish the publisher artifact locator.")
+	}
+	target := firstNonEmpty(resolved.ResolvedURL, resolved.URL)
+	held, err := store.PreferredVersion(ctx, source.ProviderID, source.ReferenceID, source.Service)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return out, err
+	}
+	if resolved.ResolvedURL != "" && target == held.URL && resolved.Revision == held.Revision {
+		file, err := store.OpenObject(ctx, held.Object)
+		if err == nil {
+			if err := file.Close(); err != nil {
+				return out, err
+			}
+			out.Object = &held.Object
+			evidence.Artifact = &catalogUpdateArtifact{
+				URL: target, Bytes: held.Object.Bytes, SHA256: held.Object.SHA256, CheckedAt: time.Now().UTC(),
+				Status: "verified-cache-hit",
+			}
+			return emit("unchanged", "")
+		}
+	}
+	var body bytes.Buffer
+	artifact, err := c.acquireCatalogUpdateArtifact(ctx, target, DefaultMaxBytes, &body)
+	evidence.Artifact = &artifact
+	if ctx.Err() != nil {
+		return out, ctx.Err()
+	}
+	if err != nil {
+		return emit("publisher-check-failed", "Publisher did not return a matching downloadable artifact.")
+	}
+	if artifact.Status != catalogUpdateDownloaded {
+		return emit(artifact.Status, "")
+	}
+	if source.Kind == catalog.SpecKindOpenAPIIndex {
+		inventory, err := hubSpotUpdateInventory(artifact.URL, artifact.CheckedAt, body.Bytes())
+		if err != nil {
+			return emit("publisher-index-unexamined", "The publisher index did not match the implemented reviewed format.")
+		}
+		evidence.Inventory = &inventory
+		return emit("publisher-index-inventoried", "")
+	}
+	kind := OperationSourceKind(catalog.RefreshableSpecReference{Kind: source.Kind}.ProtocolClassification().UWSSourceType())
+	if !validOperationSourceKind(kind) {
+		return emit("publisher-source-review", "The current artifact kind needs a reviewed source recipe.")
+	}
+	if kind == OperationSourceOpenAPI {
+		if _, valid := downloadedSpecMetadata(ctx, body.Bytes(), artifact.URL); !valid {
+			return emit("publisher-spec-invalid", "Local OpenAPI validation did not establish a complete document.")
+		}
+	} else if _, err := BuildOperationShapeTable(ctx, OperationShapeOptions{
+		Sources: []ShapeSourceInput{{
+			ID: "catalog-update", OperationSourceInput: OperationSourceInput{Kind: kind, URL: artifact.URL, Content: body.Bytes()},
+		}},
+	}); err != nil {
+		return emit("publisher-spec-unexamined", "Local source validation did not establish a native operation inventory.")
+	}
+	object := catalogupdate.Object{SHA256: artifact.SHA256, Bytes: artifact.Bytes}
+	resolved.Revision = firstNonEmpty(resolved.Revision, "sha256:"+artifact.SHA256)
+	if kind == OperationSourceOpenAPI || kind == OperationSourceGoogleDiscovery {
+		native, err := decodeShapeDocument(ctx, body.Bytes())
+		if err != nil {
+			return emit("publisher-spec-unexamined", "Native source provenance could not be read within the validation budget.")
+		}
+		if kind == OperationSourceOpenAPI {
+			resolved.Version = firstNonEmpty(stringValue(mapValue(native["info"])["version"]), resolved.Version)
+		} else {
+			resolved.Version = firstNonEmpty(stringValue(native["version"]), resolved.Version)
+			resolved.Revision = firstNonEmpty(stringValue(native["revision"]), resolved.Revision)
+		}
+	}
+	evidence.Source = resolved
+	seed := held.Object.SHA256 == "" && hasCatalogUpdateReviewedDigest(source.HeldRevision, object.SHA256)
+	key := source.ProviderID + "/" + source.ReferenceID
+	if held.Object.SHA256 == "" && !seed && kind == OperationSourceOpenAPI && len(config.ReviewedOperations[key]) > 0 {
+		reconstructed, err := c.reconstructCatalogUpdateBaseline(ctx, store, source)
+		if err != nil {
+			return out, err
+		}
+		held = reconstructed
+	}
+	if config.RetainImmutable || resolved.ResolvedURL == "" || held.Object.SHA256 != "" || seed {
+		if err := store.PutObject(ctx, object, bytes.NewReader(body.Bytes())); err != nil {
+			return out, err
+		}
+		out.Object = &object
+	}
+	version := catalogupdate.Version{
+		ProviderID: source.ProviderID, ReferenceID: source.ReferenceID, Service: source.Service,
+		Locator: source.URL, URL: artifact.URL, Version: resolved.Version, Revision: resolved.Revision,
+		CheckedAt: artifact.CheckedAt, Object: object,
+	}
+	if seed {
+		promotion = &version
+		return emit("reviewed-pin-reproduced", "")
+	}
+	if held.Object.SHA256 == "" {
+		return emit("review-required", "No previously accepted local version is available for comparison.")
+	}
+	if held.Object == object && held.URL == artifact.URL && held.Revision == resolved.Revision {
+		return emit("unchanged", "")
+	}
+	if !catalogUpdateVersionCanAdvance(held.Version, version.Version) {
+		return emit("review-required", "Publisher version stability or order needs review.")
+	}
+	if hasCatalogUpdateSecurityOverlay(provider.ID, source.ReferenceID) {
+		return emit("review-required", "The source has advisory security evidence that needs separate review.")
+	}
+	comparison, err := c.proveCompatibleCatalogVersion(ctx, store, held, version, kind, config.ReviewedOperations[key])
+	if err != nil {
+		return out, err
+	}
+	if comparison == catalogUpdateCompatible {
+		promotion, expected = &version, &held
+		return emit("accepted-compatible", "")
+	}
+	return emit("review-required", string(comparison))
+}
+
+func catalogUpdateVersionCanAdvance(held, candidate string) bool {
+	if held == "" || candidate == "" {
+		return false
+	}
+	if _, stable := numericAPIVersion(candidate); stable {
+		order, comparable := compareAPIVersions(candidate, held)
+		return comparable && order >= 0
+	}
+	for _, layout := range []string{"2006-01-02", "2006-01"} {
+		before, errBefore := time.Parse(layout, held)
+		after, errAfter := time.Parse(layout, candidate)
+		if errBefore == nil && errAfter == nil {
+			return !after.Before(before)
+		}
+	}
+	return false
+}
+
+func hasCatalogUpdateReviewedDigest(revision, digest string) bool {
+	for _, claim := range strings.Fields(revision) {
+		if claim == "sha256:"+digest {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *Client) reconstructCatalogUpdateBaseline(ctx context.Context, store *catalogupdate.Store, source catalogUpdateSource) (catalogupdate.Version, error) {
+	u, err := url.Parse(source.URL)
+	if err != nil || u.Hostname() != "raw.githubusercontent.com" || u.Scheme != "https" {
+		return catalogupdate.Version{}, nil
+	}
+	pieces := strings.SplitN(strings.TrimPrefix(u.Path, "/"), "/", 4)
+	if len(pieces) != 4 || !catalogUpdateGitCommit.MatchString(pieces[2]) || !strings.Contains(source.HeldRevision, "sha256:") {
+		return catalogupdate.Version{}, nil
+	}
+	var body bytes.Buffer
+	artifact, err := c.acquireCatalogUpdateArtifact(ctx, source.URL, DefaultMaxBytes, &body)
+	if ctx.Err() != nil {
+		return catalogupdate.Version{}, ctx.Err()
+	}
+	if err != nil || artifact.Status != catalogUpdateDownloaded || artifact.URL != source.URL ||
+		!hasCatalogUpdateReviewedDigest(source.HeldRevision, artifact.SHA256) {
+		return catalogupdate.Version{}, nil
+	}
+	if _, ok := downloadedSpecMetadata(ctx, body.Bytes(), artifact.URL); !ok {
+		return catalogupdate.Version{}, nil
+	}
+	doc, err := decodeShapeDocument(ctx, body.Bytes())
+	if err != nil {
+		return catalogupdate.Version{}, nil
+	}
+	object := catalogupdate.Object{SHA256: artifact.SHA256, Bytes: artifact.Bytes}
+	baseline := catalogupdate.Version{
+		ProviderID: source.ProviderID, ReferenceID: source.ReferenceID, Service: source.Service,
+		Locator: source.URL, URL: source.URL, Version: stringValue(mapValue(doc["info"])["version"]),
+		Revision: pieces[2], CheckedAt: artifact.CheckedAt, Object: object,
+	}
+	if err := store.PutObject(ctx, object, bytes.NewReader(body.Bytes())); err != nil {
+		return catalogupdate.Version{}, err
+	}
+	if err := store.AcceptVersion(ctx, baseline, nil); err != nil {
+		return catalogupdate.Version{}, err
+	}
+	return baseline, nil
+}
+
+func hasCatalogUpdateSecurityOverlay(provider, reference string) bool {
+	for _, overlay := range catalog.BuiltInSecurityOverlays() {
+		if overlay.ProviderID == provider && (overlay.SpecRefID == "" || overlay.SpecRefID == reference) {
+			return true
+		}
+	}
+	return false
+}

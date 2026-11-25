@@ -21,7 +21,7 @@ func TestCatalogUpdateSourcesKeepOfficialScopedReferences(t *testing.T) {
 		},
 	}
 	got := catalogUpdateReferenceSources(provider)
-	want := catalogUpdateSource{ProviderID: "example", Service: "example.com/openapi.json", ReferenceID: "official", Kind: catalog.SpecKindOpenAPI, URL: "https://example.com/openapi.json", HeldVersion: "v2", Revision: "publisher revision"}
+	want := catalogUpdateSource{ProviderID: "example", Service: "example.com/openapi.json", ReferenceID: "official", Kind: catalog.SpecKindOpenAPI, URL: "https://example.com/openapi.json", HeldVersion: "v2", HeldRevision: "publisher revision"}
 	if len(got) != 1 || got[0] != want {
 		t.Fatalf("publisher sources = %+v; want %+v", got, want)
 	}

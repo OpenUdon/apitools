@@ -94,6 +94,8 @@ func runCatalog(args []string, out, errOut io.Writer) int {
 		return runCatalogStats(args[1:], out, errOut)
 	case "refresh":
 		return runCatalogRefresh(args[1:], out, errOut)
+	case "update":
+		return runCatalogUpdate(args[1:], out, errOut)
 	case "refresh-report":
 		return runCatalogRefreshReport(args[1:], out, errOut)
 	case "inspect":
@@ -125,6 +127,7 @@ func catalogUsage(out io.Writer) {
 	fmt.Fprintln(out, "  search           search catalog operations or providers")
 	fmt.Fprintln(out, "  snapshot         create a clean, normalized, read-only snapshot of the catalog")
 	fmt.Fprintln(out, "  refresh          refresh one selected built-in spec reference")
+	fmt.Fprintln(out, "  update           check reviewed publishers and record local version evidence")
 	fmt.Fprintln(out, "  refresh-report   review saved refresh artifacts offline")
 	fmt.Fprintln(out, "  advisory         render provider advisory summaries")
 	fmt.Fprintln(out, "  check            run offline catalog quality checks")

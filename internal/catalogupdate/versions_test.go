@@ -101,3 +101,47 @@ func TestStoreAdvancesApprovedVersionAndPreservesPreviousBytes(t *testing.T) {
 		t.Fatalf("metadata export = %s / %s / %v", first, second, err)
 	}
 }
+
+func TestStoreRollsBackVersionWhenReferenceCheckpointFails(t *testing.T) {
+	ctx := t.Context()
+	dir := t.TempDir()
+	cache, err := OpenArtifactCache(filepath.Join(dir, "cache"), "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	store, err := openTestStore(ctx, filepath.Join(dir, "catalog.sqlite"), cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	pin := Version{ProviderID: "fixture", ReferenceID: "example", Service: "service", Locator: "https://example.com", URL: "https://example.com", CheckedAt: time.Now(), Object: testObject("bytes")}
+	if err := store.PutObject(ctx, pin.Object, strings.NewReader("bytes")); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint := Outcome{ProviderID: pin.ProviderID, ReferenceID: pin.ReferenceID, Status: "reviewed", Object: &pin.Object}
+	if err := store.AcceptVersionAndRecord(ctx, pin, nil, "missing-run", checkpoint); err == nil {
+		t.Fatal("accepted a version without committing its checkpoint")
+	}
+	if _, err := store.PreferredVersion(ctx, pin.ProviderID, pin.ReferenceID, pin.Service); !errors.Is(err, sql.ErrNoRows) {
+		t.Fatalf("preference leaked after failed checkpoint: %v", err)
+	}
+	run, err := store.StartRun(ctx, testObject("catalog").SHA256, []string{pin.ProviderID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	first := Outcome{ProviderID: pin.ProviderID, ReferenceID: pin.ReferenceID, Status: "review-required"}
+	if err := store.Record(ctx, run.ID, first); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AcceptVersionAndRecord(ctx, pin, nil, run.ID, checkpoint); err == nil {
+		t.Fatal("accepted version after another writer finalized its checkpoint")
+	}
+	if _, err := store.PreferredVersion(ctx, pin.ProviderID, pin.ReferenceID, pin.Service); !errors.Is(err, sql.ErrNoRows) {
+		t.Fatalf("preference leaked after checkpoint collision: %v", err)
+	}
+	rows, err := store.ReadOutcomes(ctx, run.ID)
+	if err != nil || len(rows) != 1 || rows[0].Status != first.Status {
+		t.Fatalf("checkpoint overwritten by a second writer: %+v, %v", rows, err)
+	}
+}

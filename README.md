@@ -376,6 +376,34 @@ outputs; rerun the artifact registry when accepting those source-aligned paths.
 Refresh reports are review inputs only: they do not edit provider metadata,
 verified dates, tracked advisory overlays, or security classifications.
 
+### Reviewed catalog maintenance
+
+`apitools catalog update --all --dry-run --json` reports the reviewed
+provider scope without network access or persistent writes. For an update,
+provide a maintenance configuration JSON file as `--config FILE`. It
+requires `cache_dir` for retained specs and `state_db` for the SQLite
+database on a durable local Linux filesystem. Relative paths resolve from
+the configuration file. An optional `expected_volume_uuid` verifies a
+dedicated cache mount. Use `retain_immutable` to retain review copies of
+immutable publisher links for offline use.
+
+```sh
+apitools catalog update --config ./maintenance.json --provider attio --json
+apitools catalog update --config ./maintenance.json --all --json
+apitools catalog update --config ./maintenance.json --resume RUN_ID --json
+apitools catalog update --config ./maintenance.json --export
+```
+
+The updater checks publisher size before downloading any artifact body.
+Unknown sizes and sizes over 1,000,000,000 bytes are deferred. The local
+parser limit applies separately. Run reports record publisher locators,
+checked dates, digests, skipped artifacts, and cases that need review.
+Configuration can include `reviewed_operations`, a map from
+`provider-id/reference-id` to canonical operation references such as
+`#/paths/~1records/get`. A previously accepted version can advance when
+the scoped native contract comparison proves compatibility. The export
+contains accepted version metadata for review.
+
 ### Explicit catalog roots
 
 `catalog.RootOptions` names an operator-supplied directory, a confined relative

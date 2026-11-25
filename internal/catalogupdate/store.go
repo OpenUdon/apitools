@@ -295,11 +295,16 @@ func (s *Store) Record(ctx context.Context, runID string, outcome Outcome) error
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	result, err := s.db.ExecContext(ctx, `
+	return recordUpdateOutcome(ctx, s.db, runID, outcome, digest)
+}
+
+func recordUpdateOutcome(ctx context.Context, executor interface {
+	ExecContext(context.Context, string, ...any) (sql.Result, error)
+}, runID string, outcome Outcome, digest any) error {
+	result, err := executor.ExecContext(ctx, `
 INSERT INTO update_outcome(run_id, provider_id, reference_id, status, evidence, digest)
 SELECT id, ?, ?, ?, ?, ? FROM update_run WHERE id = ? AND completed = 0
-ON CONFLICT(run_id, provider_id, reference_id) DO UPDATE SET
- status = excluded.status, evidence = excluded.evidence, digest = excluded.digest`,
+ON CONFLICT(run_id, provider_id, reference_id) DO NOTHING`,
 		outcome.ProviderID, outcome.ReferenceID, outcome.Status, string(outcome.Evidence), digest, runID)
 	if err != nil {
 		return err

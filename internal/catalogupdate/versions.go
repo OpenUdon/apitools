@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"net/url"
+	"path/filepath"
 	"time"
 )
 
@@ -50,6 +52,21 @@ var ErrPreferenceChanged = errors.New("preferred catalog version changed during 
 // expected binds the update to the version that the caller reviewed. Nil
 // permits only the first acceptance of that reference.
 func (s *Store) AcceptVersion(ctx context.Context, version Version, expected *Version) error {
+	return s.acceptVersion(ctx, version, expected, "", Outcome{})
+}
+
+// AcceptVersionAndRecord commits a preference and its run checkpoint in the
+// same SQLite transaction. Resume sees both or neither.
+func (s *Store) AcceptVersionAndRecord(ctx context.Context, version Version, expected *Version, runID string, outcome Outcome) error {
+	if runID == "" || outcome.ProviderID != version.ProviderID || outcome.ReferenceID != version.ReferenceID ||
+		outcome.Object == nil || *outcome.Object != version.Object || outcome.Status == "" ||
+		(len(outcome.Evidence) != 0 && !json.Valid(outcome.Evidence)) {
+		return errors.New("catalog acceptance does not match its run checkpoint")
+	}
+	return s.acceptVersion(ctx, version, expected, runID, outcome)
+}
+
+func (s *Store) acceptVersion(ctx context.Context, version Version, expected *Version, runID string, outcome Outcome) error {
 	if version.ProviderID == "" || version.ReferenceID == "" || version.Service == "" || version.Locator == "" ||
 		version.URL == "" || version.CheckedAt.IsZero() {
 		return errors.New("catalog version is missing identity, provenance or check date")
@@ -93,6 +110,11 @@ ON CONFLICT(provider_id, reference_id, service) DO UPDATE SET version_id = exclu
 	if err != nil {
 		return err
 	}
+	if runID != "" {
+		if err := recordUpdateOutcome(ctx, tx, runID, outcome, version.Object.SHA256); err != nil {
+			return err
+		}
+	}
 	return tx.Commit()
 }
 
@@ -132,7 +154,36 @@ func scanVersion(row interface{ Scan(...any) error }) (Version, error) {
 func (s *Store) ExportVersions(ctx context.Context) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	rows, err := s.db.QueryContext(ctx, selectVersion+" ORDER BY p.provider_id,p.reference_id,p.service")
+	return exportVersions(ctx, s.db)
+}
+
+// ReadVersionExport reads an existing maintenance database without creating
+// state, checking an artifact volume, or running schema migrations.
+func ReadVersionExport(ctx context.Context, statePath string) ([]byte, error) {
+	path, err := filepath.Abs(statePath)
+	if err != nil {
+		return nil, err
+	}
+	dsn := url.URL{Scheme: "file", Path: filepath.ToSlash(path), RawQuery: "mode=ro&_pragma=busy_timeout(5000)"}
+	db, err := sql.Open("sqlite", dsn.String())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+	var version int
+	if err := db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
+		return nil, err
+	}
+	if version != stateSchema {
+		return nil, errors.New("catalog maintenance database version is unsupported for export")
+	}
+	return exportVersions(ctx, db)
+}
+
+func exportVersions(ctx context.Context, db interface {
+	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
+}) ([]byte, error) {
+	rows, err := db.QueryContext(ctx, selectVersion+" ORDER BY p.provider_id,p.reference_id,p.service")
 	if err != nil {
 		return nil, err
 	}
