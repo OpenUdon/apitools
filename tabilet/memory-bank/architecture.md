@@ -849,7 +849,10 @@ retry. The stored classification, origin and next attempt time coordinate
 quota deferrals across resumes. A new checkpoint can replace a pending
 retry only if its previous evidence still matches. The run skips completed
 references, gives unrelated origins their turn, and finalizes once all
-references finish or exhaust their retry budget.
+references finish or exhaust their retry budget. Subsequent head checks
+retain the accepted reviewed baseline and authored artifact receipt from
+the pending checkpoint. A terminal failure can report its own outcome
+alongside that earlier adoption evidence.
 
 Maintenance schema v4 stores the original catalog fingerprint and UTC
 run lifecycle timestamps. Reference evidence records outbound attempts
@@ -858,6 +861,12 @@ single SQLite snapshot before opening the cache and works with historical
 schema v2 and v3. The writer preserves missing historical values when it
 migrates those versions. Accepted-version exports keep their existing
 schema and deterministic order.
+
+If SQLite reports an interrupted journal, a resume with the maintenance
+configuration can restore the database through the guarded writer. It
+checks the saved identity of any unfinished run before publisher access.
+A state-only inspection reports the need for recovery, and a completed
+run returns its saved snapshot after recovery.
 
 ### Catalog discovery wire foundations (M80.1)
 

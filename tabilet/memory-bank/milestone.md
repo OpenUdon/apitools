@@ -552,11 +552,12 @@ concurrent ledger writers. A goal-protocol run keeps its own scoped ownership ru
 
 ## Current Dashboard
 
-The current APItools catalog horizon is **C10 → C07 → C08 → C09**.
+The current APItools catalog horizon is **C07 → C08 → C09**.
 [C06](../docs/history/status-C06.md) delivered the update CLI, SQLite state
-and artifact storage. C04 and C05 qualified the 334-provider baseline. C10
-repairs the updater before C07's first publisher inventory. C07.1 also awaits
-separate approval for that run. The work is package-local and serial.
+and artifact storage. C04 and C05 qualified the 334-provider baseline.
+[C10](../docs/history/status-C10.md) delivered the updater repairs. C07.1
+awaits separate approval for the first publisher inventory. The work is
+package-local and serial.
 See the [status index](#status-files) and
 [catalog acceptance criteria](#monthly-reviewed-catalog).
 
@@ -617,8 +618,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| C10 | [status-C10.md](status-C10.md) | Pending, depends on accepted C06 |
-| C07 | [status-C07.md](status-C07.md) | Requires accepted C10 and separate approval for the first publisher run |
+| C07 | [status-C07.md](status-C07.md) | Awaiting separate approval for the first publisher run |
 | C08 | [status-C08.md](status-C08.md) | Pending; requires accepted C07 |
 | C09 | [status-C09.md](status-C09.md) | Pending; requires accepted C08; integrated closure |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
@@ -671,36 +671,10 @@ hosted embedding check. Record the publisher scope, configured cache directory,
 network or metered budget as applicable, stop conditions and outcomes.
 Installing a real user schedule is a subsequent operator choice.
 
-### C10 — Catalog updater repairs before the first inventory
-
-**Dependency and owner.** After accepted [C06](../docs/history/status-C06.md).
-APItools owns the updater, its SQLite records and offline proof. C07 consumes
-the reviewed result. **Parallel-safe: no.** [C10 tasks and evidence](status-C10.md).
-
-An offline update must recognize the exact reviewed artifact when the native
-source evidence supports it, reproduce a reviewed pin after the publisher moves
-on, and recognize identical bytes at a new revision of the same resource.
-Changes to an accepted preference still require proof of the reviewed scope.
-Keep publisher bytes and digest distinct from any reviewed parsing correction.
-Preserve guarded fetch, parser and size limits, durable cache ownership and
-atomic preference/checkpoint writes.
-
-Require bounded, targeted recovery from temporary publisher failures. Store
-the observed attempt time, safe locator and outcome even when discovery or
-preflight fails. An operator must be able to inspect a completed run after
-catalog or option changes. Preserve the identity check on an unfinished run
-and support existing SQLite state and deterministic exports.
-
-Each row has offline regression cases in the C10 ledger. Closure also requires
-a fresh build, vet, full offline Go tests, the storage race suite, catalog
-generation and quality checks, CLI help, a no-write 334-provider dry run and
-diff checks. Use the ordinary independent whole-milestone gate. The first
-publisher inventory remains a separate C07 operation.
-
 ### C07 — First inventory and provider curation
 
-**Dependency and owner.** After accepted C10 against the retired
-[C06 baseline](../docs/history/status-C06.md).
+**Dependency and owner.** Uses the accepted [C10 updater](../docs/history/status-C10.md)
+against the retired [C06 baseline](../docs/history/status-C06.md).
 APItools owns the provider recipes, curated sources, security and endpoint
 overlays, and first inventory.
 [C07 ledger](status-C07.md).
@@ -886,7 +860,7 @@ Last used ID: FND-03
 
 | ID | Finding | Severity | Origin | Fix owner | Disposition |
 |---|---|---|---|---|---|
-| FND-01 | Checkpoints need distinguishable rate limits, server failures and timeouts. Provide bounded targeted retries so a temporary publisher issue does not get reported as conclusive freshness evidence. | P2 | [C06](../docs/history/status-C06.md) whole 1, reclassified on C06 code review F04 | C10.4 | fixed in C10.4 |
+| FND-01 | Checkpoints need distinguishable rate limits, server failures and timeouts. Provide bounded targeted retries so a temporary publisher issue does not get reported as conclusive freshness evidence. | P2 | [C06](../docs/history/status-C06.md) whole 1, reclassified on C06 code review F04 | [C10.4](../docs/history/status-C10.md#status-record) | fixed in C10.4 |
 | FND-02 | Interrupted update JSON omits checkpoints saved during the same invocation, even though SQLite retains them for resume. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.2 | open |
 | FND-03 | Default CLI fixtures need portable disposable state and broader end-to-end export and overlapping update coverage for the maintenance workflow. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.4 | open |
 

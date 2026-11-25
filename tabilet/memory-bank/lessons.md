@@ -107,6 +107,16 @@ compatibility proofs, including original failures and scope limits.
 
 String token values used for prompt text cannot prove native argument equality. M83 whole reviews showed escaped-string collisions, quoted delimiter boundary mistakes and compatible field merges lost by raw whole-selection equality. Keep native typed argument/child evidence, exact default presence and explicit parser closure/depth guards; a partial schema never grants missing-field or runtime authority. [M83 review evidence](../docs/history/status-M83.md#whole-review-iteration-4--local-code-gate-passed) and the corrected/refusal matrices preserve these lessons.
 
+## Preserve accepted evidence across publisher retries
+
+A pending checkpoint can already include an accepted reviewed pin. When a
+retry replaces that checkpoint, retain the accepted baseline and authored
+receipt alongside the latest head result. Verify persistence through the
+completed-run reader for successful and exhausted retries. For crash recovery,
+exercise a genuinely interrupted SQLite writer and check that a resumed
+unfinished run verifies its saved identity before publisher access.
+[C10 review and regression evidence](../docs/history/status-C10.md#status-record).
+
 ## Source-specific ignored declarations and complete archive inputs
 
 Ignored source declarations must not fabricate input or completeness constraints.

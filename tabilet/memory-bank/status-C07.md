@@ -1,12 +1,12 @@
 # C07 — First inventory and provider curation
 
-**Owner.** APItools. **Dependency.** Accepted [C10 updater repairs](status-C10.md) following [C06](../docs/history/status-C06.md). **Parallel-safe: no.**
+**Owner.** APItools. **Dependency.** Accepted [C10 updater repairs](../docs/history/status-C10.md) following [C06](../docs/history/status-C06.md). **Parallel-safe: no.**
 See the [milestone specification](milestone.md#c07--first-inventory-and-provider-curation)
 for first-run scope, authority and acceptance.
 
-C07.1 can resume once C10 passes and the operator authorizes the scoped
-publisher run below. F12 and F14 use the review range, revalidation revision
-and working-catalog evidence in the [C06 code review (xhigh) source note](status-C10.md#review-source-and-baseline).
+C07.1 awaits operator approval for the scoped publisher run below. F12 and F14
+use the review range, revalidation revision and working-catalog evidence in the
+[C06 code review (xhigh) source note](../docs/history/status-C10.md#status-record).
 
 ## Tasks
 

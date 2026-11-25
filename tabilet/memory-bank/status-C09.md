@@ -1,7 +1,7 @@
 # C09 — Monthly cron and agent maintenance skill
 
 **Owner.** APItools. **Dependency.** Accepted C08. **Parallel-safe: no.**
-C09 owns integrated closure for C06–C09 and the [C10 updater repairs](status-C10.md) against the baseline in [C06.1](../docs/history/status-C06.md#status-record). See the [milestone specification](milestone.md#c09--monthly-cron-and-agent-maintenance-skill).
+C09 owns integrated closure for C06–C09 and the [C10 updater repairs](../docs/history/status-C10.md) against the baseline in [C06.1](../docs/history/status-C06.md#status-record). See the [milestone specification](milestone.md#c09--monthly-cron-and-agent-maintenance-skill).
 
 ## Tasks
 

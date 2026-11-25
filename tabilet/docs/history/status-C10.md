@@ -1,3 +1,51 @@
+# Retired milestone C10 - Catalog updater repairs before the first inventory
+
+**Milestone.** C10
+**Outcome.** completed
+**Retired.** 2026-11-25
+**Source status.** tabilet/memory-bank/status-C10.md
+**Source specification.** tabilet/memory-bank/milestone.md#c10--catalog-updater-repairs-before-the-first-inventory
+**Evidence.** cbc4ae4d4ac8ab3775ddee5989e781e7d18daac5
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 2
+**Verification.** Offline Go 1.26.6 build, vet, full suite with pinned C04/C05 inputs, storage and focused retry/journal race checks, catalog generation and quality (zero errors and warnings), CLI help, 334-provider dry run and diff checks passed at round 2. The separate offline recovery proof used a changed configuration and produced zero publisher requests for both the unfinished mismatch and the completed run. Closure reuses passing implementation gates because their inputs are unchanged. [Local verification evidence](../../../dist/c10-goal.tZ4ZvJ/).
+**Consolidated into.** [Architecture](../../memory-bank/architecture.md#catalog-maintenance-storage-c06), [lessons](../../memory-bank/lessons.md#preserve-accepted-evidence-across-publisher-retries), and [operator README](../../../README.md#reviewed-catalog-maintenance).
+
+## Milestone specification
+
+````markdown
+### C10 — Catalog updater repairs before the first inventory
+
+**Dependency and owner.** After accepted [C06](../docs/history/status-C06.md).
+APItools owns the updater, its SQLite records and offline proof. C07 consumes
+the reviewed result. **Parallel-safe: no.** [C10 tasks and evidence](status-C10.md).
+
+An offline update must recognize the exact reviewed artifact when the native
+source evidence supports it, reproduce a reviewed pin after the publisher moves
+on, and recognize identical bytes at a new revision of the same resource.
+Changes to an accepted preference still require proof of the reviewed scope.
+Keep publisher bytes and digest distinct from any reviewed parsing correction.
+Preserve guarded fetch, parser and size limits, durable cache ownership and
+atomic preference/checkpoint writes.
+
+Require bounded, targeted recovery from temporary publisher failures. Store
+the observed attempt time, safe locator and outcome even when discovery or
+preflight fails. An operator must be able to inspect a completed run after
+catalog or option changes. Preserve the identity check on an unfinished run
+and support existing SQLite state and deterministic exports.
+
+Each row has offline regression cases in the C10 ledger. Closure also requires
+a fresh build, vet, full offline Go tests, the storage race suite, catalog
+generation and quality checks, CLI help, a no-write 334-provider dry run and
+diff checks. Use the ordinary independent whole-milestone gate. The first
+publisher inventory remains a separate C07 operation.
+
+````
+
+## Status record
+
+````markdown
 # C10 — Catalog updater repairs before the first inventory
 
 **Owner.** APItools. **Dependency.** Accepted [C06](../docs/history/status-C06.md).
@@ -40,7 +88,7 @@ Run the row regressions and the whole-unit checks in the
 Keep checks on guarded destinations, size deferral, parser bounds, immutable
 locator ownership and concurrent updates in the regression suite.
 
-Review gate iterations: 1
+Review gate iterations: 2
 
 Whole review limit 10. This post-retirement intake leaves C06's
 accepted six-round review intact. Follow the [test policy](test-policy.md) and
@@ -83,7 +131,7 @@ applying dispositions. The counter remains 1 until this review's required
 fixes pass fresh verification and round 2 is started.
 
 Round 1 dispositions. Preserve an adopted baseline and its authored artifact
-when a pending retry is replaced. Keep the first verified object linkage
+when a pending retry is replaced. Keep the latest recorded object linkage
 when the retry supplies none. An unchanged head after an adoption in the
 same run reports the adoption. A terminal head failure retains its failure
 status and the distinct adoption evidence. Fixtures read both completed
@@ -112,7 +160,7 @@ CAS test. The additional fault combinations are optional coverage.
 For U3 the nil client is normalized before the probe reads configuration.
 For U4 the non-spec body flag still releases the source budget. For U5
 dry-run and export branches bypass the pending-run text. The narrowed
-round 2 packet includes the directly consulted URL guard, CLI dispatch
+round 2 packet summarizes the artifact URL guard and includes CLI dispatch
 and database transaction setup (U6).
 
 Round 1 repairs passed fresh [offline build and vet](../../dist/c10-goal.tZ4ZvJ/static-round2.log),
@@ -122,3 +170,76 @@ and [catalog, CLI and 334-provider dry-run checks](../../dist/c10-goal.tZ4ZvJ/ca
 The package-local CLI exercises the affected report and resume path.
 No Go callers of the maintenance API appeared in the OpenUdon or Udon
 consumer checkouts.
+
+Whole review 2 started at `2026-11-25T14:33:41Z`. It reviews the round 1 blocker,
+the delta from `b423f3dcaaf34df6093af1c5391e1d0f8b3836d7` to
+`cbc4ae4d4ac8ab3775ddee5989e781e7d18daac5` and the direct consumers. The
+[review diff](../../dist/c10-goal.tZ4ZvJ/review-2.diff) has SHA-256
+`e783c46253afd7a058ca353880dc352ce4725f7f19e12c650a47598c92c1e6eb`. The fresh read-only review uses the authenticated APItools
+tab 2 and the approved Claude Opus 5.5 high effort selection.
+
+Whole review 2 passed at `2026-11-25T14:38:03.035Z` with no confirmed P1 or P2.
+The fresh read-only reviewer used only the packet and handback tools. The
+[native dispatch receipt](../../dist/c10-goal.tZ4ZvJ/review-2-herdr-dispatch.json)
+confirms Claude Opus 5.5 at high effort. The [report](../../dist/c10-goal.tZ4ZvJ/review-2-herdr-report.md)
+has SHA-256 `0f94cfa76f6afe92d4c20045363957116df02b6a029137d5bfb6407c9a15cf51`.
+The packet has SHA-256 `b2e1ffc6b2fa130b485f5d9e215b9939019bb18ebd5b86032961bbedf7d12655`.
+
+The coordinator confirmed the review's V1 closure condition. After guarded
+writer recovery, the updater reads the saved run and checks an unfinished
+run's identity before invoking the start callback or entering the publisher
+loop. A completed run reads the original outcomes and returns before that
+loop. An [offline verification overlay](../../dist/c10-goal.tZ4ZvJ/recovery-check.go)
+extended the interrupted-writer fixture to exercise both branches with a
+changed configuration. It observed zero transport calls and zero start
+callbacks. The completed report retained its original identity, completion
+time and checkpoint evidence. [Test output](../../dist/c10-goal.tZ4ZvJ/recovery-verification.log).
+
+Round 2 optional finding dispositions:
+
+- N1 declined. The downloaded head is assigned to the checkpoint only after
+  the authored-fetch retry branch. A pending checkpoint with an object
+  comes from atomic baseline adoption or a prior checkpoint with that proof.
+  The SQL carries the latest non-null checkpoint digest.
+- N2 declined. Completed runs use the read-only path ordinarily. When the
+  operator supplies the full configuration and SQLite needs journal
+  recovery, the guarded writer restores the database and the completed run
+  still returns its saved report. V1 exercised that case.
+- N3 declined. The shared artifact URL guard rejects fragment text, the
+  HEAD path uses it before a redirected request, and the GET path refuses
+  redirects. The separate final GET check covers an inconsistent response
+  from a supplied transport. A dedicated HEAD fragment fixture is optional.
+- N4 declined. A same-digest move from a vendor locator to an unproven
+  immutable locator remains a review-required boundary. The generic
+  diagnostic summarizes the missing proof for the new locator.
+- N5 declined. Only GitHub metadata has established epoch-second reset
+  semantics here. Explicit Retry-After and bounded retries apply elsewhere.
+  The existing positive fixture verifies the GitHub origin and valid epoch.
+  Live quota behavior remains unmeasured.
+- N6 declined. The top-level outcome tracks the head check and the separate
+  baseline evidence records any earlier adoption. The existing retries
+  cover successful unchanged and exhausted head checks. Additional head
+  outcome combinations and concurrent-attempt artifact detail are optional.
+- N7 declined. V1 checked mismatch and completed journal recovery, the
+  schema v2/v3 fixtures cover ordinary inspection and migration, and the
+  wrong-authored-digest fixture checks the proof boundary. The counter is
+  two whole review iterations with no verification recovery used.
+
+For V2–V7, the coordinator checked the fragment guard, the parsed HEAD URL
+used to initialize the probe, the equal held catalog pin in the locator
+fixture, and the index fixture's two matching services regardless of pin.
+Stored baseline fields and the authored receipt survive decoding and
+re-encoding. The transient baseline artifact has a separate receipt field.
+Emitted reviewed baseline evidence enters the same SQLite transaction as
+preference acceptance. GitHub's normalized metadata origin includes port
+443, and a raw GitHub file locator must have a 40-character commit segment.
+The nil receiver is supported through the URL checks and normalized before
+client settings are read. The metadata probe still releases its source slot
+when it classifies the body as a non-spec response.
+
+Closure keeps C06 frozen and consolidates the C10 retry and recovery
+invariants in the current architecture and lessons. No evolution bump is
+needed. The catalog scope, architecture boundary and public contract
+direction are the same. C07 uses the accepted updater for its first
+publisher inventory. That run still requires separate approval.
+````
