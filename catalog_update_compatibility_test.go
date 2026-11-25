@@ -104,6 +104,11 @@ func TestCatalogUpdateCompatibilityChecksNativeHTTPContract(t *testing.T) {
 func TestCatalogUpdateResourcePreservesQueryAndPublisherFamily(t *testing.T) {
 	const index = "https://api.hubapi.com/public/api/spec/v1/specs"
 	const release = "https://api.hubapi.com/public/api/spec/v2/specs/release/1/version/"
+	const pipedrive = "https://developers.pipedrive.com/docs/api/v1/openapi-v2.yaml"
+	confluent := "https://raw.githubusercontent.com/confluentinc/ccloud-sdk-go-v2/" + strings.Repeat("a", 40) + "/kafkarest/v3/api/openapi.yaml"
+	gitRoot := "https://raw.githubusercontent.com/v1/v2/"
+	first := gitRoot + strings.Repeat("a", 40) + "/spec/v2/openapi-v3.yaml"
+	next := gitRoot + strings.Repeat("b", 40) + "/spec/v2/openapi-v3.yaml"
 	for _, tc := range []struct {
 		locator, left, right string
 		same                 bool
@@ -113,6 +118,18 @@ func TestCatalogUpdateResourcePreservesQueryAndPublisherFamily(t *testing.T) {
 		{index, release + "2026-03", release + "2026-09/other", false},
 		{index, release + "2026-03", release + "2026-09?scope=other", false},
 		{index, release + "2026-03", strings.Replace(release, "/1/", "/2/", 1) + "2026-09", false},
+		{pipedrive, pipedrive, pipedrive, true},
+		{confluent, confluent, confluent, true},
+		{pipedrive, pipedrive, strings.Replace(pipedrive, "openapi", "other", 1), false},
+		{confluent, confluent, strings.Replace(confluent, "/kafkarest/v3/", "/schema-registry/v1/", 1), false},
+		{confluent, confluent, strings.Replace(confluent, strings.Repeat("a", 40), strings.Repeat("b", 40), 1), true},
+		{"https://example.com/spec.json", "https://example.com/tenant-v1/spec.json", "https://example.com/tenant-v2/spec.json", false},
+		{first, first, next, true},
+		{first, first, strings.Replace(next, "/spec/v2/", "/spec/v3/", 1), false},
+		{first, first, strings.Replace(next, "/v1/v2/", "/v2/v2/", 1), false},
+		{first, first, strings.Replace(next, "raw.githubusercontent.com", "example.com", 1), false},
+		{first, first, next + "?version=2", false},
+		{first, first, next + "#unrelated", false},
 	} {
 		if same := sameCatalogUpdateResource(tc.locator, tc.left, tc.right); same != tc.same {
 			t.Fatalf("resource identity %s / %s = %t, want %t", tc.left, tc.right, same, tc.same)

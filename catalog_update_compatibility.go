@@ -73,8 +73,10 @@ func (c *Client) proveCompatibleCatalogVersion(ctx context.Context, store *catal
 func sameCatalogUpdateResource(locator, left, right string) bool {
 	aURL, aErr := url.Parse(left)
 	bURL, bErr := url.Parse(right)
-	if aErr != nil || bErr != nil || versionOrigin(aURL) != versionOrigin(bURL) ||
-		aURL.RawQuery != bURL.RawQuery || aURL.Fragment != bURL.Fragment {
+	if aErr != nil || bErr != nil || aURL.Host == "" || bURL.Host == "" ||
+		(aURL.Scheme != "http" && aURL.Scheme != "https") || aURL.User != nil || bURL.User != nil ||
+		versionOrigin(aURL) != versionOrigin(bURL) || aURL.RawQuery != bURL.RawQuery ||
+		aURL.ForceQuery != bURL.ForceQuery || aURL.Fragment != "" || bURL.Fragment != "" {
 		return false
 	}
 	if locator == "https://api.hubapi.com/public/api/spec/v1/specs" {
@@ -82,9 +84,10 @@ func sameCatalogUpdateResource(locator, left, right string) bool {
 		b, bVersion, bOK := strings.Cut(bURL.EscapedPath(), "/version/")
 		return aOK && bOK && a == b && validCatalogUpdateIndexVersion(aVersion) && validCatalogUpdateIndexVersion(bVersion)
 	}
-	a, _ := catalogUpdateReferenceIdentity(catalog.SpecReference{URL: left})
-	b, _ := catalogUpdateReferenceIdentity(catalog.SpecReference{URL: right})
-	return a != "" && a == b
+	if aURL.EscapedPath() == bURL.EscapedPath() {
+		return true
+	}
+	return sameCatalogUpdateGitFile(left, right)
 }
 
 func validCatalogUpdateIndexVersion(version string) bool {

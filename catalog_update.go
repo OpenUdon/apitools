@@ -413,7 +413,11 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 	if held.Object.SHA256 == "" {
 		return emit("review-required", "No previously accepted local version is available for comparison.")
 	}
-	if held.Object == object && held.URL == artifact.URL && held.Revision == resolved.Revision && held.Locator == source.URL {
+	if held.Object == object && held.Locator == source.URL &&
+		((held.URL == artifact.URL && held.Revision == resolved.Revision) ||
+			(held.URL != artifact.URL && sameCatalogUpdateGitFile(held.URL, artifact.URL))) {
+		// The outcome records the observed provenance. The stored
+		// preference still describes the already accepted identical bytes.
 		return emit("unchanged", "")
 	}
 	if previous.Object.SHA256 != "" && previous.Object != object {

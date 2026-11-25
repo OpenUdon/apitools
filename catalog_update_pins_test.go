@@ -276,3 +276,103 @@ func TestCatalogUpdateDiscoveryBaselineUsesNativeVersion(t *testing.T) {
 		t.Fatalf("native version and immutable provenance = %+v, valid %t", got, valid)
 	}
 }
+
+func TestCatalogUpdateRecognizesIdenticalBytesAtAnotherCommit(t *testing.T) {
+	ctx := t.Context()
+	cfg := newCatalogRepairFixture(t)
+	const base = "https://raw.githubusercontent.com/v1/v2/"
+	const file = "/specs/v3/openapi-v4.json"
+	oldCommit, head := strings.Repeat("1", 40), strings.Repeat("2", 40)
+	source := catalogUpdateSource{ProviderID: "example", ReferenceID: "records", Service: "records",
+		Kind: catalog.SpecKindOpenAPI, URL: base + oldCommit + file, Revision: oldCommit,
+		HeldRevision: fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(catalogRepairFixture)))}
+	seedCatalogUpdateFixture(t, cfg, source, catalogRepairFixture)
+	cache, err := catalogupdate.OpenArtifactCache(cfg.CacheDir, "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	store, err := catalogupdate.OpenStore(ctx, cfg.StateDB, cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	run, err := store.StartRun(ctx, catalog.BuiltInCatalogManifest().CatalogSHA256, []string{source.ProviderID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	headURL := base + head + file
+	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
+		if r.URL.Host == "api.github.com" {
+			return catalogRepairResponse(r, fmt.Sprintf(`[{"sha":%q}]`, head)), nil
+		}
+		if r.URL.String() != headURL {
+			t.Fatalf("unexpected fixture request: %s", r.URL)
+		}
+		return catalogRepairResponse(r, catalogRepairFixture), nil
+	})}}
+	out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg)
+	if err != nil || out.Status != "unchanged" || out.Object == nil || !strings.Contains(string(out.Evidence), headURL) {
+		t.Fatalf("identical publisher revision = %s, %s, %v", out.Status, out.Evidence, err)
+	}
+	held, err := store.PreferredVersion(ctx, source.ProviderID, source.ReferenceID, source.Service)
+	if err != nil || held.URL != source.URL || held.Revision != oldCommit || held.Object != *out.Object {
+		t.Fatalf("identical observation changed preference: %+v, %v", held, err)
+	}
+}
+
+func TestCatalogUpdateIdenticalBytesAtDifferentRedirectDestinationNeedReview(t *testing.T) {
+	ctx := t.Context()
+	cfg := newCatalogRepairFixture(t)
+	source := catalogUpdateSource{ProviderID: "example", ReferenceID: "records", Service: "records",
+		Kind: catalog.SpecKindOpenAPI, URL: "https://example.com/docs/latest.json"}
+	seedCatalogUpdateFixture(t, cfg, source, catalogRepairFixture)
+	cache, err := catalogupdate.OpenArtifactCache(cfg.CacheDir, "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	store, err := catalogupdate.OpenStore(ctx, cfg.StateDB, cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	held, err := store.PreferredVersion(ctx, source.ProviderID, source.ReferenceID, source.Service)
+	if err != nil {
+		t.Fatal(err)
+	}
+	previous := held
+	previous.URL = "https://example.com/docs/orders-v1.json"
+	if err := store.AcceptVersion(ctx, previous, &held); err != nil {
+		t.Fatal(err)
+	}
+	const next = "https://example.com/docs/orders-v2.json"
+	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
+		switch r.URL.String() {
+		case source.URL:
+			return &http.Response{StatusCode: http.StatusFound, Header: http.Header{"Location": {next}}, Body: http.NoBody, Request: r}, nil
+		case next:
+			return catalogRepairResponse(r, catalogRepairFixture), nil
+		default:
+			t.Fatalf("unexpected fixture request: %s", r.URL)
+			return nil, nil
+		}
+	})}}
+	for _, reviewed := range []bool{false, true} {
+		if reviewed {
+			cfg.ReviewedOperations = map[string][]string{"example/records": {"#/paths/~1records/get"}}
+		}
+		run, err := store.StartRun(ctx, catalog.BuiltInCatalogManifest().CatalogSHA256, []string{source.ProviderID})
+		if err != nil {
+			t.Fatal(err)
+		}
+		out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg)
+		if err != nil || out.Status != "review-required" || !strings.Contains(string(out.Evidence), next) {
+			t.Fatalf("different redirect destination (reviewed=%t) = %s, %s, %v", reviewed, out.Status, out.Evidence, err)
+		}
+	}
+	actual, err := store.PreferredVersion(ctx, source.ProviderID, source.ReferenceID, source.Service)
+	if err != nil || actual.URL != previous.URL {
+		t.Fatalf("unrelated redirect replaced the accepted destination: %+v, %v", actual, err)
+	}
+}
