@@ -15,7 +15,7 @@ evidence in the [C06 code review (xhigh) source note](../docs/history/status-C10
 | C07.2 — Qualify Dropbox, HubSpot and Kubernetes | `[+]` | Compare Dropbox official OpenAPI with the auth and operations in the overlay, then prefer it when qualified. Preserve old Stone references as provenance; UWS already has no Stone wire type. **F14 (Nit, local P1, confirmed).** The [HubSpot inventory](../../catalog_update_sources.go) enumerates services, and the [updater](../../catalog_update.go) stops after listing them. Select the reviewed families, versions and release stages, qualify stable documents through pinned native operation and compatibility checks, and label previews and other services as candidates. Keep any service with insufficient evidence out of the qualified set. Use release-tagged upstream Kubernetes OpenAPI, keep the historical fixture labeled and preserve cluster-specific exports for actual API groups and CRDs. Pinned stable Contacts/Deals list operations and Kubernetes Core Pod list passed with scoped auth evidence. Dropbox retains the reverified advisory overlay and official Stone provenance. HubSpot version migrations remain unexamined. Astra xhigh passed re-review. |
 | C07.3 — Qualify Stripe, Google Sheets and Slack | `[+]` | Separate Stripe dated stable and preview releases and check the reviewed schema and security. Compare Google Sheets Discovery revision and digest even at the same v4 URL; reconcile the advisory overlay. Retain Slack’s archived Swagger as dated evidence and check current methods and scopes against official docs before proposing gap overlays. Qualified Stripe GA with reviewed auth, compared Sheets revisions and exact pins, and added the current Slack advisory. Astra xhigh passed re-review. |
 | C07.4 — Curate the remaining sources and overlay decisions | `[+]` | Seek official links for existing docs-only and overlay-primary rows. Prefer a usable provider source; otherwise review a bounded endpoint overlay and reproducible builder or record the concrete evidence gap. **F12 (Nit, local P2, confirmed).** Of 161 working-catalog providers without an eligible updater reference, 139 already have a checked-in overlay. Use the [advisory registry](../../catalog/advisory.go) in the [provider summary](../../catalog_update.go) to distinguish advisory coverage, a documented gap and unavailable evidence. Report upstream freshness only when observed. Inspect reusable schemes and effective root/operation auth. Keep each provider's supported subset and license evidence visible. Screened all 160. Qualified four official sources, retained 137 primary advisories and 19 explicit gaps, and recorded the three new local coverage outcomes. Astra xhigh passed re-review. |
-| C07.5 — Complete and reconcile the first inventory | `[ ]` | Run the authorized publisher inventory and account for each of the 334 provider IDs exactly once in the provider summary, with service/reference detail below it. Record actual versions, digests, outcomes, deferrals and review queue. Demonstrate reviewed operations for the six named providers with pinned fixtures; run catalog generation, quality and whole-unit gates. Use C10.4's accepted FND-01 failure classification and retry evidence to reconcile temporary publisher failures. |
+| C07.5 — Complete and reconcile the first inventory | `[+]` | Run the authorized publisher inventory and account for each of the 334 provider IDs exactly once in the provider summary, with service/reference detail below it. Record actual versions, digests, outcomes, deferrals and review queue. Demonstrate reviewed operations for the six named providers with pinned fixtures; run catalog generation, quality and whole-unit gates. Use C10.4's accepted FND-01 failure classification and retry evidence to reconcile temporary publisher failures. The live run is complete with 334 provider summaries and 195 reference outcomes. Both Jina retries exhausted. C07.2–C07.4 passed. The closed SQLite report reproduced byte for byte, all 25 cache objects matched, and the six source proofs and whole-unit gates passed. Astra xhigh passed the task review. |
 
 ## First publisher run
 
@@ -85,6 +85,65 @@ HubSpot releases and a release-tagged upstream Kubernetes document. This
 pass returned a Dropbox source review and a HubSpot unknown-size deferral.
 The historical Kubernetes fixture is third-party evidence and was outside
 the eligible references.
+
+### Authorized resume
+
+The operator explicitly approved run `2OXWJLDNCITU5LOUTAZAVOZ25V` in the
+goal conversation. The coordinator reserved one supervised `catalog update
+--resume` pass at `2026-11-25T17:03Z`. The original binary, configuration,
+catalog fingerprint, approval scope, cache, SQLite location and 60-minute
+supervision limit carry forward. Read-only inspection found the same
+unfinished run with 302 provider summaries and 160 reference outcomes.
+The three saved retry deadlines had elapsed. This is inventory attempt 2
+and the only invocation under the new approval.
+
+The resume ran from `2026-11-25T17:03:58Z` to `2026-11-25T17:05:44Z` and
+exited 0. The [resume JSON report](../../dist/c07-first-inventory.0yJaZ4/resume-1/report.json)
+has SHA-256 `f7bd4ea213d466539a0ca70f56d5af54c13652f2a0f488b03232b92cf0d06287`.
+It saved 31 additional provider summaries and 35 additional reference
+checkpoints. The GitHub retry for Mercado Pago reproduced its reviewed
+pin. All 195 eligible references now have outcomes, including 16 reviewed
+pins reproduced, 56 requiring review, 43 invalid specs and 35 publisher
+check failures. Ten documents exceeded the 20 MiB parser limit and 26
+had unknown sizes.
+
+The run had 333 provider summaries after this pass. Only Jina AI was
+missing its summary. Its `jina-reader-openapi` and `jina-search-openapi`
+checks each timed out on attempt 2. The later of their two retry times
+was `2026-11-25T17:05:18.388394271Z`.
+
+Read-only verification confirmed SQLite integrity and that its 528
+outcome rows match the resume report. The original 459 non-pending
+outcomes are unchanged. Checked all 25 stored file digests and byte
+counts, totaling 30,760,406 bytes. The database now has 17 preferred
+versions. The one supervised resume approval has been consumed.
+
+### Authorized final resume
+
+The operator approved one final supervised resume for the two pending
+Jina references in run `2OXWJLDNCITU5LOUTAZAVOZ25V`. The coordinator
+reserved inventory attempt 3 at `2026-11-25T17:11Z`. Read-only inspection
+verified the original binary, config, scope, mounts and SQLite run. Only
+the Jina Reader and Search checkpoints are eligible, both on their third
+attempt. The same 60-minute process limit and storage paths apply.
+
+Attempt 3 ran from `2026-11-25T17:11:38Z` to `2026-11-25T17:12:38Z` and
+exited 0. The [completed JSON report](../../dist/c07-first-inventory.0yJaZ4/resume-2/report.json)
+has SHA-256 `c712ed2d84c5fdd7e201e090ddd5cc691e4f97e866d8555d6293d55757c2e687`.
+Jina Reader and Search both timed out and reached `publisher-retry-exhausted`
+on attempt 3. This terminal disposition allowed the original run to record
+the Jina provider summary and finish. Its third reference retains the earlier
+unknown-size observation. The exhaustion establishes a fetch failure, with
+freshness and document validity for those sources unresolved.
+
+Read-only checks verified one summary for each of the 334 selected provider
+IDs, exactly the 195 eligible reference outcomes, and zero pending retries.
+All 529 outcomes and the completion timestamp matched SQLite. The resume
+preserved 526 earlier outcomes and changed only the two pending references
+plus the new Jina summary. All 25 cached artifacts passed size and digest
+checks. SQLite retained 17 preferred versions. The final live approval is
+consumed. C07.5 still needs the C07.2–C07.4 qualification and curation results
+and the documented acceptance gates.
 
 ## Qualification evidence
 
@@ -161,6 +220,52 @@ three byte-identical overlay rebuilds and diff checks passed on
 [Verification](../../dist/c07-qualification.P2FWoi/c07-4-final-gates.log).
 Astra xhigh passed the [re-reviewed diff](../../dist/c07-qualification.P2FWoi/c07-4-final-reviewed.diff)
 with SHA-256 `d4795cb48b0009f41dc2ad38c928f29703462cbd4b218aa44f17112430f3e25a`.
+
+## Inventory acceptance proof
+
+C07.5 reconciled the completed inventory and the curated catalog in a
+separate, read-only report. It validated the exact original reference and
+provider set against the first inventory's catalog fingerprint, including
+334 provider summaries and 195 eligible reference outcomes, with zero
+pending retries. A stateless dry run on the curated catalog selects the
+same 334-provider set. Its new catalog SHA-256 is
+`0118c98b3f07cce24e3e23f898e460211704f3743c267d1f260d6e8463c991a8`.
+The current catalog has 203 eligible references. The read-only state
+inspection reproduced the archived report byte for byte. The persisted
+database SHA-256 was unchanged. The 25 retained files matched all
+recorded byte counts and digests, totaling 30,760,406 bytes.
+[Per-provider reconciliation](../../dist/c07-qualification.P2FWoi/c07-5-provider-reconciliation.json),
+SHA-256 `342d094654d8e3355ee64ab2458a8196ffb883f866c91a40856e9d7e7c020556`.
+[Digest and scope check](../../dist/c07-qualification.P2FWoi/c07-5-reconciliation.log).
+
+The [qualification report](../../docs/catalog-qualification-c07.md#first-inventory-reconciliation)
+records all 195 reference dispositions, pin/review outcomes and deferrals.
+Jina Reader and Search exhausted their bounded retries. Their publisher
+versions remain unresolved. Postmark's candidate Swagger files require
+further qualification. Existing advisory and documented gaps stay distinct
+from demonstrated publisher freshness.
+
+Go 1.26.6 build, vet, fresh whole Go suite with both pinned source
+directories, catalog storage and targeted updater races, generator,
+catalog quality (zero findings), search/import/update help, the
+334-provider dry run, historical SQLite inspection and diff checks all
+passed at `a85c93bcac83ff648cecdea3f507fc0d28459d36` with C07.5
+documentation and status edits in the worktree.
+[Acceptance checks](../../dist/c07-qualification.P2FWoi/c07-5-gates.log).
+
+The independent Astra xhigh task review passed the C07.5 reconciliation on
+`a85c93bcac83ff648cecdea3f507fc0d28459d36` and the
+[reviewed diff](../../dist/c07-qualification.P2FWoi/c07-5-reviewed.diff),
+SHA-256 `7d55bd8817343bcefbe94b7d9b5134aced9e725cce57a094ff9f39e115b3aee9`.
+The [verbose operation gate](../../dist/c07-qualification.P2FWoi/c07-5-pinned-operations.log)
+shows the active pin directories and the selected tests. Supplemental
+OpenUdon snapshot tests passed against this APItools source. The Udon
+ordinary pinned CLI test passed. Its supplemental workspace test with
+local APItools is limited by the missing offline
+`cloud.google.com/go/compute@v1.49.1` module. The same workspace test has
+that limit at the pre-C07 APItools baseline, and C07 leaves the Go module
+inputs unchanged.
+[Consumer evidence](../../dist/c07-qualification.P2FWoi/c07-5-consumers/).
 
 ## Review
 

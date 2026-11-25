@@ -555,9 +555,11 @@ concurrent ledger writers. A goal-protocol run keeps its own scoped ownership ru
 The current APItools catalog horizon is **C07 → C08 → C09**.
 [C06](../docs/history/status-C06.md) delivered the update CLI, SQLite state
 and artifact storage. C04 and C05 qualified the 334-provider baseline.
-[C10](../docs/history/status-C10.md) delivered the updater repairs. C07.1
-recorded the first supervised publisher pass, which yielded 302 provider
-summaries and left 32 pending. The work is package-local and serial.
+[C10](../docs/history/status-C10.md) delivered the updater repairs. The
+first supervised publisher run is complete with 334 provider summaries
+and 195 reference outcomes. Provider qualification and inventory
+reconciliation passed their task gates. C07 awaits whole review. The work
+is package-local and serial.
 See the [status index](#status-files) and
 [catalog acceptance criteria](#monthly-reviewed-catalog).
 
@@ -618,7 +620,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| C07 | [status-C07.md](status-C07.md) | First pass recorded in C07.1. Provider qualification and inventory reconciliation remain open. |
+| C07 | [status-C07.md](status-C07.md) | Inventory and qualification tasks complete. Whole review pending. |
 | C08 | [status-C08.md](status-C08.md) | Pending; requires accepted C07 |
 | C09 | [status-C09.md](status-C09.md) | Pending; requires accepted C08; integrated closure |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |

@@ -107,6 +107,12 @@ compatibility proofs, including original failures and scope limits.
 
 String token values used for prompt text cannot prove native argument equality. M83 whole reviews showed escaped-string collisions, quoted delimiter boundary mistakes and compatible field merges lost by raw whole-selection equality. Keep native typed argument/child evidence, exact default presence and explicit parser closure/depth guards; a partial schema never grants missing-field or runtime authority. [M83 review evidence](../docs/history/status-M83.md#whole-review-iteration-4--local-code-gate-passed) and the corrected/refusal matrices preserve these lessons.
 
+For publisher source curation, preserve document-declared licensing separately
+from repository license and site terms. A publisher-owned repository can
+carry a spec with different terms. Check the exact document, record any
+declaration and its source, and keep undecided redistribution questions
+visible. [C07 license and curation evidence](../../docs/catalog-qualification-c07.md#remaining-publisher-sources-and-overlays).
+
 ## Preserve accepted evidence across publisher retries
 
 A pending checkpoint can already include an accepted reviewed pin. When a

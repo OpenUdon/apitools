@@ -202,3 +202,42 @@ or unexamined coverage in new runs when a provider has no eligible
 publisher references. The completed first inventory keeps its original
 checkpoints for all 334 providers. Local overlay/gap evidence does not
 establish upstream freshness.
+
+## First inventory reconciliation
+
+Run `2OXWJLDNCITU5LOUTAZAVOZ25V` finished on its third supervised
+invocation. The original report holds exactly one outcome for each of
+334 provider IDs and exactly one outcome for each of 195 eligible
+publisher references. The 25 retained objects match their recorded
+digests and total 30,760,406 bytes. The state-only inspection from the
+current CLI reproduced the original report.
+[Original report](../dist/c07-first-inventory.0yJaZ4/resume-2/report.json).
+
+| Original reference outcome | Count |
+| --- | ---: |
+| Reviewed pin reproduced | 16 |
+| Review required | 56 |
+| Publisher spec invalid | 43 |
+| Publisher check failed | 35 |
+| Size unknown | 26 |
+| Over the parser limit | 10 |
+| Size changed | 4 |
+| Publisher retries exhausted | 2 |
+| Publisher source review, source unexamined, spec unexamined | 3 |
+
+The two exhausted references were Jina Reader and Search. Their version
+and validity remain unresolved. The original run recorded no artifact
+over 1 GB in the tested scope. The per-reference receipt retains the
+actual observed revisions, versions, digests, and reasons for review or
+deferral, where the publisher supplied evidence.
+
+The curated catalog contains the same 334 IDs and 203 eligible publisher
+references. The current coverage totals are 123 OpenAPI/Swagger/index,
+55 other official machine-readable sources, 137 primary advisory overlays
+and 19 documented source gaps. Current curation and supplemental docs
+evidence appear alongside the historical outcomes in the
+[334-provider reconciliation](../dist/c07-qualification.P2FWoi/c07-5-provider-reconciliation.json),
+SHA-256 `342d094654d8e3355ee64ab2458a8196ffb883f866c91a40856e9d7e7c020556`.
+The [reconciliation check](../dist/c07-qualification.P2FWoi/c07-5-reconciliation.log)
+compares exact provider and reference identities and reads the cached
+objects for their lengths and digests.
