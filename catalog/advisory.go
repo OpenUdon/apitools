@@ -107,13 +107,10 @@ func BuiltInAdvisoryEndpointCoverage(providerID string) AdvisoryEndpointCoverage
 var documentedEndpointGaps = map[string]string{
 	"acumatica":                        "The ERP instance publishes endpoint and customization-specific metadata.",
 	"airwallex":                        "A reviewed subset needs explicit product, account and regional scope.",
-	"amplitude":                        "Analytics families have separate auth and project context.",
 	"anthropic":                        "A scoped operation review needs a provider artifact or dedicated model-operation evidence.",
 	"ashby":                            "Recruiting APIs need a narrower reviewed RPC subset and permission evidence.",
 	"braze":                            "Messaging and export coverage depends on product, region and permission scope.",
 	"emelia":                           "A generic REST overlay cannot reproduce the documented GraphQL operations.",
-	"kubernetes":                       "Cluster exports describe the deployed groups, versions and CRDs.",
-	"linear":                           "GraphQL requires a native schema and separate authentication metadata.",
 	"monday-com":                       "The single GraphQL endpoint needs a native schema and operation scope.",
 	"netsuite":                         "Record metadata and integration authorization are account-specific.",
 	"odoo":                             "The model-specific RPC API needs explicit model and operation evidence.",

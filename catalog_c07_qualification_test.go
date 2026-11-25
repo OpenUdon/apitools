@@ -1,14 +1,17 @@
 package apitools
 
 import (
+	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/OpenUdon/apitools/catalog"
 	"github.com/OpenUdon/apitools/internal/catalogupdate"
@@ -52,8 +55,8 @@ func TestC07PinnedPublisherOperations(t *testing.T) {
 			if validation := catalogUpdateNativeOpenAPI(t.Context(), content, source.URL, source.refreshReference(), digest); !validation.accepted() {
 				t.Fatalf("reviewed source failed updater validation: %+v", validation)
 			}
+			root := catalogUpdateNativeRoot(t.Context(), content)
 			if expected, ok := map[string]string{"amplitude": "Proprietary", "hunter": "", "storyblok": "MIT"}[fixture.provider]; ok {
-				root := catalogUpdateNativeRoot(t.Context(), content)
 				license := mapValue(mapValue(root["info"])["license"])
 				if got := stringValue(license["name"]); got != expected {
 					t.Fatalf("source license changed to %q, want %q", got, expected)
@@ -67,6 +70,7 @@ func TestC07PinnedPublisherOperations(t *testing.T) {
 					}
 				}
 			}
+			assertC07PinnedSecurity(t, fixture.provider, fixture.path, root)
 			table, err := BuildOperationShapeTable(t.Context(), OperationShapeOptions{Sources: []ShapeSourceInput{{
 				ID: fixture.reference, OperationSourceInput: OperationSourceInput{Kind: OperationSourceOpenAPI, URL: source.URL, Content: content},
 			}}})
@@ -85,6 +89,40 @@ func TestC07PinnedPublisherOperations(t *testing.T) {
 			}
 			t.Fatalf("native source omitted %s %s", fixture.method, fixture.path)
 		})
+	}
+}
+
+func assertC07PinnedSecurity(t *testing.T, provider, path string, root map[string]any) {
+	t.Helper()
+	schemes := mapValue(mapValue(root["components"])["securitySchemes"])
+	op := mapValue(mapValue(mapValue(root["paths"])[path])["get"])
+	rootRequirements, err := json.Marshal(root["security"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	switch provider {
+	case "amplitude":
+		scope, err := json.Marshal(op["x-required-scopes"])
+		if err != nil || string(scope) != `["projects:read"]` || string(rootRequirements) != `[{"bearerAuth":[]}]` {
+			t.Fatalf("Amplitude pin lost its bearer requirement or project scope: %s, %s, %v", rootRequirements, scope, err)
+		}
+	case "hunter":
+		if op["security"] != nil || string(rootRequirements) != `[{"apiKeyQuery":[]},{"apiKeyHeader":[]},{"bearerAuth":[]}]` || len(schemes) != 3 {
+			t.Fatalf("Hunter selected route and root auth disagree: %s, %v", rootRequirements, op["security"])
+		}
+	case "storyblok":
+		token := mapValue(schemes["ApiKeyAuth"])
+		if token["in"] != "query" || token["name"] != "token" || op["security"] != nil || string(rootRequirements) != `[{"ApiKeyAuth":[]}]` {
+			t.Fatalf("Storyblok selected route no longer inherits the CDN token: %s, %v", rootRequirements, token)
+		}
+	case "hubspot":
+		if mapValue(schemes["private_apps"])["name"] != "private-app" {
+			t.Fatal("HubSpot pin no longer declares its synthetic private-app header")
+		}
+	case "kubernetes":
+		if mapValue(schemes["BearerToken"])["name"] != "authorization" || root["security"] != nil || op["security"] != nil {
+			t.Fatal("Kubernetes source no longer matches the recorded bearer scheme and incomplete Pod requirement")
+		}
 	}
 }
 
@@ -131,8 +169,8 @@ func TestC07HubSpotReleaseCompatibility(t *testing.T) {
 					t.Fatalf("baseline does not reproduce the reviewed key %s: %v", comparison.key, err)
 				}
 				got := compareCatalogUpdate(t.Context(), comparison.baseline, comparison.candidate, []string{comparison.key}, catalog.RefreshableSpecReference{}, "")
-				if got != catalogUpdateChanged && got != catalogUpdateUnexamined {
-					t.Fatalf("unproven HubSpot migration was marked %s for %s", got, comparison.key)
+				if got != catalogUpdateUnexamined {
+					t.Fatalf("HubSpot migration disposition = %s for %s, want %s", got, comparison.key, catalogUpdateUnexamined)
 				}
 				t.Logf("%s: %s", comparison.key, got)
 			}
@@ -148,6 +186,38 @@ func TestC07HubSpotSecuritySchemesHaveSpecScope(t *testing.T) {
 	for _, conflict := range view.Conflicts {
 		if conflict.Type == catalog.SecurityInspectionConflictDuplicateScheme {
 			t.Fatalf("HubSpot qualification introduced a conflicting scheme: %+v", conflict)
+		}
+	}
+	for _, service := range []struct{ name, scope string }{{"contacts", "crm.objects.contacts.read"}, {"deals", "crm.objects.deals.read"}} {
+		refID := "hubspot-crm-" + service.name + "-2026-09-openapi"
+		var matched bool
+		for _, operation := range view.OperationSecurity {
+			if operation.SpecRefID != refID {
+				continue
+			}
+			matched = true
+			if len(operation.SecuritySets) != 2 {
+				t.Fatalf("%s lost its two auth alternatives: %+v", refID, operation)
+			}
+			alternatives := map[string]bool{}
+			for _, set := range operation.SecuritySets {
+				if len(set.Requirements) != 1 || !strings.Contains(strings.ToLower(set.Requirements[0].Requirement.Scheme), service.name) {
+					t.Fatalf("%s resolved a cross-service or incomplete requirement: %+v", refID, set)
+				}
+				requirement := set.Requirements[0].Requirement
+				switch {
+				case strings.HasSuffix(requirement.Scheme, "OAuth") && slices.Equal(requirement.Scopes, []string{service.scope}):
+					alternatives["oauth"] = true
+				case strings.HasSuffix(requirement.Scheme, "PrivateApp") && len(requirement.Scopes) == 0:
+					alternatives["private-app"] = true
+				}
+			}
+			if len(alternatives) != 2 {
+				t.Fatalf("%s lost its scoped OAuth or private app alternative: %+v", refID, operation)
+			}
+		}
+		if !matched {
+			t.Fatalf("missing per-reference HubSpot auth: %s", refID)
 		}
 	}
 }
@@ -403,8 +473,12 @@ func TestC07CuratedPublisherSecurityAndSelection(t *testing.T) {
 	}{
 		{"amplitude", "amplitude-developer-openapi", catalog.SpecProtocolOpenAPI, catalog.AuthStatusPresentIncomplete},
 		{"hunter", "hunter-v2-openapi", catalog.SpecProtocolOpenAPI, catalog.AuthStatusComplete},
+		{"hubspot", "hubspot-crm-contacts-2026-09-openapi", catalog.SpecProtocolOpenAPI, catalog.AuthStatusOverlayRequired},
+		{"kubernetes", "kubernetes-v1-37-2-core-openapi-v3", catalog.SpecProtocolOpenAPI, catalog.AuthStatusPresentIncomplete},
 		{"linear", "linear-sdk-graphql-sdl", catalog.SpecProtocolGraphQL, catalog.AuthStatusOverlayRequired},
+		{"google-sheets", "sheets-discovery-v4", catalog.SpecProtocolGoogleDiscovery, catalog.AuthStatusOverlayRequired},
 		{"storyblok", "storyblok-content-delivery-v2-openapi", catalog.SpecProtocolOpenAPI, catalog.AuthStatusComplete},
+		{"stripe", "stripe-latest-openapi-spec3", catalog.SpecProtocolOpenAPI, catalog.AuthStatusComplete},
 	} {
 		t.Run(fixture.provider, func(t *testing.T) {
 			got, err := catalog.ResolveProvider(catalog.ResolveProviderOptions{ProviderKey: fixture.provider})
@@ -551,5 +625,180 @@ func TestC07FallbackSecurityMatchesReviewedOperations(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func readC07PinnedArtifact(t *testing.T, file, expectedDigest string) []byte {
+	t.Helper()
+	dir := os.Getenv("APITOOLS_C07_QUALIFICATION_DIR")
+	if dir == "" {
+		t.Skip("set APITOOLS_C07_QUALIFICATION_DIR to the pinned C07 source directory")
+	}
+	content, err := os.ReadFile(filepath.Join(dir, file))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if digest := fmt.Sprintf("%x", sha256.Sum256(content)); digest != expectedDigest {
+		t.Fatalf("%s SHA-256 = %s, want %s", file, digest, expectedDigest)
+	}
+	return content
+}
+
+func TestC07HubSpotEntryListing(t *testing.T) {
+	raw := readC07PinnedArtifact(t, "hubspot-index.json", "f87ebe0f3832e411ae631bbb0c03c97c7592562cc3ca94de17d931fd0690d836")
+	const indexURL = "https://api.hubapi.com/public/api/spec/v1/specs"
+	report, err := hubSpotUpdateInventory(indexURL, time.Date(2026, 11, 25, 17, 37, 52, 0, time.UTC), raw)
+	if err != nil || len(report.Sources) != 377 {
+		t.Fatalf("publisher index: %d rows, %v", len(report.Sources), err)
+	}
+	table := []string{"service\tversion\tstage\tbanner\tindex_release\tdisposition\tqualified_repository_rollout"}
+	families := map[string]bool{}
+	counts := map[string]int{}
+	for _, row := range report.Sources {
+		families[row.Service] = true
+		relative, ok := strings.CutPrefix(row.URL, "https://api.hubapi.com/public/api/spec/v2/specs/release/")
+		release, version, matched := strings.Cut(relative, "/version/")
+		if !ok || !matched || version != row.Version {
+			t.Fatalf("unexpected index link %s for %s", row.URL, row.Version)
+		}
+		disposition, rollout := "", "-"
+		switch {
+		case row.Version == "2026-09" && (row.Service == "CRM Contacts" || row.Service == "CRM Deals"):
+			expectedRelease := "165147"
+			if row.Service == "CRM Deals" {
+				expectedRelease = "165150"
+			}
+			if row.Stage != "LATEST" || row.DocumentationBanner != "NONE" || !row.Stable || release != expectedRelease {
+				t.Fatalf("wrong selected family/version release evidence: %+v", row)
+			}
+			disposition, rollout = "qualified-family-version", "424"
+		case row.Stage == "DEVELOPER_PREVIEW":
+			disposition = "developer-preview"
+		case row.DocumentationBanner == "PUBLIC_BETA":
+			disposition = "public-beta"
+		case row.Stable:
+			disposition = "stable-candidate"
+		default:
+			t.Fatalf("unclassified index release: %+v", row)
+		}
+		counts[disposition]++
+		table = append(table, strings.Join([]string{row.Service, row.Version, row.Stage, row.DocumentationBanner, release, disposition, rollout}, "\t"))
+	}
+	if len(families) != 130 || counts["qualified-family-version"] != 2 || counts["stable-candidate"] != 307 ||
+		counts["developer-preview"] != 32 || counts["public-beta"] != 36 {
+		t.Fatalf("wrong index counts: %d families, %+v", len(families), counts)
+	}
+	listing, err := os.ReadFile("docs/catalog-hubspot-index-c07.tsv")
+	if err != nil || string(listing) != strings.Join(table, "\n")+"\n" {
+		t.Fatalf("tracked HubSpot release listing differs from the pinned index projection: %v", err)
+	}
+}
+
+func TestC07DropboxPinnedStoneRoutesAndScopes(t *testing.T) {
+	overlay, err := os.ReadFile("catalog-openapi-cache/advisory-overlays/dropbox-core-api-overlay.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	root := catalogUpdateNativeRoot(t.Context(), overlay)
+	paths := mapValue(root["paths"])
+	checked := 0
+	for _, source := range []struct {
+		namespace, digest string
+		routes            map[string]string
+	}{
+		{"files", "b51b87b7ddf0674c61f0b87c7d6db234a1709322193be159ebc384045d2eca20", map[string]string{
+			"download": "files.content.read", "get_metadata": "files.metadata.read", "list_folder": "files.metadata.read",
+			"list_folder/continue": "files.metadata.read", "upload": "files.content.write",
+		}},
+		{"sharing", "06458f97d8a86fabe3c0bbb60ac2c0fb1a083f5aa62d995f0fd160c24debc650", map[string]string{
+			"create_shared_link_with_settings": "sharing.write", "list_shared_links": "sharing.read",
+		}},
+		{"users", "a647702fead660d500a7a90a6ae143dc72f457fedb3182d839adf7b339f359a8", map[string]string{
+			"get_current_account": "account_info.read",
+		}},
+	} {
+		stone := string(readC07PinnedArtifact(t, "dropbox-"+source.namespace+".stone", source.digest))
+		if !strings.HasPrefix(stone, "namespace "+source.namespace+"\n") {
+			t.Fatalf("wrong Stone namespace for %s", source.namespace)
+		}
+		for route, scope := range source.routes {
+			_, declaration, present := strings.Cut(stone, "\nroute "+route+" (")
+			declaration, _, _ = strings.Cut(declaration, "\nroute ")
+			if !present || !strings.Contains(declaration, "\n        scope = "+fmt.Sprintf("%q", scope)) {
+				t.Fatalf("Stone route %s/%s did not prove scope %s", source.namespace, route, scope)
+			}
+			op := mapValue(mapValue(paths["/2/"+source.namespace+"/"+route])["post"])
+			gotSecurity, err := json.Marshal(op["security"])
+			if err != nil || string(gotSecurity) != fmt.Sprintf(`[{"dropboxOAuth2":[%q]}]`, scope) {
+				t.Fatalf("Dropbox overlay scope for %s/%s = %s, %v", source.namespace, route, gotSecurity, err)
+			}
+			if route == "upload" || route == "download" {
+				servers, err := json.Marshal(op["servers"])
+				if err != nil || string(servers) != `[{"url":"https://content.dropboxapi.com"}]` ||
+					!strings.Contains(declaration, "\n        host = \"content\"") {
+					t.Fatalf("Dropbox content host mismatch on %s: %s, %v", route, servers, err)
+				}
+			}
+			checked++
+		}
+	}
+	if len(paths) != checked || checked != 8 {
+		t.Fatalf("reviewed %d of %d Dropbox overlay paths", checked, len(paths))
+	}
+}
+
+func TestC07SlackArchivedPublisherIdentityAndScopes(t *testing.T) {
+	const digest = "8b92da26a3c5b11d20042a9f36d81f1fa6fc9382c5ddc471babb68b91936bc3a"
+	const earlierBlob = "f7b1affd1fb34f9473cd87980428883019b29c07"
+	content := readC07PinnedArtifact(t, "slack-archive.json", digest)
+	// Git uses SHA-1 for the historical blob identifier. The SHA-256 pin
+	// separately proves the retained source bytes.
+	blob := sha1.New()
+	fmt.Fprintf(blob, "blob %d\x00", len(content))
+	blob.Write(content)
+	if fmt.Sprintf("%x", blob.Sum(nil)) != earlierBlob {
+		t.Fatal("archived Slack bytes differ from the earlier reviewed Git blob")
+	}
+	provider, _ := catalog.FindBuiltInProvider("slack")
+	source := catalogUpdateReferenceSources(provider)[0]
+	if catalogUpdateReviewedDigest(source.HeldRevision) != digest || !strings.Contains(source.HeldRevision, "blob:"+earlierBlob) {
+		t.Fatalf("Slack catalog lost the archive identity: %+v", source)
+	}
+	root := catalogUpdateNativeRoot(t.Context(), content)
+	if root["swagger"] != "2.0" || mapValue(root["info"])["version"] != "1.7.0" {
+		t.Fatal("Slack archived Swagger version mismatch")
+	}
+	if mapValue(mapValue(root["securityDefinitions"])["slackAuth"])["type"] != "oauth2" {
+		t.Fatal("Slack archive omitted its reusable OAuth scheme")
+	}
+	for _, selected := range []struct{ path, method, requirements string }{
+		{"/chat.postMessage", "post", `[{"slackAuth":["chat:write:user","chat:write:bot"]}]`},
+		{"/conversations.history", "get", `[{"slackAuth":["channels:history","groups:history","im:history","mpim:history"]}]`},
+	} {
+		op := mapValue(mapValue(mapValue(root["paths"])[selected.path])[selected.method])
+		got, err := json.Marshal(op["security"])
+		if err != nil || string(got) != selected.requirements {
+			t.Fatalf("historic %s security = %s, want %s: %v", selected.path, got, selected.requirements, err)
+		}
+	}
+}
+
+func TestC07LinearTransportAuthAlternatives(t *testing.T) {
+	view, err := catalog.BuiltInSecurityInspectionView("linear")
+	if err != nil {
+		t.Fatal(err)
+	}
+	alternatives := map[string]bool{}
+	for _, set := range view.RootSecuritySets {
+		if set.SpecRefID != "linear-sdk-graphql-sdl" {
+			continue
+		}
+		if len(set.Requirements) != 1 {
+			t.Fatalf("Linear SDK source combined mutually exclusive headers: %+v", set)
+		}
+		alternatives[set.Requirements[0].Requirement.Scheme] = true
+	}
+	if len(alternatives) != 2 || !alternatives["linearSDLPersonalKey"] || !alternatives["linearSDLOAuthBearer"] {
+		t.Fatalf("missing Linear transport auth alternatives: %+v", alternatives)
 	}
 }

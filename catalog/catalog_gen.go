@@ -3,8 +3,8 @@
 package catalog
 
 const generatedCatalogManifestVersion = "apitools.catalog-manifest.v1"
-const generatedCatalogSHA256 = "0118c98b3f07cce24e3e23f898e460211704f3743c267d1f260d6e8463c991a8"
-const generatedCatalogBytes = 1487228
+const generatedCatalogSHA256 = "d68d18e9b301f3f5a3fde091f8011f37564ec65a4c4c33aac48aefe5be382592"
+const generatedCatalogBytes = 1488041
 const generatedCandidateCount = 334
 const generatedProviderCount = 334
 const generatedSpecReferenceCount = 949

@@ -858,13 +858,15 @@ Non-blocking review findings carried past their milestone's review gate. This
 register is approved planning state, never retired with a milestone, and not a
 review copy: one line per finding.
 
-Last used ID: FND-03
+Last used ID: FND-05
 
 | ID | Finding | Severity | Origin | Fix owner | Disposition |
 |---|---|---|---|---|---|
 | FND-01 | Checkpoints need distinguishable rate limits, server failures and timeouts. Provide bounded targeted retries so a temporary publisher issue does not get reported as conclusive freshness evidence. | P2 | [C06](../docs/history/status-C06.md) whole 1, reclassified on C06 code review F04 | [C10.4](../docs/history/status-C10.md#status-record) | fixed in C10.4 |
 | FND-02 | Interrupted update JSON omits checkpoints saved during the same invocation, even though SQLite retains them for resume. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.2 | open |
 | FND-03 | Default CLI fixtures need portable disposable state and broader end-to-end export and overlapping update coverage for the maintenance workflow. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.4 | open |
+| FND-04 | Thirty bounded docs probes returned no readable page in C07. A later publisher source review can check alternate official locations and refresh the affected baseline overlay or gap evidence. | P2 | [C07](status-C07.md#review) whole 1 F2 | unassigned | open |
+| FND-05 | The Google Slides catalog auth overlay applies a read-only root scope without recording a distinct write requirement. Review the selected operation scopes against native publisher evidence before using this overlay for auth-sensitive write guidance. | P2 | [C07](status-C07.md#review) whole 1 F6 | unassigned | open |
 
 - IDs are `FND-01`, `FND-02`, ...: permanent, never reused, separate from status,
   archive and stage IDs. Origin is the milestone and review iteration.

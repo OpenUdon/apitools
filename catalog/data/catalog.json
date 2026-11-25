@@ -14167,7 +14167,7 @@
           "verified_at": "2026-11-25",
           "revision": "sha256:f67bf5699a481ef85735c1846884f3c7c72ea85f858341de3499a90d9039f344",
           "license_note": "HubSpot identifies the API specifications as proprietary. Retain publisher bytes in the local review cache.",
-          "source_note": "Official CRM Contacts OpenAPI from rollout 424. Reviewed list operation uses the contacts object type. Other operations need independent review."
+          "source_note": "Official CRM Contacts OpenAPI from rollout 424. Reviewed list operation uses the contacts object type. Other operations need independent review. Index release 165147 records this family/version as LATEST with the NONE banner. Native qualification uses the separate repository rollout."
         },
         {
           "id": "hubspot-crm-deals-2026-09-openapi",
@@ -14178,7 +14178,7 @@
           "verified_at": "2026-11-25",
           "revision": "sha256:cafe9ee81824c7994fdf3298ef483d5c7fddcebd869ad02ea8b23b09968f1aa1",
           "license_note": "HubSpot identifies the API specifications as proprietary. Retain publisher bytes in the local review cache.",
-          "source_note": "Official CRM Deals OpenAPI from rollout 424. Reviewed list operation uses the deals object type. Other operations need independent review."
+          "source_note": "Official CRM Deals OpenAPI from rollout 424. Reviewed list operation uses the deals object type. Other operations need independent review. Index release 165150 records this family/version as LATEST with the NONE banner. Native qualification uses the separate repository rollout."
         },
         {
           "id": "hubspot-api-docs",
@@ -19841,9 +19841,9 @@
           "source_authority": "official-github",
           "version": "Swagger 2.0 / Slack archive 1.7.0",
           "verified_at": "2026-11-25",
-          "revision": "archive:dfea73e06d146c368d7f94b52ac90796dc4e27e1",
+          "revision": "archive:dfea73e06d146c368d7f94b52ac90796dc4e27e1 blob:f7b1affd1fb34f9473cd87980428883019b29c07 sha256:8b92da26a3c5b11d20042a9f36d81f1fa6fc9382c5ddc471babb68b91936bc3a",
           "license_note": "The archived Slack specification repository is MIT-licensed.",
-          "source_note": "Historical Slack Web API Swagger 1.7.0 evidence. The repository was archived in 2024. Check current method docs and the bounded message/history advisory overlay for current coverage."
+          "source_note": "Historical Slack Web API Swagger 1.7.0 evidence. The repository was archived in 2024. Check current method docs and the bounded message/history advisory overlay for current coverage. Identical Git blob to the earlier catalog reference from repository commit bc08db49625630e3585bf2f1322128ea04f2a7f3."
         },
         {
           "id": "slack-web-api-docs",
@@ -31120,12 +31120,20 @@
           "scheme": "bearer"
         }
       ],
-      "root_security": [
+      "root_security_sets": [
         {
-          "scheme": "linearPersonalKey"
+          "requirements": [
+            {
+              "scheme": "linearPersonalKey"
+            }
+          ]
         },
         {
-          "scheme": "linearOAuthBearer"
+          "requirements": [
+            {
+              "scheme": "linearOAuthBearer"
+            }
+          ]
         }
       ],
       "source_refs": [
@@ -31154,12 +31162,20 @@
           "scheme": "bearer"
         }
       ],
-      "root_security": [
+      "root_security_sets": [
         {
-          "scheme": "linearSDLPersonalKey"
+          "requirements": [
+            {
+              "scheme": "linearSDLPersonalKey"
+            }
+          ]
         },
         {
-          "scheme": "linearSDLOAuthBearer"
+          "requirements": [
+            {
+              "scheme": "linearSDLOAuthBearer"
+            }
+          ]
         }
       ],
       "source_refs": [

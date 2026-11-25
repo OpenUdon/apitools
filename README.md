@@ -62,8 +62,9 @@ reviewed providers**.
 
 Each provider is counted once. Dropbox, Google Ads, Google Calendar, Google
 Gemini API, Google Maps Platform, and Google Sheets use other official specs
-as their primary sources and also have advisory OpenAPI overlays. Slack
-retains its archived Swagger alongside an advisory for two current methods.
+as their primary sources and also have advisory OpenAPI overlays. Hunter
+and Storyblok retain advisories alongside their official OpenAPI sources.
+Slack retains its archived Swagger alongside an advisory for two current methods.
 The qualification records give the reviewed surfaces and artifact evidence.
 [C04](docs/catalog-expansion-c04.md), [C05](docs/catalog-expansion-c05.md),
 [C07](docs/catalog-qualification-c07.md).

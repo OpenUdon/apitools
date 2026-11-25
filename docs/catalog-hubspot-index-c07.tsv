@@ -1,0 +1,378 @@
+service	version	stage	banner	index_release	disposition	qualified_repository_rollout
+Account Account Info	2025-09	STABLE	NONE	75552	stable-candidate	-
+Account Account Info	2026-03	STABLE	NONE	75551	stable-candidate	-
+Account Account Info	2026-09	LATEST	PUBLIC_BETA	138942	public-beta	-
+Account Account Info	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	235328	developer-preview	-
+Account Account Info	3	STABLE	NONE	25201	stable-candidate	-
+Account Audit Logs	2026-03	STABLE	NONE	75272	stable-candidate	-
+Account Audit Logs	2026-09	LATEST	NONE	211232	stable-candidate	-
+Account Audit Logs	3	STABLE	NONE	22116	stable-candidate	-
+Analytics Reporting	2027-03-beta	LATEST	PUBLIC_BETA	184405	public-beta	-
+Auth Oauth	1	STABLE	NONE	22117	stable-candidate	-
+Auth Oauth	2026-03	STABLE	NONE	75328	stable-candidate	-
+Auth Oauth	2026-09	LATEST	NONE	211233	stable-candidate	-
+Auth Oauth	3	STABLE	NONE	67363	stable-candidate	-
+Automation Actions V4	2026-03	STABLE	NONE	75353	stable-candidate	-
+Automation Actions V4	2026-09	LATEST	NONE	211234	stable-candidate	-
+Automation Actions V4	4	STABLE	NONE	22118	stable-candidate	-
+Automation Automation V4	2026-09-beta	DEVELOPER_PREVIEW	NONE	75354	developer-preview	-
+Automation Automation V4	2027-03-beta	DEVELOPER_PREVIEW	NONE	211280	developer-preview	-
+Automation Automation V4	4	DEVELOPER_PREVIEW	NONE	22119	developer-preview	-
+Automation Email Templates	2026-09	LATEST	PUBLIC_BETA	178981	public-beta	-
+Automation Sequences	2026-03	STABLE	NONE	75344	stable-candidate	-
+Automation Sequences	2026-09	LATEST	PUBLIC_BETA	160272	public-beta	-
+Automation Sequences	4	STABLE	NONE	22121	stable-candidate	-
+Business Units Business Units	2026-03	STABLE	NONE	75363	stable-candidate	-
+Business Units Business Units	2026-09	LATEST	NONE	211236	stable-candidate	-
+Business Units Business Units	3	STABLE	NONE	22122	stable-candidate	-
+CMS Authors	2026-03	STABLE	NONE	75364	stable-candidate	-
+CMS Authors	2026-09	LATEST	NONE	211237	stable-candidate	-
+CMS Authors	3	STABLE	NONE	22124	stable-candidate	-
+CMS Blog Settings	2026-03	STABLE	NONE	75327	stable-candidate	-
+CMS Blog Settings	2026-09	LATEST	NONE	211238	stable-candidate	-
+CMS Blog Settings	3	STABLE	NONE	22125	stable-candidate	-
+CMS Cms Content Audit	2026-03	STABLE	NONE	75331	stable-candidate	-
+CMS Cms Content Audit	2026-09	LATEST	NONE	211239	stable-candidate	-
+CMS Cms Content Audit	3	STABLE	NONE	22126	stable-candidate	-
+CMS Domains	2026-03	STABLE	NONE	75374	stable-candidate	-
+CMS Domains	2026-09	LATEST	NONE	211240	stable-candidate	-
+CMS Domains	3	STABLE	NONE	22127	stable-candidate	-
+CMS Folders	2027-03-beta	LATEST	PUBLIC_BETA	256389	public-beta	-
+CMS Graphql	2027-03-beta	LATEST	PUBLIC_BETA	284426	public-beta	-
+CMS Hubdb	2026-03	STABLE	NONE	75317	stable-candidate	-
+CMS Hubdb	2026-09	LATEST	NONE	211250	stable-candidate	-
+CMS Hubdb	3	STABLE	NONE	26239	stable-candidate	-
+CMS Knowledge Base	2027-03-beta	LATEST	PUBLIC_BETA	195740	public-beta	-
+CMS Media Bridge	1	STABLE	NONE	22129	stable-candidate	-
+CMS Media Bridge	2026-03	STABLE	NONE	75338	stable-candidate	-
+CMS Media Bridge	2026-09	LATEST	NONE	211241	stable-candidate	-
+CMS Menus	2027-03-beta	LATEST	PUBLIC_BETA	254609	public-beta	-
+CMS Pages	2026-03	STABLE	NONE	75337	stable-candidate	-
+CMS Pages	2026-09	LATEST	NONE	211242	stable-candidate	-
+CMS Pages	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	265576	developer-preview	-
+CMS Pages	3	STABLE	NONE	22130	stable-candidate	-
+CMS Posts	2026-03	STABLE	NONE	75356	stable-candidate	-
+CMS Posts	2026-09	LATEST	NONE	211243	stable-candidate	-
+CMS Posts	3	STABLE	NONE	22131	stable-candidate	-
+CMS Site Search	2026-03	STABLE	NONE	75375	stable-candidate	-
+CMS Site Search	2026-09	LATEST	NONE	211244	stable-candidate	-
+CMS Site Search	3	STABLE	NONE	22132	stable-candidate	-
+CMS Source Code	2026-03	STABLE	NONE	75329	stable-candidate	-
+CMS Source Code	2026-09	LATEST	NONE	211245	stable-candidate	-
+CMS Source Code	3	STABLE	NONE	22133	stable-candidate	-
+CMS Tags	2026-03	STABLE	NONE	75319	stable-candidate	-
+CMS Tags	2026-09	LATEST	NONE	211246	stable-candidate	-
+CMS Tags	3	STABLE	NONE	22134	stable-candidate	-
+CMS Url Mappings	2026-03	STABLE	NONE	75342	stable-candidate	-
+CMS Url Mappings	2026-09	LATEST	NONE	211247	stable-candidate	-
+CMS Url Mappings	3	STABLE	NONE	22135	stable-candidate	-
+CMS Url Redirects	2026-03	STABLE	NONE	75326	stable-candidate	-
+CMS Url Redirects	2026-09	LATEST	NONE	211248	stable-candidate	-
+CMS Url Redirects	3	STABLE	NONE	22136	stable-candidate	-
+CRM Activity Auto Associations	2027-03-beta	LATEST	PUBLIC_BETA	187255	public-beta	-
+CRM App Uninstalls	2026-03	STABLE	PUBLIC_BETA	75343	public-beta	-
+CRM App Uninstalls	2026-09	LATEST	PUBLIC_BETA	211249	public-beta	-
+CRM App Uninstalls	3	STABLE	PUBLIC_BETA	22137	public-beta	-
+CRM Appointments	2025-09	STABLE	NONE	227882	stable-candidate	-
+CRM Appointments	2026-03	STABLE	NONE	75226	stable-candidate	-
+CRM Appointments	2026-09	LATEST	NONE	165138	stable-candidate	-
+CRM Appointments	3	STABLE	NONE	22138	stable-candidate	-
+CRM Associations	2025-09	STABLE	NONE	75259	stable-candidate	-
+CRM Associations	2026-03	STABLE	NONE	75258	stable-candidate	-
+CRM Associations	2026-09	LATEST	NONE	165139	stable-candidate	-
+CRM Associations	3	STABLE	NONE	25198	stable-candidate	-
+CRM Associations	4	STABLE	NONE	25199	stable-candidate	-
+CRM Associations Schema	2026-03	STABLE	NONE	75238	stable-candidate	-
+CRM Associations Schema	2026-09	LATEST	NONE	211251	stable-candidate	-
+CRM Associations Schema	3	STABLE	NONE	22141	stable-candidate	-
+CRM Associations Schema	4	STABLE	NONE	22142	stable-candidate	-
+CRM Calling Extensions	2026-03	STABLE	NONE	75362	stable-candidate	-
+CRM Calling Extensions	2026-09	LATEST	NONE	216498	stable-candidate	-
+CRM Calling Extensions	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	206835	developer-preview	-
+CRM Calling Extensions	3	STABLE	NONE	22143	stable-candidate	-
+CRM Calls	2025-09	STABLE	NONE	227883	stable-candidate	-
+CRM Calls	2026-03	STABLE	NONE	75288	stable-candidate	-
+CRM Calls	2026-09	LATEST	NONE	165141	stable-candidate	-
+CRM Calls	3	STABLE	NONE	22144	stable-candidate	-
+CRM Carts	2025-09	STABLE	NONE	227884	stable-candidate	-
+CRM Carts	2026-03	STABLE	NONE	75250	stable-candidate	-
+CRM Carts	2026-09	LATEST	NONE	165142	stable-candidate	-
+CRM Carts	3	STABLE	NONE	22145	stable-candidate	-
+CRM Commerce Payments	2025-09	STABLE	NONE	227885	stable-candidate	-
+CRM Commerce Payments	2026-03	STABLE	NONE	75284	stable-candidate	-
+CRM Commerce Payments	2026-09	LATEST	NONE	165143	stable-candidate	-
+CRM Commerce Payments	3	STABLE	NONE	22146	stable-candidate	-
+CRM Commerce Subscriptions	2026-03	DEVELOPER_PREVIEW	NONE	75234	developer-preview	-
+CRM Commerce Subscriptions	2026-09	LATEST	NONE	165144	stable-candidate	-
+CRM Commerce Subscriptions	3	DEVELOPER_PREVIEW	NONE	22147	developer-preview	-
+CRM Communications	2025-09	STABLE	NONE	227886	stable-candidate	-
+CRM Communications	2026-03	STABLE	NONE	75303	stable-candidate	-
+CRM Communications	2026-09	LATEST	NONE	165145	stable-candidate	-
+CRM Communications	3	STABLE	NONE	22148	stable-candidate	-
+CRM Companies	2025-09	STABLE	NONE	227887	stable-candidate	-
+CRM Companies	2026-03	STABLE	NONE	75244	stable-candidate	-
+CRM Companies	2026-09	LATEST	NONE	165146	stable-candidate	-
+CRM Companies	3	STABLE	NONE	22149	stable-candidate	-
+CRM Contacts	2025-09	STABLE	NONE	227888	stable-candidate	-
+CRM Contacts	2026-03	STABLE	NONE	75232	stable-candidate	-
+CRM Contacts	2026-09	LATEST	NONE	165147	qualified-family-version	424
+CRM Contacts	3	STABLE	NONE	22150	stable-candidate	-
+CRM Contracts	2025-09	STABLE	NONE	227889	stable-candidate	-
+CRM Contracts	2026-03	STABLE	NONE	75292	stable-candidate	-
+CRM Contracts	2026-09	LATEST	NONE	165148	stable-candidate	-
+CRM Contracts	3	STABLE	NONE	22151	stable-candidate	-
+CRM Courses	2025-09	STABLE	NONE	227890	stable-candidate	-
+CRM Courses	2026-03	STABLE	NONE	75270	stable-candidate	-
+CRM Courses	2026-09	LATEST	NONE	165149	stable-candidate	-
+CRM Courses	3	STABLE	NONE	22152	stable-candidate	-
+CRM Crm Owners	2026-03	STABLE	NONE	75347	stable-candidate	-
+CRM Crm Owners	2026-09	LATEST	NONE	211252	stable-candidate	-
+CRM Crm Owners	3	STABLE	NONE	22153	stable-candidate	-
+CRM Custom Objects	2025-09	STABLE	NONE	227891	stable-candidate	-
+CRM Custom Objects	2026-03	STABLE	NONE	75278	stable-candidate	-
+CRM Custom Objects	2026-09	LATEST	NONE	165137	stable-candidate	-
+CRM Custom Objects	3	STABLE	NONE	22154	stable-candidate	-
+CRM Data Quality	2027-03-beta	LATEST	PUBLIC_BETA	191199	public-beta	-
+CRM Deal Splits	2026-03	STABLE	NONE	75324	stable-candidate	-
+CRM Deal Splits	2026-09	LATEST	NONE	211253	stable-candidate	-
+CRM Deal Splits	3	STABLE	NONE	22155	stable-candidate	-
+CRM Deals	2026-03	STABLE	NONE	75246	stable-candidate	-
+CRM Deals	2026-09	LATEST	NONE	165150	qualified-family-version	424
+CRM Deals	3	STABLE	NONE	25196	stable-candidate	-
+CRM Discounts	2025-09	STABLE	NONE	227892	stable-candidate	-
+CRM Discounts	2026-03	STABLE	NONE	75266	stable-candidate	-
+CRM Discounts	2026-09	LATEST	NONE	165151	stable-candidate	-
+CRM Discounts	3	STABLE	NONE	22157	stable-candidate	-
+CRM Emails	2025-09	STABLE	NONE	227893	stable-candidate	-
+CRM Emails	2026-03	STABLE	NONE	75305	stable-candidate	-
+CRM Emails	2026-09	LATEST	NONE	165152	stable-candidate	-
+CRM Emails	3	STABLE	NONE	22158	stable-candidate	-
+CRM Exports	2026-03	STABLE	NONE	75339	stable-candidate	-
+CRM Exports	2026-09	LATEST	NONE	211254	stable-candidate	-
+CRM Exports	3	STABLE	NONE	22159	stable-candidate	-
+CRM Feedback Submissions	2025-09	STABLE	NONE	227894	stable-candidate	-
+CRM Feedback Submissions	2026-03	STABLE	NONE	75276	stable-candidate	-
+CRM Feedback Submissions	2026-09	LATEST	NONE	165153	stable-candidate	-
+CRM Feedback Submissions	3	STABLE	NONE	22160	stable-candidate	-
+CRM Fees	2025-09	STABLE	NONE	227895	stable-candidate	-
+CRM Fees	2026-03	STABLE	NONE	75242	stable-candidate	-
+CRM Fees	2026-09	LATEST	NONE	165154	stable-candidate	-
+CRM Fees	3	STABLE	NONE	22161	stable-candidate	-
+CRM Forecast Submissions	2026-09	LATEST	PUBLIC_BETA	193153	public-beta	-
+CRM Forecast Types	2026-09	DEVELOPER_PREVIEW	NONE	75358	developer-preview	-
+CRM Forecast Types	3	DEVELOPER_PREVIEW	NONE	36488	developer-preview	-
+CRM Forecasts	2026-09	DEVELOPER_PREVIEW	NONE	75311	developer-preview	-
+CRM Forecasts	3	DEVELOPER_PREVIEW	NONE	33167	developer-preview	-
+CRM Goal Targets	2025-09	STABLE	NONE	227896	stable-candidate	-
+CRM Goal Targets	2026-03	STABLE	NONE	75268	stable-candidate	-
+CRM Goal Targets	2026-09	LATEST	NONE	165155	stable-candidate	-
+CRM Goal Targets	3	STABLE	NONE	22162	stable-candidate	-
+CRM Imports	2026-03	STABLE	NONE	75332	stable-candidate	-
+CRM Imports	2026-09	LATEST	NONE	211255	stable-candidate	-
+CRM Imports	3	STABLE	NONE	22163	stable-candidate	-
+CRM Invoices	2025-09	STABLE	NONE	227897	stable-candidate	-
+CRM Invoices	2026-03	STABLE	NONE	75254	stable-candidate	-
+CRM Invoices	2026-09	LATEST	NONE	165156	stable-candidate	-
+CRM Invoices	3	STABLE	NONE	22164	stable-candidate	-
+CRM Leads	2025-09	STABLE	NONE	227898	stable-candidate	-
+CRM Leads	2026-03	STABLE	NONE	75224	stable-candidate	-
+CRM Leads	2026-09	LATEST	NONE	165157	stable-candidate	-
+CRM Leads	3	STABLE	NONE	22165	stable-candidate	-
+CRM Limits Tracking	2026-03	STABLE	NONE	75369	stable-candidate	-
+CRM Limits Tracking	2026-09	LATEST	NONE	211256	stable-candidate	-
+CRM Limits Tracking	3	STABLE	NONE	22166	stable-candidate	-
+CRM Line Items	2025-09	STABLE	NONE	227899	stable-candidate	-
+CRM Line Items	2026-03	STABLE	NONE	75315	stable-candidate	-
+CRM Line Items	2026-09	LATEST	NONE	165158	stable-candidate	-
+CRM Line Items	3	STABLE	NONE	22167	stable-candidate	-
+CRM Listings	2025-09	STABLE	NONE	227900	stable-candidate	-
+CRM Listings	2026-03	STABLE	NONE	75252	stable-candidate	-
+CRM Listings	2026-09	LATEST	NONE	165159	stable-candidate	-
+CRM Listings	3	STABLE	NONE	22168	stable-candidate	-
+CRM Lists	2026-03	LATEST	NONE	75349	stable-candidate	-
+CRM Lists	2026-09	DEVELOPER_PREVIEW	PUBLIC_BETA	184424	developer-preview	-
+CRM Lists	3	STABLE	NONE	26235	stable-candidate	-
+CRM Meetings	2025-09	STABLE	NONE	227901	stable-candidate	-
+CRM Meetings	2026-03	STABLE	NONE	75236	stable-candidate	-
+CRM Meetings	2026-09	LATEST	NONE	165160	stable-candidate	-
+CRM Meetings	3	STABLE	NONE	22170	stable-candidate	-
+CRM Notes	2025-09	STABLE	NONE	227902	stable-candidate	-
+CRM Notes	2026-03	STABLE	NONE	75313	stable-candidate	-
+CRM Notes	2026-09	LATEST	NONE	165161	stable-candidate	-
+CRM Notes	3	STABLE	NONE	22171	stable-candidate	-
+CRM Notetaker Conversation Recap	2026-09	LATEST	PUBLIC_BETA	164586	public-beta	-
+CRM Object Library	2026-03	STABLE	NONE	75336	stable-candidate	-
+CRM Object Library	2026-09	LATEST	NONE	211257	stable-candidate	-
+CRM Object Library	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	183419	developer-preview	-
+CRM Object Library	3	STABLE	NONE	22172	stable-candidate	-
+CRM Object Tags	2026-09	LATEST	PUBLIC_BETA	172259	public-beta	-
+CRM Orders	2025-09	STABLE	NONE	227903	stable-candidate	-
+CRM Orders	2026-03	STABLE	NONE	75290	stable-candidate	-
+CRM Orders	2026-09	LATEST	NONE	165162	stable-candidate	-
+CRM Orders	3	STABLE	NONE	22174	stable-candidate	-
+CRM Partner Clients	2025-09	STABLE	NONE	227904	stable-candidate	-
+CRM Partner Clients	2026-03	STABLE	NONE	75282	stable-candidate	-
+CRM Partner Clients	2026-09	LATEST	NONE	165163	stable-candidate	-
+CRM Partner Clients	3	STABLE	NONE	22175	stable-candidate	-
+CRM Partner Services	2025-09	STABLE	NONE	227905	stable-candidate	-
+CRM Partner Services	2026-03	STABLE	NONE	75309	stable-candidate	-
+CRM Partner Services	2026-09	LATEST	NONE	165164	stable-candidate	-
+CRM Partner Services	3	STABLE	NONE	22176	stable-candidate	-
+CRM Pipeline Governance	2026-09	LATEST	PUBLIC_BETA	160733	public-beta	-
+CRM Pipelines	2026-03	STABLE	NONE	75321	stable-candidate	-
+CRM Pipelines	2026-09	LATEST	PUBLIC_BETA	165192	public-beta	-
+CRM Pipelines	3	STABLE	NONE	22177	stable-candidate	-
+CRM Postal Mail	2025-09	STABLE	NONE	227906	stable-candidate	-
+CRM Postal Mail	2026-03	STABLE	NONE	75248	stable-candidate	-
+CRM Postal Mail	2026-09	LATEST	NONE	165165	stable-candidate	-
+CRM Postal Mail	3	STABLE	NONE	22178	stable-candidate	-
+CRM Price Book Items Crm Reads Api	2026-09	LATEST	PUBLIC_BETA	181934	public-beta	-
+CRM Price Books Crm Reads Api	2026-09	LATEST	PUBLIC_BETA	181933	public-beta	-
+CRM Products	2025-09	STABLE	NONE	227907	stable-candidate	-
+CRM Products	2026-03	STABLE	NONE	75228	stable-candidate	-
+CRM Products	2026-09	LATEST	NONE	165166	stable-candidate	-
+CRM Products	3	STABLE	NONE	22179	stable-candidate	-
+CRM Projects	2026-03	STABLE	NONE	75307	stable-candidate	-
+CRM Projects	2026-09	LATEST	NONE	165167	stable-candidate	-
+CRM Projects	3	STABLE	NONE	33116	stable-candidate	-
+CRM Properties	2025-09	STABLE	NONE	75281	stable-candidate	-
+CRM Properties	2026-03	STABLE	NONE	75280	stable-candidate	-
+CRM Properties	2026-09	LATEST	NONE	211231	stable-candidate	-
+CRM Properties	3	STABLE	NONE	25174	stable-candidate	-
+CRM Property Validations	2026-03	STABLE	NONE	75323	stable-candidate	-
+CRM Property Validations	2026-09	LATEST	NONE	211258	stable-candidate	-
+CRM Property Validations	3	STABLE	NONE	22181	stable-candidate	-
+CRM Public App Crm Cards	2026-03	STABLE	NONE	75355	stable-candidate	-
+CRM Public App Crm Cards	2026-09	LATEST	NONE	211259	stable-candidate	-
+CRM Public App Crm Cards	3	STABLE	NONE	22182	stable-candidate	-
+CRM Public App Feature Flags V3	2026-03	STABLE	NONE	75367	stable-candidate	-
+CRM Public App Feature Flags V3	2026-09	LATEST	NONE	211260	stable-candidate	-
+CRM Public App Feature Flags V3	3	STABLE	NONE	22183	stable-candidate	-
+CRM Quotes	2025-09	STABLE	NONE	227908	stable-candidate	-
+CRM Quotes	2026-03	STABLE	NONE	75286	stable-candidate	-
+CRM Quotes	2026-09	LATEST	NONE	165168	stable-candidate	-
+CRM Quotes	3	STABLE	NONE	22184	stable-candidate	-
+CRM Schemas	2026-03	STABLE	NONE	75370	stable-candidate	-
+CRM Schemas	2026-09	LATEST	NONE	211261	stable-candidate	-
+CRM Schemas	3	STABLE	NONE	22185	stable-candidate	-
+CRM Services	2025-09	STABLE	NONE	227909	stable-candidate	-
+CRM Services	2026-03	STABLE	NONE	75230	stable-candidate	-
+CRM Services	2026-09	LATEST	NONE	165169	stable-candidate	-
+CRM Services	3	STABLE	NONE	22186	stable-candidate	-
+CRM Smart Transfer	2027-03-beta	LATEST	PUBLIC_BETA	219878	public-beta	-
+CRM Subscription Lifecycle	1	DEVELOPER_PREVIEW	NONE	36416	developer-preview	-
+CRM Subscription Lifecycle	2026-09-beta	DEVELOPER_PREVIEW	NONE	75371	developer-preview	-
+CRM Subscription Lifecycle	2027-03-beta	DEVELOPER_PREVIEW	NONE	211281	developer-preview	-
+CRM Tasks	2025-09	STABLE	NONE	227910	stable-candidate	-
+CRM Tasks	2026-03	STABLE	NONE	75262	stable-candidate	-
+CRM Tasks	2026-09	LATEST	NONE	165170	stable-candidate	-
+CRM Tasks	3	STABLE	NONE	22187	stable-candidate	-
+CRM Tasks Series	2026-09	LATEST	PUBLIC_BETA	165314	public-beta	-
+CRM Taxes	2025-09	STABLE	NONE	227911	stable-candidate	-
+CRM Taxes	2026-03	STABLE	NONE	75294	stable-candidate	-
+CRM Taxes	2026-09	LATEST	NONE	165171	stable-candidate	-
+CRM Taxes	3	STABLE	NONE	22188	stable-candidate	-
+CRM Tickets	2025-09	STABLE	NONE	227912	stable-candidate	-
+CRM Tickets	2026-03	STABLE	NONE	75274	stable-candidate	-
+CRM Tickets	2026-09	LATEST	NONE	165172	stable-candidate	-
+CRM Tickets	3	STABLE	NONE	22189	stable-candidate	-
+CRM Timeline	2026-03	STABLE	NONE	75345	stable-candidate	-
+CRM Timeline	2026-09	LATEST	NONE	211262	stable-candidate	-
+CRM Timeline	3	STABLE	NONE	22190	stable-candidate	-
+CRM Transcriptions	2026-03	STABLE	NONE	75341	stable-candidate	-
+CRM Transcriptions	2026-09	LATEST	NONE	211263	stable-candidate	-
+CRM Transcriptions	3	STABLE	NONE	22191	stable-candidate	-
+CRM Unified Schemas	2027-03-beta	LATEST	PUBLIC_BETA	245091	public-beta	-
+CRM Users	2025-09	STABLE	NONE	227913	stable-candidate	-
+CRM Users	2026-03	STABLE	NONE	75240	stable-candidate	-
+CRM Users	2026-09	LATEST	NONE	165173	stable-candidate	-
+CRM Users	3	STABLE	NONE	22192	stable-candidate	-
+CRM Video Conferencing Extension	2026-03	STABLE	NONE	75350	stable-candidate	-
+CRM Video Conferencing Extension	2026-09	LATEST	NONE	211264	stable-candidate	-
+CRM Video Conferencing Extension	3	STABLE	NONE	22193	stable-candidate	-
+Commerce Contracts	2026-09-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	163051	developer-preview	-
+Commerce Contracts	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	203771	developer-preview	-
+Commerce Payment Links	2026-09	LATEST	PUBLIC_BETA	119657	public-beta	-
+Commerce Payment Methods	2027-03-beta	LATEST	PUBLIC_BETA	191042	public-beta	-
+Commerce Payments	2027-03-beta	LATEST	PUBLIC_BETA	203462	public-beta	-
+Commerce Payments Settings	2027-03-beta	LATEST	PUBLIC_BETA	191020	public-beta	-
+Commerce Paymentsaccounts	2026-09	LATEST	PUBLIC_BETA	178509	public-beta	-
+Commerce Price Books	2026-09	LATEST	PUBLIC_BETA	145621	public-beta	-
+Communication Preferences Subscriptions	2026-03	STABLE	NONE	75372	stable-candidate	-
+Communication Preferences Subscriptions	2026-09	LATEST	NONE	211265	stable-candidate	-
+Communication Preferences Subscriptions	3	STABLE	NONE	22194	stable-candidate	-
+Communication Preferences Subscriptions	4	STABLE	NONE	22195	stable-candidate	-
+Conversations Conversations	2026-09	LATEST	NONE	75320	stable-candidate	-
+Conversations Conversations	3	STABLE	NONE	22196	stable-candidate	-
+Conversations Custom Channels	2026-03	STABLE	NONE	75359	stable-candidate	-
+Conversations Custom Channels	2026-09	LATEST	NONE	211266	stable-candidate	-
+Conversations Custom Channels	3	STABLE	NONE	22197	stable-candidate	-
+Conversations Visitor Identification	2026-03	STABLE	NONE	75351	stable-candidate	-
+Conversations Visitor Identification	2026-09	LATEST	NONE	211267	stable-candidate	-
+Conversations Visitor Identification	3	STABLE	NONE	22198	stable-candidate	-
+Data Studio Datasource Ingestion	2026-09	LATEST	PUBLIC_BETA	87765	public-beta	-
+Developers Data Sync	2027-03-beta	LATEST	PUBLIC_BETA	226428	public-beta	-
+Events Events	2026-03	STABLE	NONE	75357	stable-candidate	-
+Events Events	2026-09	LATEST	NONE	211268	stable-candidate	-
+Events Events	3	STABLE	NONE	22199	stable-candidate	-
+Events Manage Event Definitions	2026-03	STABLE	NONE	75366	stable-candidate	-
+Events Manage Event Definitions	2026-09	LATEST	NONE	211269	stable-candidate	-
+Events Manage Event Definitions	3	STABLE	NONE	22200	stable-candidate	-
+Events Send Event Completions	2026-03	STABLE	NONE	75361	stable-candidate	-
+Events Send Event Completions	2026-09	LATEST	NONE	211270	stable-candidate	-
+Events Send Event Completions	3	STABLE	NONE	22201	stable-candidate	-
+Files Files	2026-03	STABLE	NONE	75340	stable-candidate	-
+Files Files	2026-09	LATEST	PUBLIC_BETA	143236	public-beta	-
+Files Files	3	STABLE	NONE	22202	stable-candidate	-
+Marketing Aeo	2026-09-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	149685	developer-preview	-
+Marketing Aeo	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	206921	developer-preview	-
+Marketing Campaigns Public Api	2026-03	STABLE	NONE	75325	stable-candidate	-
+Marketing Campaigns Public Api	2026-09	LATEST	PUBLIC_BETA	122230	public-beta	-
+Marketing Campaigns Public Api	3	STABLE	NONE	22203	stable-candidate	-
+Marketing Forms	2026-09-beta	DEVELOPER_PREVIEW	NONE	75368	developer-preview	-
+Marketing Forms	3	DEVELOPER_PREVIEW	NONE	22204	developer-preview	-
+Marketing Lead Scoring	2026-09-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	185543	developer-preview	-
+Marketing Lead Scoring	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	200456	developer-preview	-
+Marketing Marketing Emails	2026-03	STABLE	NONE	75322	stable-candidate	-
+Marketing Marketing Emails	2026-09	LATEST	NONE	211277	stable-candidate	-
+Marketing Marketing Emails	3	STABLE	NONE	35045	stable-candidate	-
+Marketing Marketing Events	2026-03	STABLE	NONE	75335	stable-candidate	-
+Marketing Marketing Events	2026-09	LATEST	NONE	211271	stable-candidate	-
+Marketing Marketing Events	3	STABLE	NONE	22207	stable-candidate	-
+Marketing Single-send	2026-03	STABLE	NONE	75373	stable-candidate	-
+Marketing Single-send	2026-09	LATEST	NONE	211272	stable-candidate	-
+Marketing Single-send	4	STABLE	NONE	22208	stable-candidate	-
+Marketing Transactional Single Send	2026-03	STABLE	NONE	75348	stable-candidate	-
+Marketing Transactional Single Send	2026-09	LATEST	NONE	211273	stable-candidate	-
+Marketing Transactional Single Send	3	STABLE	NONE	22209	stable-candidate	-
+Meta Origins	1	STABLE	NONE	43061	stable-candidate	-
+Meta Origins	2025-09	STABLE	NONE	75223	stable-candidate	-
+Meta Origins	2026-03	STABLE	NONE	75222	stable-candidate	-
+Meta Origins	2026-09	LATEST	NONE	102300	stable-candidate	-
+Scheduler Meetings	2026-03	STABLE	NONE	75352	stable-candidate	-
+Scheduler Meetings	2026-09	LATEST	NONE	216499	stable-candidate	-
+Scheduler Meetings	2026-09-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	185404	developer-preview	-
+Scheduler Meetings	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	208377	developer-preview	-
+Scheduler Meetings	3	STABLE	NONE	22210	stable-candidate	-
+Settings Multicurrency	2026-03	STABLE	NONE	75365	stable-candidate	-
+Settings Multicurrency	2026-09	LATEST	NONE	211274	stable-candidate	-
+Settings Multicurrency	3	STABLE	NONE	22211	stable-candidate	-
+Settings Tax Rates	1	STABLE	NONE	22212	stable-candidate	-
+Settings Tax Rates	2026-03	STABLE	NONE	75334	stable-candidate	-
+Settings Tax Rates	2026-09	LATEST	NONE	211275	stable-candidate	-
+Settings Teams	2026-09	LATEST	PUBLIC_BETA	183672	public-beta	-
+Settings User Provisioning	2026-03	STABLE	NONE	75360	stable-candidate	-
+Settings User Provisioning	2026-09	LATEST	PUBLIC_BETA	179638	public-beta	-
+Settings User Provisioning	3	STABLE	NONE	22213	stable-candidate	-
+Test At Debug	2026-03	DEVELOPER_PREVIEW	NONE	75260	developer-preview	-
+Test At Debug	2026-09-beta	LATEST	NONE	165140	stable-candidate	-
+Test At Debug	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	204230	developer-preview	-
+Test At Debug	3	DEVELOPER_PREVIEW	NONE	22214	developer-preview	-
+Test At Tests	2026-09-beta	LATEST	PUBLIC_BETA	174097	public-beta	-
+Webhooks Journal Webhooks Journal	2026-03	STABLE	NONE	113349	stable-candidate	-
+Webhooks Journal Webhooks Journal	2026-09	LATEST	NONE	211278	stable-candidate	-
+Webhooks Journal Webhooks Journal	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	201113	developer-preview	-
+Webhooks Webhooks	2026-03	STABLE	NONE	75333	stable-candidate	-
+Webhooks Webhooks	2026-09	LATEST	NONE	211276	stable-candidate	-
+Webhooks Webhooks	2027-03-beta	DEVELOPER_PREVIEW	PUBLIC_BETA	193175	developer-preview	-
+Webhooks Webhooks	3	STABLE	NONE	22217	stable-candidate	-

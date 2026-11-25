@@ -11,10 +11,10 @@ evidence in the [C06 code review (xhigh) source note](../docs/history/status-C10
 
 | Item | State | Notes |
 | --- | --- | --- |
-| C07.1 — Prepare the first publisher inventory | `[+]` | Captured 334 unique reviewed providers and 196 machine-readable references, including 195 official references and the historical third-party Kubernetes fixture. The 181 earlier references are sorted in the [offline inventory](../../dist/c06-goal.zgalc0nf/c07-readiness/older-priority.json). Verified the launcher, mount and selected scope. Recorded the one authorized live pass with 302 provider summaries and 160 reference outcomes. C07.5 retains the remaining inventory work. Astra xhigh passed the task review. |
-| C07.2 — Qualify Dropbox, HubSpot and Kubernetes | `[+]` | Compare Dropbox official OpenAPI with the auth and operations in the overlay, then prefer it when qualified. Preserve old Stone references as provenance; UWS already has no Stone wire type. **F14 (Nit, local P1, confirmed).** The [HubSpot inventory](../../catalog_update_sources.go) enumerates services, and the [updater](../../catalog_update.go) stops after listing them. Select the reviewed families, versions and release stages, qualify stable documents through pinned native operation and compatibility checks, and label previews and other services as candidates. Keep any service with insufficient evidence out of the qualified set. Use release-tagged upstream Kubernetes OpenAPI, keep the historical fixture labeled and preserve cluster-specific exports for actual API groups and CRDs. Pinned stable Contacts/Deals list operations and Kubernetes Core Pod list passed with scoped auth evidence. Dropbox retains the reverified advisory overlay and official Stone provenance. HubSpot version migrations remain unexamined. Astra xhigh passed re-review. |
+| C07.1 — Prepare the first publisher inventory | `[+]` | Captured 334 unique reviewed providers and 196 machine-readable references, including 195 official references and the historical third-party Kubernetes fixture. Prepared the 181 earlier references first in the [offline inventory](../../dist/c06-goal.zgalc0nf/c07-readiness/older-priority.json). Verified the launcher, mount and selected scope. Recorded the one authorized live pass with 302 provider summaries and 160 reference outcomes. C07.5 reconciled the deterministic provider-order inventory and the curated catalog. Astra xhigh passed the task review. |
+| C07.2 — Qualify Dropbox, HubSpot and Kubernetes | `[+]` | Compare Dropbox official OpenAPI with the auth and operations in the overlay, then prefer it when qualified. Preserve old Stone references as provenance; UWS already has no Stone wire type. **F14 (Nit, local P1, confirmed).** The [HubSpot inventory](../../catalog_update_sources.go) enumerates services, and the [updater](../../catalog_update.go) stops after listing them. Select the reviewed families, versions and release stages, qualify stable documents through pinned native operation and compatibility checks, and label previews and other services as candidates. Keep any service with insufficient evidence out of the qualified set. Use release-tagged upstream Kubernetes OpenAPI, keep the historical fixture labeled and preserve cluster-specific exports for actual API groups and CRDs. Pinned Contacts/Deals list operations in indexed stable family versions and Kubernetes Core Pod list passed with scoped auth evidence. Dropbox retains the reverified advisory overlay and official Stone provenance. HubSpot version migrations remain unexamined. Astra xhigh passed re-review. |
 | C07.3 — Qualify Stripe, Google Sheets and Slack | `[+]` | Separate Stripe dated stable and preview releases and check the reviewed schema and security. Compare Google Sheets Discovery revision and digest even at the same v4 URL; reconcile the advisory overlay. Retain Slack’s archived Swagger as dated evidence and check current methods and scopes against official docs before proposing gap overlays. Qualified Stripe GA with reviewed auth, compared Sheets revisions and exact pins, and added the current Slack advisory. Astra xhigh passed re-review. |
-| C07.4 — Curate the remaining sources and overlay decisions | `[+]` | Seek official links for existing docs-only and overlay-primary rows. Prefer a usable provider source; otherwise review a bounded endpoint overlay and reproducible builder or record the concrete evidence gap. **F12 (Nit, local P2, confirmed).** Of 161 working-catalog providers without an eligible updater reference, 139 already have a checked-in overlay. Use the [advisory registry](../../catalog/advisory.go) in the [provider summary](../../catalog_update.go) to distinguish advisory coverage, a documented gap and unavailable evidence. Report upstream freshness only when observed. Inspect reusable schemes and effective root/operation auth. Keep each provider's supported subset and license evidence visible. Screened all 160. Qualified four official sources, retained 137 primary advisories and 19 explicit gaps, and recorded the three new local coverage outcomes. Astra xhigh passed re-review. |
+| C07.4 — Curate the remaining sources and overlay decisions | `[+]` | Seek official links for existing docs-only and overlay-primary rows. Prefer a usable provider source; otherwise review a bounded endpoint overlay and reproducible builder or record the concrete evidence gap. **F12 (Nit, local P2, confirmed).** Of 161 working-catalog providers without an eligible updater reference, 139 already have a checked-in overlay. Use the [advisory registry](../../catalog/advisory.go) in the [provider summary](../../catalog_update.go) to distinguish advisory coverage, a documented gap and unavailable evidence. Report upstream freshness only when observed. Inspect reusable schemes and effective root/operation auth. Keep each provider's supported subset and license evidence visible. Attempted all 160 scoped pages, read 130, and deferred 30. Qualified four official sources, retained 137 primary advisories and 19 explicit gaps, and recorded the three new local coverage outcomes. Astra xhigh passed re-review. |
 | C07.5 — Complete and reconcile the first inventory | `[+]` | Run the authorized publisher inventory and account for each of the 334 provider IDs exactly once in the provider summary, with service/reference detail below it. Record actual versions, digests, outcomes, deferrals and review queue. Demonstrate reviewed operations for the six named providers with pinned fixtures; run catalog generation, quality and whole-unit gates. Use C10.4's accepted FND-01 failure classification and retry evidence to reconcile temporary publisher failures. The live run is complete with 334 provider summaries and 195 reference outcomes. Both Jina retries exhausted. C07.2–C07.4 passed. The closed SQLite report reproduced byte for byte, all 25 cache objects matched, and the six source proofs and whole-unit gates passed. Astra xhigh passed the task review. |
 
 ## First publisher run
@@ -142,8 +142,8 @@ All 529 outcomes and the completion timestamp matched SQLite. The resume
 preserved 526 earlier outcomes and changed only the two pending references
 plus the new Jina summary. All 25 cached artifacts passed size and digest
 checks. SQLite retained 17 preferred versions. The final live approval is
-consumed. C07.5 still needs the C07.2–C07.4 qualification and curation results
-and the documented acceptance gates.
+consumed. C07.5 subsequently reconciled this snapshot with the C07.2–C07.4
+results and recorded the acceptance gates.
 
 ## Qualification evidence
 
@@ -239,7 +239,8 @@ SHA-256 `342d094654d8e3355ee64ab2458a8196ffb883f866c91a40856e9d7e7c020556`.
 [Digest and scope check](../../dist/c07-qualification.P2FWoi/c07-5-reconciliation.log).
 
 The [qualification report](../../docs/catalog-qualification-c07.md#first-inventory-reconciliation)
-records all 195 reference dispositions, pin/review outcomes and deferrals.
+summarizes the 195 reference dispositions, pin/review outcomes and deferrals.
+The per-provider receipt retains each reference checkpoint.
 Jina Reader and Search exhausted their bounded retries. Their publisher
 versions remain unresolved. Postmark's candidate Swagger files require
 further qualification. Existing advisory and documented gaps stay distinct
@@ -277,8 +278,72 @@ source copies in ignored storage and provenance recorded. The completed
 first inventory stays closed. C07 execution uses the approved Sol high
 implementation, Astra xhigh task reviews and Opus 5.5 high whole review.
 
-Review gate iterations: 0
+Review gate iterations: 1
+
+Whole review round 1 of 10 started on candidate
+`f64f1a64c5652272756316cccffeafeebbe094e0`, pre-C07 base
+`49862534d0bc85e1b19f0f39068dc8fecf8d4017`. No implementation edits after
+that candidate. The [canonical full diff](../../dist/c07-qualification.P2FWoi/c07-whole-round1-full.diff)
+has SHA-256 `5c4b4bdea3b48d0ffe9ceef1e18f857298ef0c5d55cab1935a69e95b402e22df`.
+The [Opus review brief](../../dist/c07-qualification.P2FWoi/c07-whole-round1-review.txt)
+has SHA-256 `abff8d3a6af9daae6c6b97b43cb421b176122319c663b9fc97896125fec2cc23`.
+
+The whole offline gate passed afresh on that revision with Go 1.26.6:
+build, vet, full Go test suite with pinned C04/C05 and C07 sources, catalog
+generator, catalog quality, search/import help and diff check.
+[Whole verification](../../dist/c07-qualification.P2FWoi/c07-whole-gates.log).
+Effective required gate recovery limit 3 from the approved launch. The
+initial whole build launch on that revision failed setup because PATH selected
+Go 1.25.6 while GOROOT selected the Go 1.26.6 compiler. The explicit Go 1.26.6
+binary recovered the gate on retry. One setup charge, two remaining for
+that key. [Initial setup receipt](../../dist/c07-qualification.P2FWoi/c07-whole-toolchain-selection.log).
+OpenUdon's isolated workspace full suite and Udon's ordinary pinned full
+suite passed. The optional Udon workspace against the local APItools
+candidate retained the pre-C07 offline module limitation above.
 
 Whole review pending, default limit 10. The authorized publisher run provides
 the first-run evidence for C09. Use the [test policy](test-policy.md) and
 [milestone review procedure](milestone.md#milestone-review-procedure).
+
+Round 1 BLOCK from Claude Opus 5.5 high. F1 (P1) confirmed that the active
+evidence gave HubSpot release categories without the index entry listing
+or stage/banner for the selected families. The retained publisher index
+contains the missing evidence. The round also reported scope, pin,
+security, consumer compatibility and evidence findings F2–F14.
+[Full review](../../dist/c07-qualification.P2FWoi/c07-whole-round1-report.md),
+SHA-256 `85ecce2138d25557349f48504f5b8bfcbe3bcae236ac24f953a0386883643ecd`.
+[Model and dispatch receipt](../../dist/c07-qualification.P2FWoi/c07-whole-round1-dispatch.json).
+
+The Round 1 correction records the 377 HubSpot entries with per-entry stage,
+banner and candidate/preview disposition. The pinned index shows Contacts
+release `165147` and Deals release `165150`, each `LATEST` with the `NONE`
+banner. The selected native proofs use independent repository rollout `424`
+at the same family and version. Compatibility stays unexamined. The index
+listing is tracked. [HubSpot evidence](../../docs/catalog-qualification-c07.md#dropbox-hubspot-and-kubernetes).
+
+F3 and F4 were fixed with digest-bound Dropbox Stone and Slack Swagger
+proofs and the matching earlier Slack Git blob. F5 was fixed by disclosing
+the three spec-selection security audit items separately from the historical
+56 reference-level review outcomes. F7 and F8 were addressed by documenting
+and testing provider defaults, checking HubSpot's per-reference auth and
+encoding Linear's alternatives as separate single-requirement sets. F9–F12
+were fixed by retiring stale gap metadata, clarifying the README, checking
+the raw auth facts and requiring the actual HubSpot compatibility
+disposition. F13 was addressed with a tracked HubSpot listing and explicit
+local per-reference evidence and distinct result counts. F14 was clarified
+with the earlier-priority preparation and the actual updater order. The
+Slack artifact registry uses the primary message docs URL and the artifact
+retains both method sources.
+
+F2 carries as FND-04 for the 30 deferred publisher pages. The current
+scope records existing overlay or gap evidence and the exact observation
+for each. F6 carries as FND-05 on pre-existing Google Slides auth.
+Neither carried finding prevents the documented C07 operations or the
+C08 search metadata task.
+
+The correction produced catalog SHA-256
+`d68d18e9b301f3f5a3fde091f8011f37564ec65a4c4c33aac48aefe5be382592`.
+The [updated per-provider reconciliation](../../dist/c07-qualification.P2FWoi/c07-5-reconciled-after-review.json)
+has SHA-256 `80f42e3e2348e80157e36289cdd9c283c0a57f602c26e58cb140003ebcd4f65f`.
+It reproduces the original 334 providers and 195 reference outcomes against
+the corrected catalog and checks the same 25 cache objects.

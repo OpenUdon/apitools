@@ -23,15 +23,28 @@ overlay remains the bounded OpenAPI option, with Stone retained as provenance.
 [Dropbox API model](https://github.com/dropbox/dropbox-api-spec/tree/4876d1a552f34e10a46e293aaf7e344c452af13d),
 [OAuth guide](https://developers.dropbox.com/oauth-guide).
 
-The HubSpot discovery index advertised 130 service families. It marks some
-`LATEST` and `STABLE` releases with a `NONE` banner and marks other entries with
-`PUBLIC_BETA` or `DEVELOPER_PREVIEW` evidence. The updater preserves both the
-stage and the banner. Only the two pinned rollout `424` artifacts above have
-qualified operations here. Other stable index entries and previews remain
-candidates. The index's own spec URLs returned an unusable zero-length HEAD
-response, so qualification used HubSpot's separately published repository.
-The larger rollout `321895` variants produced an operation inventory but failed
-the native shape-table gate. The two selected rollout `424` documents passed it.
+The retained [HubSpot index snapshot](../dist/c07-qualification.P2FWoi/hubspot-index.json)
+was acquired on 2026-11-25 at 17:37:52 UTC. Its 157,619 bytes have SHA-256
+`f87ebe0f3832e411ae631bbb0c03c97c7592562cc3ca94de17d931fd0690d836`.
+The [entry listing](catalog-hubspot-index-c07.tsv) records all 377 versions
+across 130 service families. There are 307 stable candidates, 36 public
+betas, 32 developer previews and two family/versions with a qualified
+repository artifact. The listing has SHA-256
+`826513e3cada75828f0b8d60fd4f6dedd008a9ba69c873c6ee50aae46b17301a`.
+The stage and banner are preserved for each row.
+Developer preview takes precedence when the publisher also shows a beta
+banner. The exact index spec URL for a row is
+`https://api.hubapi.com/public/api/spec/v2/specs/release/{index_release}/version/{version}`.
+
+The selected family/versions are CRM Contacts `2026-09`, index release
+`165147`, and CRM Deals `2026-09`, index release `165150`. Both were
+indexed as `LATEST` with the `NONE` banner. Their spec URLs returned a
+zero-length HEAD result. Qualification used the exact rollout `424`
+bytes from HubSpot's public repository at the same family and version.
+The stage describes the indexed family/version. The Git rollout ID is a
+separate locator, and the index response bytes remain unverified. The
+larger rollout `321895` variants produced operation inventories and failed
+native shape projection. The rollout `424` documents passed that gate.
 [Publisher index](https://api.hubapi.com/public/api/spec/v1/specs),
 [HubSpot's public spec collection](https://github.com/HubSpot/HubSpot-public-api-spec-collection),
 [HubSpot's release notes](https://developers.hubspot.com/changelog/fall-2026-spotlight).
@@ -39,8 +52,14 @@ the native shape-table gate. The two selected rollout `424` documents passed it.
 For both families, the updater comparator returned
 `compatibility-unexamined` for the pinned v3-to-2026-09 comparison and the
 rollout `424`-to-`321895` comparison. These checks use the current review
-selectors and the pinned publisher bytes. Neither transition is qualified
-for automatic migration.
+selectors and the pinned publisher bytes. The independent proof covers
+the selected list operations. Automatic migration requires a conclusive
+compatibility result.
+
+Provider-level resolution selects the Contacts document for HubSpot, Core v1
+for Kubernetes, and the Developer API for Amplitude. Select the exact
+service reference for other scopes. HubSpot's broader publisher index and
+Kubernetes' historical fixture remain separate catalog references.
 
 The two selected HubSpot list operations use separate Contacts and Deals
 scopes. The upstream files describe private apps with a synthetic header.
@@ -109,7 +128,12 @@ separately after reading the document. [Canonical URL](https://developers.google
 [selected operation](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/get).
 
 Slack's archived Swagger `1.7.0`, pinned at
-`dfea73e06d146c368d7f94b52ac90796dc4e27e1`, remains dated evidence. It lists
+`dfea73e06d146c368d7f94b52ac90796dc4e27e1`, remains dated evidence.
+The explicit commit replaces the moving branch URL. The retained bytes
+reproduce the earlier Git blob `f7b1affd1fb34f9473cd87980428883019b29c07`
+and SHA-256 `8b92da26a3c5b11d20042a9f36d81f1fa6fc9382c5ddc471babb68b91936bc3a`.
+The first inventory's validator rejected the raw Swagger. The retained
+copy provides historical auth evidence. It lists
 classic `chat:write:user` and `chat:write:bot` together for message posting.
 It groups all four history scopes into a single requirement. Current docs
 specify `chat:write` for text messages and history scopes relevant to the
@@ -123,9 +147,10 @@ history with `channels:history`, using Slack's current OAuth v2 metadata.
 
 ## Remaining publisher sources and overlays
 
-C07.4 screened one recorded official documentation page for each of the
-160 overlay-first and docs-first providers in the original inventory
-scope. The guarded, unauthenticated reads used an eight-second timeout
+C07.4 attempted one official documentation page for each of the 160
+overlay-first and docs-first providers in the original inventory scope.
+It read 130 pages and deferred the 30 listed below. The guarded,
+unauthenticated reads used an eight-second timeout
 and 3 MiB body limit. They stopped at cross-origin redirects. The
 [screen receipt](../dist/c07-qualification.P2FWoi/docs-screen.json) retains
 each checked URL and time, successful page digest, observed spec link or
@@ -197,7 +222,10 @@ directory.
 
 Of the original 160, four now have a qualified publisher reference, 137
 retain checked-in overlay coverage as primary, and 19 retain an explicit
-source gap. The updater reports the overlay and builder, documented gap,
+source gap. C07 retained the existing 137 overlays and verified their
+checked-in paths, builders and loads. The Postmark, Hunter and Storyblok
+builders were rerun with byte-identical output. The updater reports the
+overlay and builder, documented gap,
 or unexamined coverage in new runs when a provider has no eligible
 publisher references. The completed first inventory keeps its original
 checkpoints for all 334 providers. Local overlay/gap evidence does not
@@ -223,7 +251,9 @@ current CLI reproduced the original report.
 | Over the parser limit | 10 |
 | Size changed | 4 |
 | Publisher retries exhausted | 2 |
-| Publisher source review, source unexamined, spec unexamined | 3 |
+| Publisher source review | 1 |
+| Publisher source unexamined | 1 |
+| Publisher spec unexamined | 1 |
 
 The two exhausted references were Jina Reader and Search. Their version
 and validity remain unresolved. The original run recorded no artifact
@@ -234,10 +264,14 @@ deferral, where the publisher supplied evidence.
 The curated catalog contains the same 334 IDs and 203 eligible publisher
 references. The current coverage totals are 123 OpenAPI/Swagger/index,
 55 other official machine-readable sources, 137 primary advisory overlays
-and 19 documented source gaps. Current curation and supplemental docs
+and 19 documented source gaps. The provider-level security audit queues
+Amplitude, Hunter and Storyblok for source selection because their
+reviewed auth dispositions differ by reference. This queue is separate
+from the 56 reference outcomes marked review-required in the historical
+publisher inventory. Current curation and supplemental docs
 evidence appear alongside the historical outcomes in the
-[334-provider reconciliation](../dist/c07-qualification.P2FWoi/c07-5-provider-reconciliation.json),
-SHA-256 `342d094654d8e3355ee64ab2458a8196ffb883f866c91a40856e9d7e7c020556`.
-The [reconciliation check](../dist/c07-qualification.P2FWoi/c07-5-reconciliation.log)
+[334-provider reconciliation](../dist/c07-qualification.P2FWoi/c07-5-reconciled-after-review.json),
+SHA-256 `80f42e3e2348e80157e36289cdd9c283c0a57f602c26e58cb140003ebcd4f65f`.
+The [reconciliation check](../dist/c07-qualification.P2FWoi/c07-5-reconciled-after-review.log)
 compares exact provider and reference identities and reads the cached
 objects for their lengths and digests.
