@@ -31,6 +31,10 @@ func specMetadata(ctx context.Context, content []byte) (SpecMetadata, bool) {
 	} else if err := yaml.Unmarshal(trimmed, &root); err != nil {
 		return SpecMetadata{}, false
 	}
+	return specMetadataRoot(root)
+}
+
+func specMetadataRoot(root map[string]any) (SpecMetadata, bool) {
 	openapi, _ := root["openapi"].(string)
 	swagger, _ := root["swagger"].(string)
 	if strings.TrimSpace(openapi) == "" && strings.TrimSpace(swagger) == "" {
@@ -119,6 +123,10 @@ func awsOpenAPIMetadata(ctx context.Context, content []byte) (SpecMetadata, bool
 	} else if err := yaml.Unmarshal(trimmed, &root); err != nil {
 		return SpecMetadata{}, false
 	}
+	return awsOpenAPIMetadataRoot(root)
+}
+
+func awsOpenAPIMetadataRoot(root map[string]any) (SpecMetadata, bool) {
 	openapi, _ := root["openapi"].(string)
 	if !strings.HasPrefix(strings.TrimSpace(openapi), "3.") {
 		return SpecMetadata{}, false

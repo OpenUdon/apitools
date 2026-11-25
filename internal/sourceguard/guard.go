@@ -85,6 +85,16 @@ func CheckYAML(kind string, data []byte) error {
 // YAMLDocument validates one bounded alias-free document, retaining its node
 // tree so an index caller can decode it without parsing the source twice.
 func YAMLDocument(ctx context.Context, kind string, data []byte, limits Limits) (*yaml.Node, error) {
+	return yamlDocument(ctx, kind, data, limits, false)
+}
+
+// YAMLDocumentForMetadata allows alias references after charging every
+// expanded visit and scalar byte against the structural limits.
+func YAMLDocumentForMetadata(ctx context.Context, kind string, data []byte) (*yaml.Node, error) {
+	return yamlDocument(ctx, kind, data, DefaultLimits(), true)
+}
+
+func yamlDocument(ctx context.Context, kind string, data []byte, limits Limits, allowAliases bool) (*yaml.Node, error) {
 	if err := checkLimits(ctx, kind, data, limits); err != nil {
 		return nil, err
 	}
@@ -106,6 +116,7 @@ func YAMLDocument(ctx context.Context, kind string, data []byte, limits Limits) 
 	}
 	stack := []item{{node: &document, depth: 0}}
 	work := 0
+	scalarBytes := 0
 	for len(stack) > 0 {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -124,7 +135,19 @@ func YAMLDocument(ctx context.Context, kind string, data []byte, limits Limits) 
 			return nil, fmt.Errorf("%s: YAML nesting exceeds maximum depth %d", kind, limits.MaxNestingDepth)
 		}
 		if current.node.Kind == yaml.AliasNode {
-			return nil, fmt.Errorf("%s: YAML aliases are not supported in untrusted source metadata", kind)
+			if !allowAliases || current.node.Alias == nil {
+				return nil, fmt.Errorf("%s: YAML aliases are not supported in untrusted source metadata", kind)
+			}
+			stack = append(stack, item{node: current.node.Alias, depth: current.depth + 1})
+		}
+		if allowAliases && current.node.Kind == yaml.ScalarNode {
+			scalarBytes += len(current.node.Value)
+			if scalarBytes > limits.MaxDocumentBytes {
+				return nil, fmt.Errorf("%s: expanded YAML scalar data exceeds maximum %d bytes", kind, limits.MaxDocumentBytes)
+			}
+		}
+		if len(current.node.Content) > limits.MaxStructuralItems-work-len(stack) {
+			return nil, fmt.Errorf("%s: YAML node count exceeds maximum %d", kind, limits.MaxStructuralItems)
 		}
 		for i := len(current.node.Content) - 1; i >= 0; i-- {
 			stack = append(stack, item{node: current.node.Content[i], depth: current.depth + 1})

@@ -40,6 +40,18 @@ func correctedCatalogRefreshContent(ref catalog.RefreshableSpecReference, conten
 	if !ok {
 		return content, nil
 	}
+	notes := applyCatalogRefreshCorrection(ref, root)
+	if len(notes) == 0 {
+		return content, nil
+	}
+	normalized, err := json.Marshal(root)
+	if err != nil {
+		return content, nil
+	}
+	return normalized, notes
+}
+
+func applyCatalogRefreshCorrection(ref catalog.RefreshableSpecReference, root map[string]any) []string {
 	var notes []string
 	switch {
 	case isHighLevelRefreshCorrection(ref):
@@ -58,17 +70,8 @@ func correctedCatalogRefreshContent(ref catalog.RefreshableSpecReference, conten
 		if applySpotifyRefreshCorrection(root) {
 			notes = append(notes, "Applied reviewed Spotify refresh correction: removed an external policy extension ref, dropped schema-level boolean required flags, and pruned required entries that are not declared properties.")
 		}
-	default:
-		return content, nil
 	}
-	if len(notes) == 0 {
-		return content, nil
-	}
-	normalized, err := json.Marshal(root)
-	if err != nil {
-		return content, nil
-	}
-	return normalized, notes
+	return notes
 }
 
 func catalogRefreshContentRoot(content []byte) (map[string]any, bool) {

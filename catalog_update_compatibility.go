@@ -66,7 +66,8 @@ func (c *Client) proveCompatibleCatalogVersion(ctx context.Context, store *catal
 	if err != nil {
 		return catalogUpdateUnexamined, err
 	}
-	return compareCatalogUpdate(ctx, before, after, reviewedKeys), nil
+	ref := catalog.RefreshableSpecReference{ProviderID: held.ProviderID, SpecRefID: held.ReferenceID, Kind: catalog.SpecKindOpenAPI, URL: held.Locator}
+	return compareCatalogUpdate(ctx, before, after, reviewedKeys, ref, held.CatalogPin), nil
 }
 
 func sameCatalogUpdateResource(locator, left, right string) bool {
@@ -105,7 +106,7 @@ const (
 // compareCatalogUpdate validates the chosen local sources and compares the
 // previously reviewed operation shapes. An unproven projection is kept for
 // review. Exact contract equality is a sufficient compatibility proof.
-func compareCatalogUpdate(ctx context.Context, baseline, candidate OperationSourceInput, reviewedKeys []string) catalogUpdateComparison {
+func compareCatalogUpdate(ctx context.Context, baseline, candidate OperationSourceInput, reviewedKeys []string, ref catalog.RefreshableSpecReference, baselinePin string) catalogUpdateComparison {
 	if baseline.Kind != OperationSourceOpenAPI || baseline.Kind != candidate.Kind ||
 		len(reviewedKeys) == 0 || baseline.Content == nil || candidate.Content == nil {
 		return catalogUpdateUnexamined
@@ -128,10 +129,12 @@ func compareCatalogUpdate(ctx context.Context, baseline, candidate OperationSour
 	// Native contract comparison catches information intentionally omitted
 	// by shape projection, including the HTTP scheme, OAuth endpoints,
 	// response status codes and media types.
-	for _, source := range []OperationSourceInput{baseline, candidate} {
-		if _, ok := downloadedSpecMetadata(ctx, source.Content, source.URL); !ok {
-			return catalogUpdateUnexamined
-		}
+	prior := catalogUpdateNativeOpenAPI(ctx, baseline.Content, baseline.URL, ref, baselinePin)
+	next := catalogUpdateNativeOpenAPI(ctx, candidate.Content, candidate.URL, ref, "")
+	// Corrections with placeholders or edited security may qualify a reviewed
+	// pin for storage. They cannot prove the original wire contract.
+	if !prior.accepted() || len(prior.CorrectionNotes) != 0 || !next.accepted() {
+		return catalogUpdateUnexamined
 	}
 	left, err := decodeShapeDocument(ctx, baseline.Content)
 	if err != nil {

@@ -3,6 +3,7 @@ package apitools
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/OpenUdon/apitools/catalog"
 	"strings"
 	"testing"
 
@@ -67,13 +68,13 @@ func TestCatalogUpdateCompatibilityChecksNativeHTTPContract(t *testing.T) {
 	keys := []string{"#/paths/~1records/get"}
 	t.Run("informational version bump", func(t *testing.T) {
 		next := strings.Replace(original, `"1.0"`, `"2.0"`, 1)
-		if got := compareCatalogUpdate(t.Context(), source(original), source(next), keys); got != catalogUpdateCompatible {
+		if got := compareCatalogUpdate(t.Context(), source(original), source(next), keys, catalog.RefreshableSpecReference{}, ""); got != catalogUpdateCompatible {
 			t.Fatalf("informational version bump = %s", got)
 		}
 	})
 	t.Run("unrelated literal route", func(t *testing.T) {
 		next := strings.Replace(original, `"paths":{`, `"paths":{"/unrelated":{"get":{"operationId":"unrelated","responses":{"204":{"description":"empty"}}}},`, 1)
-		if got := compareCatalogUpdate(t.Context(), source(original), source(next), keys); got != catalogUpdateCompatible {
+		if got := compareCatalogUpdate(t.Context(), source(original), source(next), keys, catalog.RefreshableSpecReference{}, ""); got != catalogUpdateCompatible {
 			t.Fatalf("unrelated path = %s", got)
 		}
 	})
@@ -81,7 +82,7 @@ func TestCatalogUpdateCompatibilityChecksNativeHTTPContract(t *testing.T) {
 		old := strings.Replace(original, `"title":"Records","version":"1.0"`, `"title":"Records","version":"1.0","contact":{"x-auth":{"type":"http","scheme":"basic"}}`, 1)
 		old = strings.Replace(old, `"account":{"type":"http","scheme":"basic"}`, `"account":{"$ref":"#/info/contact/x-auth"}`, 1)
 		next := strings.Replace(old, `"basic"`, `"bearer"`, 1)
-		if got := compareCatalogUpdate(t.Context(), source(old), source(next), keys); got == catalogUpdateCompatible {
+		if got := compareCatalogUpdate(t.Context(), source(old), source(next), keys, catalog.RefreshableSpecReference{}, ""); got == catalogUpdateCompatible {
 			t.Fatal("adopted an auth change in a referenced extension")
 		}
 	})
@@ -93,7 +94,7 @@ func TestCatalogUpdateCompatibilityChecksNativeHTTPContract(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			next := strings.Replace(original, tc.from, tc.to, 1)
-			if got := compareCatalogUpdate(t.Context(), source(original), source(next), keys); got == catalogUpdateCompatible {
+			if got := compareCatalogUpdate(t.Context(), source(original), source(next), keys, catalog.RefreshableSpecReference{}, ""); got == catalogUpdateCompatible {
 				t.Fatalf("accepted changed native contract: %s", next)
 			}
 		})

@@ -183,10 +183,11 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 }
 
 type catalogUpdateEvidence struct {
-	Source     catalogUpdateSource     `json:"source"`
-	Artifact   *catalogUpdateArtifact  `json:"artifact,omitempty"`
-	Inventory  *catalogUpdateInventory `json:"inventory,omitempty"`
-	Diagnostic string                  `json:"diagnostic,omitempty"`
+	Source     catalogUpdateSource           `json:"source"`
+	Artifact   *catalogUpdateArtifact        `json:"artifact,omitempty"`
+	OpenAPI    *catalogUpdateOpenAPIEvidence `json:"openapi_validation,omitempty"`
+	Inventory  *catalogUpdateInventory       `json:"inventory,omitempty"`
+	Diagnostic string                        `json:"diagnostic,omitempty"`
 }
 
 func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupdate.Store, runID string,
@@ -263,9 +264,15 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 		return emit("publisher-source-review", "The current artifact kind needs a reviewed source recipe.")
 	}
 	if kind == OperationSourceOpenAPI {
-		if _, valid := downloadedSpecMetadata(ctx, body.Bytes(), artifact.URL); !valid {
-			return emit("publisher-spec-invalid", "Local OpenAPI validation did not establish a complete document.")
+		validation := catalogUpdateNativeOpenAPI(ctx, body.Bytes(), artifact.URL, source.refreshReference(), catalogPin)
+		if ctx.Err() != nil {
+			return out, ctx.Err()
 		}
+		evidence.OpenAPI = &validation
+		if !validation.accepted() {
+			return emit("publisher-spec-invalid", "Local validation established neither a valid OpenAPI document nor evidence for the exact reviewed artifact.")
+		}
+		resolved.Version = firstNonEmpty(validation.Version, resolved.Version)
 	} else if _, err := BuildOperationShapeTable(ctx, OperationShapeOptions{
 		Sources: []ShapeSourceInput{{
 			ID: "catalog-update", OperationSourceInput: OperationSourceInput{Kind: kind, URL: artifact.URL, Content: body.Bytes()},
@@ -275,17 +282,13 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 	}
 	object := catalogupdate.Object{SHA256: artifact.SHA256, Bytes: artifact.Bytes}
 	resolved.Revision = firstNonEmpty(resolved.Revision, "sha256:"+artifact.SHA256)
-	if kind == OperationSourceOpenAPI || kind == OperationSourceGoogleDiscovery {
+	if kind == OperationSourceGoogleDiscovery {
 		native, err := decodeShapeDocument(ctx, body.Bytes())
 		if err != nil {
 			return emit("publisher-spec-unexamined", "Native source provenance could not be read within the validation budget.")
 		}
-		if kind == OperationSourceOpenAPI {
-			resolved.Version = firstNonEmpty(stringValue(mapValue(native["info"])["version"]), resolved.Version)
-		} else {
-			resolved.Version = firstNonEmpty(stringValue(native["version"]), resolved.Version)
-			resolved.Revision = firstNonEmpty(stringValue(native["revision"]), resolved.Revision)
-		}
+		resolved.Version = firstNonEmpty(stringValue(native["version"]), resolved.Version)
+		resolved.Revision = firstNonEmpty(stringValue(native["revision"]), resolved.Revision)
 	}
 	evidence.Source = resolved
 	matchesReviewedPin := catalogPin == object.SHA256
@@ -442,17 +445,17 @@ func (c *Client) reconstructCatalogUpdateBaseline(ctx context.Context, store *ca
 		!hasCatalogUpdateReviewedDigest(source.HeldRevision, artifact.SHA256) {
 		return catalogupdate.Version{}, nil
 	}
-	if _, ok := downloadedSpecMetadata(ctx, body.Bytes(), artifact.URL); !ok {
-		return catalogupdate.Version{}, nil
+	validation := catalogUpdateNativeOpenAPI(ctx, body.Bytes(), artifact.URL, source.refreshReference(), artifact.SHA256)
+	if ctx.Err() != nil {
+		return catalogupdate.Version{}, ctx.Err()
 	}
-	doc, err := decodeShapeDocument(ctx, body.Bytes())
-	if err != nil {
+	if !validation.accepted() {
 		return catalogupdate.Version{}, nil
 	}
 	object := catalogupdate.Object{SHA256: artifact.SHA256, Bytes: artifact.Bytes}
 	baseline := catalogupdate.Version{
 		ProviderID: source.ProviderID, ReferenceID: source.ReferenceID, Service: source.Service,
-		Locator: source.URL, URL: source.URL, Version: stringValue(mapValue(doc["info"])["version"]),
+		Locator: source.URL, URL: source.URL, Version: validation.Version,
 		Revision: pieces[2], CatalogPin: artifact.SHA256, CheckedAt: artifact.CheckedAt, Object: object,
 	}
 	if err := store.PutObject(ctx, object, bytes.NewReader(body.Bytes())); err != nil {

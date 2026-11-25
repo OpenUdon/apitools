@@ -833,6 +833,13 @@ updater checks the affected reference and continues the run. The metadata
 export reads one SQLite snapshot and includes schema v2 state without a
 write-side migration.
 
+The updater reads the OpenAPI release version within the source structural
+budget. Operation comparison retains its separate shape work limit. An exact
+catalog digest can reproduce a previously reviewed route or a reviewed
+validation correction. The retained object always contains the publisher's
+original bytes. A corrected view can support pin adoption. Automatic version
+advancement still requires a comparison of the original wire contract.
+
 ### Catalog discovery wire foundations (M80.1)
 
 The additive `apitools.catalog-discovery/v1` types reuse StepContract and

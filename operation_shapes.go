@@ -189,7 +189,7 @@ func decodeShapeDocument(ctx context.Context, data []byte) (map[string]any, erro
 		if err != nil {
 			return nil, err
 		}
-		value, err = shapeYAMLValue(node, nil)
+		value, err = shapeYAMLValue(node, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -255,28 +255,48 @@ func shapeJSONValue(ctx context.Context, d *json.Decoder) (any, error) {
 	return nil, ErrOperationShapeTable
 }
 
-func shapeYAMLValue(n *yaml.Node, path []string) (any, error) {
+func shapeYAMLValue(n *yaml.Node, path []string, mergeBudget *int) (any, error) {
+	nativeMetadata := mergeBudget != nil
 	switch n.Kind {
 	case yaml.DocumentNode:
 		if len(n.Content) != 1 {
 			return nil, ErrOperationShapeTable
 		}
-		return shapeYAMLValue(n.Content[0], path)
+		return shapeYAMLValue(n.Content[0], path, mergeBudget)
+	case yaml.AliasNode:
+		if nativeMetadata && n.Alias != nil {
+			return shapeYAMLValue(n.Alias, path, mergeBudget)
+		}
 	case yaml.MappingNode:
 		out := map[string]any{}
+		var merged map[string]any
 		for i := 0; i < len(n.Content); i += 2 {
 			key := n.Content[i]
 			if key.Kind != yaml.ScalarNode {
 				return nil, ErrOperationShapeTable
 			}
 			name := key.Value
+			if nativeMetadata && key.Tag == "!!merge" {
+				if merged != nil || name != "<<" {
+					return nil, ErrOperationShapeTable
+				}
+				value, err := shapeYAMLValue(n.Content[i+1], path, mergeBudget)
+				if err != nil {
+					return nil, err
+				}
+				merged, err = mergeNativeYAMLMapping(value, mergeBudget)
+				if err != nil {
+					return nil, err
+				}
+				continue
+			}
 			if key.Tag != "!!str" {
 				// Numeric response-code keys are the only accepted non-string
 				// mapping keys. Never coerce arbitrary schema or extension keys.
 				if !shapeYAMLResponseMap(path) || key.Tag != "!!int" && key.Tag != "!!float" || len(key.Value) > 64 {
 					return nil, ErrOperationShapeTable
 				}
-				value, err := shapeYAMLValue(key, nil)
+				value, err := shapeYAMLValue(key, nil, mergeBudget)
 				if err != nil {
 					return nil, err
 				}
@@ -294,17 +314,22 @@ func shapeYAMLValue(n *yaml.Node, path []string) (any, error) {
 			if _, exists := out[name]; exists {
 				return nil, ErrOperationShapeTable
 			}
-			value, err := shapeYAMLValue(n.Content[i+1], append(path, name))
+			value, err := shapeYAMLValue(n.Content[i+1], append(path, name), mergeBudget)
 			if err != nil {
 				return nil, err
 			}
 			out[name] = value
 		}
+		for key, value := range merged {
+			if _, explicit := out[key]; !explicit {
+				out[key] = value
+			}
+		}
 		return out, nil
 	case yaml.SequenceNode:
 		out := make([]any, 0, len(n.Content))
 		for _, child := range n.Content {
-			value, err := shapeYAMLValue(child, append(path, ""))
+			value, err := shapeYAMLValue(child, append(path, ""), mergeBudget)
 			if err != nil {
 				return nil, err
 			}
@@ -312,9 +337,19 @@ func shapeYAMLValue(n *yaml.Node, path []string) (any, error) {
 		}
 		return out, nil
 	case yaml.ScalarNode:
+		if nativeMetadata && n.Style&yaml.TaggedStyle != 0 && n.Tag != "!!str" {
+			var decoded any
+			if err := n.Decode(&decoded); err != nil {
+				return nil, err
+			}
+		}
 		switch n.Tag {
 		case "!!str":
 			return n.Value, nil
+		case "!!timestamp":
+			if nativeMetadata {
+				return n.Value, nil
+			}
 		case "!!null":
 			return nil, nil
 		case "!!bool":
@@ -337,6 +372,27 @@ func shapeYAMLValue(n *yaml.Node, path []string) (any, error) {
 		}
 	}
 	return nil, ErrOperationShapeTable
+}
+
+func mergeNativeYAMLMapping(value any, budget *int) (map[string]any, error) {
+	sources, ok := value.([]any)
+	if !ok {
+		sources = []any{value}
+	}
+	merged := map[string]any{}
+	for _, candidate := range sources {
+		fields, ok := candidate.(map[string]any)
+		if !ok || len(fields) > *budget {
+			return nil, ErrOperationShapeTable
+		}
+		*budget -= len(fields)
+		for key, value := range fields {
+			if _, exists := merged[key]; !exists {
+				merged[key] = value
+			}
+		}
+	}
+	return merged, nil
 }
 
 func sortShapeInputs(inputs []binding.Input) {
