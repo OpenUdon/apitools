@@ -436,24 +436,94 @@ FROM search_operation WHERE search_operation MATCH ? ORDER BY 4,1,2,3`, expressi
 	return rows.Err()
 }
 
-// FTS stemming proposes candidates. Surface words establish operation evidence.
+// FTS stemming proposes candidates. Exact words and simple plurals establish
+// operation evidence from the reviewed label.
 func reviewedOperationEvidence(query, identity, label []string) bool {
 	evidence := false
 	for _, term := range query {
 		if slices.Contains(identity, term) {
 			continue
 		}
-		if !slices.Contains(label, term) {
-			return false
+		matched := false
+		for i, word := range label {
+			// A label can repeat the provider's name. It is still identity,
+			// so plural equivalence cannot turn it into operation evidence.
+			if term != word && slices.Contains(identity, word) {
+				continue
+			}
+			if !reviewedOperationWordMatches(term, word) {
+				continue
+			}
+			matched = true
+			if isGenericReviewedOperationWord(term) || isGenericReviewedOperationWord(word) {
+				continue
+			}
+			switch word {
+			case "user", "users", "product", "products":
+				evidence = evidence || reviewedOperationTarget(label, identity, i)
+			default:
+				evidence = true
+			}
 		}
-		switch term {
-		case "account", "accounts", "api", "apis", "add", "create", "delete", "fetch", "find", "get",
-			"list", "lists", "listing", "listings", "make", "map", "maps", "new", "read", "remove", "send", "status", "update":
-		default:
-			evidence = true
+		if !matched {
+			return false
 		}
 	}
 	return evidence
+}
+
+func isGenericReviewedOperationWord(word string) bool {
+	switch word {
+	case "account", "accounts", "api", "apis", "add", "authenticated", "create", "current", "delete",
+		"fetch", "find", "get", "list", "lists", "listing", "listings", "make", "map", "maps",
+		"new", "one", "read", "remove", "send", "single", "status", "time", "times", "update":
+		return true
+	default:
+		return false
+	}
+}
+
+// A user or product can qualify another resource or occur in a description
+// after that resource. Only a direct target supplies evidence on its own.
+func reviewedOperationTarget(label, identity []string, target int) bool {
+	if target+1 < len(label) {
+		switch label[target+1] {
+		case "by", "or":
+		default:
+			return false
+		}
+	}
+	for i := 1; i < target; i++ {
+		switch label[i] {
+		case "authenticated", "current", "one", "single":
+		default:
+			if !slices.Contains(identity, label[i]) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func reviewedOperationWordMatches(a, b string) bool {
+	if a == b {
+		return true
+	}
+	if len(a) > len(b) {
+		a, b = b, a
+	}
+	if len(a) < 3 || (a == "new" && b == "news") {
+		return false
+	}
+	switch {
+	case strings.HasSuffix(a, "y") && !strings.ContainsRune("aeiou", rune(a[len(a)-2])):
+		return b == strings.TrimSuffix(a, "y")+"ies"
+	case strings.HasSuffix(a, "s"), strings.HasSuffix(a, "x"), strings.HasSuffix(a, "z"),
+		strings.HasSuffix(a, "ch"), strings.HasSuffix(a, "sh"):
+		return b == a+"es"
+	default:
+		return b == a+"s"
+	}
 }
 
 func reviewedSearchWords(text string) []string {

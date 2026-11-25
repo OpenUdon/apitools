@@ -339,9 +339,10 @@ prohibited machinery: that acceptance line is unproven, which is P1.
 - **Stage qualification**: none scheduled in the current APItools horizon;
   M86 and M92 are withdrawn. Any later approved stage-completion milestone
   owns its end-to-end required gates with real pinned artifacts.
-- **Class R checks**: none scheduled. A future real-effect check requires a
-  named owning milestone and separate concrete human authority. Live-network
-  examples in `tech-stack.md` are operator recipes, not default test gates.
+- **Class R checks**: none scheduled. The named C12 readiness and deployment
+  checks and any later C13 Slides source qualification each require separate
+  explicit human authority. Live-network examples in `tech-stack.md` are
+  operator recipes, not default test gates.
 - **Approved other-language tools**: no additional test runner or evidence
   generator is approved. The already documented Python memory-bank API runner
   retains its workflow role and separate compatibility block; it is not a

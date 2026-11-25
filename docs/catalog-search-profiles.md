@@ -67,11 +67,14 @@ lookup. Add `--source reviewed` to include general metadata matches even
 when the query has no strong reviewed result. Add `--json` for the versioned
 `apitools.reviewed-provider-search.v1` report. Exact provider IDs, names,
 and aliases rank first under the catalog's identity normalization. Full-text
-search proposes operations and verifies the query's substantive words against
-the selected operation label and provider identity. Stem-only or incidental
-matches stay at provider metadata relevance. The report identifies the match
-type and gives selectors and digests for up to 10 matched operations per
-provider.
+search proposes operations. A covered match requires substantive evidence in
+the selected label, allowing simple singular and plural forms such as
+“message” and “messages.” Provider identity words keep their exact matching
+rules. A query for “list user” can match “list users.” A label that mentions
+a user or product while describing another resource needs additional evidence
+from the query. A broad word such as “time” alone can still find providers by
+metadata. The report identifies the match type
+and gives selectors and digests for up to 10 matched operations per provider.
 
 With no source or provider URL specified, the CLI returns reviewed results
 when the top match is an exact provider or a covered operation. Metadata and

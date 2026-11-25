@@ -412,3 +412,46 @@ record the replacement and routing evidence.
    an explicit provider hostname enables one non-recursive RFC 9727 lookup;
    public-apis probing remains a compatibility fallback.
 ```
+
+
+## 2026-11-25 — C13 owns findings remediation before C12
+
+**Original source.** C12 specification in the roadmap at
+`c5072d43a83e9601a0965ca770669fa8e29c19bb`.
+
+**Replacement.** [C13](../../memory-bank/milestone.md#c13--reviewed-catalog-findings)
+gates C12 and owns FND-05, FND-07 and FND-08. The owner deferred FND-04 in the
+[direct planning approval](../../memory-bank/status-C13.md#planning-approval-and-deferral).
+The [C12 specification](../../memory-bank/milestone.md#c12--public-catalog-website)
+keeps site auth guidance excluded, verifies site search on its own acceptance
+and assigns horizon closure to C12.5.
+
+**Superseded wording.**
+
+````markdown
+
+**Dependency and owner.** After accepted [C09](../docs/history/status-C09.md). APItools owns
+the static site generator, committed monthly change records, manual GitHub
+Pages workflow and maintenance-skill additions. **Parallel-safe: no.** C11 is
+skipped because the [M86](status-M86.md) records use an unqualified `C11` for
+`UWS:C11`. C12 is outside the C09 launch reference and needs its own launch
+after C09. This is new requested work approved on 2026-11-25, with
+corrections approved later the same day, so no P1/P2 review label applies.
+[C12 ledger](status-C12.md).
+
+**Closing duty.** C12 becomes the last active milestone of the catalog
+horizon, so C12.5 owns horizon closure of the
+[open review findings](#open-review-findings) register, including FND-04,
+FND-05, FND-07 and FND-08, under the register's existing rules. Findings owned
+by C09 rows stay with C09. C09's rows and its integrated C06–C09/C10 review are
+unchanged; only the register's horizon closure moves from C09 to C12.
+
+[FND-07](#open-review-findings) (plural recall and
+incidental label terms) is open, so site search must not present that
+limitation as a capability claim.
+
+**Excluded.** Spec or overlay bytes; auth guidance
+([FND-05](#open-review-findings) remains open); hosted semantic search;
+accounts; user submissions; analytics; logos; third-party assets; and
+`"current"` or `"latest"` claims.
+````

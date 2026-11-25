@@ -552,7 +552,7 @@ concurrent ledger writers. A goal-protocol run keeps its own scoped ownership ru
 
 ## Current Dashboard
 
-The remaining APItools catalog milestone is **C12**.
+The remaining APItools catalog order is **C13 → C12**.
 Reviewed-provider search and embeddings passed
 [C08](../docs/history/status-C08.md) whole review 2.
 [C06](../docs/history/status-C06.md) delivered the update CLI, SQLite state
@@ -563,6 +563,8 @@ and 195 reference outcomes. Provider qualification and inventory
 reconciliation are accepted after whole review 2.
 [C09](../docs/history/status-C09.md) delivered the monthly job, operator
 recovery and agent skill after three integrated review rounds.
+[C13](#c13--reviewed-catalog-findings) addresses the open reviewed-search and
+Google Slides findings before website work starts.
 [C12](#c12--public-catalog-website) plans the public catalog website at
 `apis.kinet.com` and owns horizon closure of the open review findings register.
 The work is package-local and serial. [C07 retired record](../docs/history/status-C07.md).
@@ -626,7 +628,8 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| C12 | [status-C12.md](status-C12.md) | Pending; requires accepted C09 |
+| C13 | [status-C13.md](status-C13.md) | Pending, after accepted C09 |
+| C12 | [status-C12.md](status-C12.md) | Pending, after accepted C13 |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
 
 Closed milestones are recorded in the history index.
@@ -677,23 +680,94 @@ hosted embedding check. Record the publisher scope, configured cache directory,
 network or metered budget as applicable, stop conditions and outcomes.
 Installing a real user schedule is a subsequent operator choice.
 
+### C13 — Reviewed catalog findings
+
+**Dependency and owner.** After accepted [C09](../docs/history/status-C09.md).
+APItools owns this serial milestone. **Parallel-safe: no.** C12 requires
+accepted C13 and has its own launch. Follow the implementation, task review
+and whole-review model roles in [Monthly reviewed catalog](#monthly-reviewed-catalog).
+[C13 ledger](status-C13.md).
+
+**Scope and acceptance.**
+
+- C13.1 fixes FND-07. Measure before-and-after precision and recall against
+  fixed expectations for reviewed operation labels and exact selectors.
+  Recover genuine singular and plural matches such as `send slack messages`.
+  Exercise incidental matches such as `list user` and `time` and retain the
+  rejected stem cases, including `accounting` and `intuit quickbook`.
+  Require the named positive selectors and reject the named false positives.
+  Preserve exact-provider ranking, metadata suggestions and source provenance.
+- C13.2 fixes FND-08. When an implicit public lookup returns an error and
+  the CLI returns reviewed suggestions, emit a clear diagnostic on stderr in
+  text and JSON modes. Preserve reviewed stdout and the successful exit
+  status. Cover empty successful lookup, failed lookup, explicit-source
+  selection and publisher-scoped routing with offline fixtures.
+- C13.3 fixes FND-05. Replace the blanket read-only Google Slides advisory
+  with operation-scoped evidence for `presentations.get`,
+  `presentations.pages.get`, `presentations.pages.getThumbnail`,
+  `presentations.create` and `presentations.batchUpdate`. Verify exact native
+  method and path selectors and publisher-declared presentation scopes for
+  those reads and writes. Record scope alternatives and ambiguities in the
+  evidence. Other operations and the wider root-scope overlay class remain
+  unreviewed.
+
+**Slides evidence boundary.** The retained Google SDK Discovery snapshots
+`google.golang.org/api@v0.221.0` and `v0.259.0` agree that the three reads
+list `presentations.readonly` and the two writes list `presentations`
+without listing `presentations.readonly`. The latter snapshot is revision
+`20250401`. Its `slides/v1/slides-api.json` has SHA-256
+`f45d36026cc10cbb790a83405dc774c5815d9287604bdfd335475fd1cae0b022`.
+Its bytes match the cached module ZIP, whose recorded checksum matches
+Udon's pin. This is revision-qualified evidence. The catalog's
+canonical reference records revision `20260513`. The inspected cache did
+not contain those bytes, and C07 retained no downloadable artifact for
+that reference. If the retained evidence cannot support the bounded
+correction, pause C13.3 for separately approved Class R source qualification.
+
+**Verification and compatibility.** Use local Class O fixtures and fresh
+whole-package tests, build, vet, generator freshness, catalog quality, CLI
+help and diff checks under the [test policy](test-policy.md#project-specifics).
+Run affected whole-unit races where the policy requires them. Verify changed
+search and auth behavior against immutable OpenUdon and Udon snapshots.
+Preserve the Go API, JSON schemas, SQLite formats and consumer pins. Document
+actual evidence and resolve the three findings before independent milestone
+acceptance. Whole review starts at 0/10. This work fits the existing catalog
+and search direction and needs no evolution bump.
+
+**Implementation write set.** Reviewed-search and CLI code and tests,
+Google Slides catalog data and generated outputs, related evidence fixtures
+and docs, and the C13 and findings records.
+
+**Authority.** The following requirements apply to a later approved C13
+execution. Any live Slides source qualification needs separate explicit
+human approval. No Class R run is scheduled.
+
+```yaml
+AUTHORIZATION_REQUIREMENTS:
+  git.commit:
+    via: goal-policy
+    executor: assigned-agent
+  cli.local:
+    via: goal-policy
+    executor: assigned-agent
+    scope: declared-implementation-and-verification
+```
+
 ### C12 — Public catalog website
 
-**Dependency and owner.** After accepted [C09](../docs/history/status-C09.md). APItools owns
+**Dependency and owner.** After accepted [C13](status-C13.md). APItools owns
 the static site generator, committed monthly change records, manual GitHub
 Pages workflow and maintenance-skill additions. **Parallel-safe: no.** C11 is
 skipped because the [M86](status-M86.md) records use an unqualified `C11` for
-`UWS:C11`. C12 is outside the C09 launch reference and needs its own launch
-after C09. This is new requested work approved on 2026-11-25, with
+`UWS:C11`. C12 needs its own launch after C13. This is new requested work
+approved on 2026-11-25, with
 corrections approved later the same day, so no P1/P2 review label applies.
 [C12 ledger](status-C12.md).
 
 **Closing duty.** C12 becomes the last active milestone of the catalog
-horizon, so C12.5 owns horizon closure of the
-[open review findings](#open-review-findings) register, including FND-04,
-FND-05, FND-07 and FND-08, under the register's existing rules. Findings owned
-by C09 rows stay with C09. C09's rows and its integrated C06–C09/C10 review are
-unchanged; only the register's horizon closure moves from C09 to C12.
+horizon. C12.5 owns closure of the [open review findings](#open-review-findings)
+register under its existing rules. Verify the accepted C13 dispositions for
+FND-05, FND-07 and FND-08 and the owner-approved FND-04 deferral.
 
 **Approved decisions (2026-11-25).**
 
@@ -725,9 +799,9 @@ restrictive in-page CSP, and emit accessible markup. Site search matches words
 in public profile text and must not present an incidental operation-label
 match as a supported capability. It follows the evidence rules accepted in
 [C08](../docs/history/status-C08.md#status-record), whose whole review round 1
-P1-1 closed in round 2. [FND-07](#open-review-findings) (plural recall and
-incidental label terms) is open, so site search must not present that
-limitation as a capability claim. Before sign-off, C12.1
+P1-1 closed in round 2. C13.1 owns the CLI search correction for
+[FND-07](#open-review-findings). C12.3 verifies the website's own
+public-profile search behavior. Before sign-off, C12.1
 resolves how operation labels such as Jenkins "Get CSRF crumb" and FileMaker
 "Delete session" are published; these examples come from C08 whole review
 round 1 L-2 ([C08 record](../docs/history/status-C08.md#status-record)). Compare two reviewed revisions
@@ -752,10 +826,10 @@ Each deployment is a counted class R attempt under the
 [verification-attempt gate](#verification-attempt-gate) and its existing
 limit.
 
-**Excluded.** Spec or overlay bytes; auth guidance
-([FND-05](#open-review-findings) remains open); hosted semantic search;
-accounts; user submissions; analytics; logos; third-party assets; and
-`"current"` or `"latest"` claims.
+**Excluded.** Spec or overlay bytes, auth guidance, hosted semantic search,
+accounts, user submissions, analytics, logos, third-party assets and
+`"current"` or `"latest"` claims. The auth-guidance exclusion applies
+throughout C12, including after C13.3 settles FND-05.
 
 **Acceptance.**
 
@@ -972,11 +1046,11 @@ Last used ID: FND-08
 | FND-01 | Checkpoints need distinguishable rate limits, server failures and timeouts. Provide bounded targeted retries so a temporary publisher issue does not get reported as conclusive freshness evidence. | P2 | [C06](../docs/history/status-C06.md) whole 1, reclassified on C06 code review F04 | [C10.4](../docs/history/status-C10.md#status-record) | fixed in C10.4 |
 | FND-02 | Interrupted update JSON omits checkpoints saved during the same invocation, even though SQLite retains them for resume. | Lower | [C06](../docs/history/status-C06.md) whole 1 | [C09.2](../docs/history/status-C09.md#status-record) | fixed in C09.2 |
 | FND-03 | Default CLI fixtures need portable disposable state and broader end-to-end export and overlapping update coverage for the maintenance workflow. | Lower | [C06](../docs/history/status-C06.md) whole 1 | [C09.4](../docs/history/status-C09.md#status-record) | fixed in C09.4 |
-| FND-04 | Thirty bounded docs probes returned no readable page in C07. A later publisher source review can check alternate official locations, refresh affected overlays and clarify the inherited gap evidence. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F2 | unassigned | open |
-| FND-05 | The Google Slides catalog auth overlay applies a read-only root scope without recording a distinct write requirement. Review the selected operation scopes against native publisher evidence before using this overlay for auth-sensitive write guidance. The wider root-scope overlay class remains unreviewed. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F6 | unassigned | open |
+| FND-04 | Thirty bounded docs probes returned no readable page in C07. A later publisher source review can check alternate official locations, refresh affected overlays and clarify the inherited gap evidence. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F2 | unassigned | deferred by human: [2026-11-25 direct C13 proposal approval](status-C13.md#planning-approval-and-deferral) |
+| FND-05 | The Google Slides catalog auth overlay applies a read-only root scope without recording a distinct write requirement. Review the selected operation scopes against native publisher evidence before using this overlay for auth-sensitive write guidance. The wider root-scope overlay class remains unreviewed. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F6 | [C13.3](status-C13.md#tasks) | open |
 | FND-06 | HubSpot lists Test At Debug version 2026-09-beta with stage LATEST and no banner. Preserve the publisher evidence and distinguish conflicting version labels before relying on Stable in recurring inventory reports. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 2 N1 | [C09.4](../docs/history/status-C09.md#status-record) | fixed in C09.4 |
-| FND-07 | Reviewed search can miss plural operation matches and let incidental label terms count as operation evidence. Evaluate both recall and precision against reviewed labels while preserving the rejected stem regressions. | P2 | [C08](../docs/history/status-C08.md#status-record) whole 2 N-1 | unassigned | open |
-| FND-08 | When the default public-directory lookup fails and reviewed suggestions are available, the CLI gives those suggestions without showing the public failure. Expose the failed lookup while preserving review results and the explicit-source behavior. | P2 | [C08](../docs/history/status-C08.md#status-record) whole 2 N-3 | unassigned | open |
+| FND-07 | Reviewed search can miss plural operation matches and let incidental label terms count as operation evidence. Evaluate both recall and precision against reviewed labels while preserving the rejected stem regressions. | P2 | [C08](../docs/history/status-C08.md#status-record) whole 2 N-1 | [C13.1](status-C13.md#tasks) | fixed in C13.1 |
+| FND-08 | When the default public-directory lookup fails and reviewed suggestions are available, the CLI gives those suggestions without showing the public failure. Expose the failed lookup while preserving review results and the explicit-source behavior. | P2 | [C08](../docs/history/status-C08.md#status-record) whole 2 N-3 | [C13.2](status-C13.md#tasks) | open |
 
 - IDs are `FND-01`, `FND-02`, ...: permanent, never reused, separate from status,
   archive and stage IDs. Origin is the milestone and review iteration.

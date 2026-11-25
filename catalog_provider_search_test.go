@@ -98,6 +98,94 @@ func TestReviewedSearchFiltersIncidentalCapabilityWords(t *testing.T) {
 	}
 }
 
+func TestReviewedSearchCapabilityEvidenceMatrix(t *testing.T) {
+	const slackPost = "#/paths/~1chat.postMessage/post"
+	const squareRefund = "#/paths/~1v2~1refunds/post"
+	const stripeRefund = "#/paths/~1v1~1refunds/post"
+	const mercadoRefund = "#/paths/~1v1~1payments~1{id}~1refunds/post"
+	const wordpressUsers = "#/paths/~1users/get"
+	const clockifyEntries = "#/paths/~1v1~1workspaces~1{workspace_id}~1time-entries/get"
+	const bambooRequests = "#/paths/~1v1~1time_off~1requests/get"
+	const jotformFolders = "#/paths/~1user~1folders/get"
+	cases := []struct {
+		query, provider, selector string
+		want                      bool
+	}{
+		{"send slack message", "slack", slackPost, true},
+		{"send slack messages", "slack", slackPost, true},
+		{"refund a Square payment", "square", squareRefund, true},
+		{"refund Square payments", "square", squareRefund, true},
+		{"refunds", "stripe", stripeRefund, true},
+		{"refunds", "square", squareRefund, true},
+		{"refunds", "mercado-pago", mercadoRefund, true},
+		{"refund payments", "stripe", stripeRefund, true},
+		{"refund payments", "square", squareRefund, true},
+		{"refund payments", "mercado-pago", mercadoRefund, true},
+		{"list user", "wordpress", wordpressUsers, true},
+		{"list users", "wordpress", wordpressUsers, true},
+		{"list clockify time entry", "clockify", clockifyEntries, true},
+		{"list clockify time entries", "clockify", clockifyEntries, true},
+		{"list user folders", "jotform", jotformFolders, true},
+		{"list time off requests", "bamboohr", bambooRequests, true},
+		{"get product", "gumroad", "#/paths/~1v2~1products~1{product_id}/get", true},
+		{"get product", "shopify", "#/paths/~1products~1{productId}.json/get", true},
+		{"list tag", "wordpress", "#/paths/~1tags/get", true},
+		{"list job", "cortex", "#/paths/~1job/get", true},
+		{"get npm user", "npm", "#/paths/~1-~1whoami/get", true},
+		{"get reddit user", "reddit", "#/paths/~1api~1v1~1me/get", true},
+		{"get current facebook user", "facebook", "#/paths/~1me/get", true},
+		{"telegram updates", "telegram", "#/paths/~1getUpdates/post", true},
+		{"list user", "eventbrite", "#/paths/~1users~1me~1organizations~1/get", false},
+		{"list user", "jotform", jotformFolders, false},
+		{"list user", "medium", "#/paths/~1users~1{user_id}~1publications/get", false},
+		{"list user", "nvidia-dsx-air", "#/paths/~1api~1v3~1announcements~1/get", false},
+		{"time", "bamboohr", bambooRequests, false},
+		{"time", "clockify", clockifyEntries, false},
+		{"time", "google-calendar", "#/paths/~1freeBusy/post", false},
+		{"get product", "plaid", "#/paths/~1processor~1token~1permissions~1get/post", false},
+		{"get one product", "plaid", "#/paths/~1processor~1token~1permissions~1get/post", false},
+		{"telegram update", "telegram", "#/paths/~1getUpdates/post", false},
+		{"time", "acuity-scheduling", "#/paths/~1availability~1times/get", false},
+	}
+	client := &Client{}
+	var truePositives, expected, predicted int
+	for _, tc := range cases {
+		report, err := client.SearchReviewedProviders(t.Context(), ReviewedProviderSearchOptions{
+			Query: tc.query, Limit: len(catalog.BuiltInProviderSearchProfiles()),
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		found := false
+		for _, result := range report.Results {
+			if result.Profile.ProviderID != tc.provider {
+				continue
+			}
+			for _, capability := range result.MatchedCapabilities {
+				if capability.Selector == tc.selector {
+					found = true
+					if result.Match != ReviewedProviderOperationMatch || capability.SpecRefID == "" || len(capability.SHA256) != 64 {
+						t.Errorf("%q lost source evidence for %s %s", tc.query, tc.provider, tc.selector)
+					}
+				}
+			}
+		}
+		if found {
+			predicted++
+		}
+		if tc.want {
+			expected++
+			if found {
+				truePositives++
+			}
+		}
+		if found != tc.want {
+			t.Errorf("%q %s %s: capability matched = %t, want %t", tc.query, tc.provider, tc.selector, found, tc.want)
+		}
+	}
+	t.Logf("precision %d/%d, recall %d/%d across %d fixed query-selector cases", truePositives, predicted, truePositives, expected, len(cases))
+}
+
 func TestReviewedSearchPinnedSelectors(t *testing.T) {
 	priorDir := os.Getenv("APITOOLS_CATALOG_QUALIFICATION_DIR")
 	curatedDir := os.Getenv("APITOOLS_C07_QUALIFICATION_DIR")
