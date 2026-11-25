@@ -556,8 +556,8 @@ The current APItools catalog horizon is **C07 → C08 → C09**.
 [C06](../docs/history/status-C06.md) delivered the update CLI, SQLite state
 and artifact storage. C04 and C05 qualified the 334-provider baseline.
 [C10](../docs/history/status-C10.md) delivered the updater repairs. C07.1
-awaits separate approval for the first publisher inventory. The work is
-package-local and serial.
+recorded the first supervised publisher pass, which yielded 302 provider
+summaries and left 32 pending. The work is package-local and serial.
 See the [status index](#status-files) and
 [catalog acceptance criteria](#monthly-reviewed-catalog).
 
@@ -618,7 +618,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| C07 | [status-C07.md](status-C07.md) | Awaiting separate approval for the first publisher run |
+| C07 | [status-C07.md](status-C07.md) | First pass recorded in C07.1. Provider qualification and inventory reconciliation remain open. |
 | C08 | [status-C08.md](status-C08.md) | Pending; requires accepted C07 |
 | C09 | [status-C09.md](status-C09.md) | Pending; requires accepted C08; integrated closure |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
