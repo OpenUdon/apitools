@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -18,6 +20,81 @@ import (
 	"github.com/OpenUdon/apitools/catalog"
 	"github.com/OpenUdon/apitools/internal/catalogupdate"
 )
+
+func TestCatalogUpdateResumesAfterInterruptedSQLiteWrite(t *testing.T) {
+	const childStateKey = "APITOOLS_TEST_C10_HOT_JOURNAL"
+	if state := os.Getenv(childStateKey); state != "" {
+		db, err := sql.Open("sqlite", state)
+		if err != nil {
+			t.Fatal(err)
+		}
+		db.SetMaxOpenConns(1)
+		if _, err := db.Exec(`PRAGMA cache_size = 3; BEGIN IMMEDIATE; UPDATE crash_fixture SET payload = replace(payload, '0', '1');`); err != nil {
+			t.Fatal(err)
+		}
+		os.Exit(23)
+	}
+	ctx := t.Context()
+	cfg := newCatalogRepairFixture(t)
+	cache, err := catalogupdate.OpenArtifactCache(cfg.CacheDir, "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	store, err := catalogupdate.OpenStore(ctx, cfg.StateDB, cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalogSHA := catalog.BuiltInCatalogManifest().CatalogSHA256
+	settings, err := json.Marshal(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	identity := fmt.Sprintf("%x", sha256.Sum256(append([]byte(catalogSHA+"\n"), settings...)))
+	run, err := store.StartRunSnapshot(ctx, identity, catalogSHA, []string{"attio"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Close(); err != nil {
+		t.Fatal(err)
+	}
+	db, err := sql.Open("sqlite", cfg.StateDB)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.ExecContext(ctx, `
+CREATE TABLE crash_fixture(payload TEXT);
+WITH RECURSIVE seq(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM seq WHERE i < 300)
+INSERT INTO crash_fixture SELECT printf('%03500d', 0) FROM seq;`); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+	child := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestCatalogUpdateResumesAfterInterruptedSQLiteWrite$")
+	child.Env = append(os.Environ(), childStateKey+"="+cfg.StateDB)
+	output, err := child.CombinedOutput()
+	var exit *exec.ExitError
+	if !errors.As(err, &exit) || exit.ExitCode() != 23 {
+		t.Fatalf("could not stage interrupted SQLite writer: %s %v", output, err)
+	}
+	options := CatalogUpdateOptions{Resume: run.ID, Config: CatalogUpdateConfig{StateDB: cfg.StateDB}}
+	if _, err := (&Client{}).UpdateCatalog(ctx, options); !errors.Is(err, catalogupdate.ErrRunJournalRecovery) {
+		t.Fatalf("read-only inspection unexpectedly recovered SQLite: %v", err)
+	}
+	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
+		if r.Method != http.MethodHead || r.URL.Host != "api.attio.com" {
+			t.Fatalf("unexpected fixture request: %s %s", r.Method, r.URL)
+		}
+		return &http.Response{StatusCode: http.StatusMethodNotAllowed, Header: make(http.Header), Body: http.NoBody, Request: r}, nil
+	})}}
+	options.Config = cfg
+	result, err := client.UpdateCatalog(ctx, options)
+	if err != nil || !result.Completed || result.RunID != run.ID || result.RunIdentity != identity ||
+		len(result.Outcomes) != 2 || result.Outcomes[1].Status != catalogUpdateSizeUnknown {
+		t.Fatalf("resume after journal recovery = %t, status count %d, %v", result.Completed, len(result.Outcomes), err)
+	}
+}
 
 func TestCatalogUpdateReadsCompletedRunWithoutCacheOrCurrentCatalog(t *testing.T) {
 	ctx := t.Context()

@@ -87,7 +87,10 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 		if via[len(via)-1].URL.Scheme == "https" && req.URL.Scheme != "https" {
 			return fmt.Errorf("artifact redirect downgrades HTTPS")
 		}
-		if req.URL.Fragment != "" || (req.URL.RawQuery != "" && req.URL.RawQuery != parsed.RawQuery) {
+		if _, err := c.catalogUpdateURL(req.URL.String()); err != nil {
+			return err
+		}
+		if req.URL.RawQuery != "" && req.URL.RawQuery != parsed.RawQuery {
 			return fmt.Errorf("artifact redirect adds or changes URL parameters")
 		}
 		if err := c.versionScopeAllows(req.URL.String(), scope); err != nil {
@@ -153,6 +156,9 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 		return probe, catalogUpdateRetryFailure(probe.URL, err, 0, "", "", "")
 	}
 	defer get.Body.Close()
+	if get.Request != nil && get.Request.URL != nil && get.Request.URL.String() != probe.URL {
+		return probe, fmt.Errorf("artifact response does not match the checked locator")
+	}
 	if get.StatusCode != http.StatusOK {
 		return probe, catalogUpdateHTTPFailure(get, probe.URL)
 	}

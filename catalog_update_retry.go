@@ -58,9 +58,14 @@ func catalogUpdateRetryFailure(raw string, err error, status int, after, remaini
 	switch {
 	case status == http.StatusTooManyRequests || status == http.StatusForbidden && (remaining == "0" || !retryAfter.IsZero()):
 		retry.Reason, retry.Shared = "rate-limit", true
-		epoch, resetSaturated := catalogUpdateRetryNumber(reset, catalogUpdateLastRepresentableUnix)
-		if t := time.Unix(epoch, 0).UTC(); t.After(now) && t.After(retryAfter) {
-			retryAfter, retry.HintSaturated = t, resetSaturated
+		// GitHub's metadata endpoint supplies an absolute seconds value.
+		// Other publishers can supply the standard Retry-After header.
+		if retry.Origin == "https://api.github.com:443" {
+			epoch, resetSaturated := catalogUpdateRetryNumber(reset, catalogUpdateLastRepresentableUnix)
+			if t := time.Unix(epoch, 0).UTC(); !resetSaturated && t.After(now) && t.After(retryAfter) {
+				retryAfter = t
+				retry.HintSaturated = false
+			}
 		}
 	case status >= 500 && status <= 599:
 		retry.Reason, retry.Shared = "publisher-server-error", !retryAfter.IsZero()

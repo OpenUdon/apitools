@@ -431,6 +431,9 @@ original `state_db`. This reads the saved report with its original
 catalog identity and timestamps. An older database may omit values it
 did not record. An unfinished run still requires the original catalog
 and maintenance configuration.
+SQLite may need to roll back a journal left by an interrupted write before
+it can read any run. Resume with the maintenance configuration to recover
+that journal. A state-database-only inspection leaves recovery to the writer.
 Configuration can include `reviewed_operations`, a map from
 `provider-id/reference-id` to canonical operation references such as
 `#/paths/~1records/get`. A previously accepted version can advance when

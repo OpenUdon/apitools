@@ -180,6 +180,10 @@ func TestCatalogUpdatePublisherFailureKeepsSafeRetryHints(t *testing.T) {
 	if errors.As(err, &retry) {
 		t.Fatalf("ordinary forbidden response treated as quota: %v", err)
 	}
+	err = catalogUpdateRetryFailure(raw, cause, 403, "1", "0", "999999999999999999")
+	if !errors.As(err, &retry) || retry.retry.HintSaturated || retry.notify.After(time.Now().Add(2*time.Second)) {
+		t.Fatalf("an uninterpretable reset replaced the explicit Retry-After: %v", err)
+	}
 	err = catalogUpdateRetryFailure(raw, context.DeadlineExceeded, 0, "", "", "")
 	if !errors.As(err, &retry) || retry.retry.Reason != "timeout" || retry.retry.Shared {
 		t.Fatalf("request timeout = %v", err)

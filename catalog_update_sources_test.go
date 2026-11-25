@@ -1,6 +1,7 @@
 package apitools
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,7 +10,52 @@ import (
 	"time"
 
 	"github.com/OpenUdon/apitools/catalog"
+	"github.com/OpenUdon/apitools/internal/catalogupdate"
 )
+
+func TestCatalogUpdateIndexInventoryDoesNotRequireOnePreferredService(t *testing.T) {
+	const indexURL = "https://api.hubapi.com/public/api/spec/v1/specs"
+	const index = `{"results":[{"name":"Products","group":"CRM","versions":[{"version":"2026-09","stage":"LATEST","openAPI":"https://api.hubapi.com/public/api/spec/v2/specs/release/1/version/2026-09"}]}]}`
+	cfg := newCatalogRepairFixture(t)
+	ctx := t.Context()
+	source := catalogUpdateSource{ProviderID: "hubspot", ReferenceID: "hubspot-public-api-spec-index", Service: "hubspot index",
+		Kind: catalog.SpecKindOpenAPIIndex, URL: indexURL}
+	cache, err := catalogupdate.OpenArtifactCache(cfg.CacheDir, "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	store, err := catalogupdate.OpenStore(ctx, cfg.StateDB, cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	object := catalogupdate.Object{SHA256: fmt.Sprintf("%x", sha256.Sum256([]byte(catalogRepairFixture))), Bytes: int64(len(catalogRepairFixture))}
+	if err := store.PutObject(ctx, object, strings.NewReader(catalogRepairFixture)); err != nil {
+		t.Fatal(err)
+	}
+	for _, service := range []string{"products", "companies"} {
+		value := catalogupdate.Version{ProviderID: source.ProviderID, ReferenceID: source.ReferenceID, Service: service,
+			Locator: indexURL, URL: indexURL, CheckedAt: time.Now().UTC(), Object: object}
+		if err := store.AcceptVersion(ctx, value, nil); err != nil {
+			t.Fatal(err)
+		}
+	}
+	run, err := store.StartRun(ctx, catalog.BuiltInCatalogManifest().CatalogSHA256, []string{source.ProviderID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
+		if r.URL.String() != indexURL {
+			t.Fatalf("unexpected request: %s", r.URL)
+		}
+		return catalogRepairResponse(r, index), nil
+	})}}
+	out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg, nil)
+	if err != nil || out.Status != "publisher-index-inventoried" || !strings.Contains(string(out.Evidence), "CRM Products") {
+		t.Fatalf("index inventory = %s, %s, %v", out.Status, out.Evidence, err)
+	}
+}
 
 func TestCatalogUpdateSourcesKeepOfficialScopedReferences(t *testing.T) {
 	provider := catalog.Provider{

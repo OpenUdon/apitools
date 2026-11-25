@@ -102,16 +102,24 @@ func (c *Client) UpdateCatalog(ctx context.Context, options CatalogUpdateOptions
 	identity := fmt.Sprintf("%x", sha256.Sum256(append([]byte(catalogSHA256+"\n"), configBytes...)))
 	if options.Resume != "" {
 		saved, outcomes, err := catalogupdate.ReadExistingRun(ctx, config.StateDB, options.Resume)
-		if err != nil {
+		switch {
+		case errors.Is(err, catalogupdate.ErrRunJournalRecovery):
+			if strings.TrimSpace(config.CacheDir) == "" {
+				return report, fmt.Errorf("%w: resume with the maintenance configuration to recover it", err)
+			}
+			// The normal guarded writer open can roll back the journal. The
+			// saved run identity is checked below before any publisher checks.
+		case err != nil:
 			return report, err
-		}
-		report.setRun(saved)
-		if saved.Completed {
-			report.Outcomes = outcomes
-			return report, nil
-		}
-		if saved.Catalog != identity {
-			return report, errors.New("catalog or maintenance configuration changed since the update run started")
+		default:
+			report.setRun(saved)
+			if saved.Completed {
+				report.Outcomes = outcomes
+				return report, nil
+			}
+			if saved.Catalog != identity {
+				return report, errors.New("catalog or maintenance configuration changed since the update run started")
+			}
 		}
 	}
 	if strings.TrimSpace(config.CacheDir) == "" {
@@ -296,12 +304,19 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 	provider catalog.Provider, source catalogUpdateSource, config CatalogUpdateConfig, prior *catalogupdate.Outcome,
 ) (catalogupdate.Outcome, error) {
 	out := catalogupdate.Outcome{ProviderID: source.ProviderID, ReferenceID: source.ReferenceID}
+	var priorEvidence catalogUpdateEvidence
 	if prior != nil {
 		out.PreviousRetryEvidence = prior.Evidence
+		if err := json.Unmarshal(prior.Evidence, &priorEvidence); err != nil {
+			return out, fmt.Errorf("read prior publisher retry evidence: %w", err)
+		}
 	}
 	evidence := catalogUpdateEvidence{Source: c.catalogUpdateEvidenceSource(source)}
 	var promotion, expected *catalogupdate.Version
 	emit := func(status, diagnostic string) (catalogupdate.Outcome, error) {
+		if status == "unchanged" && priorEvidence.ReviewedBaseline != nil {
+			status = "reviewed-pin-reproduced"
+		}
 		out.Status = status
 		evidence.Diagnostic = diagnostic
 		evidence.CheckedAt = time.Now().UTC()
@@ -312,6 +327,12 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 				evidence.AttemptedAt = artifact.AttemptedAt
 			}
 		}
+		// A pending checkpoint may already have atomically accepted an
+		// authored pin. Keep that proof separate from the latest head check.
+		if evidence.ReviewedBaseline == nil && priorEvidence.ReviewedBaseline != nil {
+			evidence.ReviewedBaseline = priorEvidence.ReviewedBaseline
+			evidence.AuthoredArtifact = priorEvidence.AuthoredArtifact
+		}
 		var err error
 		out.Evidence, err = json.Marshal(evidence)
 		if err == nil {
@@ -320,6 +341,9 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 			} else {
 				err = store.Record(ctx, runID, out)
 			}
+		}
+		if err == nil && out.Object == nil && prior != nil {
+			out.Object = prior.Object
 		}
 		return out, err
 	}
@@ -355,18 +379,22 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 		return emit("publisher-source-review", "Check the official Dropbox OpenAPI before substituting Stone provenance.")
 	}
 	kind := OperationSourceKind(catalog.RefreshableSpecReference{Kind: source.Kind}.ProtocolClassification().UWSSourceType())
-	held, err := store.PreferredVersion(ctx, source.ProviderID, source.ReferenceID, source.Service)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return out, err
-	}
-	if held.Object.SHA256 == "" {
-		held, err = store.ReviewedReferencePreference(ctx, source.ProviderID, source.ReferenceID)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-		case errors.Is(err, catalogupdate.ErrAmbiguousReferencePreference):
-			return emit("review-required", "The reviewed reference needs an explicit service match.")
-		case err != nil:
+	var held catalogupdate.Version
+	if source.Kind != catalog.SpecKindOpenAPIIndex {
+		var err error
+		held, err = store.PreferredVersion(ctx, source.ProviderID, source.ReferenceID, source.Service)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return out, err
+		}
+		if held.Object.SHA256 == "" {
+			held, err = store.ReviewedReferencePreference(ctx, source.ProviderID, source.ReferenceID)
+			switch {
+			case errors.Is(err, sql.ErrNoRows):
+			case errors.Is(err, catalogupdate.ErrAmbiguousReferencePreference):
+				return emit("review-required", "The reviewed reference needs an explicit service match.")
+			case err != nil:
+				return out, err
+			}
 		}
 	}
 	previous := held
@@ -375,7 +403,9 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 	changeBaseline := held.Object.SHA256 == "" || held.CatalogPin != catalogPin || held.Locator != source.URL
 	resourceMoved := held.Object.SHA256 != "" && held.Locator != source.URL &&
 		!sameCatalogUpdateGitFile(held.Locator, source.URL) && !sameCatalogUpdateGitFile(held.URL, source.URL)
-	canReproduceMovedPin := !resourceMoved || (authoredCommit != "" && catalogPin != held.CatalogPin)
+	_, heldGitFile := catalogUpdateGitFile(held.URL)
+	canReproduceMovedPin := !resourceMoved || (authoredCommit != "" &&
+		(catalogPin != held.CatalogPin || heldGitFile != "" && held.Object.SHA256 == catalogPin))
 	setPromotion := func(version *catalogupdate.Version) {
 		promotion = version
 		if previous.Object.SHA256 != "" {

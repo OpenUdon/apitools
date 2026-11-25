@@ -5,9 +5,28 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"sync/atomic"
 	"testing"
 )
+
+func TestCatalogUpdateArtifactRefusesMismatchedGETResponseLocator(t *testing.T) {
+	const target = "https://example.com/artifact.json"
+	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(req *http.Request) (*http.Response, error) {
+		resp := catalogRepairResponse(req, "fixture")
+		if req.Method == http.MethodGet {
+			redirected := req.Clone(req.Context())
+			redirected.URL, _ = url.Parse(target + "#access_token=fixture-secret")
+			resp.Request = redirected
+		}
+		return resp, nil
+	})}}
+	var body bytes.Buffer
+	got, err := client.acquireCatalogUpdateArtifact(t.Context(), target, DefaultMaxBytes, &body)
+	if err == nil || got.URL != target || body.Len() != 0 {
+		t.Fatalf("unchecked GET locator = %+v, bytes=%d, err=%v", got, body.Len(), err)
+	}
+}
 
 func TestCatalogUpdateArtifactDefersBeforeBodyRequest(t *testing.T) {
 	for _, tc := range []struct {

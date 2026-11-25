@@ -2,6 +2,7 @@ package apitools
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -90,6 +91,7 @@ func TestCatalogUpdateReproducesAuthoredCommitBeforeUsingNewHead(t *testing.T) {
 		headReusesPin, wrongAuthored     bool
 		headFailure                      string
 		branchCache, protobuf, relocated bool
+		sameLocatorDigest                bool
 		wantStatus, preferredVersion     string
 	}{
 		{name: "first pin with no reviewed operations", wantStatus: "reviewed-pin-reproduced", preferredVersion: "2.0"},
@@ -104,6 +106,7 @@ func TestCatalogUpdateReproducesAuthoredCommitBeforeUsingNewHead(t *testing.T) {
 		{name: "metadata and authored origins both throttle", headFailure: "dual-throttle", wantStatus: catalogupdate.RetryPendingStatus},
 		{name: "branch updates to an exact locally held commit", branchCache: true, compare: true, wantStatus: "accepted-compatible", preferredVersion: "3.0"},
 		{name: "new reviewed file at a different locator", relocated: true, havePreference: true, compare: true, wantStatus: "accepted-compatible", preferredVersion: "3.0"},
+		{name: "new immutable file reproduces the held digest", relocated: true, havePreference: true, sameLocatorDigest: true, wantStatus: "reviewed-pin-reproduced", preferredVersion: "1.0"},
 		{name: "authored protobuf", protobuf: true, wantStatus: "reviewed-pin-reproduced", preferredVersion: "v26"},
 		{name: "authored protobuf with invalid head", protobuf: true, headFailure: "invalid", wantStatus: "publisher-spec-unexamined", preferredVersion: "v26"},
 		{name: "head invalid", headFailure: "invalid", havePreference: true, compare: true, wantStatus: "publisher-spec-invalid", preferredVersion: "2.0"},
@@ -124,6 +127,9 @@ func TestCatalogUpdateReproducesAuthoredCommitBeforeUsingNewHead(t *testing.T) {
 			previous := catalogRepairFixture
 			authored := strings.Replace(previous, `"1.0"`, `"2.0"`, 1)
 			head := strings.Replace(previous, `"1.0"`, `"3.0"`, 1)
+			if tc.sameLocatorDigest {
+				authored = previous
+			}
 			if tc.havePreference {
 				source.URL, source.Revision = base+beforeCommit+path, beforeCommit
 				if tc.relocated {
@@ -258,7 +264,7 @@ func TestCatalogUpdateReproducesAuthoredCommitBeforeUsingNewHead(t *testing.T) {
 			if tc.relocated && pref.Service != "raw.githubusercontent.com/fixture/repo/previous.json" {
 				t.Fatalf("locator move changed the existing service key: %+v", pref)
 			}
-			if tc.preferredVersion == "2.0" && (pref.URL != source.URL || pref.Revision != authoredCommit) {
+			if tc.preferredVersion != "3.0" && (pref.URL != source.URL || pref.Revision != authoredCommit) {
 				t.Fatalf("reviewed locator and revision disagree: %+v", pref)
 			}
 			outcomes, err := store.ReadOutcomes(ctx, run.ID)
@@ -294,6 +300,92 @@ func TestCatalogUpdateRevalidatesHeldBytesUnderCurrentSourceKind(t *testing.T) {
 	baseline, err := (&Client{}).catalogUpdateReviewedBaseline(ctx, store, source, held, source.URL, held.Object.SHA256)
 	if err != nil || baseline.Preferred.Object.SHA256 != "" {
 		t.Fatalf("accepted cached OpenAPI as protobuf: %+v, %v", baseline, err)
+	}
+}
+
+func TestCatalogUpdateCompletedRetryKeepsAcceptedPinEvidence(t *testing.T) {
+	for _, tc := range []struct {
+		name, terminal string
+		exhaust        bool
+	}{
+		{"same head", "reviewed-pin-reproduced", false},
+		{"retry exhausted", "publisher-retry-exhausted", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := t.Context()
+			cfg := newCatalogRepairFixture(t)
+			const commit = "1111111111111111111111111111111111111111"
+			pin := fmt.Sprintf("%x", sha256.Sum256([]byte(catalogRepairFixture)))
+			source := catalogUpdateSource{ProviderID: "example", ReferenceID: "records", Service: "records",
+				Kind: catalog.SpecKindOpenAPI, URL: "https://raw.githubusercontent.com/fixture/repo/" + commit + "/spec.json",
+				HeldRevision: "sha256:" + pin}
+			cache, err := catalogupdate.OpenArtifactCache(cfg.CacheDir, "", 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer cache.Close()
+			store, err := catalogupdate.OpenStore(ctx, cfg.StateDB, cache)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer store.Close()
+			run, err := store.StartRun(ctx, catalog.BuiltInCatalogManifest().CatalogSHA256, []string{source.ProviderID})
+			if err != nil {
+				t.Fatal(err)
+			}
+			metadataCalls, authoredCalls := 0, 0
+			client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
+				if r.URL.Host == "api.github.com" {
+					metadataCalls++
+					if metadataCalls == 1 || tc.exhaust {
+						return &http.Response{StatusCode: http.StatusTooManyRequests,
+							Header: http.Header{"Retry-After": {"0"}}, Body: http.NoBody, Request: r}, nil
+					}
+					return catalogRepairResponse(r, fmt.Sprintf(`[{"sha":%q}]`, commit)), nil
+				}
+				if r.URL.String() != source.URL {
+					t.Fatalf("unexpected raw URL %s", r.URL)
+				}
+				authoredCalls++
+				return catalogRepairResponse(r, catalogRepairFixture), nil
+			})}}
+			out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg, nil)
+			if err != nil || out.Status != catalogupdate.RetryPendingStatus || out.Object == nil {
+				t.Fatalf("first outcome = %s, %s, %v", out.Status, out.Evidence, err)
+			}
+			first := out
+			for next := 2; next <= catalogUpdatePublisherAttempts; next++ {
+				out, err = client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg, &out)
+				if err != nil || out.Status != catalogupdate.RetryPendingStatus {
+					break
+				}
+			}
+			if err != nil || out.Status != tc.terminal || authoredCalls != 2 {
+				t.Fatalf("terminal outcome = %s, %s, authored requests %d, %v", out.Status, out.Evidence, authoredCalls, err)
+			}
+			if err := store.Record(ctx, run.ID, catalogupdate.Outcome{ProviderID: source.ProviderID, Status: "checked"}); err != nil {
+				t.Fatal(err)
+			}
+			if err := store.FinishRun(ctx, run.ID); err != nil {
+				t.Fatal(err)
+			}
+			history, saved, err := catalogupdate.ReadExistingRun(ctx, cfg.StateDB, run.ID)
+			if err != nil || !history.Completed || len(saved) != 2 || saved[1].Status != tc.terminal || saved[1].Object == nil || *saved[1].Object != *first.Object {
+				t.Fatalf("saved retry status or pin object lost: %+v, %v", history, err)
+			}
+			var original, current catalogUpdateEvidence
+			if err := json.Unmarshal(first.Evidence, &original); err != nil {
+				t.Fatal(err)
+			}
+			if err := json.Unmarshal(saved[1].Evidence, &current); err != nil {
+				t.Fatal(err)
+			}
+			if current.ReviewedBaseline == nil || current.ReviewedBaseline.Preferred.Object.SHA256 != pin ||
+				current.AuthoredArtifact == nil || !current.AuthoredArtifact.CheckedAt.Equal(original.AuthoredArtifact.CheckedAt) ||
+				!current.AttemptedAt.After(current.AuthoredArtifact.CheckedAt) {
+				t.Fatalf("completed report lost the distinct adoption and retry receipts: %s", saved[1].Evidence)
+			}
+		})
 	}
 }
 

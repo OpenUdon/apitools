@@ -16,7 +16,8 @@ import (
 	"sync"
 	"time"
 
-	_ "modernc.org/sqlite"
+	"modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 )
 
 const stateSchema = 4
@@ -46,6 +47,7 @@ type Run struct {
 }
 
 var ErrRunNotFound = errors.New("catalog update run was not found")
+var ErrRunJournalRecovery = errors.New("catalog state has an interrupted SQLite journal")
 
 type Outcome struct {
 	ProviderID  string          `json:"provider_id"`
@@ -363,7 +365,13 @@ func openReadOnlyState(statePath string) (*sql.DB, error) {
 // ReadExistingRun inspects a run using the original database in read-only
 // mode. Completed outcomes share its snapshot. Unfinished runs still need
 // the writer's current catalog/configuration identity check before resuming.
-func ReadExistingRun(ctx context.Context, statePath, id string) (Run, []Outcome, error) {
+func ReadExistingRun(ctx context.Context, statePath, id string) (run Run, outcomes []Outcome, err error) {
+	defer func() {
+		var failure *sqlite.Error
+		if errors.As(err, &failure) && failure.Code() == sqlite3.SQLITE_READONLY_ROLLBACK {
+			err = ErrRunJournalRecovery
+		}
+	}()
 	db, err := openReadOnlyState(statePath)
 	if err != nil {
 		return Run{}, nil, err
@@ -381,11 +389,11 @@ func ReadExistingRun(ctx context.Context, statePath, id string) (Run, []Outcome,
 	if schema < 1 || schema > stateSchema {
 		return Run{}, nil, errors.New("catalog maintenance database version is unsupported for run inspection")
 	}
-	run, err := readRun(ctx, tx, id, schema)
+	run, err = readRun(ctx, tx, id, schema)
 	if err != nil || !run.Completed {
 		return run, nil, err
 	}
-	outcomes, err := readOutcomes(ctx, tx, id)
+	outcomes, err = readOutcomes(ctx, tx, id)
 	return run, outcomes, err
 }
 
@@ -414,7 +422,7 @@ func recordUpdateOutcome(ctx context.Context, executor interface {
 }, runID string, outcome Outcome, digest any) error {
 	if len(outcome.PreviousRetryEvidence) != 0 {
 		result, err := executor.ExecContext(ctx, `
-UPDATE update_outcome SET status = ?, evidence = ?, digest = ?
+UPDATE update_outcome SET status = ?, evidence = ?, digest = COALESCE(?, digest)
 WHERE run_id = ? AND provider_id = ? AND reference_id = ? AND status = ? AND evidence = ?
   AND EXISTS (SELECT 1 FROM update_run WHERE id = ? AND completed = 0)`,
 			outcome.Status, string(outcome.Evidence), digest, runID, outcome.ProviderID, outcome.ReferenceID,
