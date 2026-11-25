@@ -30248,19 +30248,84 @@
           ]
         }
       ],
-      "root_security": [
+      "operation_security": [
         {
-          "scheme": "googleOAuth2",
-          "scopes": [
-            "https://www.googleapis.com/auth/presentations.readonly"
+          "match": {
+            "method": "GET",
+            "path": "/v1/presentations/{+presentationId}"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/presentations.readonly"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "GET",
+            "path": "/v1/presentations/{presentationId}/pages/{pageObjectId}"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/presentations.readonly"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "GET",
+            "path": "/v1/presentations/{presentationId}/pages/{pageObjectId}/thumbnail"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/presentations.readonly"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "POST",
+            "path": "/v1/presentations"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/presentations"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "POST",
+            "path": "/v1/presentations/{presentationId}:batchUpdate"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/presentations"
+              ]
+            }
           ]
         }
       ],
       "source_refs": [
         "https://slides.googleapis.com/$discovery/rest?version=v1",
-        "https://developers.google.com/workspace/slides/api/scopes"
+        "https://developers.google.com/workspace/slides/api/scopes",
+        "https://github.com/googleapis/google-api-go-client/blob/v0.259.0/slides/v1/slides-api.json"
       ],
-      "source_note": "Google Slides publishes an official Google Discovery document rather than OpenAPI; OAuth scopes are recorded as metadata only, and apitools must not fetch tokens or choose Google accounts or projects."
+      "source_note": "This advisory uses the retained Google SDK Discovery revision 20250401 for only the listed methods. It selects Slides read-only scope for reads and Slides write scope for writes. OAuth scopes are catalog metadata independent of account, project, and runtime authorization."
     },
     {
       "id": "google-tasks-discovery-auth-overlay",

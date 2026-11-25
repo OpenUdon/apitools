@@ -19,7 +19,7 @@ deferral when a named provider's documentation gap matters to approved work.
 | --- | --- | --- |
 | C13.1 — Reviewed search relevance | `[+]` | Fixes FND-07. Record before-and-after precision and recall on fixed reviewed labels and exact selectors. Require genuine singular and plural matches, including `send slack messages`. Reject named incidental false positives for queries such as `list user` and `time`, and retain rejected stem cases including `accounting` and `intuit quickbook`. Preserve exact-provider ranking, metadata suggestions and source provenance. |
 | C13.2 — Public fallback reporting | `[+]` | Fixes FND-08. If an implicit public lookup fails and reviewed suggestions are returned, emit a clear stderr diagnostic in both text and JSON modes. Preserve reviewed stdout and the successful exit status. Use offline fixtures for empty successful lookup, failed lookup, explicit-source behavior and publisher-scoped routing. |
-| C13.3 — Google Slides scope evidence | `[ ]` | Fixes FND-05. Replace blanket read-only advisory coverage with method- and path-scoped evidence for `presentations.get`, `presentations.pages.get`, `presentations.pages.getThumbnail`, `presentations.create` and `presentations.batchUpdate`. Use the retained Google Discovery snapshots to verify the reviewed presentation scopes and record alternatives, ambiguities and source revision. Other methods and the wider root-scope class remain unreviewed. If evidence is insufficient, pause this row for separate Class R authority. |
+| C13.3 — Google Slides scope evidence | `[+]` | Fixes FND-05. Replace blanket read-only advisory coverage with method- and path-scoped evidence for `presentations.get`, `presentations.pages.get`, `presentations.pages.getThumbnail`, `presentations.create` and `presentations.batchUpdate`. Use the retained Google Discovery snapshots to verify the reviewed presentation scopes and record alternatives, ambiguities and source revision. Other methods and the wider root-scope class remain unreviewed. If evidence is insufficient, pause this row for separate Class R authority. |
 
 ## Review
 
@@ -137,3 +137,85 @@ validation. The product build from c13-2-a1 used the same Go source.
 Gate c13-2-a2 passed the focused routing tests, vet, whole CLI
 tests (15.431s) and diff validation. Fresh Astra xhigh re-review
 passed the exact corrected test and behavior. FND-08 is fixed.
+
+C13.3 required gate `c13-3-a1` started from
+`e407380a0563c7770203e7ae440cb9dc93b2864f` and scoped diff SHA-256
+`2ef78ba4a7d4c3c783f0ad9f297b3200f8453df9213641ba21fe4a871887e2af`.
+Run offline build, vet, full pinned APItools tests, catalog generator and
+quality, CLI helps and Slides inspection, and diff checks. Build untouched
+OpenUdon and Udon snapshots against the exact candidate in disposable copies.
+This is also the exact product candidate for whole acceptance if later
+commits only change the findings register and status.
+
+Both Google SDK module archives matched the retained Discovery bytes.
+The pre-fix test failed at the blanket root advisory and passed both
+native proofs. The correction passed the advisory and both pinned native
+checks, including the Discovery reserved expansion on `presentations.get`.
+The in-tree generator initially rejected the stale embedded manifest
+after the catalog edit. Rebuilt the generator from the unchanged baseline
+in a disposable copy and ran it against the approved catalog. The
+required freshness check uses the regenerated candidate.
+[Source provenance](../../dist/c13-goal/slides-source-provenance.log),
+[red fixture](../../dist/c13-goal/c13-3-baseline.log),
+[green fixture](../../dist/c13-goal/c13-3-source-green.log),
+and [required gates](../../dist/c13-goal/c13-3-gates.log).
+
+Gate c13-3-a1 failed in 18.743s while APItools package discovery was
+overlapping extraction of the disposable consumer workspaces. Package
+discovery saw part of the nested APItools snapshot before its module
+boundary was present. Key C13 build, checkout root, whole module,
+fixture setup. Signature is undefined APItools types under the temporary
+consumer snapshot. The failure used one of three attempts with one
+distinct signature. A read-only `go list ./...` after extraction
+finished excluded all three nested modules.
+[Discovery receipt](../../dist/c13-goal/c13-3-discovery-after-extraction.txt).
+
+Gate `c13-3-a2` started at the same base and exact candidate diff.
+Rerun whole offline build, vet, pinned tests, catalog generator and
+quality, CLI helps and Slides inspection, and diff validation with the
+consumer copies fully extracted. Keep the separate exact consumer runs.
+[Recovery gate](../../dist/c13-goal/c13-3-recovered-gates.log).
+
+Gate c13-3-a2 passed whole build and cleared the build setup key and
+signature chain. Vet, pinned whole tests (167.867s), generator freshness,
+catalog quality, both CLI help commands and diff validation passed. The
+Slides JSON inspection returned five operation requirements and no root
+requirement. A semantic catalog comparison verified all 334 provider
+records and all other overlays. The changes add no concurrency behavior
+or storage-contract dependency that triggers a race gate.
+
+The first local consumer commands exited successfully for OpenUdon
+`36ae38dfe93327a0879929c2cfe5dbbbbf9b988f` (86.403s)
+and Udon `207194814d40effe014a0ed2595e346742d4e0d0` (69.413s).
+The task review invalidated those results for acceptance because the
+replacement source was the unpatched baseline. The first consumer and
+pinned test intervals overlapped. [Initial inputs](../../dist/c13-goal/c13-3-consumer-inputs.log),
+[OpenUdon](../../dist/c13-goal/c13-3-openudon.log),
+[Udon](../../dist/c13-goal/c13-3-udon.log),
+and [catalog comparison](../../dist/c13-goal/slides-catalog-diff-proof.log).
+
+C13.3 task review blocked on a P1 verification problem. The initial
+temporary copy sat below the real Git root, so running `git apply` from
+the copy silently skipped the candidate paths. The unchanged catalog
+digest and missing new test independently confirm the cause. The product
+and native-scope review found no separate issue. Both consumer gates
+have one charged evidence failure of three, with two remaining and one
+distinct setup signature each.
+
+Corrective gates `c13-3-consumers-a2` started at the same exact product
+candidate. Use a hidden scratch workspace, copy the five approved product
+paths explicitly into the archived APItools snapshot and verify each byte
+identity before running both fresh whole consumer suites. The required
+APItools gates already passed at the same source.
+[Corrected inputs](../../dist/c13-goal/c13-3-consumer-exact-inputs.log).
+
+Both fresh whole consumer suites passed against, and resolved, the
+byte-verified candidate. OpenUdon took 56.771s and Udon 46.177s with
+overlapping execution. The exact consumer reruns cleared both setup
+keys. Fresh Astra xhigh review verified all five candidate files,
+all other APItools files against the base archive, the module resolution
+and the passing receipts. It closed the P1 with no new findings.
+FND-05 is fixed within the revision-qualified five-method scope.
+[Resolved inputs](../../dist/c13-goal/c13-3-consumer-exact-resolved.log),
+[OpenUdon rerun](../../dist/c13-goal/c13-3-openudon-exact.log),
+and [Udon rerun](../../dist/c13-goal/c13-3-udon-exact.log).
