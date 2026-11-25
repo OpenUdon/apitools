@@ -1722,6 +1722,9 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 		ProviderURL: *providerURL,
 	})
 	if weakReviewed != nil && ctx.Err() == nil && (err != nil || len(report.Results) == 0) {
+		if err != nil {
+			fmt.Fprintln(errOut, "Public directory lookup failed. Showing reviewed suggestions.")
+		}
 		return printReviewedSearchReport(out, errOut, *weakReviewed, *jsonOut)
 	}
 	if err != nil {

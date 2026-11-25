@@ -18,7 +18,7 @@ deferral when a named provider's documentation gap matters to approved work.
 | Item | State | Notes |
 | --- | --- | --- |
 | C13.1 — Reviewed search relevance | `[+]` | Fixes FND-07. Record before-and-after precision and recall on fixed reviewed labels and exact selectors. Require genuine singular and plural matches, including `send slack messages`. Reject named incidental false positives for queries such as `list user` and `time`, and retain rejected stem cases including `accounting` and `intuit quickbook`. Preserve exact-provider ranking, metadata suggestions and source provenance. |
-| C13.2 — Public fallback reporting | `[ ]` | Fixes FND-08. If an implicit public lookup fails and reviewed suggestions are returned, emit a clear stderr diagnostic in both text and JSON modes. Preserve reviewed stdout and the successful exit status. Use offline fixtures for empty successful lookup, failed lookup, explicit-source behavior and publisher-scoped routing. |
+| C13.2 — Public fallback reporting | `[+]` | Fixes FND-08. If an implicit public lookup fails and reviewed suggestions are returned, emit a clear stderr diagnostic in both text and JSON modes. Preserve reviewed stdout and the successful exit status. Use offline fixtures for empty successful lookup, failed lookup, explicit-source behavior and publisher-scoped routing. |
 | C13.3 — Google Slides scope evidence | `[ ]` | Fixes FND-05. Replace blanket read-only advisory coverage with method- and path-scoped evidence for `presentations.get`, `presentations.pages.get`, `presentations.pages.getThumbnail`, `presentations.create` and `presentations.batchUpdate`. Use the retained Google Discovery snapshots to verify the reviewed presentation scopes and record alternatives, ambiguities and source revision. Other methods and the wider root-scope class remain unreviewed. If evidence is insufficient, pause this row for separate Class R authority. |
 
 ## Review
@@ -111,3 +111,29 @@ precision and recall to 24/24 for both. Existing stem refusals and
 exact-identity regressions passed. [Baseline matrix](../../dist/c13-goal/c13-1-ready-before.log).
 The fresh Astra xhigh task re-review passed the exact c13-1-a4 candidate
 with no findings. FND-07 is fixed for the accepted scope.
+
+C13.2 required gate `c13-2-a1` started from
+`964110dad8448d1d63c393a00570ec15b3491a79` and scoped diff SHA-256
+`b69be095e4c71df8bea59eb5eabbed4a32a2733940f324e3e853d1483ca97ae1`.
+Run focused routing checks, offline build, vet, whole CLI tests, and
+diff validation. FND-08's red test shows empty stderr in both output modes
+when the implicit local fixture public lookup fails. The corrected check
+compares successful-empty and failed lookup stdout byte for byte.
+[Baseline](../../dist/c13-goal/c13-2-before.log) and
+[gate receipt](../../dist/c13-goal/c13-2-gates.log).
+
+C13.2 gate c13-2-a1 passed build, vet, the focused routing checks,
+whole CLI tests (23.229s) and diff validation. Astra xhigh passed
+the behavior and found a Lower test assertion gap. Check for the
+warning even when it is appended to an explicit-source error.
+
+C13.2 corrective gate `c13-2-a2` started at the same base with
+scoped diff SHA-256
+`40e778d80aa2f40b209a15a254fe34cea85507dceeeeb6d13822ba2813d0b5b3`.
+Run offline focused routing checks, vet, whole CLI tests and diff
+validation. The product build from c13-2-a1 used the same Go source.
+[Gate receipt](../../dist/c13-goal/c13-2-verified-gates.log).
+
+Gate c13-2-a2 passed the focused routing tests, vet, whole CLI
+tests (15.431s) and diff validation. Fresh Astra xhigh re-review
+passed the exact corrected test and behavior. FND-08 is fixed.

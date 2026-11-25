@@ -79,8 +79,9 @@ and gives selectors and digests for up to 10 matched operations per provider.
 With no source or provider URL specified, the CLI returns reviewed results
 when the top match is an exact provider or a covered operation. Metadata and
 semantic suggestions allow public discovery. When that chain cannot supply a
-result, available reviewed suggestions remain visible. Offline mode uses local
-reviewed data and any configured public cache. Explicit `--source auto`,
+result, available reviewed suggestions remain visible. If the public lookup
+fails, the CLI reports it on stderr in both text and JSON modes. Offline mode
+uses local reviewed data and any configured public cache. Explicit `--source auto`,
 individual public sources and `--provider-url` use the public path directly
 with its original output, cache and network controls. `--config` applies only
 to the reviewed path. Automation that requires a stable output shape can

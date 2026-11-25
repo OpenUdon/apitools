@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -183,40 +184,71 @@ func TestReviewedSearchKeepsWeakOfflineMatchWithoutPublicCache(t *testing.T) {
 }
 
 func TestReviewedSearchKeepsWeakMatchWhenPublicCannotAnswer(t *testing.T) {
-	for _, fails := range []bool{false, true} {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if fails {
-				http.Error(w, "fixture unavailable", http.StatusServiceUnavailable)
-				return
+	const warning = "Public directory lookup failed. Showing reviewed suggestions.\n"
+	for _, mode := range []string{"text", "json"} {
+		t.Run(mode, func(t *testing.T) {
+			var expected []byte
+			for _, fails := range []bool{false, true} {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if fails {
+						http.Error(w, "fixture unavailable", http.StatusServiceUnavailable)
+						return
+					}
+					switch r.URL.Path {
+					case "/guru":
+						_, _ = w.Write([]byte("{}"))
+					case "/lap":
+						w.Header().Set("Content-Type", "text/lap")
+						_, _ = w.Write([]byte("@search_query kanban\n@total 0\n"))
+					case "/list":
+						_, _ = w.Write([]byte("{\"entries\":[]}"))
+					default:
+						http.NotFound(w, r)
+					}
+				}))
+				t.Cleanup(server.Close)
+				newClient := func(string) (*apitools.Client, func(), error) {
+					return &apitools.Client{APIsGuruListURL: server.URL + "/guru", LAPSearchURL: server.URL + "/lap",
+						PublicAPIsURL: server.URL + "/list", AllowUnsafeHosts: true}, func() {}, nil
+				}
+				args := []string{"--query", "kanban"}
+				if mode == "json" {
+					args = append(args, "--json")
+				}
+				var out, errOut bytes.Buffer
+				if code := runSearchWithClient(args, &out, &errOut, newClient); code != exitSuccess {
+					t.Fatalf("public failed %t: exit %d: %s", fails, code, errOut.String())
+				}
+				if mode == "json" {
+					var report apitools.ReviewedProviderSearchReport
+					if err := json.Unmarshal(out.Bytes(), &report); err != nil || report.Source != "reviewed-catalog" ||
+						len(report.Results) == 0 || report.Results[0].Profile.ProviderID != "trello" {
+						t.Fatalf("public failed %t: reviewed JSON lost the match: %+v, %v", fails, report, err)
+					}
+				} else if !strings.Contains(out.String(), "Trello (trello)") {
+					t.Fatalf("public failed %t: reviewed text lost the match: %s", fails, out.String())
+				}
+				if !fails {
+					expected = bytes.Clone(out.Bytes())
+					if errOut.Len() != 0 {
+						t.Errorf("empty public result warned: %q", errOut.String())
+					}
+					continue
+				}
+				if !bytes.Equal(out.Bytes(), expected) || errOut.String() != warning {
+					t.Errorf("failed public lookup changed stdout or lacked its warning: %q", errOut.String())
+				}
+
+				for _, flags := range [][]string{{"--source=auto"}, {"--source", "public-apis"}, {"--provider-url", server.URL + "/docs"}} {
+					out.Reset()
+					errOut.Reset()
+					if code := runSearchWithClient(append(slices.Clone(args), flags...), &out, &errOut, newClient); code != exitRuntime ||
+						out.Len() != 0 || errOut.Len() == 0 || strings.Contains(errOut.String(), strings.TrimSpace(warning)) {
+						t.Errorf("explicit %v returned exit %d, stdout %q, stderr %q", flags, code, out.String(), errOut.String())
+					}
+				}
 			}
-			switch r.URL.Path {
-			case "/guru":
-				_, _ = w.Write([]byte(`{}`))
-			case "/lap":
-				w.Header().Set("Content-Type", "text/lap")
-				_, _ = w.Write([]byte("@search_query kanban\n@total 0\n"))
-			case "/list":
-				_, _ = w.Write([]byte(`{"entries":[]}`))
-			default:
-				http.NotFound(w, r)
-			}
-		}))
-		t.Cleanup(server.Close)
-		var out, errOut bytes.Buffer
-		code := runSearchWithClient([]string{"--query", "kanban", "--json"}, &out, &errOut, func(string) (*apitools.Client, func(), error) {
-			return &apitools.Client{APIsGuruListURL: server.URL + "/guru", LAPSearchURL: server.URL + "/lap",
-				PublicAPIsURL: server.URL + "/list", AllowUnsafeHosts: true}, func() {}, nil
 		})
-		if code != exitSuccess {
-			t.Fatalf("public failed %t: exit %d: %s", fails, code, errOut.String())
-		}
-		var report apitools.ReviewedProviderSearchReport
-		if err := json.Unmarshal(out.Bytes(), &report); err != nil {
-			t.Fatal(err)
-		}
-		if report.Source != "reviewed-catalog" || len(report.Results) == 0 || report.Results[0].Profile.ProviderID != "trello" {
-			t.Fatalf("public failed %t: weak reviewed result omitted: %+v", fails, report)
-		}
 	}
 }
 
