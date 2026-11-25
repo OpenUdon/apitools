@@ -11277,8 +11277,8 @@
           "kind": "dropbox-stone",
           "url": "https://github.com/dropbox/dropbox-api-spec",
           "source_authority": "official-github",
-          "verified_at": "2026-05-18",
-          "revision": "repo:6c68656caafdff65a30943fe186a1800b9f35bbc etag:\"a8a20516da94ccdb9646bf2f346d0c72594c9bb333945d37deda7711e73a6701\"",
+          "verified_at": "2026-11-25",
+          "revision": "repo:4876d1a552f34e10a46e293aaf7e344c452af13d",
           "license_note": "Dropbox API spec repository is licensed under MIT.",
           "source_note": "Official Dropbox API v2 Stone specification repository; it is machine-readable but not OpenAPI."
         },
@@ -14136,6 +14136,28 @@
           "source_note": "Official HubSpot public API spec index endpoint; references multiple OpenAPI documents rather than one monolithic spec."
         },
         {
+          "id": "hubspot-crm-contacts-2026-09-openapi",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/HubSpot/HubSpot-public-api-spec-collection/c6f46a91db551f1f4fcbe61050ea002050e27d55/PublicApiSpecs/CRM/Contacts/Rollouts/424/2026-09/contacts.json",
+          "source_authority": "official-github",
+          "version": "2026-09",
+          "verified_at": "2026-11-25",
+          "revision": "sha256:f67bf5699a481ef85735c1846884f3c7c72ea85f858341de3499a90d9039f344",
+          "license_note": "HubSpot identifies the API specifications as proprietary. Retain publisher bytes in the local review cache.",
+          "source_note": "Official CRM Contacts OpenAPI from rollout 424. Reviewed list operation uses the contacts object type. Other operations need independent review."
+        },
+        {
+          "id": "hubspot-crm-deals-2026-09-openapi",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/HubSpot/HubSpot-public-api-spec-collection/c6f46a91db551f1f4fcbe61050ea002050e27d55/PublicApiSpecs/CRM/Deals/Rollouts/424/2026-09/deals.json",
+          "source_authority": "official-github",
+          "version": "2026-09",
+          "verified_at": "2026-11-25",
+          "revision": "sha256:cafe9ee81824c7994fdf3298ef483d5c7fddcebd869ad02ea8b23b09968f1aa1",
+          "license_note": "HubSpot identifies the API specifications as proprietary. Retain publisher bytes in the local review cache.",
+          "source_note": "Official CRM Deals OpenAPI from rollout 424. Reviewed list operation uses the deals object type. Other operations need independent review."
+        },
+        {
           "id": "hubspot-api-docs",
           "kind": "human-docs",
           "url": "https://developers.hubspot.com/docs/reference/api",
@@ -14146,7 +14168,8 @@
         }
       ],
       "quirks": [
-        "HubSpot specs are split across API groups and versions; callers should select a specific spec from the index before import."
+        "HubSpot specs are split across API groups and versions; callers should select a specific spec from the index before import.",
+        "The pinned CRM Contacts and Deals 2026-09 rollout 424 sources support the reviewed list metadata. The other index releases remain candidates, including all previews."
       ]
     },
     {
@@ -14804,6 +14827,17 @@
       "official_machine_spec_availability": "unknown",
       "user_openapi_need": "possible",
       "spec_references": [
+        {
+          "id": "kubernetes-v1-37-2-core-openapi-v3",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/kubernetes/kubernetes/c50e5395f1ae2d4a2c05f28fdcc38c0916cc1a32/api/openapi-spec/v3/api__v1_openapi.json",
+          "source_authority": "official-github",
+          "version": "v1.37.2",
+          "verified_at": "2026-11-25",
+          "revision": "tag:v1.37.2 sha256:d09ab224a98fb9c0e7fd128b6f395f66b23d43b6635272109dcaaafc4a3dd9c9",
+          "license_note": "Apache-2.0 applies to the upstream Kubernetes release. Retained upstream bytes stay in local evidence.",
+          "source_note": "Release-tagged Kubernetes Core v1 OpenAPI 3 document. The immutable commit was verified against the v1.37.2 tag. Cluster exports remain necessary for actual API groups, versions, aggregated APIs and CRDs."
+        },
         {
           "id": "kubernetes-v1-19-2-swagger",
           "kind": "openapi",
@@ -23759,6 +23793,32 @@
     },
     {
       "provider_id": "hubspot",
+      "spec_ref_id": "hubspot-crm-contacts-2026-09-openapi",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://raw.githubusercontent.com/HubSpot/HubSpot-public-api-spec-collection/c6f46a91db551f1f4fcbe61050ea002050e27d55/PublicApiSpecs/CRM/Contacts/Rollouts/424/2026-09/contacts.json",
+        "https://api.hubapi.com/public/api/spec/v1/specs",
+        "https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/scopes",
+        "https://developers.hubspot.com/docs/apps/legacy-apps/authentication/intro-to-auth",
+        "https://developers.hubspot.com/docs/api-reference/legacy/crm/objects/contacts/guide"
+      ],
+      "source_note": "The selected GET list route requires crm.objects.contacts.read. The raw file describes a private-app credential with a synthetic header. Use Authorization bearer authentication for either an OAuth access token or a private app token with the required scope."
+    },
+    {
+      "provider_id": "hubspot",
+      "spec_ref_id": "hubspot-crm-deals-2026-09-openapi",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://raw.githubusercontent.com/HubSpot/HubSpot-public-api-spec-collection/c6f46a91db551f1f4fcbe61050ea002050e27d55/PublicApiSpecs/CRM/Deals/Rollouts/424/2026-09/deals.json",
+        "https://api.hubapi.com/public/api/spec/v1/specs",
+        "https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/scopes",
+        "https://developers.hubspot.com/docs/apps/legacy-apps/authentication/intro-to-auth",
+        "https://developers.hubspot.com/docs/api-reference/legacy/crm/objects/deals/guide"
+      ],
+      "source_note": "The selected GET list route requires crm.objects.deals.read. The raw file describes a private-app credential with a synthetic header. Use Authorization bearer authentication for either an OAuth access token or a private app token with the required scope."
+    },
+    {
+      "provider_id": "hubspot",
       "spec_ref_id": "hubspot-public-api-spec-index",
       "status": "overlay-required",
       "source_refs": [
@@ -23906,6 +23966,18 @@
         "https://kubernetes.io/docs/concepts/security/controlling-access/"
       ],
       "source_note": "The pinned Kubernetes v1.19.2 Swagger snapshot declares bearer-token authentication, but Kubernetes API authentication and authorization are cluster-configured; real cluster exports have no portable provider-wide security scheme, and apitools must not read kubeconfig, resolve credentials, or contact API servers."
+    },
+    {
+      "provider_id": "kubernetes",
+      "spec_ref_id": "kubernetes-v1-37-2-core-openapi-v3",
+      "status": "present-incomplete",
+      "source_refs": [
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/c50e5395f1ae2d4a2c05f28fdcc38c0916cc1a32/api/openapi-spec/v3/api__v1_openapi.json",
+        "https://github.com/kubernetes/kubernetes/releases/tag/v1.37.2",
+        "https://kubernetes.io/docs/reference/access-authn-authz/authentication/",
+        "https://kubernetes.io/docs/reference/access-authn-authz/authorization/"
+      ],
+      "source_note": "The upstream document defines a bearer header but omits the security requirement for listing namespaced Pods. The overlay records the supported bearer route for that selected operation. Actual authentication methods and authorization are cluster-configured."
     },
     {
       "provider_id": "launchdarkly",
@@ -30150,6 +30222,136 @@
       "source_note": "Home Assistant has official REST API human docs but no recorded stable public official OpenAPI document; long-lived bearer access-token metadata comes from advisory overlay notes."
     },
     {
+      "id": "hubspot-crm-contacts-2026-09-openapi-auth",
+      "provider_id": "hubspot",
+      "spec_ref_id": "hubspot-crm-contacts-2026-09-openapi",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "hubspotContactsOAuth",
+          "type": "oauth2",
+          "description": "OAuth access token carried as Authorization Bearer.",
+          "flows": [
+            {
+              "type": "authorizationCode",
+              "authorization_url": "https://app.hubspot.com/oauth/authorize",
+              "token_url": "https://api.hubapi.com/oauth/v1/token",
+              "scopes": [
+                "crm.objects.contacts.read"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "hubspotContactsPrivateApp",
+          "type": "http",
+          "description": "Private app bearer token granted the crm.objects.contacts.read scope in HubSpot.",
+          "scheme": "bearer"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "get-/crm/objects/2026-09/{objectType}_/crm/objects/2026-03/{objectType}",
+            "method": "GET",
+            "path": "/crm/objects/2026-09/{objectType}"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "hubspotContactsOAuth",
+                  "scopes": [
+                    "crm.objects.contacts.read"
+                  ]
+                }
+              ]
+            },
+            {
+              "requirements": [
+                {
+                  "scheme": "hubspotContactsPrivateApp"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://raw.githubusercontent.com/HubSpot/HubSpot-public-api-spec-collection/c6f46a91db551f1f4fcbe61050ea002050e27d55/PublicApiSpecs/CRM/Contacts/Rollouts/424/2026-09/contacts.json",
+        "https://api.hubapi.com/public/api/spec/v1/specs",
+        "https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/scopes",
+        "https://developers.hubspot.com/docs/apps/legacy-apps/authentication/intro-to-auth",
+        "https://developers.hubspot.com/docs/api-reference/legacy/crm/objects/contacts/guide"
+      ],
+      "source_note": "The selected GET list route requires crm.objects.contacts.read. The raw file describes a private-app credential with a synthetic header. Use Authorization bearer authentication for either an OAuth access token or a private app token with the required scope."
+    },
+    {
+      "id": "hubspot-crm-deals-2026-09-openapi-auth",
+      "provider_id": "hubspot",
+      "spec_ref_id": "hubspot-crm-deals-2026-09-openapi",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "hubspotDealsOAuth",
+          "type": "oauth2",
+          "description": "OAuth access token carried as Authorization Bearer.",
+          "flows": [
+            {
+              "type": "authorizationCode",
+              "authorization_url": "https://app.hubspot.com/oauth/authorize",
+              "token_url": "https://api.hubapi.com/oauth/v1/token",
+              "scopes": [
+                "crm.objects.deals.read"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "hubspotDealsPrivateApp",
+          "type": "http",
+          "description": "Private app bearer token granted the crm.objects.deals.read scope in HubSpot.",
+          "scheme": "bearer"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "get-/crm/objects/2026-09/{objectType}_/crm/objects/2026-03/{objectType}",
+            "method": "GET",
+            "path": "/crm/objects/2026-09/{objectType}"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "hubspotDealsOAuth",
+                  "scopes": [
+                    "crm.objects.deals.read"
+                  ]
+                }
+              ]
+            },
+            {
+              "requirements": [
+                {
+                  "scheme": "hubspotDealsPrivateApp"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://raw.githubusercontent.com/HubSpot/HubSpot-public-api-spec-collection/c6f46a91db551f1f4fcbe61050ea002050e27d55/PublicApiSpecs/CRM/Deals/Rollouts/424/2026-09/deals.json",
+        "https://api.hubapi.com/public/api/spec/v1/specs",
+        "https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/scopes",
+        "https://developers.hubspot.com/docs/apps/legacy-apps/authentication/intro-to-auth",
+        "https://developers.hubspot.com/docs/api-reference/legacy/crm/objects/deals/guide"
+      ],
+      "source_note": "The selected GET list route requires crm.objects.deals.read. The raw file describes a private-app credential with a synthetic header. Use Authorization bearer authentication for either an OAuth access token or a private app token with the required scope."
+    },
+    {
       "id": "hubspot-public-api-auth-overlay",
       "provider_id": "hubspot",
       "spec_ref_id": "hubspot-public-api-spec-index",
@@ -30468,6 +30670,41 @@
         "https://developer.keap.com/docs/rest/1000/"
       ],
       "source_note": "Keap has human REST API docs in this catalog entry but no recorded official OpenAPI document; docs describe OAuth 2.0 authentication for REST endpoints."
+    },
+    {
+      "id": "kubernetes-v1-37-2-core-openapi-v3-auth",
+      "provider_id": "kubernetes",
+      "spec_ref_id": "kubernetes-v1-37-2-core-openapi-v3",
+      "status": "present-incomplete",
+      "security_schemes": [
+        {
+          "name": "kubernetesBearer",
+          "type": "http",
+          "description": "Cluster-authorized bearer token.",
+          "scheme": "bearer"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "listCoreV1NamespacedPod",
+            "method": "GET",
+            "path": "/api/v1/namespaces/{namespace}/pods"
+          },
+          "security": [
+            {
+              "scheme": "kubernetesBearer"
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/c50e5395f1ae2d4a2c05f28fdcc38c0916cc1a32/api/openapi-spec/v3/api__v1_openapi.json",
+        "https://github.com/kubernetes/kubernetes/releases/tag/v1.37.2",
+        "https://kubernetes.io/docs/reference/access-authn-authz/authentication/",
+        "https://kubernetes.io/docs/reference/access-authn-authz/authorization/"
+      ],
+      "source_note": "The upstream document defines a bearer header but omits the security requirement for listing namespaced Pods. The overlay records the supported bearer route for that selected operation. Actual authentication methods and authorization are cluster-configured."
     },
     {
       "id": "lemlist-api-auth-overlay",

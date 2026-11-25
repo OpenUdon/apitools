@@ -353,8 +353,17 @@ func TestKubernetesClusterAPISourceCoverageAdvisoryRow(t *testing.T) {
 	if !advisoryHasSpecKind(row, SpecKindOpenAPI) || !advisoryHasSpecKind(row, SpecKindHumanDocs) {
 		t.Fatalf("missing Kubernetes OpenAPI or human docs reference: %#v", row.SpecReferences)
 	}
-	if row.ResolvedOpenAPI.Source != ResolutionSourceBuiltInSpecReference || row.ResolvedOpenAPI.SpecRefID != "kubernetes-v1-19-2-swagger" {
+	if row.ResolvedOpenAPI.Source != ResolutionSourceBuiltInSpecReference || row.ResolvedOpenAPI.SpecRefID != "kubernetes-v1-37-2-core-openapi-v3" {
 		t.Fatalf("resolved OpenAPI = %#v", row.ResolvedOpenAPI)
+	}
+	historical := false
+	for _, ref := range row.SpecReferences {
+		if ref.ID == "kubernetes-v1-19-2-swagger" {
+			historical = ref.SourceAuthority == SourceAuthorityPublicCatalog
+		}
+	}
+	if !historical {
+		t.Fatal("historical third-party Kubernetes fixture is missing or mislabeled")
 	}
 	if len(row.EndpointOverlays) != 0 {
 		t.Fatalf("endpoint overlays = %#v, want none", row.EndpointOverlays)

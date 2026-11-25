@@ -153,15 +153,18 @@ func TestHubSpotUpdateInventoryLabelsServiceAndReleaseStage(t *testing.T) {
 	const indexURL = "https://api.hubapi.com/public/api/spec/v1/specs"
 	const index = `{"results":[{"name":"Products","group":"CRM","versions":[
 		{"version":"2026-09","stage":"LATEST","openApi":"https://api.hubapi.com/public/api/spec/v2/specs/release/1/version/2026-09","documentationBanner":"PUBLIC_BETA"},
-		{"version":"2026-03","stage":"STABLE","openApi":"https://api.hubapi.com/public/api/spec/v2/specs/release/1/version/2026-03"}
+		{"version":"2026-03","stage":"STABLE","openApi":"https://api.hubapi.com/public/api/spec/v2/specs/release/1/version/2026-03"},
+		{"version":"2026-09","stage":"LATEST","openApi":"https://api.hubapi.com/public/api/spec/v2/specs/release/2/version/2026-09","documentationBanner":"NONE"},
+		{"version":"2027-03","stage":"DEVELOPER_PREVIEW","openApi":"https://api.hubapi.com/public/api/spec/v2/specs/release/3/version/2027-03","documentationBanner":"NONE"}
 	]}]}`
 	now := time.Date(2026, 11, 25, 0, 0, 0, 0, time.UTC)
 	got, err := hubSpotUpdateInventory(indexURL, now, []byte(index))
-	if err != nil || !got.CheckedAt.Equal(now) || got.Scope != indexURL || len(got.Sources) != 2 {
+	if err != nil || !got.CheckedAt.Equal(now) || got.Scope != indexURL || len(got.Sources) != 4 {
 		t.Fatalf("inventory = %+v, %v", got, err)
 	}
 	if got.Sources[0].Service != "CRM Products" || got.Sources[0].Version != "2026-03" ||
-		!got.Sources[0].Stable || got.Sources[1].Stable {
+		!got.Sources[0].Stable || got.Sources[1].Stable || got.Sources[1].DocumentationBanner != "PUBLIC_BETA" ||
+		!got.Sources[2].Stable || got.Sources[2].DocumentationBanner != "NONE" || got.Sources[3].Stable {
 		t.Fatalf("unexpected versions: %+v", got.Sources)
 	}
 }

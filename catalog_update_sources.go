@@ -27,6 +27,7 @@ type catalogUpdateSource struct {
 	Revision            string
 	Stage               string
 	Stable              bool
+	DocumentationBanner string `json:"DocumentationBanner,omitempty"`
 	Resolution          string
 	Scope               string
 }
@@ -215,7 +216,9 @@ func hubSpotUpdateInventory(sourceURL string, checkedAt time.Time, index []byte)
 			record := catalogUpdateSource{
 				ProviderID: "hubspot", Service: service, ReferenceID: "hubspot-public-api-spec-index",
 				Kind: catalog.SpecKindOpenAPI, URL: u.String(), Version: entry.Version, Stage: entry.Stage,
-				Stable: (entry.Stage == "LATEST" || entry.Stage == "STABLE") && entry.DocumentationBanner == "",
+				DocumentationBanner: entry.DocumentationBanner,
+				Stable: (entry.Stage == "LATEST" || entry.Stage == "STABLE") &&
+					(entry.DocumentationBanner == "" || entry.DocumentationBanner == "NONE"),
 			}
 			if !seen[record] {
 				report.Sources = append(report.Sources, record)
