@@ -88,7 +88,14 @@ func syncArtifactFilesystem(root *os.Root) error {
 }
 
 func lockCatalogCache(ctx context.Context, root *os.Root) (*os.File, error) {
-	const lockName = ".catalog-update.lock"
+	return lockCatalogFile(ctx, root, ".catalog-update.lock", true)
+}
+
+func checkStateWritable(path string) error {
+	return unix.Access(path, unix.W_OK)
+}
+
+func lockCatalogFile(ctx context.Context, root *os.Root, lockName string, wait bool) (*os.File, error) {
 	file, err := openPinnedFile(root, lockName, syscall.O_CREAT|syscall.O_RDWR)
 	if err != nil {
 		return nil, err
@@ -110,6 +117,10 @@ func lockCatalogCache(ctx context.Context, root *os.Root) (*os.File, error) {
 		if err != syscall.EWOULDBLOCK && err != syscall.EINTR {
 			_ = file.Close()
 			return nil, err
+		}
+		if !wait && err == syscall.EWOULDBLOCK {
+			_ = file.Close()
+			return nil, errors.New("catalog maintenance is already running for this state database")
 		}
 		select {
 		case <-ctx.Done():

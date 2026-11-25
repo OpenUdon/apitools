@@ -158,6 +158,7 @@ go run ./cmd/apitools search --query slack --source lap-registry
 go run ./cmd/apitools search --query slack --source rfc9727 --provider-url slack.com
 go run ./cmd/apitools import --help
 go run ./cmd/apitools catalog check
+go run ./cmd/apitools catalog maintenance --help
 go run ./cmd/apitools catalog advisory slack
 go run ./cmd/apitools catalog resolve slack
 go run ./cmd/apitools catalog materialize --help

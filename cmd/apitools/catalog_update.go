@@ -52,12 +52,16 @@ func runCatalogUpdateWithClient(args []string, out, errOut io.Writer, client *ap
 	defer stop()
 	options.OnStart = func(id string) { fmt.Fprintln(errOut, "Catalog update run", id) }
 	report, err := client.UpdateCatalog(ctx, options)
-	if *jsonOutput {
+	return writeCatalogUpdateResult(out, errOut, report, err, *jsonOutput, options.Export)
+}
+
+func writeCatalogUpdateResult(out, errOut io.Writer, report apitools.CatalogUpdateReport, err error, jsonOutput, export bool) int {
+	if jsonOutput {
 		if writeErr := writeJSON(out, report); writeErr != nil {
 			fmt.Fprintln(errOut, writeErr)
 			return exitRuntime
 		}
-	} else if options.Export && err == nil {
+	} else if export && err == nil {
 		if _, err := out.Write(report.Export); err != nil {
 			fmt.Fprintln(errOut, err)
 			return exitRuntime

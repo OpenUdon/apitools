@@ -468,6 +468,21 @@ its reappearance cannot roll back the local preference. Prior pins remain
 in the local cache. If an earlier artifact is missing, the run records a
 review outcome for that reference and continues to later providers.
 
+Use the installed `apitools` binary to prepare a monthly job with the same
+configuration. Preflight checks the existing cache and state directories,
+state database readiness, expected mount, executable, and cron environment.
+Dry-run lists the provider scope without opening state. A monthly run uses
+the local calendar, takes one run lock per state path, and finishes an open
+scheduled run before servicing the requested month. A completed cycle in the same
+month returns its saved outcomes. Scheduled retries use the updater's
+persisted publisher limits. An invocation stops after one day and preserves
+its checkpoints.
+
+```sh
+apitools catalog maintenance preflight --config /path/to/maintenance.json
+apitools catalog maintenance run --config /path/to/maintenance.json --dry-run --json
+```
+
 ### Explicit catalog roots
 
 `catalog.RootOptions` names an operator-supplied directory, a confined relative

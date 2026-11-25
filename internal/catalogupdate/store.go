@@ -44,6 +44,7 @@ type Run struct {
 	Completed     bool
 	StartedAt     time.Time
 	CompletedAt   time.Time
+	MonthlyPeriod string
 }
 
 var ErrRunNotFound = errors.New("catalog update run was not found")
@@ -178,40 +179,14 @@ func (s *Store) initialize(ctx context.Context) error {
 		return err
 	}
 	defer tx.Rollback()
-	var version int
-	if err := tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
+	version, err := checkCatalogStateSchema(ctx, tx)
+	if err != nil {
 		return err
 	}
-	switch version {
-	case 1, 2, 3, stateSchema:
-		var ok int
-		if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name IN ('update_run','update_provider','update_outcome','update_object')").Scan(&ok); err != nil {
-			return err
-		}
-		if ok != 4 {
-			return errors.New("file is not a catalog maintenance database")
-		}
-		if version >= 2 {
-			if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name IN ('update_version','update_preferred')").Scan(&ok); err != nil {
-				return err
-			}
-			if ok != 2 {
-				return errors.New("catalog maintenance database lacks version tables")
-			}
-		}
-	case 0:
-		var tables int
-		if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table'").Scan(&tables); err != nil {
-			return err
-		}
-		if tables != 0 {
-			return errors.New("file is not an empty or initialized catalog maintenance database")
-		}
+	if version == 0 {
 		if _, err := tx.ExecContext(ctx, schemaSQL); err != nil {
 			return err
 		}
-	default:
-		return fmt.Errorf("unsupported catalog maintenance schema %d", version)
 	}
 	if version < 2 {
 		if _, err := tx.ExecContext(ctx, versionSchemaSQL); err != nil {
@@ -234,6 +209,40 @@ PRAGMA user_version = 4;`); err != nil {
 		}
 	}
 	return tx.Commit()
+}
+
+func checkCatalogStateSchema(ctx context.Context, tx *sql.Tx) (int, error) {
+	var version, tables int
+	if err := tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
+		return 0, err
+	}
+	if version == 0 {
+		if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table'").Scan(&tables); err != nil {
+			return 0, err
+		}
+		if tables != 0 {
+			return 0, errors.New("file is not an empty or initialized catalog maintenance database")
+		}
+		return 0, nil
+	}
+	if version < 1 || version > stateSchema {
+		return 0, fmt.Errorf("unsupported catalog maintenance schema %d", version)
+	}
+	if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name IN ('update_run','update_provider','update_outcome','update_object')").Scan(&tables); err != nil {
+		return 0, err
+	}
+	if tables != 4 {
+		return 0, errors.New("file is not a catalog maintenance database")
+	}
+	if version >= 2 {
+		if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name IN ('update_version','update_preferred')").Scan(&tables); err != nil {
+			return 0, err
+		}
+		if tables != 2 {
+			return 0, errors.New("catalog maintenance database lacks version tables")
+		}
+	}
+	return version, nil
 }
 
 const schemaSQL = `
@@ -270,11 +279,6 @@ func (s *Store) StartRun(ctx context.Context, catalog string, providers []string
 }
 
 func (s *Store) StartRunSnapshot(ctx context.Context, catalog, catalogSHA256 string, providers []string) (Run, error) {
-	if !validDigest(catalog) || (catalogSHA256 != "" && !validDigest(catalogSHA256)) || len(providers) == 0 {
-		return Run{}, errors.New("catalog digest and provider scope are required")
-	}
-	run := Run{ID: rand.Text(), Catalog: catalog, CatalogSHA256: catalogSHA256,
-		Providers: append([]string(nil), providers...), StartedAt: time.Now().UTC()}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -282,6 +286,22 @@ func (s *Store) StartRunSnapshot(ctx context.Context, catalog, catalogSHA256 str
 		return Run{}, err
 	}
 	defer tx.Rollback()
+	run, err := insertRunSnapshot(ctx, tx, catalog, catalogSHA256, providers)
+	if err != nil {
+		return Run{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return Run{}, err
+	}
+	return run, nil
+}
+
+func insertRunSnapshot(ctx context.Context, tx *sql.Tx, catalog, catalogSHA256 string, providers []string) (Run, error) {
+	if !validDigest(catalog) || (catalogSHA256 != "" && !validDigest(catalogSHA256)) || len(providers) == 0 {
+		return Run{}, errors.New("catalog digest and provider scope are required")
+	}
+	run := Run{ID: rand.Text(), Catalog: catalog, CatalogSHA256: catalogSHA256,
+		Providers: append([]string(nil), providers...), StartedAt: time.Now().UTC()}
 	if _, err := tx.ExecContext(ctx, "INSERT INTO update_run(id, catalog, catalog_sha256, started_at) VALUES (?, ?, ?, ?)",
 		run.ID, run.Catalog, run.CatalogSHA256, run.StartedAt.Format(time.RFC3339Nano)); err != nil {
 		return Run{}, err
@@ -293,9 +313,6 @@ func (s *Store) StartRunSnapshot(ctx context.Context, catalog, catalogSHA256 str
 		if _, err := tx.ExecContext(ctx, "INSERT INTO update_provider VALUES (?, ?, ?)", run.ID, provider, position); err != nil {
 			return Run{}, err
 		}
-	}
-	if err := tx.Commit(); err != nil {
-		return Run{}, err
 	}
 	return run, nil
 }

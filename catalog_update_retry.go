@@ -136,6 +136,19 @@ func readCatalogUpdateRetryBlocks(out catalogupdate.Outcome) map[string]catalogU
 	return evidence.Blocks
 }
 
+func mergeCatalogUpdateRetryBlocks(blockedUntil map[string]catalogUpdateOriginBlock, out catalogupdate.Outcome, currentPass bool) {
+	for origin, block := range readCatalogUpdateRetryBlocks(out) {
+		if currentPass && !block.OutsideWindow {
+			// Yield the origin for the remainder of this serial pass.
+			block.Until = time.Date(9999, 12, 31, 0, 0, 0, 0, time.UTC)
+		}
+		known := blockedUntil[origin]
+		if block.OutsideWindow || !known.OutsideWindow && block.Until.After(known.Until) {
+			blockedUntil[origin] = block
+		}
+	}
+}
+
 func catalogUpdateArtifactOrigin(raw string) string {
 	u, err := url.Parse(raw)
 	if err != nil || u.Hostname() == "" {

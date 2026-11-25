@@ -94,12 +94,11 @@ func (c *Client) UpdateCatalog(ctx context.Context, options CatalogUpdateOptions
 	if strings.TrimSpace(config.StateDB) == "" {
 		return report, errors.New("catalog update requires state_db")
 	}
-	configBytes, err := json.Marshal(config)
+	identity, err := catalogUpdateRunIdentity(config, report.CatalogSHA256)
 	if err != nil {
 		return report, err
 	}
 	catalogSHA256 := report.CatalogSHA256
-	identity := fmt.Sprintf("%x", sha256.Sum256(append([]byte(catalogSHA256+"\n"), configBytes...)))
 	if options.Resume != "" {
 		saved, outcomes, err := catalogupdate.ReadExistingRun(ctx, config.StateDB, options.Resume)
 		switch {
@@ -154,6 +153,14 @@ func (c *Client) UpdateCatalog(ctx context.Context, options CatalogUpdateOptions
 	return c.continueCatalogUpdate(ctx, store, report, run.Completed, config)
 }
 
+func catalogUpdateRunIdentity(config CatalogUpdateConfig, catalogSHA256 string) (string, error) {
+	configBytes, err := json.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", sha256.Sum256(append([]byte(catalogSHA256+"\n"), configBytes...))), nil
+}
+
 func (report *CatalogUpdateReport) setRun(run catalogupdate.Run) {
 	report.RunID, report.Providers, report.RunIdentity = run.ID, run.Providers, run.Catalog
 	report.Completed, report.StartedAt, report.CompletedAt = run.Completed, run.StartedAt, run.CompletedAt
@@ -174,20 +181,8 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 	type checkpoint struct{ provider, reference string }
 	refsChecked := make(map[checkpoint]catalogupdate.Outcome)
 	blockedUntil := make(map[string]catalogUpdateOriginBlock)
-	observeThrottle := func(out catalogupdate.Outcome, currentPass bool) {
-		for origin, block := range readCatalogUpdateRetryBlocks(out) {
-			if currentPass && !block.OutsideWindow {
-				// Yield the origin for the remainder of this serial pass.
-				block.Until = time.Date(9999, 12, 31, 0, 0, 0, 0, time.UTC)
-			}
-			known := blockedUntil[origin]
-			if block.OutsideWindow || !known.OutsideWindow && block.Until.After(known.Until) {
-				blockedUntil[origin] = block
-			}
-		}
-	}
 	for _, row := range outcomes {
-		observeThrottle(row, false)
+		mergeCatalogUpdateRetryBlocks(blockedUntil, row, false)
 		if row.ReferenceID == "" {
 			checked[row.ProviderID] = true
 		} else {
@@ -260,7 +255,7 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 			if err != nil {
 				return report, fmt.Errorf("%s/%s: %w", id, source.ReferenceID, err)
 			}
-			observeThrottle(observed, true)
+			mergeCatalogUpdateRetryBlocks(blockedUntil, observed, true)
 			providerPending = providerPending || observed.Status == catalogupdate.RetryPendingStatus
 		}
 		if providerPending {

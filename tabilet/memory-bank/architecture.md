@@ -876,6 +876,16 @@ builder paths relative to the catalog artifact root. The updater and cache
 registration launcher use the same checked-in registry. These outcomes
 record local coverage without claiming upstream freshness.
 
+Monthly maintenance shares the manual updater configuration, pinned cache,
+SQLite checkpoints and retry budget. Preflight checks storage and the
+installed binary without opening publisher connections. An optional SQLite
+table associates each local calendar period with its existing run ID.
+A transaction creates the run and its period assignment together. One
+process lock beside the state database covers scheduled selection, retries
+and completion. Artifact publication keeps its short-lived file lock.
+An interrupted scheduled run is resumed under its original catalog and
+configuration identity. Each invocation is bounded to one day.
+
 ### Reviewed provider search (C08)
 
 Reviewed provider search builds an SQLite FTS5 index over embedded catalog
