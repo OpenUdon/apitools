@@ -18,7 +18,10 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const stateSchema = 2
+const stateSchema = 3
+
+// Serialize the first creation and close of a state file in this process.
+var stateFileCreation sync.Mutex
 
 // Store keeps the durable run and artifact registry on the configured local
 // state filesystem. The owner supplies and closes the artifact cache root.
@@ -75,12 +78,7 @@ func openStore(ctx context.Context, statePath string, cache *os.Root, check func
 	defer dir.Close()
 	name := filepath.Base(abs)
 	statePath = filepath.Join(dir.Name(), name)
-	probe, err := dir.OpenFile(name, os.O_CREATE|os.O_EXCL|os.O_RDWR, 0o600)
-	if err == nil {
-		if err := probe.Close(); err != nil {
-			return nil, err
-		}
-	} else if !errors.Is(err, fs.ErrExist) {
+	if err := createStateFile(dir, name); err != nil {
 		return nil, err
 	}
 	info, err := dir.Lstat(name)
@@ -90,7 +88,7 @@ func openStore(ctx context.Context, statePath string, cache *os.Root, check func
 	if !info.Mode().IsRegular() {
 		return nil, errors.New("catalog state path must be a regular file")
 	}
-	dbFile, err := openObjectRead(dir, name)
+	dbFile, err := openStatePath(dir, name)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +110,7 @@ func openStore(ctx context.Context, statePath string, cache *os.Root, check func
 	if err := checkStatePath(statePath, info); err != nil {
 		return nil, err
 	}
-	dsn := url.URL{Scheme: "file", Path: filepath.ToSlash(statePath), RawQuery: "mode=rw&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)"}
+	dsn := url.URL{Scheme: "file", Path: filepath.ToSlash(statePath), RawQuery: "mode=rw&_txlock=immediate&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)"}
 	pool, err := sql.Open("sqlite", dsn.String())
 	if err != nil {
 		return nil, err
@@ -133,6 +131,19 @@ func openStore(ctx context.Context, statePath string, cache *os.Root, check func
 		return nil, err
 	}
 	return store, nil
+}
+
+func createStateFile(dir *os.Root, name string) error {
+	stateFileCreation.Lock()
+	defer stateFileCreation.Unlock()
+	probe, err := dir.OpenFile(name, os.O_CREATE|os.O_EXCL|os.O_RDWR, 0o600)
+	if errors.Is(err, fs.ErrExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return probe.Close()
 }
 
 func checkStatePath(path string, verified fs.FileInfo) error {
@@ -160,7 +171,7 @@ func (s *Store) initialize(ctx context.Context) error {
 		return err
 	}
 	switch version {
-	case 1, stateSchema:
+	case 1, 2, stateSchema:
 		var ok int
 		if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name IN ('update_run','update_provider','update_outcome','update_object')").Scan(&ok); err != nil {
 			return err
@@ -168,7 +179,7 @@ func (s *Store) initialize(ctx context.Context) error {
 		if ok != 4 {
 			return errors.New("file is not a catalog maintenance database")
 		}
-		if version == stateSchema {
+		if version >= 2 {
 			if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name IN ('update_version','update_preferred')").Scan(&ok); err != nil {
 				return err
 			}
@@ -190,8 +201,14 @@ func (s *Store) initialize(ctx context.Context) error {
 	default:
 		return fmt.Errorf("unsupported catalog maintenance schema %d", version)
 	}
-	if version < stateSchema {
+	if version < 2 {
 		if _, err := tx.ExecContext(ctx, versionSchemaSQL); err != nil {
+			return err
+		}
+	} else if version == 2 {
+		if _, err := tx.ExecContext(ctx, `
+ALTER TABLE update_version ADD COLUMN catalog_pin TEXT NOT NULL DEFAULT '';
+PRAGMA user_version = 3;`); err != nil {
 			return err
 		}
 	}

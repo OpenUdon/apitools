@@ -13,6 +13,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/sys/unix"
 )
 
 func testObject(content string) Object {
@@ -129,6 +131,58 @@ func TestStoreRefusesPathChangedAfterFilesystemCheck(t *testing.T) {
 	if data, err := os.ReadFile(state); err != nil || string(data) != "replacement" {
 		t.Fatalf("replacement changed: %q, %v", data, err)
 	}
+}
+
+func TestStoreStatePathCheckPreservesAnotherConnectionWriteLock(t *testing.T) {
+	ctx := t.Context()
+	root := t.TempDir()
+	cache, err := OpenArtifactCache(filepath.Join(root, "cache"), "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	state := filepath.Join(root, "state.sqlite")
+	store, err := openTestStore(ctx, state, cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	observer, err := os.Open(state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer observer.Close()
+	tx, err := store.db.BeginTx(ctx, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback()
+	assertWriteLock := func() {
+		t.Helper()
+		// An OFD lock request sees conflicts with this process's POSIX locks.
+		lock := unix.Flock_t{Type: unix.F_RDLCK}
+		if err := unix.FcntlFlock(observer.Fd(), unix.F_OFD_GETLK, &lock); err != nil {
+			t.Fatal(err)
+		}
+		if lock.Type != unix.F_WRLCK {
+			t.Fatalf("SQLite write lock missing: %+v", lock)
+		}
+	}
+	assertWriteLock()
+	stop := errors.New("stop after inspecting the state file")
+	second, err := openStore(ctx, state, cache, func(file *os.File) error {
+		if file.Name() == filepath.Base(state) {
+			return stop
+		}
+		return nil
+	})
+	if !errors.Is(err, stop) {
+		if second != nil {
+			_ = second.Close()
+		}
+		t.Fatalf("second open: %v", err)
+	}
+	assertWriteLock()
 }
 
 func TestStoreKeepsOverlappingRecordOutOfRollingBackTransaction(t *testing.T) {
@@ -289,10 +343,21 @@ func TestStoreRejectsTruncatedOversizedAndSubstitutedObjects(t *testing.T) {
 	if err := cache.WriteFile(name, []byte("wrong"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.PutObject(ctx, want, strings.NewReader("right")); err == nil {
-		t.Fatal("silently adopted corrupt existing artifact")
-	}
-	if _, err := store.OpenObject(ctx, want); err == nil {
+	if _, err := store.OpenObject(ctx, want); !errors.Is(err, ErrObjectIntegrity) {
 		t.Fatal("read a corrupt cached artifact")
+	}
+	if err := store.PutObject(ctx, want, strings.NewReader("wrong")); !errors.Is(err, ErrObjectIntegrity) {
+		t.Fatalf("unverified replacement succeeded: %v", err)
+	}
+	if err := store.PutObject(ctx, want, strings.NewReader("right")); err != nil {
+		t.Fatalf("restore digest file with verified bytes: %v", err)
+	}
+	file, err := store.OpenObject(ctx, want)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+	if observed, err := io.ReadAll(file); err != nil || string(observed) != "right" {
+		t.Fatalf("restored artifact = %q, %v", observed, err)
 	}
 }

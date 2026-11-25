@@ -80,6 +80,9 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 		if via[len(via)-1].URL.Scheme == "https" && req.URL.Scheme != "https" {
 			return fmt.Errorf("artifact redirect downgrades HTTPS")
 		}
+		if req.URL.Fragment != "" || (req.URL.RawQuery != "" && req.URL.RawQuery != parsed.RawQuery) {
+			return fmt.Errorf("artifact redirect adds or changes URL parameters")
+		}
 		if err := c.versionScopeAllows(req.URL.String(), scope); err != nil {
 			return err
 		}

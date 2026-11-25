@@ -59,6 +59,13 @@ func openObjectRead(root *os.Root, name string) (*os.File, error) {
 	return openPinnedFile(root, name, syscall.O_RDONLY)
 }
 
+func openStatePath(root *os.Root, name string) (*os.File, error) {
+	// Closing an ordinary file descriptor can release this process's
+	// SQLite advisory locks. A path-only descriptor supports stat checks
+	// without taking part in file locking.
+	return openPinnedFile(root, name, unix.O_PATH)
+}
+
 func openPinnedFile(root *os.Root, name string, flags int) (*os.File, error) {
 	dir, err := root.Open(".")
 	if err != nil {

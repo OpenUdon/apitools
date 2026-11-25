@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -91,6 +92,9 @@ func TestStoreAdvancesApprovedVersionAndPreservesPreviousBytes(t *testing.T) {
 	if preferred, err := store.PreferredVersion(ctx, "example", "records", "records"); err != nil || !samePreferredVersion(preferred, sameBytes) {
 		t.Fatalf("another index member changed the first preference: %+v, %v", preferred, err)
 	}
+	if _, err := store.ReviewedReferencePreference(ctx, "example", "records"); !errors.Is(err, ErrAmbiguousReferencePreference) {
+		t.Fatalf("relocated service was guessed across several index members: %v", err)
+	}
 	first, err := store.ExportVersions(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -143,5 +147,58 @@ func TestStoreRollsBackVersionWhenReferenceCheckpointFails(t *testing.T) {
 	rows, err := store.ReadOutcomes(ctx, run.ID)
 	if err != nil || len(rows) != 1 || rows[0].Status != first.Status {
 		t.Fatalf("checkpoint overwritten by a second writer: %+v, %v", rows, err)
+	}
+}
+
+func TestStoreMigratesVersionTwoPreferences(t *testing.T) {
+	ctx := t.Context()
+	dir := t.TempDir()
+	cache, err := OpenArtifactCache(filepath.Join(dir, "cache"), "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	path := filepath.Join(dir, "catalog.sqlite")
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	previousSchema := strings.Replace(versionSchemaSQL, "  catalog_pin TEXT NOT NULL DEFAULT '',\n", "", 1)
+	previousSchema = strings.Replace(previousSchema, "user_version = 3", "user_version = 2", 1)
+	if _, err := db.ExecContext(ctx, schemaSQL+previousSchema); err != nil {
+		t.Fatal(err)
+	}
+	object := testObject("earlier version")
+	if _, err := db.ExecContext(ctx, "INSERT INTO update_object VALUES (?, ?)", object.SHA256, object.Bytes); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.ExecContext(ctx, `
+INSERT INTO update_version VALUES (1, 'example', 'records', 'records', ?,
+ 'https://example.com/spec.json', 'https://example.com/spec.json', '1.0', '', '2026-11-25T00:00:00Z');
+INSERT INTO update_preferred VALUES ('example', 'records', 'records', 1);`, object.SHA256); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	export, err := ReadVersionExport(ctx, path)
+	if err != nil || !bytes.Contains(export, []byte(object.SHA256)) || bytes.Contains(export, []byte("catalog_pin")) {
+		t.Fatalf("read-only v2 export = %s, %v", export, err)
+	}
+	if after, err := os.ReadFile(path); err != nil || !bytes.Equal(before, after) {
+		t.Fatalf("read-only v2 export changed the database: %v", err)
+	}
+	store, err := openTestStore(ctx, path, cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	held, err := store.PreferredVersion(ctx, "example", "records", "records")
+	if err != nil || held.Object != object || held.Version != "1.0" || held.CatalogPin != "" {
+		t.Fatalf("migrated version = %+v, %v", held, err)
 	}
 }

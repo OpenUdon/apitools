@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/url"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -22,6 +23,7 @@ CREATE TABLE update_version (
   version TEXT NOT NULL,
   revision TEXT NOT NULL,
   checked_at TEXT NOT NULL,
+  catalog_pin TEXT NOT NULL DEFAULT '',
   UNIQUE (provider_id, reference_id, service, digest, locator, url, version, revision)
 ) STRICT;
 CREATE TABLE update_preferred (
@@ -31,7 +33,7 @@ CREATE TABLE update_preferred (
   version_id INTEGER NOT NULL REFERENCES update_version(id),
   PRIMARY KEY (provider_id, reference_id, service)
 ) STRICT;
-PRAGMA user_version = 2;`
+PRAGMA user_version = 3;`
 
 // Version records a reviewed local preference and its exact cached bytes.
 type Version struct {
@@ -42,11 +44,13 @@ type Version struct {
 	URL         string    `json:"url"`
 	Version     string    `json:"version,omitempty"`
 	Revision    string    `json:"revision,omitempty"`
+	CatalogPin  string    `json:"catalog_pin,omitempty"`
 	CheckedAt   time.Time `json:"checked_at"`
 	Object      Object    `json:"object"`
 }
 
 var ErrPreferenceChanged = errors.New("preferred catalog version changed during comparison")
+var ErrAmbiguousReferencePreference = errors.New("catalog reference has multiple preferred services")
 
 // AcceptVersion advances a preference after the caller qualifies the version.
 // expected binds the update to the version that the caller reviewed. Nil
@@ -68,7 +72,7 @@ func (s *Store) AcceptVersionAndRecord(ctx context.Context, version Version, exp
 
 func (s *Store) acceptVersion(ctx context.Context, version Version, expected *Version, runID string, outcome Outcome) error {
 	if version.ProviderID == "" || version.ReferenceID == "" || version.Service == "" || version.Locator == "" ||
-		version.URL == "" || version.CheckedAt.IsZero() {
+		version.URL == "" || version.CheckedAt.IsZero() || (version.CatalogPin != "" && !validDigest(version.CatalogPin)) {
 		return errors.New("catalog version is missing identity, provenance or check date")
 	}
 	object, err := s.OpenObject(ctx, version.Object)
@@ -93,11 +97,12 @@ func (s *Store) acceptVersion(ctx context.Context, version Version, expected *Ve
 		return ErrPreferenceChanged
 	}
 	_, err = tx.ExecContext(ctx, `
-INSERT INTO update_version(provider_id, reference_id, service, digest, locator, url, version, revision, checked_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO update_version(provider_id, reference_id, service, digest, locator, url, version, revision, checked_at, catalog_pin)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(provider_id, reference_id, service, digest, locator, url, version, revision)
-DO UPDATE SET checked_at = excluded.checked_at`, version.ProviderID, version.ReferenceID, version.Service,
-		version.Object.SHA256, version.Locator, version.URL, version.Version, version.Revision, version.CheckedAt.UTC().Format(time.RFC3339Nano))
+DO UPDATE SET checked_at = excluded.checked_at, catalog_pin = excluded.catalog_pin`, version.ProviderID, version.ReferenceID, version.Service,
+		version.Object.SHA256, version.Locator, version.URL, version.Version, version.Revision,
+		version.CheckedAt.UTC().Format(time.RFC3339Nano), version.CatalogPin)
 	if err != nil {
 		return err
 	}
@@ -126,7 +131,7 @@ func samePreferredVersion(a, b Version) bool {
 
 const selectVersion = `
 SELECT v.provider_id, v.reference_id, v.service, v.locator, v.url, v.version, v.revision,
- v.checked_at, o.digest, o.bytes
+ v.checked_at, v.catalog_pin, o.digest, o.bytes
 FROM update_preferred p JOIN update_version v ON v.id = p.version_id
 JOIN update_object o ON o.digest = v.digest`
 
@@ -137,11 +142,38 @@ func (s *Store) PreferredVersion(ctx context.Context, provider, reference, servi
 	return scanVersion(row)
 }
 
+// ReviewedReferencePreference recovers the stable identity of a direct
+// source after a reviewed locator change. An index may share a reference
+// across several services. Those cases require an explicit service match.
+func (s *Store) ReviewedReferencePreference(ctx context.Context, provider, reference string) (Version, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	rows, err := s.db.QueryContext(ctx, selectVersion+" WHERE p.provider_id=? AND p.reference_id=? ORDER BY p.service LIMIT 2", provider, reference)
+	if err != nil {
+		return Version{}, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
+			return Version{}, err
+		}
+		return Version{}, sql.ErrNoRows
+	}
+	version, err := scanVersion(rows)
+	if err != nil {
+		return Version{}, err
+	}
+	if rows.Next() {
+		return Version{}, ErrAmbiguousReferencePreference
+	}
+	return version, rows.Err()
+}
+
 func scanVersion(row interface{ Scan(...any) error }) (Version, error) {
 	var v Version
 	var checked string
 	if err := row.Scan(&v.ProviderID, &v.ReferenceID, &v.Service, &v.Locator, &v.URL, &v.Version,
-		&v.Revision, &checked, &v.Object.SHA256, &v.Object.Bytes); err != nil {
+		&v.Revision, &checked, &v.CatalogPin, &v.Object.SHA256, &v.Object.Bytes); err != nil {
 		return Version{}, err
 	}
 	when, err := time.Parse(time.RFC3339Nano, checked)
@@ -154,7 +186,7 @@ func scanVersion(row interface{ Scan(...any) error }) (Version, error) {
 func (s *Store) ExportVersions(ctx context.Context) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return exportVersions(ctx, s.db)
+	return exportVersions(ctx, s.db, selectVersion)
 }
 
 // ReadVersionExport reads an existing maintenance database without creating
@@ -170,20 +202,28 @@ func ReadVersionExport(ctx context.Context, statePath string) ([]byte, error) {
 		return nil, err
 	}
 	defer db.Close()
-	var version int
-	if err := db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if err != nil {
 		return nil, err
 	}
-	if version != stateSchema {
+	defer tx.Rollback()
+	var version int
+	if err := tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
+		return nil, err
+	}
+	query := selectVersion
+	if version == 2 {
+		query = strings.Replace(query, "v.catalog_pin", "''", 1)
+	} else if version != stateSchema {
 		return nil, errors.New("catalog maintenance database version is unsupported for export")
 	}
-	return exportVersions(ctx, db)
+	return exportVersions(ctx, tx, query)
 }
 
 func exportVersions(ctx context.Context, db interface {
 	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
-}) ([]byte, error) {
-	rows, err := db.QueryContext(ctx, selectVersion+" ORDER BY p.provider_id,p.reference_id,p.service")
+}, query string) ([]byte, error) {
+	rows, err := db.QueryContext(ctx, query+" ORDER BY p.provider_id,p.reference_id,p.service")
 	if err != nil {
 		return nil, err
 	}

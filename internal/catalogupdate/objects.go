@@ -13,6 +13,9 @@ import (
 
 const maxObjectBytes = 1_000_000_000
 
+// ErrObjectIntegrity identifies evidence confined to one cached object.
+var ErrObjectIntegrity = errors.New("catalog artifact integrity check failed")
+
 func (o Object) filename() (string, error) {
 	if !validDigest(o.SHA256) || o.Bytes <= 0 || o.Bytes > maxObjectBytes {
 		return "", errors.New("invalid catalog artifact digest or byte count")
@@ -45,7 +48,18 @@ func (s *Store) PutObject(ctx context.Context, object Object, source io.Reader) 
 		return s.registerObject(ctx, object)
 	}
 	if !errors.Is(err, fs.ErrNotExist) {
-		return err
+		if !errors.Is(err, ErrObjectIntegrity) {
+			return err
+		}
+		info, statErr := s.cache.Lstat(name)
+		if statErr != nil && !errors.Is(statErr, fs.ErrNotExist) {
+			return statErr
+		}
+		// A regular digest file can be restored by verified replacement
+		// bytes. Leave foreign entries such as symlinks and directories alone.
+		if statErr == nil && !info.Mode().IsRegular() {
+			return err
+		}
 	}
 	if err := checkArtifactFilesystem(s.cache, "", uint64(object.Bytes)); err != nil {
 		return err
@@ -105,15 +119,20 @@ func (s *Store) OpenObject(ctx context.Context, object Object) (*os.File, error)
 		return nil, err
 	}
 	if !info.Mode().IsRegular() || info.Size() != object.Bytes {
-		return nil, errors.New("catalog artifact has an invalid file type or size")
+		return nil, fmt.Errorf("%w: invalid file type or size", ErrObjectIntegrity)
 	}
 	file, err := openObjectRead(s.cache, name)
 	if err != nil {
 		return nil, err
 	}
-	if opened, err := file.Stat(); err != nil || !os.SameFile(info, opened) {
+	opened, err := file.Stat()
+	if err != nil {
 		_ = file.Close()
-		return nil, errors.New("catalog artifact changed during open")
+		return nil, err
+	}
+	if !os.SameFile(info, opened) {
+		_ = file.Close()
+		return nil, fmt.Errorf("%w: artifact changed during open", ErrObjectIntegrity)
 	}
 	if err := verifyObject(ctx, file, nil, object); err != nil {
 		_ = file.Close()
@@ -136,14 +155,19 @@ func verifyObject(ctx context.Context, source io.Reader, destination io.Writer, 
 		return err
 	}
 	if _, err := io.CopyN(dst, source, object.Bytes); err != nil {
+		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+			return fmt.Errorf("%w: artifact is shorter than declared", ErrObjectIntegrity)
+		}
 		return fmt.Errorf("read catalog artifact: %w", err)
 	}
 	var extra [1]byte
-	if n, err := io.ReadFull(source, extra[:]); n != 0 || err != io.EOF {
-		return errors.New("catalog artifact does not match its declared size")
+	if n, err := io.ReadFull(source, extra[:]); n != 0 {
+		return fmt.Errorf("%w: artifact exceeds its declared size", ErrObjectIntegrity)
+	} else if err != nil && err != io.EOF {
+		return err
 	}
 	if hex.EncodeToString(digest.Sum(nil)) != object.SHA256 {
-		return errors.New("catalog artifact does not match its digest")
+		return fmt.Errorf("%w: digest mismatch", ErrObjectIntegrity)
 	}
 	return ctx.Err()
 }

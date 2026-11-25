@@ -387,6 +387,9 @@ the configuration file. An optional `expected_volume_uuid` verifies a
 dedicated cache mount. Use `retain_immutable` to retain review copies of
 immutable publisher links for offline use.
 
+The optional UUID guard uses Linux block-device identity. Filesystems such
+as Btrfs can report a different identity for the mounted directory.
+
 ```sh
 apitools catalog update --config ./maintenance.json --provider attio --json
 apitools catalog update --config ./maintenance.json --all --json
@@ -403,6 +406,15 @@ Configuration can include `reviewed_operations`, a map from
 `#/paths/~1records/get`. A previously accepted version can advance when
 the scoped native contract comparison proves compatibility. The export
 contains accepted version metadata for review.
+
+To resolve a `review-required` result after reviewing the publisher
+artifact, update the catalog reference with its exact `sha256:<digest>`
+revision and regenerate the built-in catalog. The next update adopts that
+reviewed pin when it reproduces the digest and validates the source. An
+unchanged catalog pin stays associated with later compatible updates, so
+its reappearance cannot roll back the local preference. Prior pins remain
+in the local cache. If an earlier artifact is missing, the run records a
+review outcome for that reference and continues to later providers.
 
 ### Explicit catalog roots
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
+	"fmt"
 	"io"
 	"net/url"
 	"reflect"
@@ -54,7 +54,7 @@ func (c *Client) proveCompatibleCatalogVersion(ctx context.Context, store *catal
 		}
 		digest := sha256.Sum256(body)
 		if int64(len(body)) != v.Object.Bytes || hex.EncodeToString(digest[:]) != v.Object.SHA256 {
-			return OperationSourceInput{}, errors.New("catalog version bytes changed during compatibility read")
+			return OperationSourceInput{}, fmt.Errorf("%w: catalog version bytes changed during comparison", catalogupdate.ErrObjectIntegrity)
 		}
 		return OperationSourceInput{Kind: kind, URL: v.URL, Content: body}, nil
 	}

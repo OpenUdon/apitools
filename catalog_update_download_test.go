@@ -130,3 +130,17 @@ func TestCatalogUpdateArtifactRejectsOutOfScopeHeadRedirect(t *testing.T) {
 		t.Fatalf("out-of-scope publisher received %d requests, error = %v", requests.Load(), err)
 	}
 }
+
+func TestCatalogUpdateArtifactRejectsAddedRedirectParameters(t *testing.T) {
+	var requests atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests.Add(1)
+		http.Redirect(w, r, "/artifact?private=fixture", http.StatusFound)
+	}))
+	defer server.Close()
+	var dst bytes.Buffer
+	client := Client{AllowUnsafeHosts: true}
+	if _, err := client.acquireCatalogUpdateArtifact(t.Context(), server.URL, 100, &dst); err == nil || requests.Load() != 1 {
+		t.Fatalf("redirect with added parameters received %d requests, error = %v", requests.Load(), err)
+	}
+}

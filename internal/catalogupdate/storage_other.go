@@ -20,6 +20,10 @@ func openObjectRead(root *os.Root, name string) (*os.File, error) {
 	return root.Open(name)
 }
 
+func openStatePath(_ *os.Root, _ string) (*os.File, error) {
+	return nil, errors.New("catalog maintenance SQLite state requires Linux")
+}
+
 func lockCatalogCache(_ context.Context, _ *os.Root) (*os.File, error) {
 	return nil, errors.New("catalog maintenance cache locking requires Linux")
 }

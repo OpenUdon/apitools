@@ -819,6 +819,14 @@ abandoned staging, and publishes and syncs verified bytes before SQLite
 records a reference. Retry verifies and reuses any published orphan. Offline
 reads verify the file type, size and digest before returning it.
 
+Each preferred version keeps the catalog pin that authorized its baseline,
+even after a compatible publisher version advances the preference. A changed
+pin must reproduce before further adoption. Locator changes keep the same
+reviewed service key. If the previous accepted object is unavailable, the
+updater checks the affected reference and continues the run. The metadata
+export reads one SQLite snapshot and includes schema v2 state without a
+write-side migration.
+
 ### Catalog discovery wire foundations (M80.1)
 
 The additive `apitools.catalog-discovery/v1` types reuse StepContract and
