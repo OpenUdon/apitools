@@ -19,6 +19,7 @@ import (
 )
 
 const stateSchema = 3
+const RetryPendingStatus = "publisher-retry-pending"
 
 // Serialize the first creation and close of a state file in this process.
 var stateFileCreation sync.Mutex
@@ -46,6 +47,9 @@ type Outcome struct {
 	Status      string          `json:"status"`
 	Evidence    json.RawMessage `json:"evidence,omitempty"`
 	Object      *Object         `json:"object,omitempty"`
+	// Replacing a pending retry is conditional on the exact observed
+	// checkpoint. A competing or finalized outcome stays authoritative.
+	PreviousRetryEvidence json.RawMessage `json:"-"`
 }
 
 type Object struct {
@@ -318,6 +322,18 @@ func (s *Store) Record(ctx context.Context, runID string, outcome Outcome) error
 func recordUpdateOutcome(ctx context.Context, executor interface {
 	ExecContext(context.Context, string, ...any) (sql.Result, error)
 }, runID string, outcome Outcome, digest any) error {
+	if len(outcome.PreviousRetryEvidence) != 0 {
+		result, err := executor.ExecContext(ctx, `
+UPDATE update_outcome SET status = ?, evidence = ?, digest = ?
+WHERE run_id = ? AND provider_id = ? AND reference_id = ? AND status = ? AND evidence = ?
+  AND EXISTS (SELECT 1 FROM update_run WHERE id = ? AND completed = 0)`,
+			outcome.Status, string(outcome.Evidence), digest, runID, outcome.ProviderID, outcome.ReferenceID,
+			RetryPendingStatus, string(outcome.PreviousRetryEvidence), runID)
+		if err != nil {
+			return err
+		}
+		return requireUpdatedRun(result)
+	}
 	result, err := executor.ExecContext(ctx, `
 INSERT INTO update_outcome(run_id, provider_id, reference_id, status, evidence, digest)
 SELECT id, ?, ?, ?, ?, ? FROM update_run WHERE id = ? AND completed = 0
@@ -371,7 +387,9 @@ UPDATE update_run SET completed = 1 WHERE id = ? AND NOT EXISTS (
   SELECT 1 FROM update_outcome o WHERE o.run_id = p.run_id AND
     o.provider_id = p.provider_id AND o.reference_id = ''
  )
-)`, id)
+) AND NOT EXISTS (
+ SELECT 1 FROM update_outcome WHERE run_id = update_run.id AND status = ?
+)`, id, RetryPendingStatus)
 	if err != nil {
 		return err
 	}

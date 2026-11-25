@@ -58,7 +58,7 @@ func TestCatalogUpdateAnchorsVerifiedHeldDigest(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg)
+				out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg, nil)
 				if err != nil || out.Status != want {
 					t.Fatalf("outcome = %s, %s, %v", out.Status, out.Evidence, err)
 				}
@@ -98,7 +98,10 @@ func TestCatalogUpdateReproducesAuthoredCommitBeforeUsingNewHead(t *testing.T) {
 		{name: "new pin with comparison", havePreference: true, compare: true, wantStatus: "accepted-compatible", preferredVersion: "3.0"},
 		{name: "head digest alone is insufficient", headReusesPin: true, wrongAuthored: true, wantStatus: "review-required"},
 		{name: "head shares the reproduced digest", headReusesPin: true, wantStatus: "reviewed-pin-reproduced", preferredVersion: "2.0"},
-		{name: "metadata unavailable", headFailure: "metadata", wantStatus: "publisher-source-unexamined", preferredVersion: "2.0"},
+		{name: "metadata unavailable", headFailure: "metadata", wantStatus: catalogupdate.RetryPendingStatus, preferredVersion: "2.0"},
+		{name: "authored download throttled", headFailure: "authored-throttle", wantStatus: catalogupdate.RetryPendingStatus},
+		{name: "head throttling skips same raw origin", headFailure: "head-throttle", wantStatus: catalogupdate.RetryPendingStatus},
+		{name: "metadata and authored origins both throttle", headFailure: "dual-throttle", wantStatus: catalogupdate.RetryPendingStatus},
 		{name: "branch updates to an exact locally held commit", branchCache: true, compare: true, wantStatus: "accepted-compatible", preferredVersion: "3.0"},
 		{name: "new reviewed file at a different locator", relocated: true, havePreference: true, compare: true, wantStatus: "accepted-compatible", preferredVersion: "3.0"},
 		{name: "authored protobuf", protobuf: true, wantStatus: "reviewed-pin-reproduced", preferredVersion: "v26"},
@@ -174,10 +177,13 @@ func TestCatalogUpdateReproducesAuthoredCommitBeforeUsingNewHead(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			authoredGets := 0
+			authoredGets, authoredHeads := 0, 0
 			client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
 				switch r.URL.Host {
 				case "api.github.com":
+					if tc.headFailure == "dual-throttle" {
+						return &http.Response{StatusCode: http.StatusServiceUnavailable, Header: http.Header{"Retry-After": {"120"}}, Body: http.NoBody, Request: r}, nil
+					}
 					if tc.headFailure == "metadata" {
 						return &http.Response{StatusCode: http.StatusTooManyRequests, Header: make(http.Header), Body: http.NoBody, Request: r}, nil
 					}
@@ -185,11 +191,23 @@ func TestCatalogUpdateReproducesAuthoredCommitBeforeUsingNewHead(t *testing.T) {
 				case "raw.githubusercontent.com":
 					switch r.URL.String() {
 					case source.URL:
+						if r.Method == http.MethodHead {
+							authoredHeads++
+						}
+						if tc.headFailure == "dual-throttle" {
+							return &http.Response{StatusCode: http.StatusTooManyRequests, Header: http.Header{"Retry-After": {"900"}}, Body: http.NoBody, Request: r}, nil
+						}
+						if tc.headFailure == "authored-throttle" {
+							return &http.Response{StatusCode: http.StatusTooManyRequests, Header: make(http.Header), Body: http.NoBody, Request: r}, nil
+						}
 						if r.Method == http.MethodGet {
 							authoredGets++
 						}
 						return catalogRepairResponse(r, authored), nil
 					case base + headCommit + path:
+						if tc.headFailure == "head-throttle" {
+							return &http.Response{StatusCode: http.StatusTooManyRequests, Header: make(http.Header), Body: http.NoBody, Request: r}, nil
+						}
 						if tc.headFailure == "redirect" {
 							return &http.Response{StatusCode: http.StatusFound, Header: http.Header{"Location": {source.URL}}, Body: http.NoBody, Request: r}, nil
 						}
@@ -203,9 +221,12 @@ func TestCatalogUpdateReproducesAuthoredCommitBeforeUsingNewHead(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg)
+			out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg, nil)
 			wantGets := 1
 			if tc.branchCache {
+				wantGets = 0
+			}
+			if strings.HasSuffix(tc.headFailure, "-throttle") {
 				wantGets = 0
 			}
 			if tc.headFailure == "redirect" {
@@ -215,9 +236,18 @@ func TestCatalogUpdateReproducesAuthoredCommitBeforeUsingNewHead(t *testing.T) {
 				t.Fatalf("outcome = %s, %s, authored GETs %d, %v", out.Status, out.Evidence, authoredGets, err)
 			}
 			pref, err := store.ReviewedReferencePreference(ctx, source.ProviderID, source.ReferenceID)
-			if tc.wrongAuthored {
+			if tc.wrongAuthored || strings.HasSuffix(tc.headFailure, "-throttle") {
 				if err == nil {
 					t.Fatalf("unreproduced locator accepted: %+v", pref)
+				}
+				if tc.headFailure == "head-throttle" && authoredHeads != 0 {
+					t.Fatal("attempted authored HEAD on the same throttled origin")
+				}
+				if tc.headFailure == "dual-throttle" && len(readCatalogUpdateRetryBlocks(out)) != 2 {
+					t.Fatalf("distinct origin throttles were lost: %s", out.Evidence)
+				}
+				if tc.headFailure == "authored-throttle" && readCatalogUpdateRetry(out).Reason != "rate-limit" {
+					t.Fatalf("authored throttle was lost: %s", out.Evidence)
 				}
 				return
 			}
@@ -311,7 +341,7 @@ func TestCatalogUpdateRecognizesIdenticalBytesAtAnotherCommit(t *testing.T) {
 		}
 		return catalogRepairResponse(r, catalogRepairFixture), nil
 	})}}
-	out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg)
+	out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg, nil)
 	if err != nil || out.Status != "unchanged" || out.Object == nil || !strings.Contains(string(out.Evidence), headURL) {
 		t.Fatalf("identical publisher revision = %s, %s, %v", out.Status, out.Evidence, err)
 	}
@@ -366,7 +396,7 @@ func TestCatalogUpdateIdenticalBytesAtDifferentRedirectDestinationNeedReview(t *
 		if err != nil {
 			t.Fatal(err)
 		}
-		out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg)
+		out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{}, source, cfg, nil)
 		if err != nil || out.Status != "review-required" || !strings.Contains(string(out.Evidence), next) {
 			t.Fatalf("different redirect destination (reviewed=%t) = %s, %s, %v", reviewed, out.Status, out.Evidence, err)
 		}

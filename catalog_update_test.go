@@ -250,7 +250,7 @@ func testCatalogUpdateImmutableBaseline(t *testing.T, scenario string) {
 			Body: io.NopCloser(strings.NewReader(data)), Request: r,
 		}, nil
 	})}}
-	out, err := client.checkCatalogUpdateSource(t.Context(), store, run.ID, catalog.Provider{ID: "attio"}, source, cfg)
+	out, err := client.checkCatalogUpdateSource(t.Context(), store, run.ID, catalog.Provider{ID: "attio"}, source, cfg, nil)
 	if scenario == "changed locator" || scenario == "unreproduced pin at cached revision" {
 		if err != nil || out.Status != "review-required" {
 			t.Fatalf("unreproduced pin outcome = %+v, %v", out, err)
@@ -359,7 +359,7 @@ func TestCatalogUpdateAdoptsReviewedPinAfterLocatorAndAuthChange(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, provider, current, cfg)
+		out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, provider, current, cfg, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -457,7 +457,7 @@ func TestCatalogUpdateMigratedPreferenceRequiresReproducedNewerPin(t *testing.T)
 	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
 		return catalogRepairResponse(r, served), nil
 	})}}
-	result, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{ID: source.ProviderID}, source, cfg)
+	result, err := client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{ID: source.ProviderID}, source, cfg, nil)
 	if err != nil || result.Status != "review-required" {
 		t.Fatalf("same-version replay after migration = %+v, %v", result, err)
 	}
@@ -473,7 +473,7 @@ func TestCatalogUpdateMigratedPreferenceRequiresReproducedNewerPin(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err = client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{ID: source.ProviderID}, source, cfg)
+	result, err = client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{ID: source.ProviderID}, source, cfg, nil)
 	if err != nil || result.Status != "review-required" {
 		t.Fatalf("migration accepted a compatible successor before reproducing the new pin: %+v, %v", result, err)
 	}
@@ -486,7 +486,7 @@ func TestCatalogUpdateMigratedPreferenceRequiresReproducedNewerPin(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err = client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{ID: source.ProviderID}, source, cfg)
+	result, err = client.checkCatalogUpdateSource(ctx, store, run.ID, catalog.Provider{ID: source.ProviderID}, source, cfg, nil)
 	if err != nil || result.Status != "reviewed-pin-reproduced" {
 		t.Fatalf("reproduced newer pin after migration: %+v, %v", result, err)
 	}

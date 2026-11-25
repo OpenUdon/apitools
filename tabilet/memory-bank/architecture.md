@@ -844,6 +844,13 @@ validation correction. The retained object always contains the publisher's
 original bytes. A corrected view can support pin adoption. Automatic version
 advancement still requires a comparison of the original wire contract.
 
+Transient publisher failures keep a reference checkpoint eligible for
+retry. The stored classification, origin and next attempt time coordinate
+quota deferrals across resumes. A new checkpoint can replace a pending
+retry only if its previous evidence still matches. The run skips completed
+references, gives unrelated origins their turn, and finalizes once all
+references finish or exhaust their retry budget.
+
 ### Catalog discovery wire foundations (M80.1)
 
 The additive `apitools.catalog-discovery/v1` types reuse StepContract and

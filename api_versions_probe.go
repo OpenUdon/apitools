@@ -48,21 +48,24 @@ func (b *apiVersionBudget) counts() (int, int) {
 }
 
 type apiVersionProbe struct {
-	content     []byte
-	finalURL    string
-	status      int
-	bytes       int64
-	declared    *int64
-	digest      string
-	etag        string
-	modified    string
-	retryAfter  string
-	contentType string
-	nonSpec     bool
-	err         error
+	content       []byte
+	finalURL      string
+	status        int
+	bytes         int64
+	declared      *int64
+	digest        string
+	etag          string
+	modified      string
+	retryAfter    string
+	rateRemaining string
+	rateReset     string
+	contentType   string
+	nonSpec       bool
+	err           error
 }
 
 func (c *Client) probeAPIVersion(ctx context.Context, budget *apiVersionBudget, raw string, scopes []APIVersionOfficialScope, source bool, etag, modified string) apiVersionProbe {
+	c = c.effective()
 	var result apiVersionProbe
 	select {
 	case budget.sem <- struct{}{}:
@@ -169,6 +172,8 @@ func (c *Client) probeAPIVersion(ctx context.Context, budget *apiVersionBudget, 
 	result.etag = boundedVersionHeader(resp.Header.Get("ETag"))
 	result.modified = boundedVersionHeader(resp.Header.Get("Last-Modified"))
 	result.retryAfter = boundedVersionHeader(resp.Header.Get("Retry-After"))
+	result.rateRemaining = boundedVersionHeader(resp.Header.Get("X-RateLimit-Remaining"))
+	result.rateReset = boundedVersionHeader(resp.Header.Get("X-RateLimit-Reset"))
 	if resp.ContentLength >= 0 {
 		n := resp.ContentLength
 		result.declared = &n
@@ -181,6 +186,13 @@ func (c *Client) probeAPIVersion(ctx context.Context, budget *apiVersionBudget, 
 		result.err = HTTPStatusError{Code: result.status, Status: resp.Status}
 		return result
 	}
+	result = c.readAPIVersionProbeBody(ctx, raw, source, resp, result)
+	release = result.nonSpec
+	return result
+}
+
+func (c *Client) readAPIVersionProbeBody(ctx context.Context, raw string, source bool, resp *http.Response, result apiVersionProbe) apiVersionProbe {
+	c = c.effective()
 	max := int64(1 << 20)
 	if source {
 		max = apiVersionMaxSourceBytes
@@ -219,7 +231,6 @@ func (c *Client) probeAPIVersion(ctx context.Context, budget *apiVersionBudget, 
 	trim := bytes.ToLower(bytes.TrimSpace(prefix))
 	if source && (bytes.HasPrefix(trim, []byte("<!doctype html")) || bytes.HasPrefix(trim, []byte("<html"))) {
 		result.nonSpec = true
-		release = true
 		return result
 	}
 	data, err := io.ReadAll(io.LimitReader(io.MultiReader(bytes.NewReader(prefix), decoded), max+1))

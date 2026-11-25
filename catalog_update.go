@@ -137,14 +137,29 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 	}
 	checked := make(map[string]bool)
 	type checkpoint struct{ provider, reference string }
-	refsChecked := make(map[checkpoint]bool)
+	refsChecked := make(map[checkpoint]catalogupdate.Outcome)
+	blockedUntil := make(map[string]catalogUpdateOriginBlock)
+	observeThrottle := func(out catalogupdate.Outcome, currentPass bool) {
+		for origin, block := range readCatalogUpdateRetryBlocks(out) {
+			if currentPass && !block.OutsideWindow {
+				// Yield the origin for the remainder of this serial pass.
+				block.Until = time.Date(9999, 12, 31, 0, 0, 0, 0, time.UTC)
+			}
+			known := blockedUntil[origin]
+			if block.OutsideWindow || !known.OutsideWindow && block.Until.After(known.Until) {
+				blockedUntil[origin] = block
+			}
+		}
+	}
 	for _, row := range outcomes {
+		observeThrottle(row, false)
 		if row.ReferenceID == "" {
 			checked[row.ProviderID] = true
 		} else {
-			refsChecked[checkpoint{row.ProviderID, row.ReferenceID}] = true
+			refsChecked[checkpoint{row.ProviderID, row.ReferenceID}] = row
 		}
 	}
+	pending := false
 	for _, id := range report.Providers {
 		if err := ctx.Err(); err != nil {
 			return report, err
@@ -161,23 +176,67 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 		if len(sources) == 0 {
 			status = "needs-publisher-spec-or-overlay"
 		}
+		providerPending := false
 		for _, source := range sources {
-			if refsChecked[checkpoint{id, source.ReferenceID}] {
+			row, recorded := refsChecked[checkpoint{id, source.ReferenceID}]
+			if recorded && row.Status != catalogupdate.RetryPendingStatus {
 				continue
 			}
-			_, err := c.checkCatalogUpdateSource(ctx, store, report.RunID, provider, source, config)
+			origin, block := catalogUpdateBlockForSource(source, blockedUntil)
+			if block.OutsideWindow {
+				details := catalogUpdateEvidence{Source: source}
+				if recorded {
+					if err := json.Unmarshal(row.Evidence, &details); err != nil {
+						return report, err
+					}
+				}
+				details.Diagnostic = "The publisher retry hint exceeds the 24-hour recovery window."
+				if details.RetryBlocks == nil {
+					details.RetryBlocks = make(map[string]catalogUpdateOriginBlock)
+				}
+				details.RetryBlocks[origin] = block
+				data, err := json.Marshal(details)
+				if err != nil {
+					return report, err
+				}
+				deferred := catalogupdate.Outcome{ProviderID: id, ReferenceID: source.ReferenceID,
+					Status: "publisher-retry-deferred", Evidence: data, Object: row.Object, PreviousRetryEvidence: row.Evidence}
+				if err := store.Record(ctx, report.RunID, deferred); err != nil {
+					return report, err
+				}
+				continue
+			}
+			now := time.Now().UTC()
+			if now.Before(block.Until) ||
+				(recorded && now.Before(readCatalogUpdateRetry(row).NextAttemptAt)) {
+				providerPending = true
+				continue
+			}
+			var prior *catalogupdate.Outcome
+			if recorded {
+				prior = &row
+			}
+			observed, err := c.checkCatalogUpdateSource(ctx, store, report.RunID, provider, source, config, prior)
 			if err != nil {
 				return report, fmt.Errorf("%s/%s: %w", id, source.ReferenceID, err)
 			}
+			observeThrottle(observed, true)
+			providerPending = providerPending || observed.Status == catalogupdate.RetryPendingStatus
+		}
+		if providerPending {
+			pending = true
+			continue
 		}
 		if err := store.Record(ctx, report.RunID, catalogupdate.Outcome{ProviderID: id, Status: status}); err != nil {
 			return report, err
 		}
 	}
-	if err := store.FinishRun(ctx, report.RunID); err != nil {
-		return report, err
+	if !pending {
+		if err := store.FinishRun(ctx, report.RunID); err != nil {
+			return report, err
+		}
+		report.Completed = true
 	}
-	report.Completed = true
 	report.Outcomes, err = store.ReadOutcomes(ctx, report.RunID)
 	return report, err
 }
@@ -188,18 +247,23 @@ type catalogUpdateBaselineEvidence struct {
 }
 
 type catalogUpdateEvidence struct {
-	Source           catalogUpdateSource            `json:"source"`
-	Artifact         *catalogUpdateArtifact         `json:"artifact,omitempty"`
-	ReviewedBaseline *catalogUpdateBaselineEvidence `json:"reviewed_baseline,omitempty"`
-	OpenAPI          *catalogUpdateOpenAPIEvidence  `json:"openapi_validation,omitempty"`
-	Inventory        *catalogUpdateInventory        `json:"inventory,omitempty"`
-	Diagnostic       string                         `json:"diagnostic,omitempty"`
+	Source           catalogUpdateSource                 `json:"source"`
+	Artifact         *catalogUpdateArtifact              `json:"artifact,omitempty"`
+	ReviewedBaseline *catalogUpdateBaselineEvidence      `json:"reviewed_baseline,omitempty"`
+	OpenAPI          *catalogUpdateOpenAPIEvidence       `json:"openapi_validation,omitempty"`
+	Inventory        *catalogUpdateInventory             `json:"inventory,omitempty"`
+	Diagnostic       string                              `json:"diagnostic,omitempty"`
+	Retry            *catalogUpdateRetry                 `json:"publisher_retry,omitempty"`
+	RetryBlocks      map[string]catalogUpdateOriginBlock `json:"publisher_retry_blocks,omitempty"`
 }
 
 func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupdate.Store, runID string,
-	provider catalog.Provider, source catalogUpdateSource, config CatalogUpdateConfig,
+	provider catalog.Provider, source catalogUpdateSource, config CatalogUpdateConfig, prior *catalogupdate.Outcome,
 ) (catalogupdate.Outcome, error) {
 	out := catalogupdate.Outcome{ProviderID: source.ProviderID, ReferenceID: source.ReferenceID}
+	if prior != nil {
+		out.PreviousRetryEvidence = prior.Evidence
+	}
 	evidence := catalogUpdateEvidence{Source: source}
 	var promotion, expected *catalogupdate.Version
 	emit := func(status, diagnostic string) (catalogupdate.Outcome, error) {
@@ -215,6 +279,34 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 			}
 		}
 		return out, err
+	}
+	emitPublisher := func(status, diagnostic string, failures ...error) (catalogupdate.Outcome, error) {
+		for _, failed := range failures {
+			var publisher *catalogUpdatePublisherError
+			if !errors.As(failed, &publisher) {
+				continue
+			}
+			retry := publisher.nextAttempt(prior)
+			if retry.Shared {
+				if evidence.RetryBlocks == nil {
+					evidence.RetryBlocks = make(map[string]catalogUpdateOriginBlock)
+				}
+				block := evidence.RetryBlocks[retry.Origin]
+				if retry.OutsideWindow || !block.OutsideWindow && retry.NextAttemptAt.After(block.Until) {
+					evidence.RetryBlocks[retry.Origin] = catalogUpdateOriginBlock{Until: retry.NextAttemptAt, OutsideWindow: retry.OutsideWindow}
+				}
+			}
+			if evidence.Retry == nil || retry.NextAttemptAt.After(evidence.Retry.NextAttemptAt) {
+				evidence.Retry = &retry
+			}
+		}
+		if evidence.Retry != nil {
+			status = catalogupdate.RetryPendingStatus
+			if evidence.Retry.OutsideWindow || evidence.Retry.Attempt >= catalogUpdatePublisherAttempts {
+				status = "publisher-retry-exhausted"
+			}
+		}
+		return emit(status, diagnostic)
 	}
 	if source.Kind == catalog.SpecKindDropboxStone {
 		return emit("publisher-source-review", "Check the official Dropbox OpenAPI before substituting Stone provenance.")
@@ -249,13 +341,24 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 	}
 	// A failed head check does not invalidate separately observed reviewed
 	// bytes. Keep the head status for retry and attach the accepted baseline.
-	recordHeadFailure := func(status, diagnostic, target string) (catalogupdate.Outcome, error) {
+	recordHeadFailure := func(status, diagnostic, target string, failed error) (catalogupdate.Outcome, error) {
 		if ctx.Err() != nil {
 			return out, ctx.Err()
 		}
+		var authoredFailure error
 		if changeBaseline && catalogPin != "" && canReproduceMovedPin && validOperationSourceKind(kind) {
+			var headPublisher *catalogUpdatePublisherError
+			if errors.As(failed, &headPublisher) && headPublisher.retry.Shared &&
+				catalogUpdateArtifactOrigin(source.URL) == headPublisher.retry.Origin {
+				// Skip another request to the same artifact origin. Owned
+				// cached bytes can still reproduce the authored locator.
+				target = source.URL
+			}
 			anchored, err := c.catalogUpdateReviewedBaseline(ctx, store, source, held, target, catalogPin)
-			if err != nil && !errors.Is(err, catalogupdate.ErrObjectIntegrity) {
+			var publisher *catalogUpdatePublisherError
+			if errors.As(err, &publisher) {
+				authoredFailure = err
+			} else if err != nil && !errors.Is(err, catalogupdate.ErrObjectIntegrity) {
 				return out, err
 			}
 			if anchored.Preferred.Object.SHA256 != "" {
@@ -264,7 +367,7 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 				setPromotion(&anchored.Preferred)
 			}
 		}
-		return emit(status, diagnostic)
+		return emitPublisher(status, diagnostic, failed, authoredFailure)
 	}
 	resolved, err := c.resolveCatalogUpdateSource(ctx, source)
 	if held.Service != "" {
@@ -272,7 +375,7 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 	}
 	evidence.Source = resolved
 	if err != nil || resolved.Resolution == "unexamined-locator" {
-		return recordHeadFailure("publisher-source-unexamined", "Could not establish the publisher artifact locator.", "")
+		return recordHeadFailure("publisher-source-unexamined", "Could not establish the publisher artifact locator.", "", err)
 	}
 	target := firstNonEmpty(resolved.ResolvedURL, resolved.URL)
 	if resolved.ResolvedURL != "" && target == held.URL && resolved.Revision == held.Revision &&
@@ -297,13 +400,13 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 		return out, ctx.Err()
 	}
 	if err != nil {
-		return recordHeadFailure("publisher-check-failed", "Publisher did not return a matching downloadable artifact.", target)
+		return recordHeadFailure("publisher-check-failed", "Publisher did not return a matching downloadable artifact.", target, err)
 	}
 	if artifact.Status != catalogUpdateDownloaded {
-		return recordHeadFailure(artifact.Status, "", target)
+		return recordHeadFailure(artifact.Status, "", target, nil)
 	}
 	if resolved.ResolvedURL != "" && artifact.URL != resolved.ResolvedURL {
-		return recordHeadFailure("publisher-source-unexamined", "The artifact redirected away from the resolved immutable locator.", target)
+		return recordHeadFailure("publisher-source-unexamined", "The artifact redirected away from the resolved immutable locator.", target, nil)
 	}
 	if source.Kind == catalog.SpecKindOpenAPIIndex {
 		inventory, err := hubSpotUpdateInventory(artifact.URL, artifact.CheckedAt, body.Bytes())
@@ -323,7 +426,7 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 		}
 		evidence.OpenAPI = &validation
 		if !validation.accepted() {
-			return recordHeadFailure("publisher-spec-invalid", "Local validation established neither a valid OpenAPI document nor evidence for the exact reviewed artifact.", target)
+			return recordHeadFailure("publisher-spec-invalid", "Local validation established neither a valid OpenAPI document nor evidence for the exact reviewed artifact.", target, nil)
 		}
 		resolved.Version = firstNonEmpty(validation.Version, resolved.Version)
 	} else if _, err := BuildOperationShapeTable(ctx, OperationShapeOptions{
@@ -331,14 +434,14 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 			ID: "catalog-update", OperationSourceInput: OperationSourceInput{Kind: kind, URL: artifact.URL, Content: body.Bytes()},
 		}},
 	}); err != nil {
-		return recordHeadFailure("publisher-spec-unexamined", "Local source validation did not establish a native operation inventory.", target)
+		return recordHeadFailure("publisher-spec-unexamined", "Local source validation did not establish a native operation inventory.", target, nil)
 	}
 	object := catalogupdate.Object{SHA256: artifact.SHA256, Bytes: artifact.Bytes}
 	resolved.Revision = firstNonEmpty(resolved.Revision, "sha256:"+artifact.SHA256)
 	if kind == OperationSourceGoogleDiscovery {
 		native, err := decodeShapeDocument(ctx, body.Bytes())
 		if err != nil {
-			return recordHeadFailure("publisher-spec-unexamined", "Native source provenance could not be read within the validation budget.", target)
+			return recordHeadFailure("publisher-spec-unexamined", "Native source provenance could not be read within the validation budget.", target, nil)
 		}
 		resolved.Version = firstNonEmpty(stringValue(native["version"]), resolved.Version)
 		resolved.Revision = firstNonEmpty(stringValue(native["revision"]), resolved.Revision)
@@ -365,7 +468,10 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 	var adoptedBaseline bool
 	if !adoptReviewedPin && catalogPin != "" && changeBaseline {
 		anchored, err := c.catalogUpdateReviewedBaseline(ctx, store, source, held, target, catalogPin)
+		var publisher *catalogUpdatePublisherError
 		switch {
+		case errors.As(err, &publisher):
+			return emitPublisher("review-required", "The authored immutable artifact could not be checked.", err)
 		case errors.Is(err, catalogupdate.ErrObjectIntegrity):
 			return emit("review-required", "The reviewed baseline cache entry could not be safely restored.")
 		case err != nil:
@@ -585,6 +691,10 @@ func (c *Client) reconstructCatalogUpdateBaseline(ctx context.Context, store *ca
 	artifact, err := c.acquireCatalogUpdateArtifact(ctx, source.URL, DefaultMaxBytes, &body)
 	if ctx.Err() != nil {
 		return catalogUpdateBaselineEvidence{}, ctx.Err()
+	}
+	var publisher *catalogUpdatePublisherError
+	if errors.As(err, &publisher) {
+		return catalogUpdateBaselineEvidence{}, err
 	}
 	if err != nil || artifact.Status != catalogUpdateDownloaded || artifact.URL != source.URL ||
 		!hasCatalogUpdateReviewedDigest(source.HeldRevision, artifact.SHA256) {

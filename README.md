@@ -419,6 +419,13 @@ The updater checks publisher size before downloading any artifact body.
 Unknown sizes and sizes over 1,000,000,000 bytes are deferred. The local
 parser limit applies separately. Run reports record publisher locators,
 checked dates, digests, skipped artifacts, and cases that need review.
+Temporary publisher failures leave the run open. The JSON report records
+the retry reason, attempt number and `next_attempt_at`. Resume the same
+run to retry after that time and continue providers deferred by a shared
+publisher quota. A reference that fails three times is recorded as
+`publisher-retry-exhausted`. Requests to wait more than 24 hours also
+end retries for that reference in the current run. Other affected
+references carry a deferred outcome and the observed retry deadline.
 Configuration can include `reviewed_operations`, a map from
 `provider-id/reference-id` to canonical operation references such as
 `#/paths/~1records/get`. A previously accepted version can advance when

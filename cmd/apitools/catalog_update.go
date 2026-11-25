@@ -72,6 +72,9 @@ func runCatalogUpdateWithClient(args []string, out, errOut io.Writer, client *ap
 		for _, row := range report.Outcomes {
 			fmt.Fprintf(out, "%s %s %s\n", row.ProviderID, row.ReferenceID, row.Status)
 		}
+		if !report.Completed && err == nil {
+			fmt.Fprintln(out, "Publisher retries are pending. Resume this run after the next attempt times in its JSON report.")
+		}
 	}
 	if err != nil {
 		fmt.Fprintln(errOut, err)

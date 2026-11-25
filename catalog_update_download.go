@@ -61,7 +61,7 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 		return catalogUpdateArtifact{}, err
 	}
 	if _, err := c.validateHTTPURL(ctx, parsed.String()); err != nil {
-		return catalogUpdateArtifact{}, err
+		return catalogUpdateArtifact{}, catalogUpdateRetryFailure(parsed.String(), err, 0, "", "", "")
 	}
 	copyClient := *c
 	base := *c.client()
@@ -92,7 +92,7 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 
 	head, err := requestCatalogUpdateArtifact(ctx, client, http.MethodHead, parsed.String(), "")
 	if err != nil {
-		return catalogUpdateArtifact{}, err
+		return catalogUpdateArtifact{}, catalogUpdateRetryFailure(parsed.String(), err, 0, "", "", "")
 	}
 	err = head.Body.Close()
 	probe := catalogUpdateArtifact{URL: head.Request.URL.String(), CheckedAt: time.Now().UTC()}
@@ -105,7 +105,7 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 		return probe, nil
 	case http.StatusOK:
 	default:
-		return probe, HTTPStatusError{Code: head.StatusCode, Status: head.Status}
+		return probe, catalogUpdateHTTPFailure(head, probe.URL)
 	}
 	probe.Bytes = catalogUpdateContentLength(head)
 	switch {
@@ -128,11 +128,11 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 	}
 	get, err := requestCatalogUpdateArtifact(ctx, client, http.MethodGet, probe.URL, probe.ETag)
 	if err != nil {
-		return probe, err
+		return probe, catalogUpdateRetryFailure(probe.URL, err, 0, "", "", "")
 	}
 	defer get.Body.Close()
 	if get.StatusCode != http.StatusOK {
-		return probe, HTTPStatusError{Code: get.StatusCode, Status: get.Status}
+		return probe, catalogUpdateHTTPFailure(get, probe.URL)
 	}
 	if probe.Bytes != catalogUpdateContentLength(get) ||
 		(probe.ETag != "" && probe.ETag != get.Header.Get("ETag")) {
@@ -141,15 +141,23 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 	}
 	digest := sha256.New()
 	if _, err := io.CopyN(io.MultiWriter(dst, digest), get.Body, probe.Bytes); err != nil {
-		return probe, fmt.Errorf("stream artifact: %w", err)
+		return probe, catalogUpdateRetryFailure(probe.URL, fmt.Errorf("stream artifact: %w", err), 0, "", "", "")
 	}
 	var extra [1]byte
-	if n, err := io.ReadFull(get.Body, extra[:]); n != 0 || err != io.EOF {
+	if n, err := io.ReadFull(get.Body, extra[:]); n == 0 && err != io.EOF && err != nil {
+		return probe, catalogUpdateRetryFailure(probe.URL, err, 0, "", "", "")
+	} else if n != 0 || err != io.EOF {
 		return probe, fmt.Errorf("artifact body does not match declared length")
 	}
 	probe.SHA256 = hex.EncodeToString(digest.Sum(nil))
 	probe.Status = catalogUpdateDownloaded
 	return probe, nil
+}
+
+func catalogUpdateHTTPFailure(response *http.Response, raw string) error {
+	err := HTTPStatusError{Code: response.StatusCode, Status: response.Status}
+	return catalogUpdateRetryFailure(raw, err, response.StatusCode, response.Header.Get("Retry-After"),
+		response.Header.Get("X-RateLimit-Remaining"), response.Header.Get("X-RateLimit-Reset"))
 }
 
 func requestCatalogUpdateArtifact(ctx context.Context, client *http.Client, method, rawURL, etag string) (*http.Response, error) {

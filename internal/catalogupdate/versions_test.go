@@ -163,6 +163,27 @@ func TestStoreRollsBackVersionWhenReferenceCheckpointFails(t *testing.T) {
 	if rows, err := store.ReadOutcomes(ctx, competing.ID); err != nil || len(rows) != 0 {
 		t.Fatalf("checkpoint leaked after a competing preference: %+v, %v", rows, err)
 	}
+	retryRun, err := store.StartRun(ctx, testObject("retry catalog").SHA256, []string{pin.ProviderID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	current := Outcome{ProviderID: pin.ProviderID, ReferenceID: pin.ReferenceID, Status: RetryPendingStatus, Evidence: []byte(`{"attempt":2}`)}
+	if err := store.Record(ctx, retryRun.ID, current); err != nil {
+		t.Fatal(err)
+	}
+	promotion := pin
+	promotion.Version = "2"
+	checkpoint.PreviousRetryEvidence = []byte(`{"attempt":1}`)
+	if err := store.AcceptDirectVersionAndRecord(ctx, promotion, &pin, retryRun.ID, checkpoint); err == nil {
+		t.Fatal("stale retry replaced the preference")
+	}
+	if preferred, err := store.PreferredVersion(ctx, pin.ProviderID, pin.ReferenceID, pin.Service); err != nil || preferred.Version != pin.Version {
+		t.Fatalf("preference leaked after stale retry: %+v, %v", preferred, err)
+	}
+	checkpoint.PreviousRetryEvidence = current.Evidence
+	if err := store.AcceptDirectVersionAndRecord(ctx, promotion, &pin, retryRun.ID, checkpoint); err != nil {
+		t.Fatalf("current retry could not complete: %v", err)
+	}
 }
 
 func TestStoreMigratesVersionTwoPreferences(t *testing.T) {

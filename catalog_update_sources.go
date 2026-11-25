@@ -86,7 +86,7 @@ func (c *Client) resolveCatalogUpdateSource(ctx context.Context, source catalogU
 	probe := c.probeAPIVersion(ctx, budget, origin+prefix+"/commits?"+q.Encode(), scope, false, "", "")
 	if probe.err != nil {
 		source.Resolution = "unexamined-locator"
-		return source, probe.err
+		return source, catalogUpdateRetryFailure(origin, probe.err, probe.status, probe.retryAfter, probe.rateRemaining, probe.rateReset)
 	}
 	var commits []struct{ SHA string }
 	if err := json.Unmarshal(probe.content, &commits); err != nil || len(commits) != 1 ||

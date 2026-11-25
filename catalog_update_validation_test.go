@@ -104,7 +104,7 @@ func TestCatalogUpdateAdoptsExactPinAfterReviewedCorrection(t *testing.T) {
 		return catalogRepairResponse(r, body), nil
 	})}}
 	provider, _ := catalog.FindBuiltInProvider(source.ProviderID)
-	out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, provider, source, CatalogUpdateConfig{})
+	out, err := client.checkCatalogUpdateSource(ctx, store, run.ID, provider, source, CatalogUpdateConfig{}, nil)
 	if err != nil || out.Status != "reviewed-pin-reproduced" || out.Object == nil ||
 		!strings.Contains(string(out.Evidence), `"corrected_status":"valid-openapi"`) {
 		t.Fatalf("reviewed update = %s, %s, %v", out.Status, out.Evidence, err)

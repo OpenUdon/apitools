@@ -35,6 +35,7 @@ func TestCatalogUpdateCLIUsesFixturePublisherAndResumesState(t *testing.T) {
 	}
 	const openapi = `{"openapi":"3.0.3","info":{"title":"Records","version":"1.0"},"paths":{"/records":{"get":{"responses":{"204":{"description":"empty"}}}}}}`
 	requests := 0
+	authRequests := 0
 	var progress bytes.Buffer
 	client := &apitools.Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{
 		Transport: catalogFixtureTransport(func(r *http.Request) (*http.Response, error) {
@@ -54,7 +55,12 @@ func TestCatalogUpdateCLIUsesFixturePublisherAndResumesState(t *testing.T) {
 			case "api.github.com":
 				status = http.StatusNotFound
 			case "auth0.com":
-				status = http.StatusServiceUnavailable
+				authRequests++
+				status = http.StatusNotFound
+				if authRequests == 1 {
+					status = http.StatusServiceUnavailable
+					header.Set("Retry-After", "0")
+				}
 			default:
 				if r.Method != http.MethodHead {
 					t.Errorf("unexpected body request for %s", r.URL.Host)
@@ -66,7 +72,7 @@ func TestCatalogUpdateCLIUsesFixturePublisherAndResumesState(t *testing.T) {
 			}, nil
 		}),
 	}}
-	run := func(args ...string) apitools.CatalogUpdateReport {
+	run := func(complete bool, args ...string) apitools.CatalogUpdateReport {
 		t.Helper()
 		progress.Reset()
 		var stdout bytes.Buffer
@@ -75,21 +81,29 @@ func TestCatalogUpdateCLIUsesFixturePublisherAndResumesState(t *testing.T) {
 			t.Fatalf("exit %d: %s", code, progress.String())
 		}
 		var report apitools.CatalogUpdateReport
-		if err := json.Unmarshal(stdout.Bytes(), &report); err != nil || !report.Completed || report.RunID == "" {
-			t.Fatalf("CLI report = %+v, %v", report, err)
+		if err := json.Unmarshal(stdout.Bytes(), &report); err != nil || report.Completed != complete || report.RunID == "" {
+			t.Fatalf("CLI run ID = %q, complete = %t, expected complete = %t, error = %v", report.RunID, report.Completed, complete, err)
 		}
 		return report
 	}
-	one := run("--provider", "Attio")
+	one := run(true, "--provider", "Attio")
 	if len(one.Outcomes) != 2 || one.Outcomes[1].Status != "review-required" {
 		t.Fatalf("one-provider report = %+v", one)
 	}
 	before := requests
-	resumed := run("--resume", one.RunID)
+	resumed := run(true, "--resume", one.RunID)
 	if resumed.RunID != one.RunID || requests != before {
 		t.Fatalf("resume requested publisher again or changed run: %+v", resumed)
 	}
-	all := run("--all")
+	pending := run(false, "--all")
+	foundPending := false
+	for _, result := range pending.Outcomes {
+		foundPending = foundPending || result.ProviderID == "auth0" && result.Status == "publisher-retry-pending"
+	}
+	if !foundPending || authRequests != 1 {
+		t.Fatalf("expected one pending Auth0 publisher check, got %d visits, pending=%t", authRequests, foundPending)
+	}
+	all := run(true, "--resume", pending.RunID)
 	statuses := make(map[string]bool)
 	checkpoints := 0
 	for _, result := range all.Outcomes {
