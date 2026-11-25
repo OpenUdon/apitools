@@ -1,6 +1,6 @@
 # C08 — Searchable catalog and hosted embeddings
 
-**Owner.** APItools. **Dependency.** Accepted C07. **Parallel-safe: no.**
+**Owner.** APItools. **Dependency.** Accepted [C07](../docs/history/status-C07.md). **Parallel-safe: no.**
 See the [milestone specification](milestone.md#c08--searchable-catalog-and-hosted-embeddings).
 
 ## Tasks

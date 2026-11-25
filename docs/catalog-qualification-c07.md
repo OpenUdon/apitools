@@ -4,7 +4,7 @@ The first publisher inventory recorded 334 provider summaries and 195 eligible
 reference outcomes for the catalog fingerprint in the C07 ledger. This review
 qualifies additional source metadata against pinned evidence. The inventory
 report records the separate observations made during that run.
-[C07 ledger](../tabilet/memory-bank/status-C07.md).
+[C07 retired record](../tabilet/docs/history/status-C07.md).
 
 ## Dropbox, HubSpot and Kubernetes
 

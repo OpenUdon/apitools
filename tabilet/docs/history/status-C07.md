@@ -1,3 +1,47 @@
+# Retired milestone C07 - First inventory and provider curation
+
+**Milestone.** C07
+**Outcome.** completed
+**Retired.** 2026-11-25
+**Source status.** tabilet/memory-bank/status-C07.md
+**Source specification.** tabilet/memory-bank/milestone.md#c07--first-inventory-and-provider-curation
+**Evidence.** 5aa3bb78122916c57e527d1fe3b48f8bebb5a048
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 2
+**Verification.** Fresh offline Go 1.26.6 build, vet, full suite with C04/C05 and C07 pinned artifacts, focused and storage race checks, generator and catalog quality, CLI help, identical 334-provider scope, and byte-identical read-only inspection of the closed 529-outcome SQLite report passed. Offline reconciliation verified the 25 retained artifacts. OpenUdon passed against the corrected candidate. Udon's ordinary pinned suite passed. Its optional composed test retains the recorded baseline offline module limit. Closure reuses the required code gates because their inputs are unchanged. [Verification receipts](../../../dist/c07-qualification.P2FWoi/).
+**Consolidated into.** [README](../../../README.md#reviewed-provider-catalog), [qualification and reconciled inventory](../../../docs/catalog-qualification-c07.md), [catalog maintenance architecture](../../memory-bank/architecture.md#catalog-maintenance-storage-c06), and [source review lessons](../../memory-bank/lessons.md#bind-version-evidence-to-an-exact-publisher-and-native-identity).
+
+## Milestone specification
+
+````markdown
+### C07 — First inventory and provider curation
+
+**Dependency and owner.** Uses the accepted [C10 updater](../docs/history/status-C10.md)
+against the retired [C06 baseline](../docs/history/status-C06.md).
+APItools owns the provider recipes, curated sources, security and endpoint
+overlays, and first inventory.
+[C07 ledger](status-C07.md).
+
+Inventory the 334 reviewed providers, starting with the 181 older
+machine-readable references. Seek an official source for the 139 providers
+whose primary evidence is a docs-derived overlay and the 21 docs-only
+providers. For each unresolved service, use official docs to build or refresh
+a bounded, reproducible overlay and builder, or explain the specific missing
+evidence. Review effective security schemes and requirements for protected
+operations. Stage authored changes for review. Acceptance requires a
+provider-level outcome for every entry and operation-level evidence for the
+six named providers in the ledger. Qualify the reviewed HubSpot services and
+their operations against pinned evidence. Show which other index entries are
+candidates or previews. Where the updater has no eligible machine-readable
+reference, report existing advisory coverage and any remaining evidence gap.
+Distinguish redirects, failures, deferrals and partial coverage from a verified update.
+
+````
+
+## Status record
+
+````markdown
 # C07 — First inventory and provider curation
 
 **Owner.** APItools. **Dependency.** Accepted [C10 updater repairs](../docs/history/status-C10.md) following [C06](../docs/history/status-C06.md). **Parallel-safe: no.**
@@ -278,12 +322,12 @@ source copies in ignored storage and provenance recorded. The completed
 first inventory stays closed. C07 execution uses the approved Sol high
 implementation, Astra xhigh task reviews and Opus 5.5 high whole review.
 
-Review gate iterations: 1
+Review gate iterations: 2
 
 Whole review round 1 of 10 started on candidate
 `f64f1a64c5652272756316cccffeafeebbe094e0`, pre-C07 base
-`49862534d0bc85e1b19f0f39068dc8fecf8d4017`. No implementation edits after
-that candidate. The [canonical full diff](../../dist/c07-qualification.P2FWoi/c07-whole-round1-full.diff)
+`49862534d0bc85e1b19f0f39068dc8fecf8d4017`. The round 1 dispatch covered that
+candidate. The [canonical full diff](../../dist/c07-qualification.P2FWoi/c07-whole-round1-full.diff)
 has SHA-256 `5c4b4bdea3b48d0ffe9ceef1e18f857298ef0c5d55cab1935a69e95b402e22df`.
 The [Opus review brief](../../dist/c07-qualification.P2FWoi/c07-whole-round1-review.txt)
 has SHA-256 `abff8d3a6af9daae6c6b97b43cb421b176122319c663b9fc97896125fec2cc23`.
@@ -301,7 +345,7 @@ OpenUdon's isolated workspace full suite and Udon's ordinary pinned full
 suite passed. The optional Udon workspace against the local APItools
 candidate retained the pre-C07 offline module limitation above.
 
-Whole review pending, default limit 10. The authorized publisher run provides
+The approved whole review limit is 10. The authorized publisher run provides
 the first-run evidence for C09. Use the [test policy](test-policy.md) and
 [milestone review procedure](milestone.md#milestone-review-procedure).
 
@@ -347,3 +391,61 @@ The [updated per-provider reconciliation](../../dist/c07-qualification.P2FWoi/c0
 has SHA-256 `80f42e3e2348e80157e36289cdd9c283c0a57f602c26e58cb140003ebcd4f65f`.
 It reproduces the original 334 providers and 195 reference outcomes against
 the corrected catalog and checks the same 25 cache objects.
+
+Started the round 1 corrective gates on
+`5aa3bb78122916c57e527d1fe3b48f8bebb5a048` with the explicit Go 1.26.6
+binary. The gates cover the full offline suite, pinned C07 operations,
+race checks on the updater and state store, catalog checks, CLI help,
+dry-run scope and read-only historical SQLite replay.
+
+The corrective gates passed, including all new pinned tests, race gates,
+catalog generation and zero quality findings. The curated dry run selects
+the same 334 provider IDs. The historical CLI output and the SQLite SHA-256
+remain byte-identical. [Round 2 gates](../../dist/c07-qualification.P2FWoi/c07-whole-round2-gates.log).
+
+Whole review round 2 of 10 started on
+`5aa3bb78122916c57e527d1fe3b48f8bebb5a048`. It covers F1, all corrections
+since the first reviewed candidate, and their direct consumers.
+[Corrective diff](../../dist/c07-qualification.P2FWoi/c07-whole-round2.diff)
+SHA-256 `a054bcd419b58902f874386806e3354c06d2c43711422b4e979c364e327c9158`.
+[Independent review brief](../../dist/c07-qualification.P2FWoi/c07-whole-round2-review.txt)
+SHA-256 `bf625b5c93abd8bd8a906d4885b4a8086dc9ce8519549d410fd023ce8b203bc1`.
+
+Round 2 PASS from Claude Opus 5.5 high. It confirmed F1 against the full
+tracked listing, exact publisher stages and separate repository artifact
+identity. No blocking findings remain. [Full review](../../dist/c07-qualification.P2FWoi/c07-whole-round2-report.md),
+SHA-256 `55489dd54b7426c016355948328f101136b1c87c65362bd7e3aeaf6832ece9f3`.
+[Model and dispatch receipt](../../dist/c07-qualification.P2FWoi/c07-whole-round2-dispatch.json).
+
+Round 2 N1 carries as FND-06 for C09.4. The HubSpot index puts Test At Debug
+`2026-09-beta` at `LATEST` with banner `NONE`. The entry is an unqualified
+candidate. The listing preserves the version label and its conflicting
+publisher labels. The C07 candidate identification and validated
+operations remain scoped to Contacts and Deals.
+
+N3 and N4 are lower priority additions to the existing exact-pin
+regressions. The raw listing proof runs with the retained publisher
+fixture, and the reviewed operations retain the source and scoped catalog
+checks. N5 joins FND-04 as clarification of the inherited gap reasons.
+N6 is a lower priority portability suggestion. The reviewed raw receipts
+and reconciliation remain local, with hashes in the records and the
+HubSpot listing checked in. N7 is a lower priority wording suggestion.
+The release document explains stage/banner versus the exact repository
+identity, and the review chronology now records the candidate for each
+dispatch. N8 follows the open findings ownership rules. FND-04 and FND-05
+await later source-specific work, with Google Slides providing the
+confirmed example and the broader root-scope question still open.
+
+An evolution version bump is unnecessary. This milestone curates publisher
+metadata and first-run evidence within the existing catalog maintenance
+boundary. C08 consumes the accepted provider identities, source and
+coverage evidence, and freshness limits. C09 consumes the original
+supervised inventory evidence and its separate repeat-run requirements.
+
+The round 2 N2 check passed on the corrected candidate. The full OpenUdon
+suite ran with immutable OpenUdon and APItools sources. No flat security
+reader was found in the tracked OpenUdon or Udon source scan. Udon's
+ordinary pinned suite passed earlier. Its optional composed check retains
+the same documented offline dependency limit.
+[Post-review consumer check](../../dist/c07-qualification.P2FWoi/c07-round2-consumers/).
+````

@@ -552,14 +552,14 @@ concurrent ledger writers. A goal-protocol run keeps its own scoped ownership ru
 
 ## Current Dashboard
 
-The current APItools catalog horizon is **C07 → C08 → C09**.
+The current APItools catalog horizon is **C08 → C09**.
 [C06](../docs/history/status-C06.md) delivered the update CLI, SQLite state
 and artifact storage. C04 and C05 qualified the 334-provider baseline.
 [C10](../docs/history/status-C10.md) delivered the updater repairs. The
 first supervised publisher run is complete with 334 provider summaries
 and 195 reference outcomes. Provider qualification and inventory
-reconciliation passed their task gates. C07 awaits whole review. The work
-is package-local and serial.
+reconciliation are accepted after whole review 2. The work is package-local
+and serial. [C07 retired record](../docs/history/status-C07.md).
 See the [status index](#status-files) and
 [catalog acceptance criteria](#monthly-reviewed-catalog).
 
@@ -620,8 +620,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| C07 | [status-C07.md](status-C07.md) | Inventory and qualification tasks complete. Whole review pending. |
-| C08 | [status-C08.md](status-C08.md) | Pending; requires accepted C07 |
+| C08 | [status-C08.md](status-C08.md) | Ready after accepted C07 |
 | C09 | [status-C09.md](status-C09.md) | Pending; requires accepted C08; integrated closure |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
 
@@ -673,31 +672,9 @@ hosted embedding check. Record the publisher scope, configured cache directory,
 network or metered budget as applicable, stop conditions and outcomes.
 Installing a real user schedule is a subsequent operator choice.
 
-### C07 — First inventory and provider curation
-
-**Dependency and owner.** Uses the accepted [C10 updater](../docs/history/status-C10.md)
-against the retired [C06 baseline](../docs/history/status-C06.md).
-APItools owns the provider recipes, curated sources, security and endpoint
-overlays, and first inventory.
-[C07 ledger](status-C07.md).
-
-Inventory the 334 reviewed providers, starting with the 181 older
-machine-readable references. Seek an official source for the 139 providers
-whose primary evidence is a docs-derived overlay and the 21 docs-only
-providers. For each unresolved service, use official docs to build or refresh
-a bounded, reproducible overlay and builder, or explain the specific missing
-evidence. Review effective security schemes and requirements for protected
-operations. Stage authored changes for review. Acceptance requires a
-provider-level outcome for every entry and operation-level evidence for the
-six named providers in the ledger. Qualify the reviewed HubSpot services and
-their operations against pinned evidence. Show which other index entries are
-candidates or previews. Where the updater has no eligible machine-readable
-reference, report existing advisory coverage and any remaining evidence gap.
-Distinguish redirects, failures, deferrals and partial coverage from a verified update.
-
 ### C08 — Searchable catalog and hosted embeddings
 
-**Dependency and owner.** After accepted C07. APItools owns public provider
+**Dependency and owner.** After accepted [C07](../docs/history/status-C07.md). APItools owns public provider
 metadata, the SQLite search index, embedding adapter and CLI behavior.
 [C08 ledger](status-C08.md).
 
@@ -858,15 +835,16 @@ Non-blocking review findings carried past their milestone's review gate. This
 register is approved planning state, never retired with a milestone, and not a
 review copy: one line per finding.
 
-Last used ID: FND-05
+Last used ID: FND-06
 
 | ID | Finding | Severity | Origin | Fix owner | Disposition |
 |---|---|---|---|---|---|
 | FND-01 | Checkpoints need distinguishable rate limits, server failures and timeouts. Provide bounded targeted retries so a temporary publisher issue does not get reported as conclusive freshness evidence. | P2 | [C06](../docs/history/status-C06.md) whole 1, reclassified on C06 code review F04 | [C10.4](../docs/history/status-C10.md#status-record) | fixed in C10.4 |
 | FND-02 | Interrupted update JSON omits checkpoints saved during the same invocation, even though SQLite retains them for resume. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.2 | open |
 | FND-03 | Default CLI fixtures need portable disposable state and broader end-to-end export and overlapping update coverage for the maintenance workflow. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.4 | open |
-| FND-04 | Thirty bounded docs probes returned no readable page in C07. A later publisher source review can check alternate official locations and refresh the affected baseline overlay or gap evidence. | P2 | [C07](status-C07.md#review) whole 1 F2 | unassigned | open |
-| FND-05 | The Google Slides catalog auth overlay applies a read-only root scope without recording a distinct write requirement. Review the selected operation scopes against native publisher evidence before using this overlay for auth-sensitive write guidance. | P2 | [C07](status-C07.md#review) whole 1 F6 | unassigned | open |
+| FND-04 | Thirty bounded docs probes returned no readable page in C07. A later publisher source review can check alternate official locations, refresh affected overlays and clarify the inherited gap evidence. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F2 | unassigned | open |
+| FND-05 | The Google Slides catalog auth overlay applies a read-only root scope without recording a distinct write requirement. Review the selected operation scopes against native publisher evidence before using this overlay for auth-sensitive write guidance. The wider root-scope overlay class remains unreviewed. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F6 | unassigned | open |
+| FND-06 | HubSpot lists Test At Debug version 2026-09-beta with stage LATEST and no banner. Preserve the publisher evidence and distinguish conflicting version labels before relying on Stable in recurring inventory reports. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 2 N1 | C09.4 | open |
 
 - IDs are `FND-01`, `FND-02`, ...: permanent, never reused, separate from status,
   archive and stage IDs. Origin is the milestone and review iteration.
@@ -902,7 +880,7 @@ the work automatically.
 |---|---|---|
 | Automatic catalog-root discovery | M87 keeps explicit roots and metadata-only no-root outcomes; no implicit cache lookup/creation. | A named consumer and approved compatibility/privacy review justify implicit discovery. |
 | General-purpose HTTP model adapters | C08 owns the hosted embeddings adapter for reviewed-provider search. Completion and other model transports remain candidates. M89 uses consumer-owned model clients; standalone APItools remains deterministic. | A standalone adopter approves provider transport, opt-in, credential/privacy and offline-test contracts. |
-| Further provider-catalog expansion | C07 owns the publisher and overlay review of existing entries. Retired [C04](../docs/history/status-C04.md) and [C05](../docs/history/status-C05.md) accepted 18 provider reviews. Additional admissions, a broader redistribution audit and typed-overlay expansions beyond the reviewed operations remain candidates from the [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md). GoDaddy is absent from the catalog. Its official Domains specs (`https://developer.godaddy.com/openapi/domains-v1.json` through `domains-v3.json`) were observed on 2026-10-01, and curating v1 or v2 would need a source-reviewed refresh correction for a publisher `properties.type` string defect. | Approve another bounded provider-owned source batch with its source, auth, and license review rules, or a bounded license or typed-overlay upgrade with acceptance evidence. |
+| Further provider-catalog expansion | [C07](../docs/history/status-C07.md) completed the publisher and overlay review of existing entries. Retired [C04](../docs/history/status-C04.md) and [C05](../docs/history/status-C05.md) accepted 18 provider reviews. Additional admissions, a broader redistribution audit and typed-overlay expansions beyond the reviewed operations remain candidates from the [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md). GoDaddy is absent from the catalog. Its official Domains specs (`https://developer.godaddy.com/openapi/domains-v1.json` through `domains-v3.json`) were observed on 2026-10-01, and curating v1 or v2 would need a source-reviewed refresh correction for a publisher `properties.type` string defect. | Approve another bounded provider-owned source batch with its source, auth, and license review rules, or a bounded license or typed-overlay upgrade with acceptance evidence. |
 | Embedded baseline catalog root | M81's approved decision 3 keeps catalog roots caller-supplied. Embedding the 141 committed advisory overlays (about 2 MB) and their index would give published consumers a zero-setup offline root, but it widens distribution before the committed-overlay redistribution audit proposed in the [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md) and adds binary size for every consumer. | The committed-overlay redistribution audit completes, and a consumer needs a zero-setup offline root. |
 | Go and public-directory search refinements | C08 owns reviewed-first automatic CLI search. Existing Go callers and explicit directory behavior require separate proposals for changes. `Client.Search` keeps APIs.guru's `preferred` version and falls back to a lexicographic sort of version keys when it is missing (`providers.go`), and `auto` stops at the first source with matches (`client.go`). Changing either default alters results that OpenUdon and other callers rely on, so S05 reports versions through a separate opt-in command instead. Separately, the retired M80.4 remote tier sets `client.Cache = nil` with `CacheModeBypass` (`catalog_discovery_remote.go`), so each remote lookup re-downloads the whole APIs.guru directory list; S05 avoids that cost for its own checks but does not change the retired behavior. | Approve a default-behavior change with consumer reconciliation, observe APIs.guru entries whose `preferred` version is missing or unusable, or measure the directory download as a latency problem for a consumer. |
 | Identify APItools on guarded downloads | No `User-Agent` is set on any guarded request, so hosts see Go's default agent. S05's new probe primitive sends a stable tool identifier, but adding one to the shared download path changes the requests every existing caller makes, including OpenUdon's pinned use. | A publisher rejects the default agent, an operator requires identified egress, S05's probe evidence shows the identifier is worth sharing, or the provider version directory's crawl policy requires it; then approve it with consumer reconciliation. |
