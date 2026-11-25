@@ -15,15 +15,7 @@ import (
 )
 
 func TestCatalogMaintenancePreflightAndDryRun(t *testing.T) {
-	dir, err := os.MkdirTemp(".", ".catalog-maintenance-cli-fixture-") // durable state filesystem
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		if err := os.RemoveAll(dir); err != nil {
-			t.Error(err)
-		}
-	})
+	dir := catalogCLIStateFixture(t)
 	config := filepath.Join(dir, "maintenance.json")
 	if err := os.WriteFile(config, []byte(`{"cache_dir":"cache","state_db":"state.sqlite"}`), 0o600); err != nil {
 		t.Fatal(err)
@@ -69,15 +61,7 @@ func TestCatalogMaintenancePreflightAndDryRun(t *testing.T) {
 }
 
 func TestCatalogMaintenanceScratchScheduleAndReports(t *testing.T) {
-	dir, err := os.MkdirTemp(".", ".catalog-schedule-cli-fixture-") // durable state filesystem
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		if err := os.RemoveAll(dir); err != nil {
-			t.Error(err)
-		}
-	})
+	dir := catalogCLIStateFixture(t)
 	programConfig := filepath.Join(dir, "user's maintenance.json")
 	if err := os.WriteFile(programConfig, []byte(`{"cache_dir":"cache","state_db":"state.sqlite"}`), 0o600); err != nil {
 		t.Fatal(err)
@@ -246,18 +230,20 @@ func TestCatalogMaintenanceRejectsEmptySensitiveFlags(t *testing.T) {
 
 func TestCatalogMaintenanceReportCountsPublisherHeadAndBaselineIndependently(t *testing.T) {
 	const baseline = `{"reviewed_baseline":{"version":{"version":"1.0"}},"diagnostic":"Fixture head needs review"}`
-	run := apitools.CatalogUpdateReport{RunID: "fixture", Providers: []string{"aws-ec2", "datadog", "stripe"},
+	run := apitools.CatalogUpdateReport{RunID: "fixture", Providers: []string{"aws-ec2", "datadog", "stripe", "hubspot"},
 		Outcomes: []catalogupdate.Outcome{
 			{ProviderID: "aws-ec2", ReferenceID: "aws-ec2-smithy-model", Status: "publisher-spec-unexamined"},
 			{ProviderID: "datadog", ReferenceID: "datadog-api-v2", Status: "publisher-spec-invalid", Evidence: []byte(baseline)},
 			{ProviderID: "stripe", ReferenceID: "stripe-latest-openapi-spec3", Status: "reviewed-pin-reproduced", Evidence: []byte(baseline)},
+			{ProviderID: "hubspot", ReferenceID: "hubspot-public-api-spec-index", Status: "publisher-index-inventoried",
+				Evidence: []byte(`{"inventory":{"Sources":[{"Version":"2026-09-beta","Stage":"LATEST","Stable":false,"VersionLabelConflict":true}]}}`)},
 		}}
 	var out, errOut bytes.Buffer
 	if code := writeCatalogMaintenanceReport(t.Context(), &out, &errOut, run, nil, apitools.CatalogUpdateConfig{}, true); code != exitSuccess {
 		t.Fatalf("JSON report exited %d: %s", code, errOut.String())
 	}
 	var report catalogMaintenanceReport
-	if err := json.Unmarshal(out.Bytes(), &report); err != nil || report.Summary.ReviewedPins != 2 || report.Summary.PendingReview != 2 || report.Summary.Failures != 1 {
+	if err := json.Unmarshal(out.Bytes(), &report); err != nil || report.Summary.ReviewedPins != 2 || report.Summary.PendingReview != 3 || report.Summary.Failures != 1 {
 		t.Fatalf("head and baseline counts lost evidence: %+v, %v", report.Summary, err)
 	}
 	out.Reset()
@@ -268,6 +254,7 @@ func TestCatalogMaintenanceReportCountsPublisherHeadAndBaselineIndependently(t *
 		"aws-ec2/aws-ec2-smithy-model publisher-spec-unexamined (publisher head needs review)",
 		"datadog/datadog-api-v2 publisher-spec-invalid (reviewed baseline adopted)",
 		"stripe/stripe-latest-openapi-spec3 reviewed-pin-reproduced (publisher head needs review)",
+		"hubspot/hubspot-public-api-spec-index publisher-index-inventoried (conflicting publisher release labels need review)",
 	} {
 		if !strings.Contains(out.String(), line) {
 			t.Fatalf("text report omitted %q: %s", line, out.String())

@@ -14,26 +14,28 @@ import (
 )
 
 type catalogUpdateSource struct {
-	MetadataAttemptedAt time.Time `json:"metadata_attempted_at,omitzero"`
-	ProviderID          string
-	Service             string
-	ReferenceID         string
-	Kind                catalog.SpecKind
-	URL                 string
-	ResolvedURL         string
-	Version             string
-	HeldVersion         string
-	HeldRevision        string
-	Revision            string
-	NativeRevision      string `json:"NativeRevision,omitempty"`
-	Stage               string
-	Stable              bool
-	DocumentationBanner string `json:"DocumentationBanner,omitempty"`
-	Resolution          string
-	Scope               string
+	MetadataAttemptedAt  time.Time `json:"metadata_attempted_at,omitzero"`
+	ProviderID           string
+	Service              string
+	ReferenceID          string
+	Kind                 catalog.SpecKind
+	URL                  string
+	ResolvedURL          string
+	Version              string
+	HeldVersion          string
+	HeldRevision         string
+	Revision             string
+	NativeRevision       string `json:"NativeRevision,omitempty"`
+	Stage                string
+	Stable               bool
+	DocumentationBanner  string `json:"DocumentationBanner,omitempty"`
+	VersionLabelConflict bool   `json:"VersionLabelConflict,omitempty"`
+	Resolution           string
+	Scope                string
 }
 
 var catalogUpdateGitCommit = regexp.MustCompile(`^[0-9a-f]{40}$`)
+var hubSpotPreReleaseLabel = regexp.MustCompile(`(?i)(?:^|[-._])(?:alpha|beta|preview|rc|dev)[0-9]*(?:$|[-._+])`)
 
 func (c *Client) catalogUpdateURL(raw string) (*url.URL, error) {
 	u, err := c.versionURLSyntax(raw)
@@ -214,12 +216,14 @@ func hubSpotUpdateInventory(sourceURL string, checkedAt time.Time, index []byte)
 			if strings.TrimSpace(entry.Version) == "" {
 				return catalogUpdateInventory{}, fmt.Errorf("HubSpot index contains an unnamed API version")
 			}
+			stableStage := (entry.Stage == "LATEST" || entry.Stage == "STABLE") &&
+				(entry.DocumentationBanner == "" || entry.DocumentationBanner == "NONE")
+			conflict := stableStage && hubSpotPreReleaseLabel.MatchString(entry.Version)
 			record := catalogUpdateSource{
 				ProviderID: "hubspot", Service: service, ReferenceID: "hubspot-public-api-spec-index",
 				Kind: catalog.SpecKindOpenAPI, URL: u.String(), Version: entry.Version, Stage: entry.Stage,
-				DocumentationBanner: entry.DocumentationBanner,
-				Stable: (entry.Stage == "LATEST" || entry.Stage == "STABLE") &&
-					(entry.DocumentationBanner == "" || entry.DocumentationBanner == "NONE"),
+				DocumentationBanner: entry.DocumentationBanner, VersionLabelConflict: conflict,
+				Stable: stableStage && !conflict,
 			}
 			if !seen[record] {
 				report.Sources = append(report.Sources, record)

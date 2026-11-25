@@ -10,7 +10,7 @@ C09 owns integrated closure for C06–C09 and the [C10 updater repairs](../docs/
 | C09.1 — Check readiness and implement the monthly job | `[+]` | Read the same cache directory configuration as a manual update. Preflight binary, database, configured directory, permissions and cron environment. Use absolute paths, local time, one run lock, bounded retries and per-provider checkpoints. Exercise an ordinary cache directory, overlapping jobs, restart and loss of an explicitly configured mount in isolated tests. |
 | C09.2 — Expose schedule management and reports | `[+]` | Default the optional user schedule to `17 3 1 * *`. Provide idempotent enable, disable and status, preserving unrelated crontab entries. Produce readable and JSON reports for accepted changes, pending reviews, size deferrals, failures, disk use and embedding usage. Test with a scratch crontab. This row fixes FND-02. |
 | C09.3 — Deliver the agent maintenance skill | `[+]` | Ship the repository-owned `apitools-catalog-maintenance` skill. Check its instructions against actual commands for preflight, dry-run, schedule management, report inspection, per-provider retry and generating the Git export. Document the operator-initiated first run and how to inspect it before scheduling. |
-| C09.4 — Verify repeat run and integrated closure | `[ ]` | Reconcile [C07 first-run evidence](../docs/history/status-C07.md#status-record) for 334 providers and all six special cases. Record the repeat run, unchanged artifact reuse and selective re-embedding. Verify repeat outcomes, bounded retry and inspection of previous runs against accepted C10 evidence. Scope any live publisher or metered embedding check separately. Exercise the operator/agent workflow, review the cumulative diff, and run the existing class O whole-unit gates and affected race and consumer checks. This row fixes FND-03 and FND-06. |
+| C09.4 — Verify repeat run and integrated closure | `[+]` | Reconcile [C07 first-run evidence](../docs/history/status-C07.md#status-record) for 334 providers and all six special cases. Record the repeat run, unchanged artifact reuse and selective re-embedding. Verify repeat outcomes, bounded retry and inspection of previous runs against accepted C10 evidence. Scope any live publisher or metered embedding check separately. Exercise the operator/agent workflow, review the cumulative diff, and run the existing class O whole-unit gates and affected race and consumer checks. This row fixes FND-03 and FND-06. |
 
 ## Review
 
@@ -104,3 +104,63 @@ report tests apply to unchanged Go inputs. The task reviewer verified
 every documented command and independently traced an interrupted-run
 inspection and scratch rehearsal. Astra xhigh PASS at
 `3941e4b857828f7def68ebcc26ca3fa44ac578ee2538f6b4a8da96d60cc176bf`.
+
+C09.4 required gate attempt c09-4-a1 started at `47621bd085e02b2be3454a6981b16d34b646f935` on diff SHA-256
+`dd9c434a166c8f509bd4e720f779c6c28f422a74ef5fde38b71e652bda164aa4`. Whole offline Go build/vet/test with retained C04/C05/C07 pins
+and completed C07 report, standard whole affected races, generator, catalog
+quality, CLI and diff checks. [Gate receipts](../../dist/c09-goal/c09-4-gates.log).
+
+C09.4 attempt c09-4-a1 recorded a whole ordinary test FAIL after 99.268s.
+The one failing key is `apitools.TestC07HubSpotEntryListing`. Its signature
+is the old listing helper treating the now-explicit HubSpot `Test At Debug`
+version-label conflict as unclassified. The key used 1 of 3 attempts.
+C09.4 specifically fixes FND-06, which requires separating this prerelease
+label from Stable. The correction will keep all 377 original source rows,
+the pinned digest, the counts of the unaffected classes, and the exact
+accepted C07 TSV comparison. The current classification adds one explicit
+conflict and has 306 stable candidates. Only the test's historical
+projection preserves the former 307-candidate count.
+
+C09.4 recovery attempt c09-4-a2 started at `47621bd085e02b2be3454a6981b16d34b646f935` with diff SHA-256
+`cedfeebcf6c34bfe82c5f4beca4468cb829e71cbbbafaab0554384a17131bae8`. Focused test now passes with the original pinned source and frozen TSV.
+Rerun all ordinary required gates and standard whole races.
+[Corrective gate receipts](../../dist/c09-goal/c09-4-final-gates.log).
+
+C09.4 passed separate Astra xhigh task review on exact diff SHA-256
+`cedfeebcf6c34bfe82c5f4beca4468cb829e71cbbbafaab0554384a17131bae8`.
+Whole ordinary test recovery passed in 73.185s, clearing the used gate
+key. Whole root, CLI and storage races passed in 200.584s. Build, vet,
+catalog generation, catalog quality, CLI help, and diff passed.
+The adopted Go test state directory uses a temporary native filesystem
+when available, otherwise a disposable workspace child, and accepts an
+existing root selected through `APITOOLS_TEST_STATE_DIR`.
+
+The built CLI read the C07 copy at the original run ID. Its raw run
+object equals the frozen JSON for 334 providers and all 529 outcomes.
+The scratch schedule was enabled, inspected and disabled using the
+completed first run. The copied state SHA-256 remained unchanged,
+the unrelated crontab bytes were restored, and the Git export contained
+17 accepted preferred versions. [Built CLI proof](../../dist/c09-goal/c09-4-prior-run.log).
+The pinned suite verified Dropbox, HubSpot, Kubernetes, Stripe,
+Google Sheets and Slack against the accepted C07 qualification evidence.
+
+The local two-month fixture ran both full scopes, returned identical
+accepted version exports, and kept one content-addressed object for the
+identical direct artifact. The explicit loopback search fixture sent
+335 inputs on its first search and two on the second after changing one
+public profile. It reopened the same separate search database. CLI
+tests verified a pending saved run, bounded retry from accepted C10
+behavior, distinct provider retry after releasing the monthly lock, and
+read-only repeat export. FND-03 and FND-06 are fixed.
+[Focused checks](../../dist/c09-goal/c09-4-focused.log).
+[Historical comparison and portable-state proof](../../dist/c09-goal/c09-4-followup-focused.log).
+
+OpenUdon passed against the exact product code. Udon's ordinary pinned
+suite passed. Optional Udon composition was a setup FAIL on the
+pre-existing uncached module `cloud.google.com/go/compute@v1.49.1`.
+Only the pinned APItools test changed after those consumer runs.
+[Consumer scope](../../dist/c09-goal/c09-4-consumers.txt).
+The integrated review uses the C06 starting Git revision and exact
+initial tracked diff. It recognizes the four unavailable planning-only
+snapshots and verifies the remaining original inputs.
+[Baseline reconstruction](../../dist/c09-goal/c09-integrated-baseline.json).

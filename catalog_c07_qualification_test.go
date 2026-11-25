@@ -676,15 +676,27 @@ func TestC07HubSpotEntryListing(t *testing.T) {
 			disposition = "developer-preview"
 		case row.DocumentationBanner == "PUBLIC_BETA":
 			disposition = "public-beta"
+		case row.VersionLabelConflict:
+			if row.Stable || row.Service != "Test At Debug" || row.Version != "2026-09-beta" || row.Stage != "LATEST" ||
+				row.DocumentationBanner != "NONE" || release != "165140" {
+				t.Fatalf("unexpected conflict in the retained release evidence: %+v", row)
+			}
+			disposition = "version-label-conflict"
 		case row.Stable:
 			disposition = "stable-candidate"
 		default:
 			t.Fatalf("unclassified index release: %+v", row)
 		}
 		counts[disposition]++
-		table = append(table, strings.Join([]string{row.Service, row.Version, row.Stage, row.DocumentationBanner, release, disposition, rollout}, "\t"))
+		// The C07 table is frozen with the original interpretation of this
+		// publisher row. Verify every historical byte alongside today's classification.
+		historical := disposition
+		if row.VersionLabelConflict {
+			historical = "stable-candidate"
+		}
+		table = append(table, strings.Join([]string{row.Service, row.Version, row.Stage, row.DocumentationBanner, release, historical, rollout}, "\t"))
 	}
-	if len(families) != 130 || counts["qualified-family-version"] != 2 || counts["stable-candidate"] != 307 ||
+	if len(families) != 130 || counts["qualified-family-version"] != 2 || counts["stable-candidate"] != 306 || counts["version-label-conflict"] != 1 ||
 		counts["developer-preview"] != 32 || counts["public-beta"] != 36 {
 		t.Fatalf("wrong index counts: %d families, %+v", len(families), counts)
 	}

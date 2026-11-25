@@ -178,3 +178,18 @@ func TestHubSpotUpdateInventoryRejectsForeignSpecLink(t *testing.T) {
 		t.Fatalf("inventory accepted foreign links: %+v, %v", got, err)
 	}
 }
+
+func TestHubSpotUpdateInventoryExposesConflictingVersionLabels(t *testing.T) {
+	const indexURL = "https://api.hubapi.com/public/api/spec/v1/specs"
+	const index = `{"results":[{"name":"At Debug","group":"Test","versions":[
+        {"version":"2026-09-beta","stage":"LATEST","openApi":"https://api.hubapi.com/public/api/spec/v2/specs/release/1/version/2026-09-beta"}
+    ]}]}`
+	got, err := hubSpotUpdateInventory(indexURL, time.Time{}, []byte(index))
+	if err != nil || len(got.Sources) != 1 {
+		t.Fatalf("missing exact publisher evidence: %+v, %v", got, err)
+	}
+	source := got.Sources[0]
+	if source.Service != "Test At Debug" || source.Version != "2026-09-beta" || source.Stage != "LATEST" || source.Stable || !source.VersionLabelConflict {
+		t.Fatalf("beta-marked version was labeled stable or its evidence was lost: %+v", source)
+	}
+}

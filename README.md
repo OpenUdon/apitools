@@ -509,6 +509,9 @@ managed artifact bytes and embedding usage. Scheduled updates leave embeddings
 unrequested. Use `catalog maintenance retry --provider PROVIDER_ID --config FILE`
 for a new run limited to one reviewed provider. An existing unfinished monthly
 run resumes through `catalog maintenance run` with its original configuration.
+New HubSpot inventories flag a prerelease version label that conflicts with
+the publisher's `LATEST` or `STABLE` stage. The report keeps both labels for
+review.
 For agent-assisted operation, see the
 [APItools catalog maintenance skill](.agents/skills/apitools-catalog-maintenance/SKILL.md).
 

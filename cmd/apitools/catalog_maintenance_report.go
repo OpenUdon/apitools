@@ -35,9 +35,10 @@ type catalogMaintenanceReport struct {
 }
 
 type catalogMaintenanceReferenceFacts struct {
-	reviewedPin bool
-	needsReview bool
-	nextRetry   time.Time
+	reviewedPin     bool
+	needsReview     bool
+	versionConflict bool
+	nextRetry       time.Time
 }
 
 func loadCatalogMaintenanceReport(ctx context.Context, statePath, id string) (apitools.CatalogUpdateReport, error) {
@@ -85,11 +86,21 @@ func writeCatalogMaintenanceReport(ctx context.Context, out, errOut io.Writer, r
 			Retry            struct {
 				Next time.Time `json:"next_attempt_at"`
 			} `json:"publisher_retry"`
+			Inventory struct {
+				Sources []struct{ VersionLabelConflict bool }
+			} `json:"inventory"`
 		}
 		_ = json.Unmarshal(outcome.Evidence, &evidence)
 		fact := &facts[i]
 		fact.reviewedPin = outcome.Status == "reviewed-pin-reproduced" || evidence.ReviewedBaseline != nil
 		fact.needsReview = outcome.Status == "reviewed-pin-reproduced" && evidence.Diagnostic != ""
+		for _, source := range evidence.Inventory.Sources {
+			if source.VersionLabelConflict {
+				fact.versionConflict = true
+				fact.needsReview = true
+				break
+			}
+		}
 		fact.nextRetry = evidence.Retry.Next
 		switch outcome.Status {
 		case "accepted-compatible":
@@ -149,7 +160,9 @@ func writeCatalogMaintenanceReport(ctx context.Context, out, errOut io.Writer, r
 			if fact.reviewedPin && outcome.Status != "reviewed-pin-reproduced" {
 				fmt.Fprint(out, " (reviewed baseline adopted)")
 			}
-			if fact.needsReview {
+			if fact.versionConflict {
+				fmt.Fprint(out, " (conflicting publisher release labels need review)")
+			} else if fact.needsReview {
 				fmt.Fprint(out, " (publisher head needs review)")
 			}
 			if outcome.Status == catalogupdate.RetryPendingStatus && !fact.nextRetry.IsZero() {
