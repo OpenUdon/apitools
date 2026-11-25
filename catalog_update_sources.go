@@ -14,23 +14,35 @@ import (
 )
 
 type catalogUpdateSource struct {
-	ProviderID   string
-	Service      string
-	ReferenceID  string
-	Kind         catalog.SpecKind
-	URL          string
-	ResolvedURL  string
-	Version      string
-	HeldVersion  string
-	HeldRevision string
-	Revision     string
-	Stage        string
-	Stable       bool
-	Resolution   string
-	Scope        string
+	MetadataAttemptedAt time.Time `json:"metadata_attempted_at,omitzero"`
+	ProviderID          string
+	Service             string
+	ReferenceID         string
+	Kind                catalog.SpecKind
+	URL                 string
+	ResolvedURL         string
+	Version             string
+	HeldVersion         string
+	HeldRevision        string
+	Revision            string
+	Stage               string
+	Stable              bool
+	Resolution          string
+	Scope               string
 }
 
 var catalogUpdateGitCommit = regexp.MustCompile(`^[0-9a-f]{40}$`)
+
+func (c *Client) catalogUpdateURL(raw string) (*url.URL, error) {
+	u, err := c.versionURLSyntax(raw)
+	if err != nil {
+		return nil, err
+	}
+	if strings.Contains(raw, "#") {
+		return nil, fmt.Errorf("artifact locator contains a URL fragment")
+	}
+	return u, nil
+}
 
 func catalogUpdateGitFile(raw string) (revision, path string) {
 	u, err := url.Parse(raw)
@@ -56,7 +68,7 @@ func sameCatalogUpdateGitFile(left, right string) bool {
 // GitHub's default branch supplies the check scope when the reference is pinned.
 // Other direct URLs remain publisher locators with a separately checked digest.
 func (c *Client) resolveCatalogUpdateSource(ctx context.Context, source catalogUpdateSource) (catalogUpdateSource, error) {
-	u, err := c.versionURLSyntax(source.URL)
+	u, err := c.catalogUpdateURL(source.URL)
 	if err != nil {
 		return source, err
 	}
@@ -84,6 +96,7 @@ func (c *Client) resolveCatalogUpdateSource(ctx context.Context, source catalogU
 	budget := &apiVersionBudget{sem: make(chan struct{}, 1)}
 	scope := []APIVersionOfficialScope{{Origin: origin, PathPrefix: prefix + "/"}}
 	probe := c.probeAPIVersion(ctx, budget, origin+prefix+"/commits?"+q.Encode(), scope, false, "", "")
+	source.MetadataAttemptedAt = probe.attemptedAt
 	if probe.err != nil {
 		source.Resolution = "unexamined-locator"
 		return source, catalogUpdateRetryFailure(origin, probe.err, probe.status, probe.retryAfter, probe.rateRemaining, probe.rateReset)
@@ -191,7 +204,7 @@ func hubSpotUpdateInventory(sourceURL string, checkedAt time.Time, index []byte)
 			if entry.OpenAPI == "" {
 				continue
 			}
-			u, err := (&Client{}).versionURLSyntax(entry.OpenAPI)
+			u, err := (&Client{}).catalogUpdateURL(entry.OpenAPI)
 			if err != nil || versionOrigin(u) != versionOrigin(&url.URL{Scheme: "https", Host: "api.hubapi.com"}) ||
 				!strings.HasPrefix(u.Path, "/public/api/spec/") {
 				return catalogUpdateInventory{}, fmt.Errorf("HubSpot index spec link is outside publisher scope")

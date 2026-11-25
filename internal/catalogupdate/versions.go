@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"net/url"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -219,12 +217,7 @@ func (s *Store) ExportVersions(ctx context.Context) ([]byte, error) {
 // ReadVersionExport reads an existing maintenance database without creating
 // state, checking an artifact volume, or running schema migrations.
 func ReadVersionExport(ctx context.Context, statePath string) ([]byte, error) {
-	path, err := filepath.Abs(statePath)
-	if err != nil {
-		return nil, err
-	}
-	dsn := url.URL{Scheme: "file", Path: filepath.ToSlash(path), RawQuery: "mode=ro&_pragma=busy_timeout(5000)"}
-	db, err := sql.Open("sqlite", dsn.String())
+	db, err := openReadOnlyState(statePath)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +234,7 @@ func ReadVersionExport(ctx context.Context, statePath string) ([]byte, error) {
 	query := selectVersion
 	if version == 2 {
 		query = strings.Replace(query, "v.catalog_pin", "''", 1)
-	} else if version != stateSchema {
+	} else if version != 3 && version != stateSchema {
 		return nil, errors.New("catalog maintenance database version is unsupported for export")
 	}
 	return exportVersions(ctx, tx, query)

@@ -851,6 +851,14 @@ retry only if its previous evidence still matches. The run skips completed
 references, gives unrelated origins their turn, and finalizes once all
 references finish or exhaust their retry budget.
 
+Maintenance schema v4 stores the original catalog fingerprint and UTC
+run lifecycle timestamps. Reference evidence records outbound attempts
+and local check completion separately. Completed run inspection reads a
+single SQLite snapshot before opening the cache and works with historical
+schema v2 and v3. The writer preserves missing historical values when it
+migrates those versions. Accepted-version exports keep their existing
+schema and deterministic order.
+
 ### Catalog discovery wire foundations (M80.1)
 
 The additive `apitools.catalog-discovery/v1` types reuse StepContract and

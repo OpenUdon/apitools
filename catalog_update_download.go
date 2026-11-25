@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,12 +16,13 @@ import (
 const catalogUpdateMaxDownloadBytes = int64(1_000_000_000)
 
 type catalogUpdateArtifact struct {
-	URL       string
-	Bytes     int64
-	ETag      string
-	SHA256    string
-	CheckedAt time.Time
-	Status    string
+	URL         string
+	Bytes       int64
+	ETag        string
+	SHA256      string
+	AttemptedAt time.Time `json:",omitzero"`
+	CheckedAt   time.Time `json:",omitzero"`
+	Status      string
 }
 
 const (
@@ -34,7 +36,8 @@ const (
 // acquireCatalogUpdateArtifact uses HEAD to establish a bound before issuing
 // a body request. dst is private staging. The caller discards it on any
 // outcome other than catalogUpdateDownloaded.
-func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string, parserLimit int64, dst io.Writer) (catalogUpdateArtifact, error) {
+func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string, parserLimit int64, dst io.Writer) (observed catalogUpdateArtifact, resultErr error) {
+	defer func() { observed.CheckedAt = time.Now().UTC() }()
 	c = c.effective()
 	if parserLimit <= 0 {
 		parserLimit = DefaultMaxBytes
@@ -49,19 +52,23 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	parsed, err := c.versionURLSyntax(rawURL)
+	parsed, err := c.catalogUpdateURL(rawURL)
 	if err != nil {
 		return catalogUpdateArtifact{}, err
 	}
 	if parsed.Path == "" {
 		parsed.Path = "/"
 	}
+	probe := catalogUpdateArtifact{URL: parsed.String()}
 	scope := []APIVersionOfficialScope{scopeForVersionURL(parsed.String())}
 	if err := c.versionScopeAllows(parsed.String(), scope); err != nil {
-		return catalogUpdateArtifact{}, err
+		return probe, err
+	}
+	if !c.AllowUnsafeHosts && net.ParseIP(parsed.Hostname()) == nil {
+		probe.AttemptedAt = time.Now().UTC()
 	}
 	if _, err := c.validateHTTPURL(ctx, parsed.String()); err != nil {
-		return catalogUpdateArtifact{}, catalogUpdateRetryFailure(parsed.String(), err, 0, "", "", "")
+		return probe, catalogUpdateRetryFailure(parsed.String(), err, 0, "", "", "")
 	}
 	copyClient := *c
 	base := *c.client()
@@ -70,7 +77,7 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 	copyClient.HTTPClient = &base
 	client, err := copyClient.redirectSafeClient()
 	if err != nil {
-		return catalogUpdateArtifact{}, err
+		return probe, err
 	}
 	defer client.CloseIdleConnections()
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
@@ -86,16 +93,31 @@ func (c *Client) acquireCatalogUpdateArtifact(ctx context.Context, rawURL string
 		if err := c.versionScopeAllows(req.URL.String(), scope); err != nil {
 			return err
 		}
-		_, err := c.validateHTTPURL(req.Context(), req.URL.String())
-		return err
+		if _, err := c.validateHTTPURL(req.Context(), req.URL.String()); err != nil {
+			return err
+		}
+		probe.URL = req.URL.String()
+		return nil
 	}
 
+	if probe.AttemptedAt.IsZero() {
+		probe.AttemptedAt = time.Now().UTC()
+	}
 	head, err := requestCatalogUpdateArtifact(ctx, client, http.MethodHead, parsed.String(), "")
 	if err != nil {
-		return catalogUpdateArtifact{}, catalogUpdateRetryFailure(parsed.String(), err, 0, "", "", "")
+		return probe, catalogUpdateRetryFailure(probe.URL, err, 0, "", "", "")
 	}
 	err = head.Body.Close()
-	probe := catalogUpdateArtifact{URL: head.Request.URL.String(), CheckedAt: time.Now().UTC()}
+	if head.Request != nil && head.Request.URL != nil {
+		final := head.Request.URL.String()
+		if _, err := c.catalogUpdateURL(final); err != nil {
+			return probe, err
+		}
+		if err := c.versionScopeAllows(final, scope); err != nil {
+			return probe, err
+		}
+		probe.URL = final
+	}
 	if err != nil {
 		return probe, err
 	}

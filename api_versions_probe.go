@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -48,6 +49,7 @@ func (b *apiVersionBudget) counts() (int, int) {
 }
 
 type apiVersionProbe struct {
+	attemptedAt   time.Time
 	content       []byte
 	finalURL      string
 	status        int
@@ -85,7 +87,8 @@ func (c *Client) probeAPIVersion(ctx context.Context, budget *apiVersionBudget, 
 		}
 	}()
 	check := func(raw string) error {
-		if _, err := c.versionURLSyntax(raw); err != nil {
+		u, err := c.versionURLSyntax(raw)
+		if err != nil {
 			return err
 		}
 		if source || len(scopes) > 0 {
@@ -93,7 +96,10 @@ func (c *Client) probeAPIVersion(ctx context.Context, budget *apiVersionBudget, 
 				return err
 			}
 		}
-		_, err := c.validateHTTPURL(ctx, raw)
+		if !c.AllowUnsafeHosts && net.ParseIP(u.Hostname()) == nil && result.attemptedAt.IsZero() {
+			result.attemptedAt = time.Now().UTC()
+		}
+		_, err = c.validateHTTPURL(ctx, raw)
 		return err
 	}
 	if err := check(raw); err != nil {
@@ -151,6 +157,9 @@ func (c *Client) probeAPIVersion(ctx context.Context, budget *apiVersionBudget, 
 		req.Header.Set("If-None-Match", etag)
 	} else if modified != "" {
 		req.Header.Set("If-Modified-Since", modified)
+	}
+	if result.attemptedAt.IsZero() {
+		result.attemptedAt = time.Now().UTC()
 	}
 	resp, err := client.Do(req)
 	if err != nil {

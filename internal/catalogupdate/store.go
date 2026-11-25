@@ -14,11 +14,12 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
 
-const stateSchema = 3
+const stateSchema = 4
 const RetryPendingStatus = "publisher-retry-pending"
 
 // Serialize the first creation and close of a state file in this process.
@@ -35,11 +36,16 @@ type Store struct {
 }
 
 type Run struct {
-	ID        string
-	Catalog   string
-	Providers []string
-	Completed bool
+	ID            string
+	Catalog       string
+	CatalogSHA256 string
+	Providers     []string
+	Completed     bool
+	StartedAt     time.Time
+	CompletedAt   time.Time
 }
+
+var ErrRunNotFound = errors.New("catalog update run was not found")
 
 type Outcome struct {
 	ProviderID  string          `json:"provider_id"`
@@ -175,7 +181,7 @@ func (s *Store) initialize(ctx context.Context) error {
 		return err
 	}
 	switch version {
-	case 1, 2, stateSchema:
+	case 1, 2, 3, stateSchema:
 		var ok int
 		if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name IN ('update_run','update_provider','update_outcome','update_object')").Scan(&ok); err != nil {
 			return err
@@ -216,6 +222,15 @@ PRAGMA user_version = 3;`); err != nil {
 			return err
 		}
 	}
+	if version < 4 {
+		if _, err := tx.ExecContext(ctx, `
+ALTER TABLE update_run ADD COLUMN catalog_sha256 TEXT NOT NULL DEFAULT '';
+ALTER TABLE update_run ADD COLUMN started_at TEXT NOT NULL DEFAULT '';
+ALTER TABLE update_run ADD COLUMN completed_at TEXT NOT NULL DEFAULT '';
+PRAGMA user_version = 4;`); err != nil {
+			return err
+		}
+	}
 	return tx.Commit()
 }
 
@@ -249,10 +264,15 @@ CREATE TABLE update_outcome (
 PRAGMA user_version = 1;`
 
 func (s *Store) StartRun(ctx context.Context, catalog string, providers []string) (Run, error) {
-	if !validDigest(catalog) || len(providers) == 0 {
+	return s.StartRunSnapshot(ctx, catalog, "", providers)
+}
+
+func (s *Store) StartRunSnapshot(ctx context.Context, catalog, catalogSHA256 string, providers []string) (Run, error) {
+	if !validDigest(catalog) || (catalogSHA256 != "" && !validDigest(catalogSHA256)) || len(providers) == 0 {
 		return Run{}, errors.New("catalog digest and provider scope are required")
 	}
-	run := Run{ID: rand.Text(), Catalog: catalog, Providers: append([]string(nil), providers...)}
+	run := Run{ID: rand.Text(), Catalog: catalog, CatalogSHA256: catalogSHA256,
+		Providers: append([]string(nil), providers...), StartedAt: time.Now().UTC()}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -260,7 +280,8 @@ func (s *Store) StartRun(ctx context.Context, catalog string, providers []string
 		return Run{}, err
 	}
 	defer tx.Rollback()
-	if _, err := tx.ExecContext(ctx, "INSERT INTO update_run(id, catalog) VALUES (?, ?)", run.ID, run.Catalog); err != nil {
+	if _, err := tx.ExecContext(ctx, "INSERT INTO update_run(id, catalog, catalog_sha256, started_at) VALUES (?, ?, ?, ?)",
+		run.ID, run.Catalog, run.CatalogSHA256, run.StartedAt.Format(time.RFC3339Nano)); err != nil {
 		return Run{}, err
 	}
 	for position, provider := range run.Providers {
@@ -280,11 +301,42 @@ func (s *Store) StartRun(ctx context.Context, catalog string, providers []string
 func (s *Store) ReadRun(ctx context.Context, id string) (Run, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	return readRun(ctx, s.db, id, stateSchema)
+}
+
+type catalogRunQueries interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
+}
+
+func readRun(ctx context.Context, db catalogRunQueries, id string, schema int) (Run, error) {
 	run := Run{ID: id}
-	if err := s.db.QueryRowContext(ctx, "SELECT catalog, completed FROM update_run WHERE id = ?", id).Scan(&run.Catalog, &run.Completed); err != nil {
+	fields := "catalog, completed, '', '', ''"
+	if schema >= 4 {
+		fields = "catalog, completed, catalog_sha256, started_at, completed_at"
+	}
+	var started, completed string
+	err := db.QueryRowContext(ctx, "SELECT "+fields+" FROM update_run WHERE id = ?", id).
+		Scan(&run.Catalog, &run.Completed, &run.CatalogSHA256, &started, &completed)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Run{}, fmt.Errorf("%w: %q", ErrRunNotFound, id)
+	}
+	if err != nil {
 		return Run{}, err
 	}
-	rows, err := s.db.QueryContext(ctx, "SELECT provider_id FROM update_provider WHERE run_id = ? ORDER BY position", id)
+	if started != "" {
+		run.StartedAt, err = time.Parse(time.RFC3339Nano, started)
+		if err != nil {
+			return Run{}, err
+		}
+	}
+	if completed != "" {
+		run.CompletedAt, err = time.Parse(time.RFC3339Nano, completed)
+		if err != nil {
+			return Run{}, err
+		}
+	}
+	rows, err := db.QueryContext(ctx, "SELECT provider_id FROM update_provider WHERE run_id = ? ORDER BY position", id)
 	if err != nil {
 		return Run{}, err
 	}
@@ -297,6 +349,44 @@ func (s *Store) ReadRun(ctx context.Context, id string) (Run, error) {
 		run.Providers = append(run.Providers, id)
 	}
 	return run, rows.Err()
+}
+
+func openReadOnlyState(statePath string) (*sql.DB, error) {
+	path, err := filepath.Abs(statePath)
+	if err != nil {
+		return nil, err
+	}
+	dsn := url.URL{Scheme: "file", Path: filepath.ToSlash(path), RawQuery: "mode=ro&_pragma=busy_timeout(5000)&_pragma=query_only(1)"}
+	return sql.Open("sqlite", dsn.String())
+}
+
+// ReadExistingRun inspects a run using the original database in read-only
+// mode. Completed outcomes share its snapshot. Unfinished runs still need
+// the writer's current catalog/configuration identity check before resuming.
+func ReadExistingRun(ctx context.Context, statePath, id string) (Run, []Outcome, error) {
+	db, err := openReadOnlyState(statePath)
+	if err != nil {
+		return Run{}, nil, err
+	}
+	defer db.Close()
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if err != nil {
+		return Run{}, nil, err
+	}
+	defer tx.Rollback()
+	var schema int
+	if err := tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&schema); err != nil {
+		return Run{}, nil, err
+	}
+	if schema < 1 || schema > stateSchema {
+		return Run{}, nil, errors.New("catalog maintenance database version is unsupported for run inspection")
+	}
+	run, err := readRun(ctx, tx, id, schema)
+	if err != nil || !run.Completed {
+		return run, nil, err
+	}
+	outcomes, err := readOutcomes(ctx, tx, id)
+	return run, outcomes, err
 }
 
 func (s *Store) Record(ctx context.Context, runID string, outcome Outcome) error {
@@ -348,7 +438,11 @@ ON CONFLICT(run_id, provider_id, reference_id) DO NOTHING`,
 func (s *Store) ReadOutcomes(ctx context.Context, runID string) ([]Outcome, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	rows, err := s.db.QueryContext(ctx, `
+	return readOutcomes(ctx, s.db, runID)
+}
+
+func readOutcomes(ctx context.Context, db catalogRunQueries, runID string) ([]Outcome, error) {
+	rows, err := db.QueryContext(ctx, `
 SELECT o.provider_id, o.reference_id, o.status, o.evidence, d.digest, d.bytes
 FROM update_outcome o JOIN update_provider p USING (run_id, provider_id)
 LEFT JOIN update_object d ON o.digest=d.digest
@@ -360,14 +454,14 @@ WHERE o.run_id = ? ORDER BY p.position, o.reference_id`, runID)
 	var outcomes []Outcome
 	for rows.Next() {
 		var out Outcome
-		var evidence string
+		var evidence sql.NullString
 		var digest sql.NullString
 		var size sql.NullInt64
 		if err := rows.Scan(&out.ProviderID, &out.ReferenceID, &out.Status, &evidence, &digest, &size); err != nil {
 			return nil, err
 		}
-		if evidence != "" {
-			out.Evidence = json.RawMessage(evidence)
+		if evidence.Valid && evidence.String != "" {
+			out.Evidence = json.RawMessage(evidence.String)
 		}
 		if digest.Valid && size.Valid {
 			out.Object = &Object{SHA256: digest.String, Bytes: size.Int64}
@@ -382,14 +476,16 @@ func (s *Store) FinishRun(ctx context.Context, id string) error {
 	defer s.mu.Unlock()
 	// A provider-level checkpoint uses an empty reference ID.
 	result, err := s.db.ExecContext(ctx, `
-UPDATE update_run SET completed = 1 WHERE id = ? AND NOT EXISTS (
+UPDATE update_run SET completed = 1,
+ completed_at = CASE WHEN completed = 0 THEN ? ELSE completed_at END
+ WHERE id = ? AND NOT EXISTS (
  SELECT 1 FROM update_provider p WHERE p.run_id = update_run.id AND NOT EXISTS (
   SELECT 1 FROM update_outcome o WHERE o.run_id = p.run_id AND
     o.provider_id = p.provider_id AND o.reference_id = ''
  )
 ) AND NOT EXISTS (
  SELECT 1 FROM update_outcome WHERE run_id = update_run.id AND status = ?
-)`, id, RetryPendingStatus)
+)`, time.Now().UTC().Format(time.RFC3339Nano), id, RetryPendingStatus)
 	if err != nil {
 		return err
 	}

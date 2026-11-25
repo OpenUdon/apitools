@@ -426,6 +426,11 @@ publisher quota. A reference that fails three times is recorded as
 `publisher-retry-exhausted`. Requests to wait more than 24 hours also
 end retries for that reference in the current run. Other affected
 references carry a deferred outcome and the observed retry deadline.
+Completed runs can be inspected with `--resume RUN_ID --json` using the
+original `state_db`. This reads the saved report with its original
+catalog identity and timestamps. An older database may omit values it
+did not record. An unfinished run still requires the original catalog
+and maintenance configuration.
 Configuration can include `reviewed_operations`, a map from
 `provider-id/reference-id` to canonical operation references such as
 `#/paths/~1records/get`. A previously accepted version can advance when

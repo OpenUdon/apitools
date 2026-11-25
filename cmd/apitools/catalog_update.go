@@ -25,7 +25,7 @@ func runCatalogUpdateWithClient(args []string, out, errOut io.Writer, client *ap
 	var options apitools.CatalogUpdateOptions
 	fs.BoolVar(&options.All, "all", false, "Check all reviewed providers")
 	fs.StringVar(&options.Provider, "provider", "", "Check one reviewed provider by ID or alias")
-	fs.StringVar(&options.Resume, "resume", "", "Continue a saved catalog update run")
+	fs.StringVar(&options.Resume, "resume", "", "Resume an unfinished run or inspect a completed report")
 	fs.BoolVar(&options.Export, "export", false, "Export deterministic accepted-version metadata")
 	fs.BoolVar(&options.DryRun, "dry-run", false, "Show selected providers without network or persistent writes")
 	jsonOutput := fs.Bool("json", false, "Write the update report as JSON")
