@@ -552,7 +552,7 @@ concurrent ledger writers. A goal-protocol run keeps its own scoped ownership ru
 
 ## Current Dashboard
 
-The remaining APItools catalog horizon is **C09 → C12**.
+The remaining APItools catalog milestone is **C12**.
 Reviewed-provider search and embeddings passed
 [C08](../docs/history/status-C08.md) whole review 2.
 [C06](../docs/history/status-C06.md) delivered the update CLI, SQLite state
@@ -560,10 +560,11 @@ and artifact storage. C04 and C05 qualified the 334-provider baseline.
 [C10](../docs/history/status-C10.md) delivered the updater repairs. The
 first supervised publisher run is complete with 334 provider summaries
 and 195 reference outcomes. Provider qualification and inventory
-reconciliation are accepted after whole review 2. [C12](#c12--public-catalog-website)
-plans a static public catalog website at `apis.kinet.com` after accepted C09.
-C09's rows and its integrated C06–C09/C10 review are unchanged; only the open
-review findings register's horizon closure moves from C09 to C12.
+reconciliation are accepted after whole review 2.
+[C09](../docs/history/status-C09.md) delivered the monthly job, operator
+recovery and agent skill after three integrated review rounds.
+[C12](#c12--public-catalog-website) plans the public catalog website at
+`apis.kinet.com` and owns horizon closure of the open review findings register.
 The work is package-local and serial. [C07 retired record](../docs/history/status-C07.md).
 See the [status index](#status-files) and
 [catalog acceptance criteria](#monthly-reviewed-catalog).
@@ -625,7 +626,6 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| C09 | [status-C09.md](status-C09.md) | Pending after accepted C08 |
 | C12 | [status-C12.md](status-C12.md) | Pending; requires accepted C09 |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
 
@@ -677,27 +677,9 @@ hosted embedding check. Record the publisher scope, configured cache directory,
 network or metered budget as applicable, stop conditions and outcomes.
 Installing a real user schedule is a subsequent operator choice.
 
-### C09 — Monthly cron and agent maintenance skill
-
-**Dependency and owner.** After accepted [C08](../docs/history/status-C08.md). APItools owns the job, operator
-and agent interfaces, and integrated closure for C06 through C09 including C10.
-[C09 ledger](status-C09.md).
-
-Ship a user cron entry for 03:17 local time on the first of each month and a
-repository-owned `apitools-catalog-maintenance` skill. Use absolute paths,
-one run lock, bounded retries, per-provider checkpoints and readable text
-and JSON reports. The skill covers preflight, dry-run, enable/disable,
-status, inspection, retry by provider and generating the Git export.
-Preserve unrelated user cron entries. The operator initiates the first full
-run and can inspect its report before enabling recurrence. Verify the
-334-provider outcome and record a second run demonstrating deduplication and
-selective re-embedding. Use accepted C10 evidence to check repeat-run outcomes,
-retry behavior and access to prior reports. Review the complete change against
-the C06 baseline.
-
 ### C12 — Public catalog website
 
-**Dependency and owner.** After accepted [C09](status-C09.md). APItools owns
+**Dependency and owner.** After accepted [C09](../docs/history/status-C09.md). APItools owns
 the static site generator, committed monthly change records, manual GitHub
 Pages workflow and maintenance-skill additions. **Parallel-safe: no.** C11 is
 skipped because the [M86](status-M86.md) records use an unqualified `C11` for
@@ -988,11 +970,11 @@ Last used ID: FND-08
 | ID | Finding | Severity | Origin | Fix owner | Disposition |
 |---|---|---|---|---|---|
 | FND-01 | Checkpoints need distinguishable rate limits, server failures and timeouts. Provide bounded targeted retries so a temporary publisher issue does not get reported as conclusive freshness evidence. | P2 | [C06](../docs/history/status-C06.md) whole 1, reclassified on C06 code review F04 | [C10.4](../docs/history/status-C10.md#status-record) | fixed in C10.4 |
-| FND-02 | Interrupted update JSON omits checkpoints saved during the same invocation, even though SQLite retains them for resume. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.2 | fixed in C09.2 |
-| FND-03 | Default CLI fixtures need portable disposable state and broader end-to-end export and overlapping update coverage for the maintenance workflow. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.4 | fixed in C09.4 |
+| FND-02 | Interrupted update JSON omits checkpoints saved during the same invocation, even though SQLite retains them for resume. | Lower | [C06](../docs/history/status-C06.md) whole 1 | [C09.2](../docs/history/status-C09.md#status-record) | fixed in C09.2 |
+| FND-03 | Default CLI fixtures need portable disposable state and broader end-to-end export and overlapping update coverage for the maintenance workflow. | Lower | [C06](../docs/history/status-C06.md) whole 1 | [C09.4](../docs/history/status-C09.md#status-record) | fixed in C09.4 |
 | FND-04 | Thirty bounded docs probes returned no readable page in C07. A later publisher source review can check alternate official locations, refresh affected overlays and clarify the inherited gap evidence. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F2 | unassigned | open |
 | FND-05 | The Google Slides catalog auth overlay applies a read-only root scope without recording a distinct write requirement. Review the selected operation scopes against native publisher evidence before using this overlay for auth-sensitive write guidance. The wider root-scope overlay class remains unreviewed. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F6 | unassigned | open |
-| FND-06 | HubSpot lists Test At Debug version 2026-09-beta with stage LATEST and no banner. Preserve the publisher evidence and distinguish conflicting version labels before relying on Stable in recurring inventory reports. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 2 N1 | C09.4 | fixed in C09.4 |
+| FND-06 | HubSpot lists Test At Debug version 2026-09-beta with stage LATEST and no banner. Preserve the publisher evidence and distinguish conflicting version labels before relying on Stable in recurring inventory reports. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 2 N1 | [C09.4](../docs/history/status-C09.md#status-record) | fixed in C09.4 |
 | FND-07 | Reviewed search can miss plural operation matches and let incidental label terms count as operation evidence. Evaluate both recall and precision against reviewed labels while preserving the rejected stem regressions. | P2 | [C08](../docs/history/status-C08.md#status-record) whole 2 N-1 | unassigned | open |
 | FND-08 | When the default public-directory lookup fails and reviewed suggestions are available, the CLI gives those suggestions without showing the public failure. Expose the failed lookup while preserving review results and the explicit-source behavior. | P2 | [C08](../docs/history/status-C08.md#status-record) whole 2 N-3 | unassigned | open |
 

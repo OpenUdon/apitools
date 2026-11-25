@@ -1,3 +1,43 @@
+# Retired milestone C09 - Monthly cron and agent maintenance skill
+
+**Milestone.** C09
+**Outcome.** completed
+**Retired.** 2026-11-25
+**Source status.** tabilet/memory-bank/status-C09.md
+**Source specification.** tabilet/memory-bank/milestone.md#c09--monthly-cron-and-agent-maintenance-skill
+**Evidence.** 20119735bb6f2b9d2cd8858257d32aaf80b02f60
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 3
+**Verification.** Go 1.26.6 build, vet, full ordinary suite with retained qualification inputs, whole root/CLI/storage races, catalog generation and quality, CLI help and skill checks passed. Exact-source OpenUdon and Udon compositions passed offline. The built CLI reproduced the frozen 334-provider, 529-outcome report and accepted-version export from a disposable SQLite copy and preserved unrelated scratch crontab bytes. Two monthly fixture runs verified artifact deduplication and selective re-embedding. Local regressions cover interruptions, supersession, journal recovery, shared locking, stale schedule proof and timed retries. Closure reuses those gates at the reviewed source. [Verification receipts](../../../dist/c09-goal/).
+**Consolidated into.** [Operator documentation](../../../README.md#reviewed-catalog-maintenance), [agent skill](../../../.agents/skills/apitools-catalog-maintenance/SKILL.md), [storage and scheduling architecture](../../memory-bank/architecture.md#catalog-maintenance-storage-c06), and [scheduled recovery lesson](../../memory-bank/lessons.md#keep-scheduled-recovery-separate-from-historical-checkpoints).
+
+## Milestone specification
+
+````markdown
+### C09 — Monthly cron and agent maintenance skill
+
+**Dependency and owner.** After accepted [C08](../docs/history/status-C08.md). APItools owns the job, operator
+and agent interfaces, and integrated closure for C06 through C09 including C10.
+[C09 ledger](status-C09.md).
+
+Ship a user cron entry for 03:17 local time on the first of each month and a
+repository-owned `apitools-catalog-maintenance` skill. Use absolute paths,
+one run lock, bounded retries, per-provider checkpoints and readable text
+and JSON reports. The skill covers preflight, dry-run, enable/disable,
+status, inspection, retry by provider and generating the Git export.
+Preserve unrelated user cron entries. The operator initiates the first full
+run and can inspect its report before enabling recurrence. Verify the
+334-provider outcome and record a second run demonstrating deduplication and
+selective re-embedding. Use accepted C10 evidence to check repeat-run outcomes,
+retry behavior and access to prior reports. Review the complete change against
+the C06 baseline.
+
+````
+
+## Status record
+
+````markdown
 # C09 — Monthly cron and agent maintenance skill
 
 **Owner.** APItools. **Dependency.** Accepted [C08](../docs/history/status-C08.md). **Parallel-safe: no.**
@@ -14,7 +54,7 @@ C09 owns integrated closure for C06–C09 and the [C10 updater repairs](../docs/
 
 ## Review
 
-Review gate iterations: 2
+Review gate iterations: 3
 
 Integrated whole review round 1 started under effective limit 10. Reuse accepted evidence for contributor
 milestones and identify the exact final state. C08 supplies the separate SQLite
@@ -311,3 +351,54 @@ diff validation passed. Exact-candidate offline OpenUdon and Udon passed in
 identify the [consumer snapshots](../../dist/c09-goal/c09-whole-round2-consumer-inputs.log),
 [OpenUdon](../../dist/c09-goal/c09-whole-round2-openudon.log) and
 [Udon](../../dist/c09-goal/c09-whole-round2-udon.log).
+
+Integrated whole round 3 started at exact commit
+`20119735bb6f2b9d2cd8858257d32aaf80b02f60` under effective limit 10.
+The [committed delta](../../dist/c09-goal/c09-integrated-round3-delta.diff)
+SHA-256 is `ea44bf737697232263110f3279d9031e4835c44b7d6bb6b6ef281bfe4012c9e1`.
+The [scoped packet](../../dist/c09-goal/c09-integrated-round3-review.txt)
+SHA-256 is `f863cbc7ee679d77ab336dd45781d2fe21f8eb2bffa5eb4aa558c2afe32f1af2`.
+Scope covers N1 and the correction, the operator wording, and direct evidence
+consumers. Status notes reserve this iteration separately from product inputs.
+
+Integrated whole round 3 passed with no product defect or blocker. Opus 5.5
+high dispatched at 22:14:34Z and handed back at 22:16:45Z on 2026-11-25.
+[Report](../../dist/c09-goal/c09-whole-round3-report.md) and
+[dispatch proof](../../dist/c09-goal/c09-whole-round3-dispatch.json).
+N1 is fixed and the operator wording matches the reviewed behavior.
+R3-1 is a verification evidence gap because the whole race command reads
+the changed root package and tests. Rerun the whole command at the exact
+reviewed commit. This remedy changes no reviewed input.
+R3-2 retains the detailed cached-byte diagnostic in JSON and the summary
+status in text. R3-3 uses the same availability diagnostic for missing and
+unusable objects, with existing integrity tests. R3-4 relies on round 3's
+field trace and the existing authored-receipt test for ordinary retries.
+R3-5 relies on the status-independent reviewed-pin reporting test.
+
+Required gate `c09-whole-r3-a1` started from exact reviewed commit
+`20119735bb6f2b9d2cd8858257d32aaf80b02f60`. Run the whole offline root, CLI
+and storage races with `go test -count=1 -timeout=4m -race . ./cmd/apitools
+./internal/catalogupdate` at unchanged product source. Use standard
+fixtures and the retained first-run report as in the earlier full race gate.
+[Whole closure race](../../dist/c09-goal/c09-whole-round3-closure-race.log).
+
+The whole race gate passed at the exact reviewed commit in 158.578s.
+R3-1 is resolved, with each package tested fresh and no recovery key outstanding.
+The original build, pinned ordinary, generator, quality, CLI, consumer and
+repeat-run evidence is reusable at this source. The historical inventory
+proof combines the supervised C07 report and a disposable database copy.
+The recurring runs used fixture publishers, a scratch crontab and a loopback
+embedding endpoint. Real schedule installation remains an operator action.
+
+The first retained implementation candidate is timestamped 21:01:22Z. The
+closure race finished at 22:19:58Z, an observed span of about 79 minutes.
+Independent round 1, 2 and 3 handback intervals were about 7m51s, 4m57s and
+2m11s. The corrective cycle intervals include source work and overlapping
+consumer and local verification. Recorded command times are elapsed wall
+time. No additional owner wait was recorded in C09.
+
+Closure uses the [approved v31 direction](../evolution/prompt-v31.md) and
+requires no evolution bump. The durable recovery lesson records why the
+period assignment and saved outcomes need independent lifecycles. C12's
+existing dependency can point to the accepted history record.
+````

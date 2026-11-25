@@ -1,6 +1,6 @@
 # C12 — Public catalog website
 
-**Owner.** APItools. **Dependency.** Accepted [C09](status-C09.md). **Parallel-safe: no.**
+**Owner.** APItools. **Dependency.** Accepted [C09](../docs/history/status-C09.md). **Parallel-safe: no.**
 C11 is skipped because the [M86](status-M86.md) records use an unqualified `C11` for `UWS:C11`. C12 is outside the C09 launch reference and needs its own launch after C09. See the [milestone specification](milestone.md#c12--public-catalog-website) for scope, exclusions, acceptance, class O/R verification and `AUTHORIZATION_REQUIREMENTS`.
 
 **Closing duty.** C12 becomes the last active milestone, so C12.5 owns horizon closure of the [open review findings](milestone.md#open-review-findings) register, including FND-04, FND-05, FND-07 and FND-08, under the register's existing rules. Findings owned by C09 rows stay with C09. C09's rows and its integrated C06–C09/C10 review are unchanged; only the register's horizon closure moves from C09 to C12.

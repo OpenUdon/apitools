@@ -123,6 +123,17 @@ exercise a genuinely interrupted SQLite writer and check that a resumed
 unfinished run verifies its saved identity before publisher access.
 [C10 review and regression evidence](../docs/history/status-C10.md#status-record).
 
+## Keep scheduled recovery separate from historical checkpoints
+
+A catalog or configuration change can make an interrupted scheduled run
+ineligible to resume. Let the operator release that period assignment while
+keeping the old run, checkpoints, and accepted versions inspectable. Guard
+the release and subsequent run selection with the same lock as other writers.
+Return the saved outcomes on refusal, including the run ID and period, so an
+operator can act on the exact run. Verify recovery through the next due period
+and preserve adoption evidence when reporting missing bytes from an earlier
+artifact. [C09 review and recovery evidence](../docs/history/status-C09.md#status-record).
+
 ## Source-specific ignored declarations and complete archive inputs
 
 Ignored source declarations must not fabricate input or completeness constraints.
