@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -50,8 +51,8 @@ func TestMonthlyCatalogUpdateRestartsTheSameRunAndRejectsOverlap(t *testing.T) {
 	})}}
 	const period = "2026-11"
 	var overlapErr error
-	first, err := client.runMonthlyCatalogUpdate(firstContext, config, period, func(string) {
-		_, overlapErr = client.runMonthlyCatalogUpdate(ctx, config, period, nil)
+	first, err := client.runMonthlyCatalogUpdate(firstContext, config, period, "", func(string) {
+		_, overlapErr = client.runMonthlyCatalogUpdate(ctx, config, period, "", nil)
 	})
 	if !errors.Is(err, context.Canceled) || first.RunID == "" || first.Completed || calls != 3 {
 		t.Fatalf("expected interrupted checkpointed run, got %s completed %t, requests %d, error %v", first.RunID, first.Completed, calls, err)
@@ -59,15 +60,19 @@ func TestMonthlyCatalogUpdateRestartsTheSameRunAndRejectsOverlap(t *testing.T) {
 	if overlapErr == nil || !strings.Contains(overlapErr.Error(), "already running") {
 		t.Fatalf("overlapping job did not stop at the run lock: %v", overlapErr)
 	}
+	pending, committed, err := catalogupdate.ReadExistingRun(ctx, config.StateDB, first.RunID)
+	if err != nil || pending.Completed || len(first.Outcomes) == 0 || !reflect.DeepEqual(first.Outcomes, committed) {
+		t.Fatalf("interrupted report omitted durable checkpoints: reported %d, stored %d, error %v", len(first.Outcomes), len(committed), err)
+	}
 	invalid := config
 	invalid.ExpectedVolumeUUID = "apitools-fixture-missing-catalog-volume"
 	before := calls
-	if _, err := client.runMonthlyCatalogUpdate(ctx, invalid, period, nil); err == nil || calls != before {
+	if _, err := client.runMonthlyCatalogUpdate(ctx, invalid, period, "", nil); err == nil || calls != before {
 		t.Fatalf("loss of expected volume did not prevent publisher work: %v", err)
 	}
 	const nextPeriod = "2026-12"
 	var started []string
-	resumed, err := client.runMonthlyCatalogUpdate(ctx, config, nextPeriod, func(id string) { started = append(started, id) })
+	resumed, err := client.runMonthlyCatalogUpdate(ctx, config, nextPeriod, "", func(id string) { started = append(started, id) })
 	if err != nil || !resumed.Completed || len(started) != 2 || started[0] != first.RunID || started[1] == first.RunID ||
 		resumed.RunID != started[1] || len(resumed.Providers) != len(catalog.BuiltInProviders()) {
 		t.Fatalf("restart did not complete the old run and run the due month: %v, completed %t, providers %d, error %v", started, resumed.Completed, len(resumed.Providers), err)
@@ -80,7 +85,7 @@ func TestMonthlyCatalogUpdateRestartsTheSameRunAndRejectsOverlap(t *testing.T) {
 		t.Fatal("fixture did not check publishers before and after cancellation")
 	}
 	count := calls
-	repeated, err := client.runMonthlyCatalogUpdate(ctx, config, nextPeriod, nil)
+	repeated, err := client.runMonthlyCatalogUpdate(ctx, config, nextPeriod, "", nil)
 	if err != nil || repeated.RunID != resumed.RunID || len(repeated.Outcomes) != len(resumed.Outcomes) || calls != count {
 		t.Fatalf("same month launched a duplicate: run %s, requests %d instead of %d, error %v", repeated.RunID, calls, count, err)
 	}

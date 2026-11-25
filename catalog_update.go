@@ -167,7 +167,21 @@ func (report *CatalogUpdateReport) setRun(run catalogupdate.Run) {
 	report.CatalogSHA256 = run.CatalogSHA256
 }
 
-func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate.Store, report CatalogUpdateReport, completed bool, config CatalogUpdateConfig) (CatalogUpdateReport, error) {
+func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate.Store, report CatalogUpdateReport, completed bool, config CatalogUpdateConfig) (result CatalogUpdateReport, resultErr error) {
+	defer func() {
+		if resultErr == nil {
+			return
+		}
+		// A canceled publisher call does not undo already committed checkpoints.
+		readCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
+		defer cancel()
+		outcomes, err := store.ReadOutcomes(readCtx, report.RunID)
+		if err != nil {
+			resultErr = errors.Join(resultErr, fmt.Errorf("read committed checkpoints: %w", err))
+			return
+		}
+		result.Outcomes = outcomes
+	}()
 	report.Completed = completed
 	outcomes, err := store.ReadOutcomes(ctx, report.RunID)
 	if err != nil {

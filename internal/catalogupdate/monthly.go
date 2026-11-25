@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"io/fs"
+	"os"
 	"time"
 )
 
@@ -52,4 +54,38 @@ func (s *Store) MonthlyRun(ctx context.Context, period, identity, catalogSHA256 
 	}
 	run.MonthlyPeriod = period
 	return run, nil
+}
+
+// ReadLatestMonthlyRunID does not open the artifact cache or migrate state.
+// A database predating scheduled runs has no monthly run.
+func ReadLatestMonthlyRunID(ctx context.Context, statePath string) (string, error) {
+	if _, err := os.Stat(statePath); errors.Is(err, fs.ErrNotExist) {
+		return "", nil
+	} else if err != nil {
+		return "", err
+	}
+	db, err := openReadOnlyState(statePath)
+	if err != nil {
+		return "", err
+	}
+	defer db.Close()
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	if _, err := checkCatalogStateSchema(ctx, tx); err != nil {
+		return "", err
+	}
+	var exists bool
+	if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM sqlite_schema
+        WHERE type='table' AND name='update_monthly')`).Scan(&exists); err != nil || !exists {
+		return "", err
+	}
+	var id string
+	err = tx.QueryRowContext(ctx, "SELECT run_id FROM update_monthly ORDER BY period DESC LIMIT 1").Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	return id, err
 }

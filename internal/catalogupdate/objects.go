@@ -9,12 +9,69 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"strings"
 )
 
 const maxObjectBytes = 1_000_000_000
 
 // ErrObjectIntegrity identifies evidence confined to one cached object.
 var ErrObjectIntegrity = errors.New("catalog artifact integrity check failed")
+
+type ArtifactCacheUsage struct {
+	Objects int   `json:"objects"`
+	Bytes   int64 `json:"bytes"`
+}
+
+// MeasureArtifactCache counts regular, digest-named cache files. Bytes are
+// logical artifact sizes. This inspection neither creates nor reads objects.
+func MeasureArtifactCache(ctx context.Context, path, expectedUUID string) (ArtifactCacheUsage, error) {
+	var usage ArtifactCacheUsage
+	if err := checkVolumeUUID(expectedUUID); err != nil {
+		return usage, err
+	}
+	root, err := os.OpenRoot(path)
+	if err != nil {
+		return usage, err
+	}
+	defer root.Close()
+	if err := checkArtifactFilesystem(root, expectedUUID, 0); err != nil {
+		return usage, err
+	}
+	dir, err := root.Open(".")
+	if err != nil {
+		return usage, err
+	}
+	defer dir.Close()
+	for {
+		if err := ctx.Err(); err != nil {
+			return usage, err
+		}
+		entries, err := dir.ReadDir(128)
+		if errors.Is(err, io.EOF) {
+			return usage, nil
+		}
+		if err != nil {
+			return usage, err
+		}
+		for _, entry := range entries {
+			digest, ok := strings.CutPrefix(entry.Name(), "sha256-")
+			if !ok || !validDigest(digest) || !entry.Type().IsRegular() {
+				continue
+			}
+			info, err := root.Lstat(entry.Name())
+			if errors.Is(err, fs.ErrNotExist) {
+				continue
+			}
+			if err != nil {
+				return usage, err
+			}
+			if info.Mode().IsRegular() {
+				usage.Objects++
+				usage.Bytes += info.Size()
+			}
+		}
+	}
+}
 
 func (o Object) filename() (string, error) {
 	if !validDigest(o.SHA256) || o.Bytes <= 0 || o.Bytes > maxObjectBytes {

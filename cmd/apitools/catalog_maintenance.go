@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -29,7 +31,7 @@ func runCatalogMaintenance(args []string, out, errOut io.Writer) int {
 }
 
 func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, client *apitools.Client) int {
-	const usage = "Usage: apitools catalog maintenance preflight|run --config FILE [--json]"
+	const usage = "Usage: apitools catalog maintenance preflight|run|enable|disable|status|report|retry [--config FILE] [--json]"
 	if len(args) == 0 {
 		fmt.Fprintln(errOut, usage)
 		return exitUsage
@@ -39,7 +41,9 @@ func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, clien
 		fmt.Fprintln(out, usage)
 		return exitSuccess
 	}
-	if action != "preflight" && action != "run" {
+	switch action {
+	case "preflight", "run", "enable", "disable", "status", "report", "retry":
+	default:
 		fmt.Fprintf(errOut, "unknown catalog maintenance command %q\n", action)
 		fmt.Fprintln(errOut, usage)
 		return exitUsage
@@ -48,32 +52,69 @@ func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, clien
 	configFlag := fs.String("config", "", "Catalog maintenance JSON configuration file")
 	jsonOutput := fs.Bool("json", false, "Write JSON output")
 	var dryRun bool
-	if action == "run" {
+	var afterRun, cronFile, inspectRun, provider string
+	switch action {
+	case "run":
 		fs.BoolVar(&dryRun, "dry-run", false, "List the provider scope without opening state or contacting publishers")
+		fs.StringVar(&afterRun, "after-run", "", "Require this completed full reviewed run before publisher work")
+	case "enable":
+		fs.StringVar(&afterRun, "after-run", "", "Completed full reviewed run the operator has inspected")
+	case "report":
+		fs.StringVar(&inspectRun, "run", "", "Inspect this saved run instead of the latest scheduled run")
+	case "retry":
+		fs.StringVar(&provider, "provider", "", "Check one reviewed provider in a new maintenance run")
+	}
+	if action == "enable" || action == "disable" || action == "status" {
+		fs.StringVar(&cronFile, "crontab-file", "", "Use a scratch crontab file instead of the user crontab")
 	}
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: apitools catalog maintenance %s --config FILE [--json]\n", action)
+		fmt.Fprintf(fs.Output(), "Usage: apitools catalog maintenance %s [options]\n", action)
 		fs.PrintDefaults()
 	}
 	if code, done := parseCommandFlags(fs, args[1:], out, errOut); done {
 		return code
 	}
-	if fs.NArg() != 0 || *configFlag == "" {
+	emptyFlag := ""
+	fs.Visit(func(option *flag.Flag) {
+		if (option.Name == "crontab-file" || option.Name == "after-run") && strings.TrimSpace(option.Value.String()) == "" {
+			emptyFlag = option.Name
+		}
+	})
+	if emptyFlag != "" {
+		fmt.Fprintf(errOut, "--%s requires a nonempty value\n", emptyFlag)
+		return exitUsage
+	}
+	if fs.NArg() != 0 || (*configFlag == "" && action != "disable" && action != "status") ||
+		(action == "enable" && afterRun == "") || (action == "retry" && provider == "") {
 		fs.Usage()
 		return exitUsage
 	}
-	configPath, err := filepath.Abs(*configFlag)
-	if err != nil {
-		fmt.Fprintln(errOut, err)
-		return exitUsage
-	}
-	config, err := readCatalogUpdateConfig(configPath)
-	if err != nil {
-		fmt.Fprintln(errOut, err)
-		return exitUsage
+	var config apitools.CatalogUpdateConfig
+	var configPath string
+	if *configFlag != "" {
+		var err error
+		configPath, err = filepath.Abs(*configFlag)
+		if err == nil {
+			config, err = readCatalogUpdateConfig(configPath)
+		}
+		if err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitUsage
+		}
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if action == "enable" || action == "disable" || action == "status" {
+		if err := manageCatalogCron(ctx, action, cronFile, configPath, afterRun, config, out, *jsonOutput); err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitRuntime
+		}
+		return exitSuccess
+	}
+	if action == "report" {
+		report, err := loadCatalogMaintenanceReport(ctx, config.StateDB, inspectRun)
+		return writeCatalogMaintenanceReport(ctx, out, errOut, report, err, config, *jsonOutput)
+	}
 	if action == "preflight" {
 		readiness, err := catalogMaintenancePreflight(ctx, configPath, config)
 		if err != nil {
@@ -95,10 +136,21 @@ func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, clien
 		report, err := client.UpdateCatalog(ctx, apitools.CatalogUpdateOptions{All: true, DryRun: true})
 		return writeCatalogUpdateResult(out, errOut, report, err, *jsonOutput, false)
 	}
-	report, err := client.RunMonthlyCatalogUpdate(ctx, config, func(id string) {
+	onStart := func(id string) {
 		fmt.Fprintln(errOut, "Catalog maintenance run", id)
-	})
-	return writeCatalogUpdateResult(out, errOut, report, err, *jsonOutput, false)
+	}
+	if action == "retry" {
+		lock, err := catalogupdate.LockMonthlyRun(ctx, config.StateDB)
+		if err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitRuntime
+		}
+		defer lock.Close()
+		report, err := client.UpdateCatalog(ctx, apitools.CatalogUpdateOptions{Config: config, Provider: provider, OnStart: onStart})
+		return writeCatalogMaintenanceReport(ctx, out, errOut, report, err, config, *jsonOutput)
+	}
+	report, err := client.RunMonthlyCatalogUpdateAfter(ctx, config, afterRun, onStart)
+	return writeCatalogMaintenanceReport(ctx, out, errOut, report, err, config, *jsonOutput)
 }
 
 func catalogMaintenancePreflight(ctx context.Context, path string, cfg apitools.CatalogUpdateConfig) (catalogMaintenanceReadiness, error) {

@@ -886,6 +886,15 @@ and completion. Artifact publication keeps its short-lived file lock.
 An interrupted scheduled run is resumed under its original catalog and
 configuration identity. Each invocation is bounded to one day.
 
+The operator installs and removes one marked user cron block. Installation
+references a completed full provider run in the configured maintenance
+database. The scheduler checks that proof after SQLite journal recovery and
+before accessing publishers. Read-only report inspection can return committed
+checkpoints from unfinished runs. If the in-flight command stops, it includes
+checkpoints committed by that invocation. Cache totals count regular digest
+objects on the configured filesystem. Publisher runs report embedding usage
+as unrequested, independently of reviewed search.
+
 ### Reviewed provider search (C08)
 
 Reviewed provider search builds an SQLite FTS5 index over embedded catalog

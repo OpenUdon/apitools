@@ -3,7 +3,9 @@ package apitools
 import (
 	"context"
 	"errors"
+	"os"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"github.com/OpenUdon/apitools/catalog"
@@ -12,12 +14,20 @@ import (
 
 // RunMonthlyCatalogUpdate runs or resumes the local calendar month's reviewed
 // update. Publisher retries share the ordinary persisted per-reference limit.
-// A scheduled attempt holds the maintenance lock for at most one day.
 func (c *Client) RunMonthlyCatalogUpdate(ctx context.Context, config CatalogUpdateConfig, onStart func(string)) (CatalogUpdateReport, error) {
-	return c.runMonthlyCatalogUpdate(ctx, config, time.Now().Format("2006-01"), onStart)
+	return c.RunMonthlyCatalogUpdateAfter(ctx, config, "", onStart)
 }
 
-func (c *Client) runMonthlyCatalogUpdate(ctx context.Context, config CatalogUpdateConfig, period string, onStart func(string)) (CatalogUpdateReport, error) {
+// RunMonthlyCatalogUpdateAfter additionally supports a scheduled run's
+// operator-reviewed prior-run prerequisite.
+// If afterRun is supplied, its completed scope is checked inside the writer's
+// recovered database before contacting any publisher. An invocation is capped
+// at one day.
+func (c *Client) RunMonthlyCatalogUpdateAfter(ctx context.Context, config CatalogUpdateConfig, afterRun string, onStart func(string)) (CatalogUpdateReport, error) {
+	return c.runMonthlyCatalogUpdate(ctx, config, time.Now().Format("2006-01"), afterRun, onStart)
+}
+
+func (c *Client) runMonthlyCatalogUpdate(ctx context.Context, config CatalogUpdateConfig, period, afterRun string, onStart func(string)) (CatalogUpdateReport, error) {
 	report, err := c.UpdateCatalog(ctx, CatalogUpdateOptions{All: true, DryRun: true})
 	if err != nil {
 		return report, err
@@ -25,6 +35,11 @@ func (c *Client) runMonthlyCatalogUpdate(ctx context.Context, config CatalogUpda
 	report.DryRun = false
 	if !filepath.IsAbs(config.CacheDir) || !filepath.IsAbs(config.StateDB) {
 		return report, errors.New("catalog maintenance needs absolute cache_dir and state_db paths")
+	}
+	if afterRun != "" {
+		if _, err := os.Lstat(config.StateDB); err != nil {
+			return report, err
+		}
 	}
 	identity, err := catalogUpdateRunIdentity(config, report.CatalogSHA256)
 	if err != nil {
@@ -47,6 +62,15 @@ func (c *Client) runMonthlyCatalogUpdate(ctx context.Context, config CatalogUpda
 		return report, err
 	}
 	defer store.Close()
+	if afterRun != "" {
+		prior, err := store.ReadRun(ctx, afterRun)
+		if err != nil {
+			return report, err
+		}
+		if !prior.Completed || !slices.Equal(prior.Providers, report.Providers) {
+			return report, errors.New("schedule requires a completed run covering the full reviewed provider list")
+		}
+	}
 	manifest, providers := report.CatalogSHA256, report.Providers
 	for {
 		run, err := store.MonthlyRun(ctx, period, identity, manifest, providers)

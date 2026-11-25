@@ -8,7 +8,7 @@ C09 owns integrated closure for C06–C09 and the [C10 updater repairs](../docs/
 | Item | State | Notes |
 | --- | --- | --- |
 | C09.1 — Check readiness and implement the monthly job | `[+]` | Read the same cache directory configuration as a manual update. Preflight binary, database, configured directory, permissions and cron environment. Use absolute paths, local time, one run lock, bounded retries and per-provider checkpoints. Exercise an ordinary cache directory, overlapping jobs, restart and loss of an explicitly configured mount in isolated tests. |
-| C09.2 — Expose schedule management and reports | `[ ]` | Default the optional user schedule to `17 3 1 * *`. Provide idempotent enable, disable and status, preserving unrelated crontab entries. Produce readable and JSON reports for accepted changes, pending reviews, size deferrals, failures, disk use and embedding usage. Test with a scratch crontab. This row fixes FND-02. |
+| C09.2 — Expose schedule management and reports | `[+]` | Default the optional user schedule to `17 3 1 * *`. Provide idempotent enable, disable and status, preserving unrelated crontab entries. Produce readable and JSON reports for accepted changes, pending reviews, size deferrals, failures, disk use and embedding usage. Test with a scratch crontab. This row fixes FND-02. |
 | C09.3 — Deliver the agent maintenance skill | `[ ]` | Ship the repository-owned `apitools-catalog-maintenance` skill. Check its instructions against actual commands for preflight, dry-run, schedule management, report inspection, per-provider retry and generating the Git export. Document the operator-initiated first run and how to inspect it before scheduling. |
 | C09.4 — Verify repeat run and integrated closure | `[ ]` | Reconcile [C07 first-run evidence](../docs/history/status-C07.md#status-record) for 334 providers and all six special cases. Record the repeat run, unchanged artifact reuse and selective re-embedding. Verify repeat outcomes, bounded retry and inspection of previous runs against accepted C10 evidence. Scope any live publisher or metered embedding check separately. Exercise the operator/agent workflow, review the cumulative diff, and run the existing class O whole-unit gates and affected race and consumer checks. This row fixes FND-03 and FND-06. |
 
@@ -63,3 +63,32 @@ The fixture verifies that one invocation finishes the interrupted month
 and the due month under one lock, with no repeat requests in the same
 completed month. Preflight and writer share schema validation, and
 mixed-origin retries select the earliest eligible pending reference.
+
+C09.2 required gate attempt c09-2-a1 started at `f47eaa7c5d59b30f29f99a76873de59ecda2ac92` with diff SHA-256
+`e654124f97673d05044093a6e4bdc506848800eae2f7f6702eccdcbb80a838e7`. Go build and vet ./..., plain and race whole affected root, CLI and
+storage units, and diff validation. [Row checks](../../dist/c09-goal/c09-2-gates.log).
+
+C09.2 initial build, vet, whole ordinary and affected race checks passed. The
+review identified empty selector fallthrough, scratch input aliases and combined
+publisher-head and baseline facts missing in reports. Corrections are in the CLI.
+C09.2 corrective attempt c09-2-a2 started at `f47eaa7c5d59b30f29f99a76873de59ecda2ac92` with exact diff SHA-256
+`abd06640f894f688a352bb1a6ae9296a212d559b45339dc8e149e00bb7fe37f3`. Run build/vet, whole CLI ordinary and race tests, and diff verification.
+The previously passed root and storage race results cover their identical inputs.
+[Corrective gates](../../dist/c09-goal/c09-2-final-gates.log).
+
+C09.2 correction attempt c09-2-a3 started at `f47eaa7c5d59b30f29f99a76873de59ecda2ac92` with diff SHA-256
+`8b0d5f1b18ee54899e1e0acacab439651c66c3ed7c031e10bff8271548e0d9ff`. Re-review cleared empty flags, independent head/baseline reporting and
+command capture limits. It found path normalization mismatched the alias guard.
+Canonical scratch paths now cover existing parent symlinks and reject outer
+whitespace before file access. Re-run build/vet, whole CLI ordinary/race and
+diff. [Path guard verification](../../dist/c09-goal/c09-2-path-gates.log).
+
+C09.2 passed separate Astra xhigh re-review at SHA-256
+`8b0d5f1b18ee54899e1e0acacab439651c66c3ed7c031e10bff8271548e0d9ff`.
+Whole affected ordinary checks took 32.155s, and whole races took 175.126s
+on the initial library/CLI candidate. Final CLI ordinary and race checks
+took 9.729s and 33.304s. Build, vet and diff checks passed. Scratch tests
+verified a required completed full run, idempotence, unrelated cron
+content, normalization and hard-link conflicts, and both report formats.
+FND-02 is fixed. Interrupted output now equals the committed checkpoint
+snapshot, and read-only inspection can retrieve those unfinished outcomes.

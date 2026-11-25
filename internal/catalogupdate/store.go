@@ -380,7 +380,7 @@ func openReadOnlyState(statePath string) (*sql.DB, error) {
 }
 
 // ReadExistingRun inspects a run using the original database in read-only
-// mode. Completed outcomes share its snapshot. Unfinished runs still need
+// mode. Committed outcomes share its snapshot. Unfinished runs still need
 // the writer's current catalog/configuration identity check before resuming.
 func ReadExistingRun(ctx context.Context, statePath, id string) (run Run, outcomes []Outcome, err error) {
 	defer func() {
@@ -407,7 +407,7 @@ func ReadExistingRun(ctx context.Context, statePath, id string) (run Run, outcom
 		return Run{}, nil, errors.New("catalog maintenance database version is unsupported for run inspection")
 	}
 	run, err = readRun(ctx, tx, id, schema)
-	if err != nil || !run.Completed {
+	if err != nil {
 		return run, nil, err
 	}
 	outcomes, err = readOutcomes(ctx, tx, id)

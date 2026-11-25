@@ -483,6 +483,33 @@ apitools catalog maintenance preflight --config /path/to/maintenance.json
 apitools catalog maintenance run --config /path/to/maintenance.json --dry-run --json
 ```
 
+Start the first full run yourself using `catalog update --all` and inspect
+the saved result before enabling recurrence. The managed user cron entry
+runs at 03:17 local time on the first of each month. Install it from the
+permanent binary location. Cron paths support spaces and apostrophes and
+exclude percent signs and line breaks.
+
+```sh
+apitools catalog maintenance report --config /path/to/maintenance.json --run RUN_ID
+apitools catalog maintenance enable --config /path/to/maintenance.json --after-run RUN_ID
+apitools catalog maintenance status --config /path/to/maintenance.json --json
+apitools catalog maintenance report --config /path/to/maintenance.json --json
+apitools catalog maintenance disable
+```
+
+Enable and disable manage only the marked APItools block. For a local rehearsal,
+add `--crontab-file /path/to/scratch.crontab` to enable, disable or status.
+Choose a separate text file and keep leading and trailing whitespace out of
+its path components.
+The scheduled command verifies the inspected full run in its configured
+state database before publisher checks. `report --run` also inspects partial
+checkpoints and earlier runs without resuming them. The reports include
+compatible adoptions, review and retry outcomes, size deferrals, failures,
+managed artifact bytes and embedding usage. Scheduled updates leave embeddings
+unrequested. Use `catalog maintenance retry --provider PROVIDER_ID --config FILE`
+for a new run limited to one reviewed provider. An existing unfinished monthly
+run resumes through `catalog maintenance run` with its original configuration.
+
 ### Explicit catalog roots
 
 `catalog.RootOptions` names an operator-supplied directory, a confined relative
