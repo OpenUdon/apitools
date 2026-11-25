@@ -1,8 +1,10 @@
 package apitools
 
 import (
+	"crypto/sha256"
 	"database/sql"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +17,7 @@ import (
 
 func TestReviewedProviderSearchExactAndCoveredOperations(t *testing.T) {
 	client := &Client{}
-	alias, err := client.SearchReviewedProviders(t.Context(), ReviewedProviderSearchOptions{Query: " SLACK web api "})
+	alias, err := client.SearchReviewedProviders(t.Context(), ReviewedProviderSearchOptions{Query: " SLACK  web api "})
 	if err != nil || len(alias.Results) == 0 || alias.Results[0].Profile.ProviderID != "slack" ||
 		alias.Results[0].Match != ReviewedProviderExactMatch {
 		t.Fatalf("exact reviewed alias: %+v, %v", alias.Results, err)
@@ -62,6 +64,131 @@ func TestReviewedProviderSearchExactAndCoveredOperations(t *testing.T) {
 		if err != nil || len(got.Results) != 0 {
 			t.Fatalf("unexpected matches or syntax error on %q: %v, %v", query, len(got.Results), err)
 		}
+	}
+}
+
+func TestReviewedSearchFiltersIncidentalCapabilityWords(t *testing.T) {
+	for _, tt := range []struct {
+		query, relevantProvider string
+	}{
+		{"accounting", "quickbooks"},
+		{"marketing", "mailchimp"},
+		{"news", "hackernews"},
+		{"maps", "google-maps-platform"},
+		{"listings", ""},
+		{"copper api", "copper"},
+		{"get account", ""},
+	} {
+		t.Run(tt.query, func(t *testing.T) {
+			report, err := (&Client{}).SearchReviewedProviders(t.Context(), ReviewedProviderSearchOptions{Query: tt.query, Limit: 334})
+			if err != nil {
+				t.Fatal(err)
+			}
+			found := false
+			for _, result := range report.Results {
+				if result.Match == ReviewedProviderOperationMatch || len(result.MatchedCapabilities) > 0 {
+					t.Fatalf("incidental word asserted capability %s: %+v", result.Profile.ProviderID, result.MatchedCapabilities)
+				}
+				found = found || result.Profile.ProviderID == tt.relevantProvider
+			}
+			if tt.relevantProvider != "" && !found {
+				t.Fatalf("missing relevant provider %s", tt.relevantProvider)
+			}
+		})
+	}
+}
+
+func TestReviewedSearchPinnedSelectors(t *testing.T) {
+	priorDir := os.Getenv("APITOOLS_CATALOG_QUALIFICATION_DIR")
+	curatedDir := os.Getenv("APITOOLS_C07_QUALIFICATION_DIR")
+	if priorDir == "" || curatedDir == "" {
+		t.Skip("set both retained publisher artifact directories for exact selector qualification")
+	}
+	files := map[string]string{
+		"amazon-sp-sellers-v1-swagger":          filepath.Join(priorDir, "openapi/amazon-sp-sellers-v1-swagger.json"),
+		"amplitude-developer-openapi":           filepath.Join(curatedDir, "amplitude-developer.json"),
+		"datadog-api-v2":                        filepath.Join(priorDir, "openapi/datadog-api-v2.yaml"),
+		"digitalocean-api-v2":                   filepath.Join(priorDir, "openapi/digitalocean-api-v2.yaml"),
+		"ebay-sell-account-v1":                  filepath.Join(priorDir, "openapi/ebay-sell-account-v1.json"),
+		"etsy-v3-openapi":                       filepath.Join(priorDir, "openapi/etsy-v3-openapi.json"),
+		"google-ads-v26-customer-service":       filepath.Join(priorDir, "grpc-protobuf/google-ads-v26-customer-service.proto"),
+		"google-gemini-discovery-v1beta":        filepath.Join(priorDir, "google-discovery/google-gemini-discovery-v1beta.json"),
+		"google-maps-places-v1-discovery":       filepath.Join(priorDir, "google-discovery/google-maps-places-v1-discovery.json"),
+		"sheets-discovery-v4":                   filepath.Join(curatedDir, "sheets-canonical-v4.json"),
+		"sheets-sdk-discovery-v4":               filepath.Join(curatedDir, "sheets-current-sdk.json"),
+		"hubspot-crm-contacts-2026-09-openapi":  filepath.Join(curatedDir, "hubspot-contacts-2026-09-424.json"),
+		"hubspot-crm-deals-2026-09-openapi":     filepath.Join(curatedDir, "hubspot-deals-2026-09-424.json"),
+		"hugging-face-hub-openapi":              filepath.Join(priorDir, "openapi/hugging-face-hub-openapi.json"),
+		"hunter-v2-openapi":                     filepath.Join(curatedDir, "hunter-openapi.json"),
+		"kubernetes-v1-37-2-core-openapi-v3":    filepath.Join(curatedDir, "kubernetes-commit-core-v3.json"),
+		"linear-sdk-graphql-sdl":                filepath.Join(curatedDir, "linear-schema.graphql"),
+		"mercado-pago-rest-openapi":             filepath.Join(priorDir, "openapi/mercado-pago-rest-openapi.json"),
+		"miro-rest-v2-openapi":                  filepath.Join(priorDir, "openapi/miro-rest-v2-openapi.json"),
+		"mongodb-atlas-admin-openapi":           filepath.Join(priorDir, "openapi/mongodb-atlas-admin-openapi.yaml"),
+		"nvidia-dsx-air-openapi":                "catalog-openapi-cache/openapi/nvidia-dsx-air-openapi.yaml",
+		"plaid-openapi-2020-09-14":              filepath.Join(priorDir, "openapi/plaid-openapi-2020-09-14.yml"),
+		"square-connect-v2-openapi":             filepath.Join(priorDir, "openapi/square-connect-v2-openapi.json"),
+		"storyblok-content-delivery-v2-openapi": filepath.Join(curatedDir, "storyblok-cdn-v2.yaml"),
+		"stripe-latest-openapi-spec3":           filepath.Join(curatedDir, "stripe-ga.json"),
+		"vercel-rest-openapi":                   filepath.Join(priorDir, "openapi/vercel-rest-openapi.json"),
+	}
+	for _, profile := range catalog.BuiltInProviderSearchProfiles() {
+		for _, source := range profile.Coverage.Sources {
+			if source.Kind != catalog.ProviderSearchPinnedSource {
+				continue
+			}
+			t.Run(source.SpecRefID, func(t *testing.T) {
+				path, ok := files[source.SpecRefID]
+				if !ok {
+					t.Fatal("missing retained publisher artifact mapping")
+				}
+				delete(files, source.SpecRefID)
+				content, err := readLocalSpecFile(path, DefaultMaxBytes)
+				if err != nil || fmt.Sprintf("%x", sha256.Sum256(content)) != source.SHA256 {
+					t.Fatalf("artifact fails the catalog pin: %v", err)
+				}
+				kind := catalogRegisteredSourceKind(string(source.Protocol))
+				selectors := make(map[string]bool)
+				if kind == OperationSourceOpenAPI {
+					paths := mapValue(catalogUpdateNativeRoot(t.Context(), content)["paths"])
+					for route, operations := range paths {
+						for method, operation := range mapValue(operations) {
+							if mapValue(operation) != nil {
+								selectors[openAPIOperationSelector(method, route)] = true
+							}
+						}
+					}
+				} else if kind == OperationSourceGoogleDiscovery {
+					inventory, err := BuildAPISourceOperationInventory(t.Context(), APISourceInventoryOptions{Documents: []APISourceDocument{{
+						Kind: APISourceKindGoogleDiscovery, Content: content,
+					}}})
+					if err != nil {
+						t.Fatal(err)
+					}
+					for _, operation := range inventory.Operations {
+						selectors["#/methods/"+escapeJSONPointer(operation.OperationID)] = true
+					}
+				} else {
+					table, err := BuildOperationShapeTable(t.Context(), OperationShapeOptions{Sources: []ShapeSourceInput{{
+						ID: source.SpecRefID, OperationSourceInput: OperationSourceInput{Kind: kind, Content: content},
+					}}})
+					if err != nil {
+						t.Fatal(err)
+					}
+					for _, operation := range table.Operations {
+						selectors[operation.Selector.Value] = true
+					}
+				}
+				for _, operation := range source.Operations {
+					if !selectors[operation.Selector] {
+						t.Errorf("selected operation %q absent in exact %s source", operation.Selector, kind)
+					}
+				}
+			})
+		}
+	}
+	if len(files) > 0 {
+		t.Errorf("unused retained publisher artifact paths: %v", files)
 	}
 }
 

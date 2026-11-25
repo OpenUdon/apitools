@@ -14,9 +14,9 @@ See the [milestone specification](milestone.md#c08--searchable-catalog-and-hoste
 
 ## Review
 
-Review gate iterations: 0
+Review gate iterations: 2
 
-Whole review pending, default limit 10. Use the [test policy](test-policy.md)
+Whole review passed after 2 iterations of the effective limit of 10. Use the [test policy](test-policy.md)
 and [milestone review procedure](milestone.md#milestone-review-procedure).
 
 C08.1 verification started against base `a4caf6f56c10e10f2fd43cee1c9810fa3bef0e86` and candidate diff SHA-256 `4203cdf099c63d1a78d9a5eba5ae43418a82464b86b54c816ba90d5d13ab6cb2`. The row gates are build, vet, affected catalog tests with retained source pins, generator and quality checks, and diff validation.
@@ -81,3 +81,129 @@ were unchanged by the help correction, so the
 [original root suite](../../dist/c08-goal/c08-4-gates.log) remains applicable.
 [Corrective gates](../../dist/c08-goal/c08-4-final-gates.log) and
 [exact re-reviewed diff](../../dist/c08-goal/c08-4-final.diff).
+
+C08 whole gates passed at `001e747d67ccf881d01ee22f74cadfed7ca373c8`.
+Fresh build, vet, full tests with retained pins, reviewed races, catalog
+generation and quality, search/import help, built-default CLI proofs and
+diff validation passed. The first attempt encountered an incomplete
+nested consumer snapshot during Go discovery. The complete snapshot
+was present before the passing rerun.
+[Whole verification](../../dist/c08-goal/c08-whole-gates.log).
+OpenUdon passed against that exact candidate and Udon passed its ordinary
+pinned suite. The optional Udon composed workspace hit the pre-existing
+uncached `cloud.google.com/go/compute@v1.49.1` setup limit.
+[Consumer receipts](../../dist/c08-goal/consumers/).
+
+Whole round 1 reviews the exact candidate above against
+`a4caf6f56c10e10f2fd43cee1c9810fa3bef0e86`.
+[Review packet](../../dist/c08-goal/c08-whole-round1-review.txt) SHA-256
+`8f4afc4b4383c46a03ba90562755641915aff72951c7aef60c727a5685420744`.
+[Canonical diff](../../dist/c08-goal/c08-whole-round1-full.diff) SHA-256
+`f578c17985e62366a1da8895113c79755352f2b108f209b5b65d4a7caeb14d44`.
+
+Round 1 returned BLOCK on P1-1. The review carrier dispatched a fresh
+Claude Opus 5.5 child at high effort.
+[Dispatch receipt](../../dist/c08-goal/c08-whole-round1-dispatch.json).
+[Report](../../dist/c08-goal/c08-whole-round1-report.md) SHA-256
+`c73014aec56707491b58bf722aad1060d067c34f6ad48d048eb98039209379a2`.
+
+Corrective verification started on diff SHA-256 `38ca9a26fd121b33c8fd187fc071c750bee2ba205c374891b806640cf43022da`.
+
+- P1-1 and L-9: FTS proposes operation candidates. Surface terms distinguish
+  operation evidence from provider identity and incidental or stem-only
+  words. Accounting, news, maps and listings reproduced false operation
+  evidence in round 1. Marketing was already metadata-only, and Home
+  Assistant API was already an exact alias. Both remain covered by
+  regressions. Slack posting and all three payment refund pins still match.
+- P2-1 and P2-2: Weak metadata and semantic matches allow the public chain.
+  If public yields no result or fails, return available reviewed suggestions.
+  The optional tested cosine threshold supports different models. Offline
+  retrieval with no public cache retains available reviewed suggestions.
+- P2-3: Exact aliases use the catalog's existing whitespace and hyphen
+  normalization. The catalog does not equate underscores with hyphens.
+- P2-4 and P2-5: The query establishes the dimension for each lookup.
+  Validate and store complete provider batches individually, and recheck
+  the per-search budget before refreshing outdated dimensions.
+- P2-6: Verify every selected selector against all 26 retained exact sources
+  with both existing qualification directories set. Full native inventory
+  identifies the reviewed Sheets methods within the larger Discovery specs.
+- P2-7: The optional Udon workspace composition was a setup FAIL at
+  `cloud.google.com/go/compute@v1.49.1` in the offline module cache.
+  It is not a C08 acceptance gate. The legacy `Client.Search` implementation
+  and Go dependency files are unchanged. Udon's ordinary pinned suite
+  passed. OpenUdon was tested against the exact candidate.
+- L-1: Run new whole-package races for the affected root and CLI packages.
+- L-2 through L-4 and L-7: Clarify advisory labels, text publisher evidence,
+  the operation display limit, and config scope.
+- L-5, L-6, L-8: Preserve explicit bad index path errors, reproducible stored
+  metadata and reusable vectors, and the original public output shape.
+  The reviewed report retains embedding usage.
+
+Required offline recovery limit is 3 under the approved C08 goal and
+stock protocol. The first whole build setup and the retained-artifact race
+timeout have distinct keys and each consumed one attempt. The first build
+setup key recovered after the archive completed and the ordinary whole
+gates passed. [First setup failure](../../dist/c08-goal/c08-whole-setup-failed.log).
+
+The round 2 whole gate on the saved diff passed build, vet and
+`go test -count=1 -timeout=2m ./...` with both retained source directories.
+The combined `go test -count=1 -timeout=4m -race . ./cmd/apitools`
+attempt timed out in the existing
+`TestCatalogPromotion/digitalocean/pinned-artifact` path. It was
+actively processing the catalog ranker under instrumentation and recorded
+no race. The CLI package passed in that invocation.
+[Combined attempt](../../dist/c08-goal/c08-whole-round2-gates.log).
+
+Round 2 race recovery uses the same timeout and the whole root/CLI package
+runner with the existing standard fixture configuration. Tests that require
+opt-in retained artifacts report their own skips. The ordinary whole
+suite still qualified those exact artifacts. The separate C08 selector
+check uses both retained directories and passes all 26 sources under race.
+Catalog quality, generation, help, and built CLI proofs passed.
+[CLI and exact selector race receipt](../../dist/c08-goal/c08-whole-round2-cli-and-pins.log).
+[OpenUdon corrective-source suite](../../dist/c08-goal/consumers/openudon-round2.log) passed.
+
+The standard whole-package offline races passed for the APItools root and
+CLI after the timed-out combined run. The recovery completed without a
+timeout increase or test change. C08's exact-source selector race passed
+separately. [Standard race results](../../dist/c08-goal/c08-whole-round2-standard-race.log).
+
+Whole round 2 started after verification against full HEAD
+`001e747d67ccf881d01ee22f74cadfed7ca373c8` and the
+[corrective diff](../../dist/c08-goal/c08-whole-round2.diff) SHA-256
+`38ca9a26fd121b33c8fd187fc071c750bee2ba205c374891b806640cf43022da`.
+[Round 2 packet](../../dist/c08-goal/c08-whole-round2-review.txt) SHA-256
+`f8273c4c54a9a1b28ba6fcfaa6f534dc88608ec30d39c455145c706dc3b80796`.
+
+Round 2 returned PASS on the exact corrective delta. The independent
+review found no blocker. The prior P1 and the seven prior P2 findings
+are closed with the above evidence and dispositions.
+[Review report](../../dist/c08-goal/c08-whole-round2-report.md) SHA-256
+`702d9cc19a22bd7605978f84cc1a6c89bd4d7c4f41c951c001ac0ebc433808c4`.
+[Model and dispatch receipt](../../dist/c08-goal/c08-whole-round2-dispatch.json).
+
+- N-1 carried as FND-07. The built CLI confirms that plural queries can
+  lose covered matches and that incidental label terms can still count.
+  Recovery needs relevance tests for broader inflections and common
+  multi-provider words together. C09's maintenance acceptance uses the
+  embedding and evidence contracts without changing capability ranking.
+- N-2 checked with the reviewer query `send slack messages`. The built
+  CLI returns Slack as provider metadata. A rejected operation proposal
+  adds no coverage evidence. Independent provider text determines whether
+  that provider is relevant as metadata. The demonstrated plural recall
+  defect is recorded in FND-07.
+- N-3 carried as FND-08. The default CLI returns reviewed suggestions
+  on a public-directory lookup error without a distinct failure signal.
+  Explicit public searches retain their error contract. A later reporting
+  change should preserve the accepted result and exit behavior.
+- The remaining Lower details are recorded in the review. The NVIDIA
+  pinned input is tracked in Git and verified by the selector test. The
+  default volatile index, JSON-only extra provenance, configured cache
+  error behavior and separately budgeted optional semantic lookup retain
+  their documented contracts. These details do not require new task rows.
+[Checked query evidence](../../dist/c08-goal/c08-whole-round2-followup-query-evidence.log).
+
+No evolution bump. C08 delivers the approved v31 catalog search direction.
+C09 remains pending with the accepted search and cache contract available
+for its repeat-run evidence. The protected launch reference stays
+byte-for-byte unchanged per the owner's instruction.

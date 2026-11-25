@@ -15,7 +15,7 @@ func TestSearchPublicAPIsMarkdownCLI(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/list":
-			_, _ = w.Write([]byte("### Communication\n\n| API | Description | Auth | HTTPS | CORS |\n|---|---|---|---|---|\n| [Mail](" + serverURL + "/docs) | Send mail | | Yes | No |\n"))
+			_, _ = w.Write([]byte("### Communication\n\n| API | Description | Auth | HTTPS | CORS |\n|---|---|---|---|---|\n| [Mail](" + serverURL + "/docs) | Send mail | | Yes | No |\n| [Fixture Ledger](" + serverURL + "/docs) | Accounting | | Yes | No |\n"))
 		case "/guru":
 			_, _ = w.Write([]byte(`{}`))
 		case "/lap":
@@ -30,7 +30,7 @@ func TestSearchPublicAPIsMarkdownCLI(t *testing.T) {
 	defer server.Close()
 	serverURL = server.URL
 	for _, source := range []string{"public-apis", "auto", ""} {
-		for _, query := range []string{"mail", "zzzznomatch"} {
+		for _, query := range []string{"mail", "accounting", "zzzznomatch"} {
 			var out, errOut bytes.Buffer
 			args := []string{"--query", query, "--limit", "1", "--json"}
 			if source != "" {
@@ -53,7 +53,7 @@ func TestSearchPublicAPIsMarkdownCLI(t *testing.T) {
 			if report.Source != wantSource {
 				t.Fatalf("%s %s: expected public source %q, got %q", source, query, wantSource, report.Source)
 			}
-			if query == "mail" {
+			if query != "zzzznomatch" {
 				if len(report.Results) != 1 || !report.Results[0].Validated || report.Results[0].SpecURL != server.URL+"/openapi.json" {
 					t.Fatalf("%s: %#v", source, report)
 				}

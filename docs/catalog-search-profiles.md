@@ -23,8 +23,9 @@ the public text used for matching or embedding.
 The current profiles record selected operation evidence for 164 providers,
 covering 146 advisories and 26 pinned publisher sources. The other 170
 profiles expose source references, including 19 with documentation only.
-Advisory capability labels come from checked-in operation summaries and
-omit credential acquisition and administration routes. The source reference
+Advisory capability labels come from selected checked-in operation summaries.
+Some cover session setup or administrative operations documented by the
+publisher. Their inclusion records source coverage. The source reference
 date records the catalog's check of that reference. An advisory's digest
 identifies its reviewed local bytes.
 
@@ -55,6 +56,9 @@ advisory pins and selectors. To reproduce the refund checks, set
 containing `stripe-ga.json` and `APITOOLS_CATALOG_QUALIFICATION_DIR` to the
 retained catalog artifact root. Run `go test -count=1 ./catalog -run
 '^TestProviderSearchPinnedRefundOperations$'` with those local inputs.
+With both directories set, run `go test -count=1 -run
+'^TestReviewedSearchPinnedSelectors$' .` to resolve every selected operation
+against all 26 pinned publisher sources through the local parsers.
 
 ## SQLite provider search
 
@@ -62,17 +66,22 @@ Use `apitools search --query "send slack message"` for a reviewed catalog
 lookup. Add `--source reviewed` to include general metadata matches even
 when the query has no strong reviewed result. Add `--json` for the versioned
 `apitools.reviewed-provider-search.v1` report. Exact provider IDs, names,
-and aliases rank first. Full-text matches on individual operation labels
-rank next, with general provider text matches last. The report identifies
-the match type and each matched operation's selector and digest.
+and aliases rank first under the catalog's identity normalization. Full-text
+search proposes operations and verifies the query's substantive words against
+the selected operation label and provider identity. Stem-only or incidental
+matches stay at provider metadata relevance. The report identifies the match
+type and gives selectors and digests for up to 10 matched operations per
+provider.
 
 With no source or provider URL specified, the CLI returns reviewed results
-when the top match is an exact provider, a covered operation, or a semantic
-provider with selected operation evidence. A description or keyword match
-alone falls through to public discovery. The public path retains its original
-output, cache and network controls. Explicit `--source auto`, individual
-public sources and `--provider-url` use that path directly. Automation that
-requires a stable output shape can select `--source reviewed` or `--source auto`.
+when the top match is an exact provider or a covered operation. Metadata and
+semantic suggestions allow public discovery. When that chain cannot supply a
+result, available reviewed suggestions remain visible. Offline mode uses local
+reviewed data and any configured public cache. Explicit `--source auto`,
+individual public sources and `--provider-url` use the public path directly
+with its original output, cache and network controls. `--config` applies only
+to the reviewed path. Automation that requires a stable output shape can
+select `--source reviewed` or `--source auto`.
 
 Search builds a private in-memory SQLite index by default. To reuse an
 index on disk, pass `--config FILE` with `index_db` set to a path in an
@@ -105,7 +114,8 @@ can contain these fields.
     "model": "operator-selected-model",
     "max_requests": 16,
     "max_inputs": 350,
-    "max_bytes": 1048576
+    "max_bytes": 1048576,
+    "min_similarity": 0.8
   }
 }
 ```
@@ -115,8 +125,11 @@ submitted query. Source URLs, digests, selectors and auth evidence stay local.
 Use an endpoint URL without a query string and an endpoint that accepts
 requests without credentials from APItools.
 Provider vectors are reused by endpoint, model and content digest. The
-explicit query vector is computed for each semantic lookup. When provider
-text changes, only missing provider vectors need to be regenerated.
+explicit query vector is computed for each semantic lookup. Completed
+provider batches whose dimensions agree with the query are reusable after
+an interruption. The adapter refreshes missing providers and vectors in an
+outdated dimension within the configured budgets. The optional `min_similarity`
+sets the cosine threshold for semantic suggestions and defaults to 0.8.
 
 The reviewed text and JSON reports include counted usage when embedding
 configuration is supplied. Default search can attempt embeddings before

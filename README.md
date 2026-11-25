@@ -107,9 +107,10 @@ reviewed catalog, including matches on descriptions and keywords. `--offline`
 uses the local reviewed index and any configured public search cache.
 [Reviewed search and configuration](docs/catalog-search-profiles.md#sqlite-provider-search).
 
-When the default search finds only general provider metadata or no reviewed
-match, it runs the public search chain. Explicit `--source auto` selects that
-chain directly. In the chain, APIs.guru comes first, followed by the
+When the default search finds only metadata, semantic suggestions or no
+reviewed match, it tries the public search chain. It keeps available reviewed
+suggestions if public discovery cannot answer. Explicit `--source auto` selects
+that chain directly. APIs.guru comes first, followed by the
 experimental LAP Registry adapter. When
 `--provider-url` is present, it next checks that publisher's RFC 9727
 `/.well-known/api-catalog`; the legacy public-apis path probe remains the final

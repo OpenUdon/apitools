@@ -252,6 +252,81 @@ func TestReviewedEmbeddingsDoesNotCacheIncompatibleDimensions(t *testing.T) {
 	}
 }
 
+func TestReviewedEmbeddingsResumesValidatedBatchesAndReplacesOldDimensions(t *testing.T) {
+	const query = "reverse charge"
+	var calls, failAt, dimensions atomic.Int64
+	failAt.Store(3)
+	dimensions.Store(2)
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if calls.Add(1) == failAt.Load() {
+			http.Error(w, "temporary fixture failure", http.StatusServiceUnavailable)
+			return
+		}
+		var body struct {
+			Input []string `json:"input"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Errorf("decode fixture: %v", err)
+			return
+		}
+		data := make([]map[string]any, len(body.Input))
+		for i, text := range body.Input {
+			vector := make([]float32, dimensions.Load())
+			vector[0] = 1
+			if text != query {
+				vector[1] = 1
+			}
+			data[i] = map[string]any{"index": i, "embedding": vector}
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"data": data})
+	}))
+	defer server.Close()
+	client := &Client{AllowUnsafeHosts: true, HTTPClient: server.Client()}
+	db, err := openReviewedProviderIndex("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	cfg := &ReviewedEmbeddingConfig{Endpoint: server.URL, Model: "fixture-model", MaxRequests: 3, MaxInputs: 34, MaxBytes: 4096}
+	options := ReviewedProviderSearchOptions{Embeddings: cfg}
+	profiles := make([]catalog.ProviderSearchProfile, reviewedEmbeddingBatch+1)
+	for i := range profiles {
+		id := fmt.Sprintf("p%d", i)
+		profiles[i] = catalog.ProviderSearchProfile{ProviderID: id, DisplayName: id}
+	}
+	profiles[0].Coverage.Status = catalog.ProviderSearchSelectedSubset
+	_, initial := client.rankReviewedEmbeddings(t.Context(), db, options, profiles, nil, query)
+	if initial.Status != "endpoint-unavailable" || initial.Requests != 3 {
+		t.Fatalf("fixture did not fail the second provider batch: %+v", initial)
+	}
+	cfg.MaxRequests, cfg.MaxInputs = 2, 2
+	ranked, resumed := client.rankReviewedEmbeddings(t.Context(), db, options, profiles, nil, query)
+	if resumed.Status != "used" || resumed.Requests != 2 || resumed.Inputs != 2 || len(ranked) != 0 {
+		t.Fatalf("did not resume from the complete batch with the default similarity: %+v, %v", resumed, ranked)
+	}
+	cfg.MinSimilarity = 0.7
+	cfg.MaxRequests, cfg.MaxInputs = 1, 1
+	ranked, adjusted := client.rankReviewedEmbeddings(t.Context(), db, options, profiles, nil, query)
+	if adjusted.Status != "used" || adjusted.Requests != 1 || len(ranked) != 1 || ranked[0].result.Match != ReviewedProviderSemanticMatch {
+		t.Fatalf("configured similarity did not retain the mid-range match: %+v, %v", adjusted, ranked)
+	}
+	dimensions.Store(3)
+	_, limited := client.rankReviewedEmbeddings(t.Context(), db, options, profiles, nil, query)
+	if limited.Status != "budget-exhausted" || limited.Requests != 1 || limited.Inputs != 1 {
+		t.Fatalf("dimension change exceeded the budget: %+v", limited)
+	}
+	cfg.MaxRequests, cfg.MaxInputs = 3, 34
+	_, replaced := client.rankReviewedEmbeddings(t.Context(), db, options, profiles, nil, query)
+	if replaced.Status != "used" || replaced.Requests != 3 || replaced.Inputs != 34 {
+		t.Fatalf("dimension refresh did not replace cached vectors: %+v", replaced)
+	}
+	cfg.MaxRequests, cfg.MaxInputs = 1, 1
+	_, warm := client.rankReviewedEmbeddings(t.Context(), db, options, profiles, nil, query)
+	if warm.Status != "used" || warm.Requests != 1 {
+		t.Fatalf("replaced vectors did not remain reusable: %+v", warm)
+	}
+}
+
 func TestReviewedEmbeddingsDoesNotReuseAmbientTransport(t *testing.T) {
 	const query = "send slack message"
 	server, serviceCalls := reviewedEmbeddingFixture(t, query, http.StatusOK)

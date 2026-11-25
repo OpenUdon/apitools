@@ -94,12 +94,12 @@ func printReviewedSearchReport(out, errOut io.Writer, report apitools.ReviewedPr
 		fmt.Fprintf(out, "Embeddings %s (%d requests, %d inputs, %d text bytes)\n",
 			usage.Status, usage.Requests, usage.Inputs, usage.Bytes)
 	}
+	if report.PublisherState != "unconfigured" {
+		fmt.Fprintf(out, "Publisher state %s\n", report.PublisherState)
+	}
 	if len(report.Results) == 0 {
 		fmt.Fprintln(out, "No reviewed providers matched.")
 		return exitSuccess
-	}
-	if report.PublisherState != "unconfigured" {
-		fmt.Fprintf(out, "Publisher state %s\n", report.PublisherState)
 	}
 	for i, result := range report.Results {
 		profile := result.Profile
@@ -123,8 +123,15 @@ func printReviewedSearchReport(out, errOut io.Writer, report apitools.ReviewedPr
 			fmt.Fprintf(out, "   Catalog review date %s\n", reviewedAt)
 		}
 		for _, check := range result.PublisherChecks {
-			fmt.Fprintf(out, "   Accepted publisher check %s %s %s\n",
+			fmt.Fprintf(out, "   Accepted publisher check %s %s %s",
 				check.SpecRefID, check.Version, check.CheckedAt.UTC().Format(time.RFC3339))
+			if check.Service != "" {
+				fmt.Fprintf(out, " service=%s", check.Service)
+			}
+			if check.Revision != "" {
+				fmt.Fprintf(out, " revision=%s", check.Revision)
+			}
+			fmt.Fprintf(out, " sha256:%s\n", check.SHA256)
 		}
 	}
 	return exitSuccess

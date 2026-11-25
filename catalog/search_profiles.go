@@ -33,6 +33,16 @@ type ProviderSearchProfile struct {
 	Coverage    ProviderSearchCoverage `json:"coverage"`
 }
 
+// MatchesIdentity uses the same keys as the built-in catalog lookup.
+func (profile ProviderSearchProfile) MatchesIdentity(query string) bool {
+	key := normalizeKey(query)
+	if key == "" {
+		return false
+	}
+	return key == normalizeKey(profile.ProviderID) || key == normalizeKey(profile.DisplayName) ||
+		slices.ContainsFunc(profile.Aliases, func(alias string) bool { return key == normalizeKey(alias) })
+}
+
 // ProviderSearchCoverageStatus describes the available operation evidence.
 type ProviderSearchCoverageStatus string
 

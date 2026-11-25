@@ -312,12 +312,9 @@ func rankReviewedProviders(ctx context.Context, db *sql.DB, profiles []catalog.P
 	matches := make(map[string]rankedReviewedProvider)
 	for _, profile := range profiles {
 		byID[profile.ProviderID] = profile
-		for _, key := range reviewedProviderIdentity(profile) {
-			if strings.EqualFold(key, query) {
-				matches[profile.ProviderID] = rankedReviewedProvider{
-					result: ReviewedProviderSearchResult{Profile: profile, Match: ReviewedProviderExactMatch},
-				}
-				break
+		if profile.MatchesIdentity(query) {
+			matches[profile.ProviderID] = rankedReviewedProvider{
+				result: ReviewedProviderSearchResult{Profile: profile, Match: ReviewedProviderExactMatch},
 			}
 		}
 	}
@@ -334,11 +331,7 @@ func rankReviewedProviders(ctx context.Context, db *sql.DB, profiles []catalog.P
 		if err := selectReviewedProviderMatches(ctx, tx, matches, byID, expression); err != nil {
 			return nil, "", err
 		}
-		identityCounts, err := countReviewedIdentityTerms(ctx, tx, quoted)
-		if err != nil {
-			return nil, "", err
-		}
-		if err := selectReviewedOperationMatches(ctx, tx, matches, byID, expression, len(terms), identityCounts); err != nil {
+		if err := selectReviewedOperationMatches(ctx, tx, matches, byID, expression, terms); err != nil {
 			return nil, "", err
 		}
 	}
@@ -391,32 +384,7 @@ func selectReviewedProviderMatches(ctx context.Context, tx *sql.Tx, matches map[
 	return rows.Err()
 }
 
-func countReviewedIdentityTerms(ctx context.Context, tx *sql.Tx, terms []string) (map[string]int, error) {
-	counts := make(map[string]int)
-	for _, term := range terms {
-		rows, err := tx.QueryContext(ctx, "SELECT provider FROM search_provider WHERE search_provider MATCH ?", "identity : "+term)
-		if err != nil {
-			return nil, err
-		}
-		for rows.Next() {
-			var id string
-			if err := rows.Scan(&id); err != nil {
-				rows.Close()
-				return nil, err
-			}
-			counts[id]++
-		}
-		if err := rows.Close(); err != nil {
-			return nil, err
-		}
-		if err := rows.Err(); err != nil {
-			return nil, err
-		}
-	}
-	return counts, nil
-}
-
-func selectReviewedOperationMatches(ctx context.Context, tx *sql.Tx, matches map[string]rankedReviewedProvider, profiles map[string]catalog.ProviderSearchProfile, expression string, terms int, identityCounts map[string]int) error {
+func selectReviewedOperationMatches(ctx context.Context, tx *sql.Tx, matches map[string]rankedReviewedProvider, profiles map[string]catalog.ProviderSearchProfile, expression string, terms []string) error {
 	rows, err := tx.QueryContext(ctx, `
 SELECT provider,source_position,operation_position,bm25(search_operation,0,0,0,0.5,4)
 FROM search_operation WHERE search_operation MATCH ? ORDER BY 4,1,2,3`, expression)
@@ -424,6 +392,7 @@ FROM search_operation WHERE search_operation MATCH ? ORDER BY 4,1,2,3`, expressi
 		return err
 	}
 	defer rows.Close()
+	identityWords := make(map[string][]string)
 	for rows.Next() {
 		var id string
 		var i, j int
@@ -443,9 +412,12 @@ FROM search_operation WHERE search_operation MATCH ? ORDER BY 4,1,2,3`, expressi
 		if found && match.rank == 0 {
 			continue
 		}
-		// FTS uses the same tokenizer for the identity and operation columns.
-		// At least one term must need the label to match this operation.
-		if identityCounts[id] == terms {
+		identity, known := identityWords[id]
+		if !known {
+			identity = reviewedSearchWords(strings.Join(reviewedProviderIdentity(profile), " "))
+			identityWords[id] = identity
+		}
+		if !reviewedOperationEvidence(terms, identity, reviewedSearchWords(source.Operations[j].Label)) {
 			continue
 		}
 		if !found || match.rank != 1 {
@@ -462,6 +434,26 @@ FROM search_operation WHERE search_operation MATCH ? ORDER BY 4,1,2,3`, expressi
 		matches[id] = match
 	}
 	return rows.Err()
+}
+
+// FTS stemming proposes candidates. Surface words establish operation evidence.
+func reviewedOperationEvidence(query, identity, label []string) bool {
+	evidence := false
+	for _, term := range query {
+		if slices.Contains(identity, term) {
+			continue
+		}
+		if !slices.Contains(label, term) {
+			return false
+		}
+		switch term {
+		case "account", "accounts", "api", "apis", "add", "create", "delete", "fetch", "find", "get",
+			"list", "lists", "listing", "listings", "make", "map", "maps", "new", "read", "remove", "send", "status", "update":
+		default:
+			evidence = true
+		}
+	}
+	return evidence
 }
 
 func reviewedSearchWords(text string) []string {

@@ -25,11 +25,12 @@ import (
 // ReviewedEmbeddingConfig is an opt-in OpenAI-compatible embeddings endpoint
 // and its per-search request, input, and UTF-8 text byte budgets.
 type ReviewedEmbeddingConfig struct {
-	Endpoint    string `json:"endpoint"`
-	Model       string `json:"model"`
-	MaxRequests int    `json:"max_requests"`
-	MaxInputs   int    `json:"max_inputs"`
-	MaxBytes    int    `json:"max_bytes"`
+	Endpoint      string  `json:"endpoint"`
+	Model         string  `json:"model"`
+	MaxRequests   int     `json:"max_requests"`
+	MaxInputs     int     `json:"max_inputs"`
+	MaxBytes      int     `json:"max_bytes"`
+	MinSimilarity float64 `json:"min_similarity,omitempty"` // zero selects the default
 }
 
 // ReviewedEmbeddingUsage reports status and consumption for a single lookup.
@@ -70,12 +71,16 @@ func (c *Client) rankReviewedEmbeddings(ctx context.Context, db *sql.DB, options
 		return ranked, usage
 	}
 	c = c.effective()
+	minSimilarity := cfg.MinSimilarity
+	if minSimilarity == 0 {
+		minSimilarity = reviewedEmbeddingMinimumSimilarity
+	}
 	endpoint, err := c.versionURLSyntax(cfg.Endpoint)
 	if err != nil || endpoint.Scheme != "https" || endpoint.Fragment != "" || strings.Contains(cfg.Endpoint, "#") ||
 		endpoint.RawQuery != "" || endpoint.ForceQuery || !utf8.ValidString(cfg.Model) ||
 		len(cfg.Model) > 128 || cfg.Model != strings.TrimSpace(cfg.Model) || strings.IndexFunc(cfg.Model, unicode.IsControl) != -1 ||
 		cfg.MaxRequests <= 0 || cfg.MaxRequests > 128 || cfg.MaxInputs <= 0 || cfg.MaxInputs > 1024 ||
-		cfg.MaxBytes <= 0 || cfg.MaxBytes > 4<<20 {
+		cfg.MaxBytes <= 0 || cfg.MaxBytes > 4<<20 || !(minSimilarity > 0 && minSimilarity <= 1) {
 		usage.Status = "invalid-configuration"
 		return ranked, usage
 	}
@@ -109,16 +114,7 @@ func (c *Client) rankReviewedEmbeddings(ctx context.Context, db *sql.DB, options
 		return ranked, usage
 	}
 
-	var missing []reviewedEmbeddingInput
-	plannedBytes := len(query)
-	for _, input := range inputs {
-		if _, exists := vectors[input.digest]; !exists {
-			missing = append(missing, input)
-			plannedBytes += len(input.text)
-		}
-	}
-	requests := (len(missing)+reviewedEmbeddingBatch-1)/reviewedEmbeddingBatch + 1
-	if requests > cfg.MaxRequests || len(missing)+1 > cfg.MaxInputs || plannedBytes > cfg.MaxBytes {
+	if _, fits := planReviewedEmbeddingBatches(cfg, inputs, vectors, 0, len(query)); !fits {
 		usage.Status = "budget-exhausted"
 		return ranked, usage
 	}
@@ -129,7 +125,19 @@ func (c *Client) rankReviewedEmbeddings(ctx context.Context, db *sql.DB, options
 	}
 	defer client.CloseIdleConnections()
 
-	newVectors := make([][]float32, 0, len(missing))
+	queryResult, err := requestReviewedEmbeddings(ctx, client, endpoint, cfg.Model, []string{query}, usage)
+	if err != nil {
+		usage.Status = "endpoint-unavailable"
+		return ranked, usage
+	}
+	queryVector := queryResult[0]
+	// A model alias may change dimensions. Recheck the total budget before
+	// replacing any cached providers with vectors from the new dimension.
+	missing, fits := planReviewedEmbeddingBatches(cfg, inputs, vectors, len(queryVector), len(query))
+	if !fits {
+		usage.Status = "budget-exhausted"
+		return ranked, usage
+	}
 	for first := 0; first < len(missing); first += reviewedEmbeddingBatch {
 		batch := missing[first:min(first+reviewedEmbeddingBatch, len(missing))]
 		text := make([]string, 0, len(batch))
@@ -141,31 +149,34 @@ func (c *Client) rankReviewedEmbeddings(ctx context.Context, db *sql.DB, options
 			usage.Status = "endpoint-unavailable"
 			return ranked, usage
 		}
-		newVectors = append(newVectors, got...)
+		if len(got[0]) != len(queryVector) {
+			usage.Status = "inconsistent-dimensions"
+			return ranked, usage
+		}
+		if err := storeReviewedEmbeddingBatch(ctx, db, namespace, batch, got); err != nil {
+			usage.Status = "cache-unavailable"
+			return ranked, usage
+		}
 		for i, input := range batch {
 			vectors[input.digest] = got[i]
 		}
 	}
-	queryResult, err := requestReviewedEmbeddings(ctx, client, endpoint, cfg.Model, []string{query}, usage)
-	if err != nil {
-		usage.Status = "endpoint-unavailable"
-		return ranked, usage
-	}
-	queryVector := queryResult[0]
-	for _, vector := range vectors {
-		if len(vector) != len(queryVector) {
-			usage.Status = "inconsistent-dimensions"
-			return ranked, usage
-		}
-	}
-	if len(missing) > 0 {
-		if err := storeReviewedEmbeddingBatch(ctx, db, namespace, missing, newVectors); err != nil {
-			usage.Status = "cache-unavailable"
-			return ranked, usage
-		}
-	}
 	usage.Status = "used"
-	return mergeReviewedEmbeddingRanks(profiles, ranked, digests, vectors, queryVector), usage
+	return mergeReviewedEmbeddingRanks(profiles, ranked, digests, vectors, queryVector, minSimilarity), usage
+}
+
+func planReviewedEmbeddingBatches(cfg ReviewedEmbeddingConfig, inputs []reviewedEmbeddingInput, vectors map[string][]float32, dimensions, queryBytes int) ([]reviewedEmbeddingInput, bool) {
+	var missing []reviewedEmbeddingInput
+	textBytes := queryBytes
+	for _, input := range inputs {
+		vector, exists := vectors[input.digest]
+		if !exists || (dimensions != 0 && len(vector) != dimensions) {
+			missing = append(missing, input)
+			textBytes += len(input.text)
+		}
+	}
+	requests := (len(missing)+reviewedEmbeddingBatch-1)/reviewedEmbeddingBatch + 1
+	return missing, requests <= cfg.MaxRequests && len(missing)+1 <= cfg.MaxInputs && textBytes <= cfg.MaxBytes
 }
 
 // Keep the embedding payload projection independent of sources, locators,
@@ -320,7 +331,7 @@ func validReviewedEmbeddingVector(vector []float32) bool {
 	return nonzero
 }
 
-func mergeReviewedEmbeddingRanks(profiles []catalog.ProviderSearchProfile, ranked []rankedReviewedProvider, digests map[string]string, vectors map[string][]float32, query []float32) []rankedReviewedProvider {
+func mergeReviewedEmbeddingRanks(profiles []catalog.ProviderSearchProfile, ranked []rankedReviewedProvider, digests map[string]string, vectors map[string][]float32, query []float32, minSimilarity float64) []rankedReviewedProvider {
 	positions := make(map[string]int, len(ranked))
 	for i, entry := range ranked {
 		positions[entry.result.Profile.ProviderID] = i
@@ -332,7 +343,7 @@ func mergeReviewedEmbeddingRanks(profiles []catalog.ProviderSearchProfile, ranke
 		case found && ranked[i].rank == 1:
 			lexical := ranked[i].score
 			ranked[i].score = lexical/(1+math.Abs(lexical)) - similarity/2
-		case similarity >= reviewedEmbeddingMinimumSimilarity && profile.Coverage.Status == catalog.ProviderSearchSelectedSubset:
+		case similarity >= minSimilarity && profile.Coverage.Status == catalog.ProviderSearchSelectedSubset:
 			semantic := rankedReviewedProvider{
 				result: ReviewedProviderSearchResult{Profile: profile, Match: ReviewedProviderSemanticMatch},
 				rank:   2, score: -similarity,

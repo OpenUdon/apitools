@@ -880,8 +880,9 @@ record local coverage without claiming upstream freshness.
 
 Reviewed provider search builds an SQLite FTS5 index over embedded catalog
 profiles. Identity, service descriptions and operation labels have separate
-ranking tiers. Each operation match retains its artifact identity and
-selector. A configured reusable index stores only the reviewed metadata and
+ranking tiers. An operation match requires substantive terms in its label.
+Each match retains its artifact identity and selector. A reusable index
+stores the reviewed metadata and
 refreshes on a content fingerprint change in a single transaction. The
 default uses in-memory SQLite. Accepted publisher observations are read from
 the separately configured maintenance database without modifying it.
@@ -891,15 +892,19 @@ An explicitly configured HTTPS embedding endpoint receives only selected
 public profile text and the submitted query. The adapter preflights the
 remaining request, input and text byte budgets before calls and rejects
 redirects. Provider vectors are keyed by endpoint, model and public text
-digest in the search index. Query vectors are transient. Exact identity,
+digest in the search index. Completed batches can be reused after failure.
+The transient query vector establishes the dimension used to validate cached
+and newly returned vectors. Dimension changes recheck the budget before
+provider calls. Exact identity,
 offline mode and unavailable or over-budget semantic lookups keep the
 local lexical results. Semantic provider relevance is separate from
 evidence that a specific operation matched.
 
 The CLI tries reviewed retrieval when neither a source nor a provider URL
-was specified. Exact, covered-operation and qualified semantic matches can
-answer from the reviewed path. Metadata-only and empty matches pass to the
-existing public search chain and its cache and network controls. Explicit
+was specified. Exact identities and covered-operation matches can answer
+from the reviewed path. Metadata-only, semantic and empty matches pass to the
+existing public search chain and its cache and network controls. If the chain
+has no answer, the CLI can return available reviewed suggestions. Explicit
 public sources and provider URLs go directly through that chain or its
 selected adapter. The Go `Client.Search` contract remains public discovery.
 

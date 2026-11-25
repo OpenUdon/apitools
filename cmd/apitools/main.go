@@ -1664,6 +1664,7 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 		fmt.Fprintln(errOut, "--provider-url selects publisher-scoped discovery and cannot be combined with --source reviewed")
 		return exitUsage
 	}
+	var weakReviewed *apitools.ReviewedProviderSearchReport
 	if reviewedOnly || (!explicitSource && !providerScoped) {
 		mode, err := checkedReviewedSearchMode(*cacheMode, *offline)
 		if err != nil {
@@ -1687,9 +1688,13 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 		}
 		if len(report.Results) > 0 {
 			switch report.Results[0].Match {
-			case apitools.ReviewedProviderExactMatch, apitools.ReviewedProviderOperationMatch, apitools.ReviewedProviderSemanticMatch:
+			case apitools.ReviewedProviderExactMatch, apitools.ReviewedProviderOperationMatch:
 				return printReviewedSearchReport(out, errOut, report, *jsonOut)
 			}
+			if options.Offline && *cachePath == "" {
+				return printReviewedSearchReport(out, errOut, report, *jsonOut)
+			}
+			weakReviewed = &report
 		}
 	}
 	client, closeCache, err := newClient(*cachePath)
@@ -1713,6 +1718,9 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 		CacheMaxAge: *cacheTTL,
 		ProviderURL: *providerURL,
 	})
+	if weakReviewed != nil && ctx.Err() == nil && (err != nil || len(report.Results) == 0) {
+		return printReviewedSearchReport(out, errOut, *weakReviewed, *jsonOut)
+	}
 	if err != nil {
 		fmt.Fprintln(errOut, err)
 		return exitRuntime
