@@ -1,3 +1,59 @@
+# Retired milestone C06 - Publisher refresh and storage
+
+**Milestone.** C06
+**Outcome.** completed
+**Retired.** 2026-11-25
+**Source status.** tabilet/memory-bank/status-C06.md
+**Source specification.** tabilet/memory-bank/milestone.md#c06--publisher-refresh-and-storage
+**Evidence.** 1d2d7a959deac7791b66ab7d8fde9efab0f46b88
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 6
+**Verification.** Fresh offline Go 1.26.6 build, vet, full suite with pinned C04/C05 inputs, storage race, catalog generation, quality (0 errors and 0 warnings), CLI help, 334-provider dry run and diff checks passed at round 6. Closure reuses those results because the implementation and verification inputs are unchanged. OpenUdon passed with the round 5 candidate. Udon's browser-fixture failures in two packages matched its original pin and the affected source consumers passed. The round 6 replay condition has no caller in either consumer. [Local verification evidence](../../../dist/c06-goal.zgalc0nf/closure/round6).
+**Consolidated into.** [Architecture](../../memory-bank/architecture.md#catalog-maintenance-storage-c06) and [operator README](../../../README.md#reviewed-catalog-maintenance).
+
+## Milestone specification
+
+````markdown
+### C06 — Publisher refresh and storage
+
+**Dependency and owner.** After [C05](../docs/history/status-C05.md).
+APItools owns the update CLI, refresh logic, maintained SQLite data, and
+external artifact cache. [C06 ledger](status-C06.md).
+
+Provide `apitools catalog update` for dry-run, full or selected provider,
+and resume. Reuse guarded source acquisition, version evidence, native
+validation and reviewed operation identities. Record provider, service,
+official URL, version/revision, checked time, digest when verified and
+outcome. Compare stable versions within the publisher scope actually checked.
+Prefer direct links. Enumerate stable index links, qualify reviewed services
+and return additional services as candidates.
+
+Keep accepted state and run history in durable SQLite on a native Linux
+filesystem. Store retained bytes by SHA-256 outside Git. Prefer immutable
+links and retain bytes for mutable accepted sources, overlay evidence or
+requested offline use. Check redistribution terms before an export includes
+bytes. Read the artifact directory from the operator's `cache_dir` path
+setting. An ordinary writable directory is sufficient. The update CLI,
+monthly job and maintenance skill use the same configured path. Check
+writability and capacity before storing artifacts. A host that uses a
+dedicated mount may configure its expected volume identity. On that host,
+verify the mount before creating the cache directory or writing files.
+
+Defer an artifact before body download when its trustworthy size is unknown
+or exceeds **1,000,000,000 bytes**. Record these outcomes distinctly and
+require fresh size evidence at redirect destinations. Verify actual size and
+digest while streaming, discard incomplete bytes and respect native parser
+limits. Persist outcomes atomically and make interrupted runs resumable.
+Advance a local version only after a complete compatibility check over the
+reviewed scope. Uncertain comparisons, breaking changes and authored overlays
+go to review. Produce a deterministic export for review against the built-in
+catalog. Existing accepted versions remain usable on failure.
+````
+
+## Status record
+
+````markdown
 # C06 — Publisher refresh and storage
 
 **Owner.** APItools. **Dependency.** Accepted C05. **Parallel-safe: no.**
@@ -151,3 +207,4 @@ Exercise SQLite migrations with old read-only consumers and verify that
 file-identity checks leave active advisory locks intact. The fixtures in
 C06 now exercise these cases. No new evolution version is needed. C06
 implements the publisher-refresh direction recorded in v31.
+````

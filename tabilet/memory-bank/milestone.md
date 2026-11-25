@@ -552,6 +552,12 @@ concurrent ledger writers. A goal-protocol run keeps its own scoped ownership ru
 
 ## Current Dashboard
 
+The current APItools catalog horizon is **C07 → C08 → C09**.
+[C06](../docs/history/status-C06.md) delivered the update CLI, SQLite state
+and artifact storage. C04 and C05 qualified the 334-provider baseline. The
+remaining work is package-local and serial. See the [status index](#status-files) and
+[catalog acceptance criteria](#monthly-reviewed-catalog).
+
 M79 completed the Stage 1 operation-metadata remediation. Its accepted API
 revision `e3625f6ef52ea54b7f78b7a4a4f1993bf8a06a46` is published and consumed
 by OpenUdon M89. OpenUdon M89's published implementation at
@@ -609,11 +615,110 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
+| C07 | [status-C07.md](status-C07.md) | Pending; accepted C06 input is ready |
+| C08 | [status-C08.md](status-C08.md) | Pending; requires accepted C07 |
+| C09 | [status-C09.md](status-C09.md) | Pending; requires accepted C08; integrated closure |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
 
 Closed milestones are recorded in the history index.
 
 ## Active Milestone Specifications
+
+### Monthly reviewed catalog
+
+The owner approved the C06–C09 proposal after selecting hosted embeddings
+with an operator-configured endpoint, public metadata and explicit query text,
+compatible local adoption with a reviewable Git export, deferral of unknown
+sizes, discovery of all stable links with qualification of reviewed services,
+and reviewed-first automatic CLI search. APItools owns these four milestones.
+**Parallel-safe: no** for each. Every milestone follows the existing
+[row and whole-unit test gates](test-policy.md#project-specifics) and
+[milestone review](#milestone-review-procedure), initially 0/10.
+The [retired C06 record](../docs/history/status-C06.md) includes the starting
+revision, pre-existing working-tree changes and untracked inputs. C09 owns
+the integrated C06–C09 review.
+
+The owner approved GPT-6.2 Sol at `high` for implementation and fixes,
+GPT-6.2 Astra at `xhigh` for each task review, and Claude Opus 5.5
+(`claude-opus-5-5`) at `high` for independent review at each remaining milestone close.
+Dispatch task reviews as a separate read-only assignment. For each whole
+review round, use a fresh read-only Claude Code session with the scoped
+review packet and verify the selected model and effort. The packet covers
+the implementation and acceptance evidence in scope. Keep credentials,
+private host configuration and unrelated working-tree changes out of it.
+Use the standard scope for the first round and subsequent rounds under the
+[milestone review procedure](#milestone-review-procedure). The owner records
+findings, fixes and the persisted round count. Each milestone has a maximum
+of ten whole-review rounds. Pause closure if the requested reviewer is
+unavailable or blocking findings remain at the limit.
+
+The local launch reference uses the dangerous environment
+preset with serial execution, task commits, workspace-contained scope, and
+automatic in-scope corrective planning and launch-reference updates. Launch
+approval and separately scoped external actions follow the governing goal
+protocol and test policy.
+
+Class O verification uses offline fixtures, temporary databases and artifact
+directories, a fixture embedding service, and a scratch crontab. Class R
+operations require a separately scoped operator run under the
+[test policy](test-policy.md#class-r-runs). C07 owns the first real publisher
+inventory. C09 owns the repeat-run evidence and any separately selected
+hosted embedding check. Record the publisher scope, configured cache directory,
+network or metered budget as applicable, stop conditions and outcomes.
+Installing a real user schedule is a subsequent operator choice.
+
+### C07 — First inventory and provider curation
+
+**Dependency and owner.** After accepted [C06](../docs/history/status-C06.md).
+APItools owns the provider recipes, curated sources, security and endpoint
+overlays, and first inventory.
+[C07 ledger](status-C07.md).
+
+Inventory the 334 reviewed providers, starting with the 181 older
+machine-readable references. Seek an official source for the 139 providers
+whose primary evidence is a docs-derived overlay and the 21 docs-only
+providers. For each unresolved service, use official docs to build or refresh
+a bounded, reproducible overlay and builder, or explain the specific missing
+evidence. Review effective security schemes and requirements for protected
+operations. Stage authored changes for review. Acceptance requires a
+provider-level outcome for every entry and operation-level evidence for the
+six named providers in the ledger. Distinguish redirects, failures, deferrals
+and partial coverage from a verified update.
+
+### C08 — Searchable catalog and hosted embeddings
+
+**Dependency and owner.** After accepted C07. APItools owns public provider
+metadata, the SQLite search index, embedding adapter and CLI behavior.
+[C08 ledger](status-C08.md).
+
+Populate descriptions, normalized categories, keywords and aliases for all
+reviewed providers. Separately describe the operations that our sources
+cover. Return coverage, freshness, provenance and matched capabilities in
+text and JSON. Combine SQLite full-text ranking with optional hosted
+embeddings at a configured OpenAI-compatible HTTPS endpoint. Send reviewed
+public metadata and explicitly submitted query text only. Cache vectors by
+model and content, enforce the configured budget and fall back to lexical
+search when offline, unconfigured, or over budget. Default automatic CLI
+search resolves exact reviewed identities first, then capability matches.
+Insufficient local relevance permits the existing public-directory chain
+for non-core queries. Preserve explicit source selection, offline behavior
+and the existing Go search contract.
+
+### C09 — Monthly cron and agent maintenance skill
+
+**Dependency and owner.** After accepted C08. APItools owns the job, operator
+and agent interfaces, and integrated closure for C06 through C09.
+[C09 ledger](status-C09.md).
+
+Ship a user cron entry for 03:17 local time on the first of each month and a
+repository-owned `apitools-catalog-maintenance` skill. Use absolute paths,
+one run lock, bounded retries, per-provider checkpoints and readable text
+and JSON reports. The skill covers preflight, dry-run, enable/disable,
+status, inspection, retry by provider and generating the Git export.
+Preserve unrelated user cron entries. The operator initiates the first full
+run and can inspect its report before enabling recurrence. Verify the
+334-provider outcome and record a second run demonstrating deduplication and
+selective re-embedding. Review the complete change against the C06 baseline.
 
 ### M86 — HCL-free UWS adoption (conditional)
 
@@ -741,10 +846,13 @@ Non-blocking review findings carried past their milestone's review gate. This
 register is approved planning state, never retired with a milestone, and not a
 review copy: one line per finding.
 
-Last used ID: none
+Last used ID: FND-03
 
 | ID | Finding | Severity | Origin | Fix owner | Disposition |
 |---|---|---|---|---|---|
+| FND-01 | Checkpoints need distinguishable rate limits, server failures and timeouts. Provide bounded targeted retries so a temporary publisher issue does not get reported as conclusive freshness evidence. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C07.5 | open |
+| FND-02 | Interrupted update JSON omits checkpoints saved during the same invocation, even though SQLite retains them for resume. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.2 | open |
+| FND-03 | Default CLI fixtures need portable disposable state and broader end-to-end export and overlapping update coverage for the maintenance workflow. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.4 | open |
 
 - IDs are `FND-01`, `FND-02`, ...: permanent, never reused, separate from status,
   archive and stage IDs. Origin is the milestone and review iteration.
@@ -779,12 +887,12 @@ the work automatically.
 | Direction | Why Deferred | Promotion Trigger |
 |---|---|---|
 | Automatic catalog-root discovery | M87 keeps explicit roots and metadata-only no-root outcomes; no implicit cache lookup/creation. | A named consumer and approved compatibility/privacy review justify implicit discovery. |
-| APItools-owned HTTP model adapters | M89 uses consumer-owned model clients; standalone APItools remains deterministic. | A standalone adopter approves provider transport, opt-in, credential/privacy and offline-test contracts. |
-| Next provider-catalog expansion | No provider batch or user-verifiable outcome has been approved after the completed historical catalog batches. The [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md) also proposes a structured license/redistribution audit and workflow-ready typed overlays; those remain separate from M80's discovery report, which must expose unknown evidence. GoDaddy is absent from the catalog; its official Domains specs (`https://developer.godaddy.com/openapi/domains-v1.json` through `domains-v3.json`) were observed on 2026-10-01, and curating v1 or v2 would need a source-reviewed refresh correction for a publisher `properties.type` string defect. | Approve a bounded provider-owned source batch, its source/auth/license review rules, or a bounded license/typed-overlay upgrade with acceptance evidence. Proposed catalog IDs remain unallocated until fresh reconciliation and approval. |
+| General-purpose HTTP model adapters | C08 owns the hosted embeddings adapter for reviewed-provider search. Completion and other model transports remain candidates. M89 uses consumer-owned model clients; standalone APItools remains deterministic. | A standalone adopter approves provider transport, opt-in, credential/privacy and offline-test contracts. |
+| Further provider-catalog expansion | C07 owns the publisher and overlay review of existing entries. Retired [C04](../docs/history/status-C04.md) and [C05](../docs/history/status-C05.md) accepted 18 provider reviews. Additional admissions, a broader redistribution audit and typed-overlay expansions beyond the reviewed operations remain candidates from the [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md). GoDaddy is absent from the catalog. Its official Domains specs (`https://developer.godaddy.com/openapi/domains-v1.json` through `domains-v3.json`) were observed on 2026-10-01, and curating v1 or v2 would need a source-reviewed refresh correction for a publisher `properties.type` string defect. | Approve another bounded provider-owned source batch with its source, auth, and license review rules, or a bounded license or typed-overlay upgrade with acceptance evidence. |
 | Embedded baseline catalog root | M81's approved decision 3 keeps catalog roots caller-supplied. Embedding the 141 committed advisory overlays (about 2 MB) and their index would give published consumers a zero-setup offline root, but it widens distribution before the committed-overlay redistribution audit proposed in the [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md) and adds binary size for every consumer. | The committed-overlay redistribution audit completes, and a consumer needs a zero-setup offline root. |
-| Search default-behavior refinements | `Client.Search` keeps APIs.guru's `preferred` version and falls back to a lexicographic sort of version keys when it is missing (`providers.go`), and `auto` stops at the first source with matches (`client.go`). Changing either default alters results that OpenUdon and other callers rely on, so S05 reports versions through a separate opt-in command instead. Separately, the retired M80.4 remote tier sets `client.Cache = nil` with `CacheModeBypass` (`catalog_discovery_remote.go`), so each remote lookup re-downloads the whole APIs.guru directory list; S05 avoids that cost for its own checks but does not change the retired behavior. | Approve a default-behavior change with consumer reconciliation, observe APIs.guru entries whose `preferred` version is missing or unusable, or measure the directory download as a latency problem for a consumer. |
+| Go and public-directory search refinements | C08 owns reviewed-first automatic CLI search. Existing Go callers and explicit directory behavior require separate proposals for changes. `Client.Search` keeps APIs.guru's `preferred` version and falls back to a lexicographic sort of version keys when it is missing (`providers.go`), and `auto` stops at the first source with matches (`client.go`). Changing either default alters results that OpenUdon and other callers rely on, so S05 reports versions through a separate opt-in command instead. Separately, the retired M80.4 remote tier sets `client.Cache = nil` with `CacheModeBypass` (`catalog_discovery_remote.go`), so each remote lookup re-downloads the whole APIs.guru directory list; S05 avoids that cost for its own checks but does not change the retired behavior. | Approve a default-behavior change with consumer reconciliation, observe APIs.guru entries whose `preferred` version is missing or unusable, or measure the directory download as a latency problem for a consumer. |
 | Identify APItools on guarded downloads | No `User-Agent` is set on any guarded request, so hosts see Go's default agent. S05's new probe primitive sends a stable tool identifier, but adding one to the shared download path changes the requests every existing caller makes, including OpenUdon's pinned use. | A publisher rejects the default agent, an operator requires identified egress, S05's probe evidence shows the identifier is worth sharing, or the provider version directory's crawl policy requires it; then approve it with consumer reconciliation. |
-| Provider version directory | A shared, published directory that grows with demand: one record per provider and service with its locator, recipe, resolved URL, digest, `checked_at`, evidence label, and the age of any APIs.guru baseline, in an APIs.guru-`list.json`-compatible shape with `x-apitools-*` extensions and `preferred` naming the highest verified comparable version within the recorded checked scope (no global latest claim or new preference from conflicting evidence). Seeds are APIs.guru's list (CC0 for its contributors' work; frozen since April 2023, with `x-origin` on every entry) and the public-apis README (MIT; about 1,970 docs links, 20% overlapping APIs.guru), plus the curated catalog; a monthly deterministic job (conditional GETs and one GitHub tree listing per repository; 2,632 of APIs.guru's origins sit in 154 GitHub repositories, the other 1,381 spread over 769 hosts) re-verifies records, and LLM discovery runs only on demand per provider. It holds metadata only, never spec bytes, and is published as a separate artifact, not inside this module or on the code repository's `main`. User submissions are untrusted leads until the job verifies them. Considered and rejected: cloning APIs.guru (the clone has no `list.json`, and the data is frozen), mirroring spec bytes (only 27% of APIs.guru specs declare a license, and the module zip is capped at 500 MiB), and daily pushes of data into the code repository (consumers pin exact revisions). S05 delivered the per-provider record this would aggregate; its legal, crawl-policy and operator gates remain separate. | S05 is delivered and its record shape is stable, legal sign-off covers publication and a crawl policy (identifying User-Agent, rate limits, robots, takedown handling, GitHub API terms), and an operator wants a shared directory; then approve a bounded milestone with its own gating row for that sign-off. |
+| Published provider version directory | C06–C09 own the local maintained catalog and monthly refresh. Publishing a shared directory remains deferred. A shared, published directory that grows with demand: one record per provider and service with its locator, recipe, resolved URL, digest, `checked_at`, evidence label, and the age of any APIs.guru baseline, in an APIs.guru-`list.json`-compatible shape with `x-apitools-*` extensions and `preferred` naming the highest verified comparable version within the recorded checked scope (no global latest claim or new preference from conflicting evidence). Seeds are APIs.guru's list (CC0 for its contributors' work; frozen since April 2023, with `x-origin` on every entry) and the public-apis README (MIT; about 1,970 docs links, 20% overlapping APIs.guru), plus the curated catalog; a monthly deterministic job (conditional GETs and one GitHub tree listing per repository; 2,632 of APIs.guru's origins sit in 154 GitHub repositories, the other 1,381 spread over 769 hosts) re-verifies records, and LLM discovery runs only on demand per provider. It holds metadata only, never spec bytes, and is published as a separate artifact, not inside this module or on the code repository's `main`. User submissions are untrusted leads until the job verifies them. Considered and rejected: cloning APIs.guru (the clone has no `list.json`, and the data is frozen), mirroring spec bytes (only 27% of APIs.guru specs declare a license, and the module zip is capped at 500 MiB), and daily pushes of data into the code repository (consumers pin exact revisions). S05 delivered the per-provider record this would aggregate; its legal, crawl-policy and operator gates remain separate. | S05 is delivered and its record shape is stable, legal sign-off covers publication and a crawl policy (identifying User-Agent, rate limits, robots, takedown handling, GitHub API terms), and an operator wants a shared directory; then approve a bounded milestone with its own gating row for that sign-off. |
 | Production adoption of experimental LAP/RFC 9727 discovery | The adapters are intentionally experimental, and OpenUdon still selects APIs.guru explicitly. | Collect reliability/coverage evidence and approve the downstream OpenUdon discovery policy and network budget. |
 | Remove deprecated Discovery and Smithy wrappers | Sibling consumers may still rely on compatibility imports, and removal is a public breaking change. | Confirm no active sibling imports remain, approve release notes, and pass downstream compatibility checks. |
 | Network and local-scan hardening batch | Review "apitools Code Review" Pass 1 (baseline `a5699e5`) findings #7 (LAP registry validates every entry by DNS before scoring/limit and fails the whole search on one bad `source_url`, `remote_discovery.go`), #9 (unsafe-IP list omits `240.0.0.0/4`, IPv4-compatible `::/96`, and `fec0::/10`, `download.go`), #11 (OpenAPI metadata paths skip the `sourceguard.CheckJSON`/`CheckYAML` preflight, `validation.go`, `local.go`, `local_source_discovery.go`), #12 (`.bin` is always treated as a protobuf descriptor, `local_source_discovery.go`), #13 (regular-file-to-FIFO swap between `Lstat` and `Open` can block, `local_read.go`, `internal/artifactio`), and #14 (`Discoverer` exposes no port/transport options, `discovery.go`). All were revalidated at `a5699e570fb5d6288fdd255c71d229fb062b50b3` as Lower severity; no supported scenario fails and no private-host or root-escape path was found. | Approve a hardening batch after S02, or promote any item earlier if it becomes reachable in a supported deployment or a downstream consumer depends on it. |
