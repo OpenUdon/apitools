@@ -22,3 +22,6 @@ search index, optional hosted embedding budgets, and local evidence that
 completed vector batches are reused. C09 still owns the repeat-run proof.
 Use the [test policy](test-policy.md)
 and [milestone review procedure](milestone.md#milestone-review-procedure).
+Required-gate records include elapsed wall-clock time. Persist
+[required gate recovery](milestone.md#required-gate-recovery) state here before
+each interactive Goal/Next required-gate dispatch.

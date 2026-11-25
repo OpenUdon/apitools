@@ -800,6 +800,15 @@ For such a milestone:
 - Name the uncounted local diagnostic loop (the class O loop), and order
   cases so that an unrelated failure cannot hide the milestone's own cases.
 
+For shared concurrency surfaces changed by multiple milestones, keep a race
+watch list in the final integration milestone's verification section. When no
+integration milestone is planned, use the last milestone that owns integrated
+closure review. Map each surface to a named test that exercises the interacting
+changes. Close an entry
+only with evidence that its named test actually ran and passed instrumented;
+a clean full-suite summary alone is insufficient. Use this existing section,
+not a separate ledger, and preserve every required integration gate.
+
 To defer already approved work through a stage rescope, present the exact
 untouched pending rows and affected downstream work for approval. After
 approval, retain their identity and original task text, mark them `[X]`, and
@@ -909,6 +918,36 @@ is P1. A security, privacy or data-loss finding is P1 unless evidence clearly
 shows otherwise. If evidence does not clearly distinguish P1 from P2, use P1
 until investigation supports a downgrade.
 
+**Tool limits.** A defect in a third-party tool that did not cause the task's
+issue is Lower, labelled `tool limit`, only when it leaves the task's evidence
+valid, is not caused by the project's own integration, and causes no supported-user
+harm covered by the severity table. Record evidence for those conditions and a
+proposed owner in the existing review notes or findings register. It does not
+block the task or require a workaround there. If any condition fails, classify
+it normally; external tool ownership never excuses missing acceptance evidence.
+Use the existing Lower dispositions and project overrides, not a new severity.
+
+**Verification discrepancies.** A record or setting difference is Lower when
+evidence proves it could not change the result: the required tests ran with
+equivalent coverage and passed within the prescribed limits. Record the actual
+command and result, the equivalence evidence, and rerun with the prescribed
+settings before closure. The discrepancy alone does not fail a review. A missing
+required check or a difference that could hide a failure remains P1. A timeout
+is still FAIL under the test policy; this rule never waives a required gate,
+weakens acceptance, or excuses an authorization breach.
+
+**Test programs.** Keep tests simple enough to check by reading. If a test
+seems to need a test of its own, simplify it and prove it against broken product
+behavior with red/green or a deliberate broken-product control. Shared test
+helpers with meaningful logic need small focused tests. Classify helper defects
+by their effect on this task's evidence and supported behavior, not merely by
+their existence elsewhere. Where a third-party adapter is needed, keep it thin
+and give it sufficient contract coverage; do not introduce a wrapper just to
+test it or impose a one-test ceiling. When an earlier fix caused a new finding,
+consider removing that fix before adding another. Weakened tests and removed
+assertions receive ordinary severity and review, including their effect on
+acceptance; being test code never lowers severity by itself.
+
 **Safe capacity refusals.** A case at extreme size or capacity is Lower, not P1 or
 P2, when all of these hold: no acceptance line, public contract or previously
 supported behavior promises that size; a test shows the refusal is deterministic
@@ -931,6 +970,32 @@ its own full milestone review, and any P0/P1/P2 finding reported in that review
 blocks retirement and starts another full review. An interactive review pass
 does not replace it, and the controller does not read the open review findings
 register, so milestones it runs keep P2 blocking.
+
+## Diagnosis before repair
+
+Establish the causal path before choosing a fix, especially for a P1: use the
+cheapest decisive diagnostic to identify the actual failing branch and reconcile
+it with the reported symptom. A plausible error message alone is insufficient.
+Respect reproduction permissions and limits; when reproduction is unavailable,
+record existing causal evidence and the uncertainty instead of forcing it.
+This adds no per-fix approval or separate readiness-review gate.
+
+For a shared-helper or repeated-pattern defect, inspect its callers and sibling
+occurrences within approved scope, then cover affected consumers in the fix and
+verification. Report necessary work outside that scope to its owner. Before
+introducing a durable record or state, list its existing readers and their
+compatibility requirements; a shared projection is an option when it reduces
+reader drift, not a required abstraction.
+
+A repair proposal states its estimated scope, affected readers and consumers,
+verification cost and uncertainty, and compares at least one narrower
+alternative or explains why none meets acceptance. When observed growth or
+recurring consumer gaps undermine that design, pause further instance fixes
+and prepare a revised proposal. The stock reconsideration trigger is the same
+class of consumer or reader gap found again in a later review round; projects
+may override that trigger explicitly. There is no stock numeric size threshold.
+Apply the revised proposal under the effective corrective-planning authority,
+preserving acceptance, history, review counters and limits.
 
 ## New Review Intake
 
@@ -972,11 +1037,237 @@ counts toward the bounded gate below only when the status already records that
 gate as active and the review was requested as its next pass; otherwise
 remediation gets a fresh gate when its implementation closes.
 
+## Required gate recovery
+
+<!-- BEGIN SHARED required-gate-recovery -->
+For interactive Goal/Next execution, `REVIEW_MAX_GATE_ITERATIONS` is an optional
+positive integer, default `3`, independent of `REVIEW_MAX_ITERATIONS`. Reject
+zero, negative, fractional, boolean or unbounded values before execution.
+Resolve the minimum of the approved request and any project/milestone caps;
+preserve stricter stop rules. On resume preserve the effective limits and their
+approval sources; omission never resets an existing allowance. Only explicit
+human approval can raise a limit.
+A gate failure never charges the review counter; a review round never charges
+the gate counter. Python API runner/controller limits are unchanged: they do
+not consume this field or acquire this interactive recovery authority.
+Grant budgets and required-gate counters bind independently, including for
+offline required gates; an extension of one never extends the other.
+
+A **gate** is one required verification command for a task or milestone,
+including an offline required gate. Its stable identity includes its owning
+milestone, command, working directory, selected variant and required scope.
+A **key** is that gate plus the package-qualified failing test. When no test is
+named, use a stable failure identity, such as build/setup plus the failing unit.
+Changing flags, splitting commands, renaming tests, moving a repair to another
+milestone or starting another session never creates a fresh allowance for the
+same unresolved failure. Routine focused checks acquire no gate counter.
+A **signature** is the failing assertion or refusal, its source location and its
+error text or response body, with test names, timings and volatile values such
+as IDs, ports and timestamps removed. A failure that cannot be matched to one
+(runner crash, no output) is its own signature and is never merged.
+
+Persist gate state beside the review counters in the owning status file:
+
+- Record the effective limit and human approval source, gate identity, each
+  key's charged attempts and remaining allowance, for each
+  run its failing keys and their signatures, and the distinct signatures since
+  the last clean pass. Each key starts with the effective limit.
+- Before dispatch, persist an attempt ID as `started`, its input revision or
+  saved diff/hash, command and any known key. This reserves the attempt; after
+  failure charge one to every reported failing key, once per attempt ID. Record
+  the result and evidence link. An observation-only diagnostic is not an
+  attempt: it charges nothing and cannot reset the gate.
+- Recover an interrupted `started` attempt before another dispatch. Reconcile
+  its result once from retained evidence; if the result cannot be recovered,
+  charge its known key conservatively. If its key or dispatch is uncertain,
+  pause for the owner rather than discard the reservation or guess a pass.
+- Stop for the owner when a key has zero remaining, or when the gate's distinct
+  signatures reach the effective chain ceiling (default three) across
+  consecutive runs without a clean pass. One gate run is one attempt: the chain
+  is checked only when a rerun produces a signature not seen in earlier runs,
+  never inside the run that produced several. Cases in one run that share a
+  signature count once.
+  Mark affected work `[!]` with diagnosis and options. No further attempt at an
+  exhausted key starts without renewed human approval; approval to continue
+  states a new explicit limit and retains usage. A higher per-key limit does
+  not raise the chain ceiling.
+  Continuing after a chain stop requires explicit owner approval of the named
+  recovery and a new bounded chain ceiling, retaining all previously seen keys;
+  persist that effective ceiling and its approval source beside the keys.
+  Approval to fix a test alone does not reset the chain or permit another run.
+  Exhaustion is an approval pause for the affected gate; keep the goal active,
+  incomplete and resumable. Prepare a concrete LLM recovery proposal before
+  asking: diagnosis and evidence, exact repair scope and edits, current usage,
+  proposed new limits and remaining attempts, risks and any needed permissions.
+  Persist the proposal and pending question in existing status notes. Continue
+  independent authorized work where ordering and ownership permit. If none can
+  proceed, wait for the owner's answer while retaining the goal and checkpoint.
+  After actual human approval of the complete proposal, record the approval
+  source and old/new limits, then resume the same goal and gate under existing
+  launch-refresh rules. Preserve consumed attempts, chain history, waiter
+  ceilings and all other grants and restrictions. A counter extension alone
+  never approves a waiter-ceiling or permission change. No answer grants no
+  approval; a denial leaves affected work blocked for a revised proposal.
+- A clean pass of the complete required gate resets all its key and chain
+  counters. Focused passes, cached results, diagnostics and waived/filtered
+  failures cannot reset them. Retain failed evidence and waiter ceilings.
+  Resume, compaction, new sessions, reviewers and repair handoffs never reset
+  counters. Every resume summary reports gate limits, keys, remaining attempts,
+  chain state and any started attempt beside the review counters.
+
+Within the remaining budget and existing authority, continue without asking
+for a same-scope fix of a defect established in the milestone's own changed
+code. An observation-only diagnostic edits no file and changes no behavior,
+assertion, guard, deadline, fixture or instrumentation; allow at most two per
+finding between charged gate attempts. A row's own tests may be updated at row
+time for behavior that row changes; that is not recovery. A rerun after a
+diagnosed runner-setting error retains the original FAIL and follows the existing
+verification-discrepancy rule; it still consumes applicable counters and grant budgets. Never repeat an
+unchanged failed attempt hoping for a pass. The acceptance-readiness preflight
+and every existing authorization reservation remain required where applicable.
+
+Regardless of remaining budget, stop for the owner at the first occurrence of:
+
+- a waiver or non-blocking P2 classification, unless the owner already wrote
+  down an exact applicable pattern with its evidence and stop conditions;
+- an edit outside the milestone's declared write set, unless an owner-written
+  standing rule covers it. A file in an already-listed package or module
+  directory that changes no public contract and overlaps no other active
+  milestone's or running lease's write set is in scope: record it in status and
+  the whole-review brief. A milestone that declares no write set is bounded by
+  its specification's scope;
+- a change to a product guard or production-code deadline, the deletion or
+  skipping of an existing test, or any change that weakens a test: removing or
+  loosening an assertion, relaxing a matcher, shrinking a fixture, or replacing
+  a failing test with a new one. During recovery, an existing assertion or
+  fixture may be updated without a stop only when the milestone specification
+  or an approved repair row names the behavior change and the edit preserves
+  coverage of retained behavior; cite that line in the status checkpoint. List
+  each updated expectation in status and in the whole-review brief, where the
+  whole review checks it. An update made after the whole review has passed is a
+  review change and needs a later iteration. Required new tests and fixtures
+  need no stop. Test waiters, budgets and added precondition waits follow the
+  paragraphs below;
+- a change to credential or ledger custody code, workers, pins or durable formats;
+- a data race of unknown cause, either exhausted counter, missing authority or
+  an exhausted independent grant budget.
+
+These are gate-failure recovery rules; the ordinary review severity policy
+still governs review findings. Corrective planning, a preset, a grant or a
+remaining counter never waives these stops, required coverage or acceptance.
+
+After any gate stop the run may start an independent read-only assessment
+without asking. A fresh read-only reviewer, not the author of the failing
+change, may read source, tests, logs and recorded outcomes; it runs no test or
+other command, edits no file, adds no instrumentation and changes no counter,
+guard, deadline or fixture. Record its findings in the status file and the
+outcome record. It ends with a proposed correction (test-side, product-side or
+neither), its write set and its rerun needs, each a separate owner decision, so
+the stop remains, except the added precondition wait below. It charges no gate attempt or review round and renews no
+capacity. An assessment that would need a run, an edit or instrumentation stops
+for the owner.
+
+A runner timeout may be corrected once per gate without an owner stop when
+evidence shows the run was progressing rather than hung: tests still completing
+at the kill, or a recorded elapsed time for the same gate and variant. Set it to
+at most twice that expected runtime and within the `tech-stack.md` hard limits,
+retain the original FAIL, and charge the rerun. A second raise, a value beyond
+the hard limits, or a rerun that does not complete stops for the owner.
+
+**Added precondition wait.** An edit that only adds a wait for an observable
+precondition before a test's action (a control enabled, an element present),
+within the project's existing default wait bound, is not a weakening and needs no
+owner stop when the independent read-only assessment records the readiness gap
+and that no product requirement promises the precondition immediately. It
+changes no expected value, matcher, assertion, fixture or deadline, adds no wait
+to an assertion itself and edits no production code. Charge the rerun, retain
+the original FAIL, and list the edit in status and the whole-review brief. It
+grants no attempt and is no ladder rung. Without that assessment, with a longer
+bound, or for any other change, the stops above and the ladder apply.
+
+**Test-side deadline doubling ladder.** Only a waiter or test budget in test
+files qualifies. Before its first doubling, obtain an independent read-only
+assessment establishing test synchronization rather than a product latency
+contract. Record that assessment and measured completion after the expired
+limit; no measured completion means a possible hang and an immediate owner
+stop. The measured operation must complete within the proposed limit of the
+selected step, a doubling or a recorded factor step.
+For every increase, retain completion evidence from the current failing
+occurrence after its current deadline and within that proposed limit;
+old measurements never justify a later doubling. No product guard or production-code
+deadline qualifies; a runner timeout follows its own rule above.
+
+Before establishing `T` or increasing a waiter, consult `tech-stack.md`'s
+**Test waiter ceiling references** and inspect matching active status records
+and retired records through the history index. Match stable file/symbol
+identity and rename/shared-helper lineage across milestones. Recover the
+original value, cumulative doublings, latest ceiling, approvals and exact edits
+into the current status checkpoint; never treat the current code value as a
+fresh original just because the prior milestone retired. For a genuinely new
+waiter, establish its first `T` only after checking for earlier ladder records.
+Missing, conflicting or uncertain prior evidence pauses the increase for human
+direction rather than resetting the ceiling.
+
+When first recording or updating a waiter, maintain its stable identity and
+aliases with links to the owning status evidence under **Test waiter ceiling
+references** in `tech-stack.md`. Keep detailed edits and counters in status;
+the maintained reference only makes that evidence discoverable. Before retiring
+the owner, retarget the reference to the frozen record, verify it resolves and
+retains the original value and cumulative ceiling, then remove the active
+status file. Frozen records remain unchanged. These references survive passes,
+milestone closure and later goal runs.
+
+Track each waiter's original value `T`, current value, cumulative doublings,
+measurement, assessment, exact edits and any explicit owner-approved ceiling
+in the status file. Allow at most one doubling per charged gate attempt:
+`T` to `2T`, `2T` to `4T`, `4T` to `8T`. Never exceed three cumulative doublings
+or `8T`, even when the configured gate budget is larger; a fourth increase to
+`16T` always stops for the owner. Never exceed an explicitly approved value
+without fresh approval. Rerun the required gate after each permitted increase,
+within its remaining budget. At zero remaining, prepare the recovery proposal
+and request renewed human approval as above before another run, including after
+a third failure. The ladder grants no automatic extra attempt; resume after
+approval with the explicitly extended allowance and preserved usage. A gate
+pass resets gate counters but never the waiter's original value or cumulative
+ceiling; renamed or shared waiters retain their identity across gates and
+sessions. An operation that does not complete within its proposed limit stops
+as a possible hang. Do not split a shared budget or alter its fixture under
+this exception.
+
+**Measured instrumented factor.** `tech-stack.md` may record a human-approved
+**Instrumented budget factor** `F`, at most `8`, for a named instrumented
+command, with the plain and instrumented durations and the revision it was
+measured at. An agent may propose it; reflection and corrective planning never
+record or raise it. Where it is recorded, a qualifying waiter or test budget
+that passes plain and expired under that command may take its increase for the
+charged attempt as one factor step instead of a doubling: a value that covers
+the measured completion and is at most `F` times its original value `T`, even
+when that exceeds `2T`, with the completion prerequisite applied to that
+value, used only in instrumented builds while the plain value stays unchanged. Every other
+ladder rule applies to the step, including the assessment, the measured
+completion, the possible-hang stop and the `8T` ceiling. Record it in the
+waiter's exact edits as a factor step; it is that waiter's last self-approved
+increase. The factor never applies to a runner timeout, a product guard or a
+production deadline. With no recorded factor, or one that is unmeasured or
+above `8`, only doublings apply.
+
+List every self-approved increase with its exact edit in the status file and
+the whole-review brief; the independent whole review checks each increase.
+The initial failed gate attempt charges `3` to `2`: a measured `2.08s`
+completion of a `2s` test waiter can justify `2s` to `4s` and one rerun without
+an owner stop. If that rerun passes, gate counters reset while the waiter keeps
+its recorded original `2s` value and first doubling. At default limits, three
+failures of one key, or three distinct signatures across consecutive runs, pause affected
+verification for a recovery proposal and renewed human approval before dispatch.
+<!-- END SHARED required-gate-recovery -->
+
 ## Verification-attempt gate
 
 This gate covers a class R check under the [test policy](test-policy.md) or,
 when no test policy applies, any expensive or protected check. A class O check
-never uses this gate. When it needs an explicit grant, the grant's reservations,
+never uses this gate. Interactive [required gate recovery](#required-gate-recovery)
+separately bounds failed required gates, including offline gates; both limits
+bind when applicable. When it needs an explicit grant, the grant's reservations,
 budget and stop conditions bind (the goal protocol's standing revision
 envelope); exhausting them pauses for human direction.
 
@@ -1151,6 +1442,48 @@ or minutes per run. For a row whose acceptance depends on one:
   because they are publisher/team registries rather than unauthenticated
   global aggregators.
 
+## Integrated closure review
+
+The approved plan names the integrated-review owner, contributing milestones
+and acceptance scope. If no integration milestone is planned, the stage or
+goal's last milestone owns this review. This section defines that milestone's
+review; the selected execution protocol owns cross-milestone sequencing.
+
+Before the first contributing task, the execution owner records the scope,
+contributor IDs and starting state in existing goal state or the review owner's
+status notes. With Git, record the full HEAD commit and retain any initial staged
+and unstaged diff and relevant untracked file contents, with hashes, in authorized
+ignored scratch. Without Git, retain a snapshot of the in-scope sources and a
+hashed manifest. Preserve unrelated user work and existing filesystem authority.
+Reuse this baseline across resumes and child dispatch, including under
+`COMMIT_POLICY: none`; do not replace it with the latest milestone's base.
+On an already-started stage or goal, recover the original baseline when possible.
+If it cannot be reconstructed, disclose the missing baseline and review the full
+integrated implementation against acceptance. Do not claim historical diff
+coverage or omit current implementation and acceptance review.
+
+The owner's initial whole-milestone review uses the recorded stage/goal baseline
+and final integrated state, including saved final diffs and relevant untracked
+contents with hashes, or the corresponding unversioned snapshot. Use the ordinary
+milestone reviewer arrangement. Require an independent read-only reviewer only
+when the approved request, project policy or selected `MODEL_POLICY` requires
+one. Otherwise the executor may perform the review in a separate read-only
+phase. Missing explicitly required independence leaves the review pending.
+Review across the full contributing scope, not only the owner's milestone diff,
+for:
+
+- an authorized recovery or completion path from each durable non-terminal
+  state, discoverable from every interface that creates it;
+- recovery at each identified persistence boundary and crash window;
+- loading supported earlier state formats, or clear refusal with a recovery path;
+- isolation of unrelated items from one item's failure;
+- protection of other tasks' in-flight work from user actions.
+
+Record evidence or justified non-applicability for each lens. Use the owning
+milestone's existing severity rules, review counter and limit; fixes require
+subsequent review. This does not reopen frozen records or create an additional
+unbounded gate.
+
 ## Milestone Review Procedure
 
 When the last open row in a milestone's status file closes as `[+]`, `[X]`, or
@@ -1176,6 +1509,11 @@ notes identify the consumed attempt or supersession and its accepted successor:
      separately: requirements missing or partial, behavior nobody asked for,
      and requirements implemented wrongly, each quoting its acceptance line.
      Record findings grouped by concern.
+     For the designated integrated-review owner, iteration 1 also performs
+     [Integrated closure review](#integrated-closure-review) across the recorded
+     contributing scope and starting/final states. Its own milestone base alone
+     is insufficient. Use the full-implementation fallback when that baseline
+     cannot be reconstructed; keep this within the same iteration and limit.
      An empty implementation diff still needs acceptance review; do not
      manufacture changes. Lenses are coverage obligations: combine them or
      run batches within host capacity. When an interactive request selects
@@ -1183,8 +1521,9 @@ notes identify the consumed attempt or supersession and its accepted successor:
      fresh read-only whole-milestone reviewers; the owner alone records results
      and fixes under `DEFAULT`. Absence preserves host model settings.
    - Record the iteration number and findings in the current status notes so a
-     continuation cannot reset the counter. The gate passes only under the pass
-     condition below. When blocking findings exist and the current iteration is
+     continuation cannot reset the counter. Record observed review start and end
+     times here when available; unknown boundaries remain unknown. The gate
+     passes only under the pass condition below. When blocking findings exist and the current iteration is
      below the approved review limit, fix every blocking finding in the current
      milestone, rerun affected verification, and begin the next iteration.
    - Iteration 2 and later review only each blocking finding of the previous
@@ -1198,12 +1537,21 @@ notes identify the consumed attempt or supersession and its accepted successor:
      full milestone diff instead. This holds under every commit policy.
    - A task review covers that task's diff (its own commit when commits are per
      task) and passes with no blocking finding.
+     For a one-task milestone, one review may satisfy both task and
+     whole-milestone review only when it covers the complete milestone scope and
+     acceptance, required gates have passed, and all independence, model and
+     reviewed-state requirements are met. Record it once as the milestone's
+     initial iteration. Later fixes retain the normal verification and review
+     requirements.
    - P2 and Lower findings never block on their own. For each one, choose to
      fix now when the fix is local, cheap and in scope, or when later work
      builds on the defect (a contract or interface, a persisted format such as
      a schema, ledger or wire format, a public API, or tests encoding the
      behavior); to carry it in [Open review findings](#open-review-findings); or,
      for Lower only, to decline with a one-line rationale.
+     The execution owner chooses the disposition in the iteration that found it.
+     When judging whether a fix is cheap, count the additional verification and
+     re-review it would require.
    - Any change made in response to a review, blocking or not, is verified and
      reviewed by a later iteration before closure. Recording findings,
      dispositions, review counters, reviewed state, register rows and owner
@@ -1271,6 +1619,11 @@ notes identify the consumed attempt or supersession and its accepted successor:
 9. Report a short review summary: what was verified, the review-fix iteration
    count, what memory-bank files changed, any review commit, and whether an
    evolution bump was made. Include the retired record and durable lessons.
+   Distinguish elapsed span, command execution, review intervals, rework and
+   owner waits, identifying overlaps and capture gaps. Do not add overlapping
+   intervals or infer model work from unexplained elapsed time. Explain material
+   estimate overruns without skipping checks or accepting unmet requirements.
+   This requires no new ledger, recorder or audit opt-in.
 
 ## Goal lease cleanup
 
@@ -1318,6 +1671,13 @@ milestones too. Create this journal only when needed, link it from the history
 index, and append corrections rather than rewriting old entries. Routine edits
 need no journal entry; Git, when present, holds intermediate revisions.
 
+`AGENTS.md` is not a progress log. Closure and retirement never append accepted,
+retired, or dated paragraphs to it. Change it only when a command, boundary, or
+rule changes, replacing the affected text. Keep it under 28 KiB with its
+bootstrap sections, hard rules, and work cadence first: some agent hosts load
+only the first 32 KiB of project instructions and silently drop the rest.
+Move superseded text out through the knowledge journal above.
+
 Consolidation is ordinary project maintenance. A separate context snapshot is
 optional and never a prerequisite for retirement; the archive skill's clean
 baseline rule must not force commits or interrupt a no-commit goal.
@@ -1338,7 +1698,11 @@ baseline rule must not force commits or interrupt a no-commit goal.
    Summary`; the ID, outcome, date, and record link must match the envelope.
    Outcomes are `completed`, `cancelled`, or `superseded`. The record link is
    relative to the index, for example `[M01](status-M01.md)`.
-4. Remove the active status file, specification section, and active index row.
+4. For every recorded test waiter, retarget its **Test waiter ceiling references**
+   entry in `tech-stack.md` to the frozen status evidence before deleting the
+   active source. Verify the link and preserved original value, cumulative
+   doublings and ceiling; missing or conflicting evidence pauses retirement.
+   Remove the active status file, specification section, and active index row.
    Before removal, validate every envelope field and compare both retained
    documents with their complete active sources. For Git evidence, use the
    literal full output of `git rev-parse --verify HEAD`, never an abbreviated

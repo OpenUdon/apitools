@@ -370,7 +370,9 @@ overlays. [Reproduction instructions](../../docs/catalog-expansion-c04.md).
   and authority early. Before each counted class R attempt, run a fast preflight
   of the applicable fixtures, schemas, commands and launchers. Class O tests
   use self-checking runners without separate readiness reviews, supervising
-  controllers, UNKNOWN outcomes or policy-added attempt counters. Missing real
+  controllers or UNKNOWN outcomes, and routine focused checks have no attempt
+  counters. Interactive Goal/Next required gates follow
+  [required gate recovery](milestone.md#required-gate-recovery). Missing real
   acceptance evidence remains missing; mocks do not replace it. External
   testing-tool repair is optional unless explicitly promoted by the owner.
 - A human-approved standing verification budget follows the selected goal
@@ -386,6 +388,28 @@ overlays. [Reproduction instructions](../../docs/catalog-expansion-c04.md).
   independently of commit policy. Apply the minimum declared project/milestone
   cap. Existing recorded limits and counters remain unchanged; this upgrade
   raises none. A ceiling above 10 requires explicit human approval at execution.
+- **Risk-scaled verification contract**: none.
+- **Milestone time estimates**: none.
+- **Test waiter ceiling references**: none until the first ladder record.
+- **Instrumented budget factor**: none.
+- **Gate maintenance threshold**: none.
+- **Runner hard limits**: none recorded. Until one is, a runner-timeout raise
+  under required gate recovery stops for the owner.
+
+<!-- BEGIN SHARED verification-environment-preflight -->
+`standard` adds no light-profile constraints. Independently adopted stock
+test-policy requirements, including this environment preflight, apply under
+every profile.
+
+Before costly verification, inspect the applicable toolchain pin, required
+offline caches, private temporary-path suitability and permissions, umask, disk
+capacity and selected concurrency. Check inherited environment and configuration
+precedence that could override offline or isolation settings. Use invocation-local
+corrections or refuse an unsafe setup; do not change global configuration, expose
+secrets, download missing inputs or broaden authority. Reuse the check while
+relevant environment inputs remain unchanged. Preserve the existing preflight
+before every counted protected attempt.
+<!-- END SHARED verification-environment-preflight -->
 
 ## Memory-bank API runner compatibility
 

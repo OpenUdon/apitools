@@ -236,6 +236,9 @@ available:
   the procedure in `milestone.md`. Completed rows remain active until the whole
   milestone qualifies. Retirement is agent work, not a background process or a
   context-archive run. Retired records are frozen.
+  Closure never appends to this file. Change it only when a command, boundary,
+  or rule changes, replacing the affected text; dated detail stays in status,
+  history, and Git. Keep this file under 28 KiB.
 - Keep later candidate directions unnumbered and outside the status-file
   index. Promote one only after fresh reconciliation and approval.
 - Keep verified archive files frozen. Later implementation updates current
