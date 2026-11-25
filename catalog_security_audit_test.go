@@ -18,8 +18,14 @@ func TestBuiltInCatalogSecurityAuditClassifiesEveryProvider(t *testing.T) {
 	if report.Summary.ProviderCount != wantProviderCount {
 		t.Fatalf("provider count = %d, want %d", report.Summary.ProviderCount, wantProviderCount)
 	}
-	if countAuditDisposition(report, SecurityAuditDispositionQueuedSourceReReview) != 0 {
-		t.Fatalf("queued source re-review count = %d, want 0", countAuditDisposition(report, SecurityAuditDispositionQueuedSourceReReview))
+	if count := countAuditDisposition(report, SecurityAuditDispositionQueuedSourceReReview); count != 3 {
+		t.Fatalf("queued source re-review count = %d, want 3", count)
+	}
+	for _, id := range []string{"amplitude", "hunter", "storyblok"} {
+		provider := findAuditProvider(t, report, id)
+		if provider.Disposition != SecurityAuditDispositionQueuedSourceReReview || provider.AuthStatus != catalog.AuthStatusMixed {
+			t.Fatalf("%s should retain distinct spec security dispositions: %+v", id, provider)
+		}
 	}
 	if countAuditDisposition(report, SecurityAuditDispositionPresentIncompleteReviewed) != 45 {
 		t.Fatalf("present-incomplete-reviewed count = %d, want 45", countAuditDisposition(report, SecurityAuditDispositionPresentIncompleteReviewed))

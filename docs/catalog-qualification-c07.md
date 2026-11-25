@@ -120,3 +120,85 @@ history with `channels:history`, using Slack's current OAuth v2 metadata.
 [text message docs](https://docs.slack.dev/reference/methods/chat.postMessage/),
 [history docs](https://docs.slack.dev/reference/methods/conversations.history/),
 [Slack OAuth v2](https://docs.slack.dev/authentication/installing-with-oauth/).
+
+## Remaining publisher sources and overlays
+
+C07.4 screened one recorded official documentation page for each of the
+160 overlay-first and docs-first providers in the original inventory
+scope. The guarded, unauthenticated reads used an eight-second timeout
+and 3 MiB body limit. They stopped at cross-origin redirects. The
+[screen receipt](../dist/c07-qualification.P2FWoi/docs-screen.json) retains
+each checked URL and time, successful page digest, observed spec link or
+deferral. Its SHA-256 is
+`6882f2b9d2da808e496c810b46529905d77e3e8bc54356c58bef817ed9795e1f`.
+
+| Observation | Providers |
+| --- | ---: |
+| Same-origin spec file links found | 3 |
+| Page read with no explicit same-origin spec file link | 127 |
+| Cross-origin redirect | 6 |
+| Bounded page read failed | 9 |
+| Publisher HTTP 403 / 404 / 429 / 502 | 10 / 3 / 1 / 1 |
+
+These observations apply to the sampled page and checked links. They leave
+provider-wide availability, other locations, and unchecked versions open.
+Additional publisher repositories supplied the Amplitude and Linear sources.
+
+| Official source | Reviewed operation | SHA-256 |
+| --- | --- | --- |
+| [Amplitude Developer OpenAPI 0.1.0](https://github.com/amplitude/developer-cli/blob/d870b9b1ea5b5a8c29b414eb4db0633a35fd77ba/openapi/bundled/openapi.bundled.json) | `GET /v1/projects` (`listProjects`) | `a11be514b525b0098a2d77d75910907a98abd4e38a0a563313f5d08e30296a16` |
+| [Hunter OpenAPI 2.0.0](https://hunter.io/openapi.json) | `GET /domain-search` (`searchDomain`) with the `/v2` server base | `c5ae61475d11a9ea2b6ffcff10990095fc432e099cbe92cad3051e3575d85620` |
+| [Linear SDK GraphQL SDL](https://github.com/linear/linear/blob/2440c73cfd297aec89c85d5e46ea2c7068d4b0ba/packages/sdk/src/schema.graphql) | `Query.viewer` (`query.viewer`) | `ee3d23e0c68f31f5297f752e86003592e6c7c7c440559a979a785516298fbc2a` |
+| [Storyblok Content Delivery v2 OpenAPI](https://www.storyblok.com/docs/openapi-spec/cdn-v2.openapi.yaml) | `GET /v2/cdn/links` (`listLinks`) | `2e0e46fc67e06525ee67da8e756b90a39e492ba7833a730205259ab6a8a8ec96` |
+
+The official OpenAPI inputs passed guarded updater validation and reproduced
+the selected native shapes. The GraphQL SDL passed native qualification and
+inventory. Amplitude's Developer API bearer scheme has an operation-specific
+`projects:read` requirement in vendor metadata, recorded in the scoped
+auth advisory. Other Amplitude API families retain separate docs and auth
+guidance. Hunter's selected operation inherits three publisher-modeled
+alternatives. The Storyblok CDN operation inherits the `token` query scheme.
+The Storyblok fallback records CDN and Management authentication under
+their distinct source references and reviewed routes. Linear's
+transport advisory distinguishes the raw personal API key in
+`Authorization` from OAuth bearer auth. A single generic GraphQL POST
+overlay would lose the operation identity.
+[Amplitude Developer CLI](https://github.com/amplitude/developer-cli),
+[Hunter API reference](https://hunter.io/api-documentation),
+[Storyblok Content Delivery](https://www.storyblok.com/docs/api/content-delivery/v2),
+[Linear GraphQL auth](https://linear.app/developers/graphql).
+
+The [Postmark API Explorer](https://postmarkapp.com/api-explorer) links
+[Server Swagger 1.0.0](https://postmarkapp.com/swagger/server.yml)
+and [Account Swagger 0.9.0](https://postmarkapp.com/swagger/account.yml).
+The tested raw copies, SHA-256
+`fdae25f55e2ef5fb71997f1128cc4148d52e0e395aed04b4f8f9e1c86fdf44a2`
+and `bbbcda9432851b8d7d6781d9a090b9d8d70f4396a9288393f428bfa3d5c2102b`,
+failed guarded projection. Both use unquoted numeric keys in the reusable
+top-level `responses` map. They also omit reusable security schemes and
+root requirements. Retain the checked-in Postmark advisory with the
+distinct official server/account token headers applied per operation.
+The linked documents
+remain qualification candidates.
+[Postmark authentication](https://postmarkapp.com/developer/api/overview),
+[advisory and builder decisions](../catalog-openapi-cache/advisory-overlays/human-doc-overlay-decisions.md).
+
+The Amplitude document declares Proprietary and links the provider terms.
+The Developer CLI repository separately carries an MIT license. The
+Storyblok document declares MIT. Linear's SDK repository carries MIT.
+The inspected Hunter and Postmark files carry no document-level license
+declaration. The catalog tracks source links, digests and local advisory
+metadata. The downloaded publisher copies are in the ignored qualification
+directory.
+[Amplitude document terms](https://amplitude.com/terms),
+[Amplitude repository license](https://github.com/amplitude/developer-cli/blob/d870b9b1ea5b5a8c29b414eb4db0633a35fd77ba/LICENSE),
+[Storyblok document license](https://opensource.org/licenses/MIT),
+[Linear repository license](https://github.com/linear/linear/blob/2440c73cfd297aec89c85d5e46ea2c7068d4b0ba/LICENSE).
+
+Of the original 160, four now have a qualified publisher reference, 137
+retain checked-in overlay coverage as primary, and 19 retain an explicit
+source gap. The updater reports the overlay and builder, documented gap,
+or unexamined coverage in new runs when a provider has no eligible
+publisher references. The completed first inventory keeps its original
+checkpoints for all 334 providers. Local overlay/gap evidence does not
+establish upstream freshness.

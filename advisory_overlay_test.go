@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -436,17 +435,13 @@ type advisoryOverlayRegistration struct {
 
 func loadAdvisoryOverlayRegistrations(t *testing.T) map[string]advisoryOverlayRegistration {
 	t.Helper()
-	content, err := os.ReadFile("catalog-openapi-cache/artifact-registry/register_catalog_artifacts.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	entryRE := regexp.MustCompile(`(?s)\{\s*providerID:\s*"([^"]+)",\s*artifactID:\s*"([^"]+)",\s*path:\s*"([^"]+)",\s*builderPath:\s*"([^"]+)",`)
 	out := map[string]advisoryOverlayRegistration{}
-	for _, match := range entryRE.FindAllStringSubmatch(string(content), -1) {
-		out[match[3]] = advisoryOverlayRegistration{
-			providerID:   match[1],
-			artifactPath: match[3],
-			builderPath:  match[4],
+	for _, overlay := range catalog.BuiltInEndpointOverlayArtifacts() {
+		if _, duplicate := out[overlay.Path]; duplicate {
+			t.Fatalf("duplicate endpoint overlay registration: %s", overlay.Path)
+		}
+		out[overlay.Path] = advisoryOverlayRegistration{
+			providerID: overlay.ProviderID, artifactPath: overlay.Path, builderPath: overlay.BuilderPath,
 		}
 	}
 	return out

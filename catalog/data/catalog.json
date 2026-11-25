@@ -6228,10 +6228,21 @@
       ],
       "review_state": "reviewed-catalog-entry",
       "candidate_id": "amplitude",
-      "official_openapi_availability": "unavailable",
+      "official_openapi_availability": "known",
       "official_machine_spec_availability": "unknown",
-      "user_openapi_need": "likely",
+      "user_openapi_need": "possible",
       "spec_references": [
+        {
+          "id": "amplitude-developer-openapi",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/amplitude/developer-cli/d870b9b1ea5b5a8c29b414eb4db0633a35fd77ba/openapi/bundled/openapi.bundled.json",
+          "source_authority": "official-github",
+          "version": "0.1.0",
+          "verified_at": "2026-11-25",
+          "revision": "commit:d870b9b1ea5b5a8c29b414eb4db0633a35fd77ba sha256:a11be514b525b0098a2d77d75910907a98abd4e38a0a563313f5d08e30296a16 content-length:469603",
+          "license_note": "OpenAPI document declares Proprietary (https://amplitude.com/terms). The Developer CLI repository separately declares MIT. Raw bytes are retained locally.",
+          "source_note": "Publisher Developer API OpenAPI 3.1.1 bundle. Reviewed GET /v1/projects in the Developer API; other Amplitude API families remain documented separately."
+        },
         {
           "id": "amplitude-api-docs",
           "kind": "human-docs",
@@ -6261,7 +6272,7 @@
         }
       ],
       "quirks": [
-        "M59 review did not find a stable public provider-wide official OpenAPI artifact for Amplitude.",
+        "The Developer API has a scoped OpenAPI bundle. Separate analytics, export, and ingestion documentation still governs those families.",
         "Amplitude exposes several API families with different credential forms and project/app contexts; apitools records advisory auth metadata only and does not choose projects, tokens, or a generic endpoint overlay."
       ]
     },
@@ -14276,10 +14287,21 @@
       ],
       "review_state": "reviewed-catalog-entry",
       "candidate_id": "hunter",
-      "official_openapi_availability": "unavailable",
+      "official_openapi_availability": "known",
       "official_machine_spec_availability": "unknown",
-      "user_openapi_need": "likely",
+      "user_openapi_need": "not-expected",
       "spec_references": [
+        {
+          "id": "hunter-v2-openapi",
+          "kind": "openapi",
+          "url": "https://hunter.io/openapi.json",
+          "source_authority": "official-provider",
+          "version": "2.0.0",
+          "verified_at": "2026-11-25",
+          "revision": "publisher-api:v2 sha256:c5ae61475d11a9ea2b6ffcff10990095fc432e099cbe92cad3051e3575d85620 content-length:390869",
+          "license_note": "No document-level license declaration was found in the pinned OpenAPI. Publisher documentation terms apply. Raw bytes are retained locally.",
+          "source_note": "Official Hunter v2 OpenAPI 3.0.3 link from the API reference. Reviewed GET /domain-search at the /v2 base path and the publisher-defined auth alternatives."
+        },
         {
           "id": "hunter-api-docs",
           "kind": "human-docs",
@@ -14291,7 +14313,7 @@
         }
       ],
       "quirks": [
-        "M30 review did not find a stable public official OpenAPI document at explicit hunter.io OpenAPI probes.",
+        "Hunter v2 has a publisher OpenAPI link. The API description uses a /v2 server base for paths such as /domain-search.",
         "Hunter authentication is commonly modeled as an api_key query parameter; apitools records metadata only and does not perform searches or verifications."
       ]
     },
@@ -15078,9 +15100,19 @@
       "review_state": "reviewed-catalog-entry",
       "candidate_id": "linear",
       "official_openapi_availability": "unavailable",
-      "official_machine_spec_availability": "unknown",
+      "official_machine_spec_availability": "known",
       "user_openapi_need": "likely",
       "spec_references": [
+        {
+          "id": "linear-sdk-graphql-sdl",
+          "kind": "graphql",
+          "url": "https://raw.githubusercontent.com/linear/linear/2440c73cfd297aec89c85d5e46ea2c7068d4b0ba/packages/sdk/src/schema.graphql",
+          "source_authority": "official-github",
+          "verified_at": "2026-11-25",
+          "revision": "commit:2440c73cfd297aec89c85d5e46ea2c7068d4b0ba sha256:ee3d23e0c68f31f5297f752e86003592e6c7c7c440559a979a785516298fbc2a content-length:1597034",
+          "license_note": "Publisher repository MIT license. Raw bytes are retained locally.",
+          "source_note": "Publisher SDK GraphQL SDL. Reviewed Query.viewer in the native schema. Transport authentication is documented separately."
+        },
         {
           "id": "linear-graphql-docs",
           "kind": "human-docs",
@@ -18464,7 +18496,7 @@
       ],
       "review_state": "reviewed-catalog-entry",
       "candidate_id": "postmark",
-      "official_openapi_availability": "unavailable",
+      "official_openapi_availability": "needs-verification",
       "official_machine_spec_availability": "unknown",
       "user_openapi_need": "likely",
       "spec_references": [
@@ -18488,7 +18520,7 @@
         }
       ],
       "quirks": [
-        "Postmark uses different API token headers for server-level and account-level endpoints; M21 review did not find a stable public official OpenAPI document."
+        "The API Explorer links separate official Server and Account Swagger documents. C07 guarded validation rejected both raw snapshots. Keep the checked-in endpoint overlay for its reviewed subset."
       ]
     },
     {
@@ -20163,10 +20195,21 @@
       ],
       "review_state": "reviewed-catalog-entry",
       "candidate_id": "storyblok",
-      "official_openapi_availability": "unavailable",
+      "official_openapi_availability": "known",
       "official_machine_spec_availability": "unknown",
-      "user_openapi_need": "likely",
+      "user_openapi_need": "possible",
       "spec_references": [
+        {
+          "id": "storyblok-content-delivery-v2-openapi",
+          "kind": "openapi",
+          "url": "https://www.storyblok.com/docs/openapi-spec/cdn-v2.openapi.yaml",
+          "source_authority": "official-provider",
+          "version": "v2",
+          "verified_at": "2026-11-25",
+          "revision": "publisher-api:v2 sha256:2e0e46fc67e06525ee67da8e756b90a39e492ba7833a730205259ab6a8a8ec96 content-length:129155",
+          "license_note": "OpenAPI document declares MIT (https://opensource.org/licenses/MIT). Raw bytes are retained locally.",
+          "source_note": "Official Storyblok Content Delivery v2 OpenAPI 3.1.0. Reviewed GET /v2/cdn/links with the content token. The Management API is a separate surface."
+        },
         {
           "id": "storyblok-content-delivery-api-docs",
           "kind": "human-docs",
@@ -20196,7 +20239,7 @@
         }
       ],
       "quirks": [
-        "M32 review did not find a stable public official OpenAPI document at explicit Storyblok OpenAPI probes.",
+        "The Content Delivery v2 spec covers the CDN. The Management API still uses its separate documentation and advisory overlay.",
         "Storyblok has separate Content Delivery token and Management API bearer-token surfaces; downstream workflows must select the intended surface."
       ]
     },
@@ -22672,6 +22715,16 @@
       "source_note": "Amplitude has official API docs but no recorded stable provider-wide official OpenAPI artifact; family-specific Basic, api_key, and bearer-token metadata comes from advisory overlay notes."
     },
     {
+      "provider_id": "amplitude",
+      "spec_ref_id": "amplitude-developer-openapi",
+      "status": "present-incomplete",
+      "source_refs": [
+        "https://raw.githubusercontent.com/amplitude/developer-cli/d870b9b1ea5b5a8c29b414eb4db0633a35fd77ba/openapi/bundled/openapi.bundled.json",
+        "https://github.com/amplitude/developer-cli"
+      ],
+      "source_note": "The Developer API defines and requires bearerAuth. List projects declares projects:read in vendor metadata, outside the standard requirement. The reviewed overlay notes that scope for this operation."
+    },
+    {
       "provider_id": "anthropic",
       "spec_ref_id": "anthropic-api-authentication",
       "status": "overlay-required",
@@ -23877,7 +23930,17 @@
       "source_refs": [
         "https://hunter.io/api-documentation"
       ],
-      "source_note": "Hunter has official human API docs but no recorded stable public official OpenAPI document; api_key query metadata comes from advisory overlay notes."
+      "source_note": "The docs-derived advisory uses the documented api_key query form. The official v2 OpenAPI reference carries its own schemes."
+    },
+    {
+      "provider_id": "hunter",
+      "spec_ref_id": "hunter-v2-openapi",
+      "status": "complete",
+      "source_refs": [
+        "https://hunter.io/openapi.json",
+        "https://hunter.io/api-documentation"
+      ],
+      "source_note": "The docs-derived advisory uses the documented api_key query form. The official v2 OpenAPI reference carries its own schemes."
     },
     {
       "provider_id": "intercom",
@@ -24041,7 +24104,17 @@
         "https://linear.app/developers/graphql",
         "https://linear.app/docs/api/"
       ],
-      "source_note": "Linear's official public API is GraphQL and no OpenAPI document is recorded in this catalog entry; personal API key and OAuth bearer-token metadata must come from advisory overlay notes."
+      "source_note": "Linear publishes GraphQL SDL separately from the documented transport auth. Personal API keys and OAuth bearer tokens use different header representations."
+    },
+    {
+      "provider_id": "linear",
+      "spec_ref_id": "linear-sdk-graphql-sdl",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://raw.githubusercontent.com/linear/linear/2440c73cfd297aec89c85d5e46ea2c7068d4b0ba/packages/sdk/src/schema.graphql",
+        "https://linear.app/developers/graphql"
+      ],
+      "source_note": "Linear publishes GraphQL SDL separately from the documented transport auth. Personal API keys and OAuth bearer tokens use different header representations."
     },
     {
       "provider_id": "lingvanex",
@@ -25053,7 +25126,17 @@
         "https://www.storyblok.com/docs/api/content-delivery/v2",
         "https://www.storyblok.com/docs/api/management/getting-started/authentication/"
       ],
-      "source_note": "Storyblok has official Content Delivery and Management API docs but no recorded stable public official OpenAPI document; content-token and management bearer metadata comes from advisory overlay notes."
+      "source_note": "The docs-derived guidance distinguishes Content Delivery token auth from Management bearer auth. The official CDN v2 OpenAPI reference carries the Content Delivery scheme."
+    },
+    {
+      "provider_id": "storyblok",
+      "spec_ref_id": "storyblok-content-delivery-v2-openapi",
+      "status": "complete",
+      "source_refs": [
+        "https://www.storyblok.com/docs/openapi-spec/cdn-v2.openapi.yaml",
+        "https://www.storyblok.com/docs/api/content-delivery/v2"
+      ],
+      "source_note": "The docs-derived guidance distinguishes Content Delivery token auth from Management bearer auth. The official CDN v2 OpenAPI reference carries the Content Delivery scheme."
     },
     {
       "provider_id": "strapi",
@@ -26012,6 +26095,39 @@
         "https://amplitude.com/docs/apis/keys-and-tokens"
       ],
       "source_note": "Amplitude has multiple official API families but no recorded provider-wide OpenAPI artifact; docs describe family-specific Basic, api_key, and bearer-token authentication forms, so this advisory overlay records alternatives only."
+    },
+    {
+      "id": "amplitude-developer-list-projects-auth",
+      "provider_id": "amplitude",
+      "spec_ref_id": "amplitude-developer-openapi",
+      "status": "present-incomplete",
+      "security_schemes": [
+        {
+          "name": "amplitudeDeveloperProjectsBearer",
+          "type": "http",
+          "description": "Developer API bearer token with projects:read for the listed operation.",
+          "scheme": "bearer"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "listProjects",
+            "method": "GET",
+            "path": "/v1/projects"
+          },
+          "security": [
+            {
+              "scheme": "amplitudeDeveloperProjectsBearer"
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://raw.githubusercontent.com/amplitude/developer-cli/d870b9b1ea5b5a8c29b414eb4db0633a35fd77ba/openapi/bundled/openapi.bundled.json",
+        "https://github.com/amplitude/developer-cli"
+      ],
+      "source_note": "The Developer API defines and requires bearerAuth. List projects declares projects:read in vendor metadata, outside the standard requirement. The reviewed overlay notes that scope for this operation."
     },
     {
       "id": "anthropic-api-auth-overlay",
@@ -30696,7 +30812,7 @@
       "source_refs": [
         "https://hunter.io/api-documentation"
       ],
-      "source_note": "Hunter has official human API docs but no recorded stable public official OpenAPI document; api_key query metadata comes from advisory overlay notes."
+      "source_note": "The docs-derived advisory uses the documented api_key query form. The official v2 OpenAPI reference carries its own schemes."
     },
     {
       "id": "intercom-api-v2-15-auth-review",
@@ -30991,23 +31107,66 @@
       "status": "overlay-required",
       "security_schemes": [
         {
-          "name": "linearBearer",
+          "name": "linearPersonalKey",
+          "type": "apiKey",
+          "description": "Raw personal API key in Authorization.",
+          "in": "header",
+          "parameter_name": "Authorization"
+        },
+        {
+          "name": "linearOAuthBearer",
           "type": "http",
-          "description": "Linear personal API key or OAuth access token carried as a bearer token in the Authorization header.",
-          "scheme": "bearer",
-          "bearer_format": "API key or OAuth 2.0 access token"
+          "description": "OAuth access token with the Bearer prefix.",
+          "scheme": "bearer"
         }
       ],
       "root_security": [
         {
-          "scheme": "linearBearer"
+          "scheme": "linearPersonalKey"
+        },
+        {
+          "scheme": "linearOAuthBearer"
         }
       ],
       "source_refs": [
         "https://linear.app/developers/graphql",
         "https://linear.app/docs/api/"
       ],
-      "source_note": "Linear's GraphQL docs describe personal API keys and OAuth2 bearer tokens; OpenAPI-only imports need advisory bearer-token security metadata."
+      "source_note": "The official GraphQL docs distinguish a raw Authorization value for a personal key and an OAuth bearer token. These are alternatives."
+    },
+    {
+      "id": "linear-sdk-graphql-transport-auth",
+      "provider_id": "linear",
+      "spec_ref_id": "linear-sdk-graphql-sdl",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "linearSDLPersonalKey",
+          "type": "apiKey",
+          "description": "Raw personal API key in Authorization.",
+          "in": "header",
+          "parameter_name": "Authorization"
+        },
+        {
+          "name": "linearSDLOAuthBearer",
+          "type": "http",
+          "description": "OAuth access token with the Bearer prefix.",
+          "scheme": "bearer"
+        }
+      ],
+      "root_security": [
+        {
+          "scheme": "linearSDLPersonalKey"
+        },
+        {
+          "scheme": "linearSDLOAuthBearer"
+        }
+      ],
+      "source_refs": [
+        "https://raw.githubusercontent.com/linear/linear/2440c73cfd297aec89c85d5e46ea2c7068d4b0ba/packages/sdk/src/schema.graphql",
+        "https://linear.app/developers/graphql"
+      ],
+      "source_note": "The publisher GraphQL SDL lacks transport auth. The official GraphQL documentation defines two separate Authorization header forms that apply to this endpoint."
     },
     {
       "id": "lingvanex-api-auth-overlay",
@@ -32629,19 +32788,205 @@
           "parameter_name": "X-Postmark-Account-Token"
         }
       ],
-      "root_security": [
+      "operation_security": [
         {
-          "scheme": "postmarkServerToken"
+          "match": {
+            "operation_id": "listPostmarkBounces",
+            "method": "GET",
+            "path": "/bounces"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
         },
         {
-          "scheme": "postmarkAccountToken"
+          "match": {
+            "operation_id": "getPostmarkBounce",
+            "method": "GET",
+            "path": "/bounces/{bounce_id}"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "sendPostmarkEmail",
+            "method": "POST",
+            "path": "/email"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "sendPostmarkEmailBatch",
+            "method": "POST",
+            "path": "/email/batch"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "listPostmarkMessageStreams",
+            "method": "GET",
+            "path": "/message-streams"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "createPostmarkMessageStream",
+            "method": "POST",
+            "path": "/message-streams"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "archivePostmarkMessageStream",
+            "method": "DELETE",
+            "path": "/message-streams/{stream_id}"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "getPostmarkMessageStream",
+            "method": "GET",
+            "path": "/message-streams/{stream_id}"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "updatePostmarkMessageStream",
+            "method": "PATCH",
+            "path": "/message-streams/{stream_id}"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "unarchivePostmarkMessageStream",
+            "method": "PATCH",
+            "path": "/message-streams/{stream_id}/unarchive"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "listPostmarkServers",
+            "method": "GET",
+            "path": "/servers"
+          },
+          "security": [
+            {
+              "scheme": "postmarkAccountToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "listPostmarkTemplates",
+            "method": "GET",
+            "path": "/templates"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "createPostmarkTemplate",
+            "method": "POST",
+            "path": "/templates"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "deletePostmarkTemplate",
+            "method": "DELETE",
+            "path": "/templates/{template_id}"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "getPostmarkTemplate",
+            "method": "GET",
+            "path": "/templates/{template_id}"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "updatePostmarkTemplate",
+            "method": "PUT",
+            "path": "/templates/{template_id}"
+          },
+          "security": [
+            {
+              "scheme": "postmarkServerToken"
+            }
+          ]
         }
       ],
       "source_refs": [
         "https://postmarkapp.com/developer/api/overview",
         "https://postmarkapp.com/api-explorer"
       ],
-      "source_note": "Postmark has human API docs in this catalog entry but no recorded official OpenAPI document; docs describe server and account API-token headers."
+      "source_note": "The official API Explorer links two Swagger documents. Guarded validation rejected the reviewed raw copies. Official docs establish distinct server and account API-token headers. The checked-in advisory applies those headers to the reviewed operations by method and path."
     },
     {
       "id": "profitwell-api-auth-overlay",
@@ -33360,7 +33705,45 @@
           "description": "Storyblok Content Delivery API token carried in the token query parameter.",
           "in": "query",
           "parameter_name": "token"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "listStoryblokContentStories",
+            "method": "GET",
+            "path": "/v2/cdn/stories"
+          },
+          "security": [
+            {
+              "scheme": "storyblokContentToken"
+            }
+          ]
         },
+        {
+          "match": {
+            "operation_id": "getStoryblokContentStory",
+            "method": "GET",
+            "path": "/v2/cdn/stories/{story_slug}"
+          },
+          "security": [
+            {
+              "scheme": "storyblokContentToken"
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://www.storyblok.com/docs/api/content-delivery/v2"
+      ],
+      "source_note": "The reviewed Content Delivery operations use the token query parameter. Management auth is recorded separately."
+    },
+    {
+      "id": "storyblok-management-api-auth-overlay",
+      "provider_id": "storyblok",
+      "spec_ref_id": "storyblok-management-api-docs",
+      "status": "overlay-required",
+      "security_schemes": [
         {
           "name": "storyblokManagementBearer",
           "type": "http",
@@ -33369,19 +33752,85 @@
           "bearer_format": "Storyblok personal access token"
         }
       ],
-      "root_security": [
+      "operation_security": [
         {
-          "scheme": "storyblokContentToken"
+          "match": {
+            "operation_id": "listStoryblokManagementStories",
+            "method": "GET",
+            "path": "/v1/spaces/{space_id}/stories"
+          },
+          "security": [
+            {
+              "scheme": "storyblokManagementBearer"
+            }
+          ]
         },
         {
-          "scheme": "storyblokManagementBearer"
+          "match": {
+            "operation_id": "createStoryblokManagementStory",
+            "method": "POST",
+            "path": "/v1/spaces/{space_id}/stories"
+          },
+          "security": [
+            {
+              "scheme": "storyblokManagementBearer"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "deleteStoryblokManagementStory",
+            "method": "DELETE",
+            "path": "/v1/spaces/{space_id}/stories/{story_id}"
+          },
+          "security": [
+            {
+              "scheme": "storyblokManagementBearer"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "getStoryblokManagementStory",
+            "method": "GET",
+            "path": "/v1/spaces/{space_id}/stories/{story_id}"
+          },
+          "security": [
+            {
+              "scheme": "storyblokManagementBearer"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "publishStoryblokStory",
+            "method": "GET",
+            "path": "/v1/spaces/{space_id}/stories/{story_id}/publish"
+          },
+          "security": [
+            {
+              "scheme": "storyblokManagementBearer"
+            }
+          ]
+        },
+        {
+          "match": {
+            "operation_id": "unpublishStoryblokStory",
+            "method": "GET",
+            "path": "/v1/spaces/{space_id}/stories/{story_id}/unpublish"
+          },
+          "security": [
+            {
+              "scheme": "storyblokManagementBearer"
+            }
+          ]
         }
       ],
       "source_refs": [
-        "https://www.storyblok.com/docs/api/content-delivery/v2",
+        "https://www.storyblok.com/docs/api/management",
         "https://www.storyblok.com/docs/api/management/getting-started/authentication/"
       ],
-      "source_note": "Storyblok has official Content Delivery and Management API docs but no recorded stable public official OpenAPI document; content token and management bearer metadata comes from advisory overlay notes."
+      "source_note": "The Storyblok Management API uses bearer auth on the reviewed Management operations."
     },
     {
       "id": "strapi-api-auth-overlay",

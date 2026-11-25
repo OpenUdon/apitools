@@ -202,6 +202,7 @@ func preferredSpecReference(provider Provider) (SpecReference, bool) {
 		SpecKindGoogleDiscovery,
 		SpecKindSmithyJSON,
 		SpecKindGRPCProtobuf,
+		SpecKindGraphQL,
 		SpecKindHumanDocs,
 	} {
 		for _, ref := range provider.SpecReferences {

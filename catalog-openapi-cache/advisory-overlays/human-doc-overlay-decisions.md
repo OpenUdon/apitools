@@ -18,6 +18,13 @@ artifact was recorded. Linear remains an explicit no-endpoint-overlay case:
 its public API is GraphQL with introspection, and a generic POST `/graphql`
 overlay would hide native operation semantics.
 
+The C07 qualification record follows these original decisions. It adds a
+native Linear schema and official Amplitude Developer, Hunter v2, and
+Storyblok Content Delivery v2 specs. The existing Hunter and Storyblok
+advisories still describe their reviewed subsets. Postmark keeps its overlay
+because the published Server and Account Swagger copies fail guarded parsing.
+[C07 curation](../../docs/catalog-qualification-c07.md#remaining-publisher-sources-and-overlays).
+
 ## Built
 
 | Provider | Overlay | Reason |

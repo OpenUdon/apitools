@@ -223,7 +223,7 @@ func TestHighValueSaaSCurationSetAdvisoryCoverage(t *testing.T) {
 		{provider: "gitlab", openAPI: SpecAvailabilityKnown, specKind: SpecKindOpenAPI},
 		{provider: "hubspot", openAPI: SpecAvailabilityKnown, specKind: SpecKindOpenAPIIndex},
 		{provider: "jira-cloud", openAPI: SpecAvailabilityKnown, specKind: SpecKindOpenAPI},
-		{provider: "linear", openAPI: SpecAvailabilityUnavailable, specKind: SpecKindHumanDocs},
+		{provider: "linear", openAPI: SpecAvailabilityUnavailable, specKind: SpecKindGraphQL},
 		{provider: "notion", openAPI: SpecAvailabilityKnown, specKind: SpecKindOpenAPI},
 		{provider: "openai", openAPI: SpecAvailabilityKnown, specKind: SpecKindOpenAPI},
 		{provider: "pagerduty", openAPI: SpecAvailabilityKnown, specKind: SpecKindOpenAPI},
@@ -617,7 +617,6 @@ func TestWorkatoTraySignalProviderBatchAdvisoryRows(t *testing.T) {
 		specRefID string
 		overlayID string
 	}{
-		{provider: "amplitude", specRefID: "amplitude-api-docs", overlayID: "amplitude-api-auth-overlay"},
 		{provider: "anthropic", specRefID: "anthropic-api-overview", overlayID: "anthropic-api-auth-overlay"},
 		{provider: "ashby", specRefID: "ashby-api-introduction", overlayID: "ashby-api-auth-overlay"},
 		{provider: "braze", specRefID: "braze-api-docs", overlayID: "braze-api-auth-overlay"},

@@ -207,9 +207,14 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 			return report, fmt.Errorf("reviewed provider %q missing during update", id)
 		}
 		sources := catalogUpdateReferenceSources(provider)
-		status := "checked"
+		summary := catalogupdate.Outcome{ProviderID: id, Status: "checked"}
 		if len(sources) == 0 {
-			status = "needs-publisher-spec-or-overlay"
+			coverage := catalog.BuiltInAdvisoryEndpointCoverage(id)
+			summary.Status = coverage.Status
+			summary.Evidence, err = json.Marshal(coverage)
+			if err != nil {
+				return report, err
+			}
 		}
 		providerPending := false
 		for _, source := range sources {
@@ -262,7 +267,7 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 			pending = true
 			continue
 		}
-		if err := store.Record(ctx, report.RunID, catalogupdate.Outcome{ProviderID: id, Status: status}); err != nil {
+		if err := store.Record(ctx, report.RunID, summary); err != nil {
 			return report, err
 		}
 	}

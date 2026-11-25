@@ -171,7 +171,6 @@ func TestResolveProviderPreservesAuthoredHumanDocsPriority(t *testing.T) {
 		specRefID string
 	}{
 		{provider: "airtable", specRefID: "airtable-web-api-docs"},
-		{provider: "linear", specRefID: "linear-graphql-docs"},
 		{provider: "quickbooks", specRefID: "quickbooks-online-api-docs"},
 		{provider: "salesforce", specRefID: "salesforce-rest-docs"},
 		{provider: "servicenow", specRefID: "servicenow-rest-api-docs"},

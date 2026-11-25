@@ -25,6 +25,9 @@ func TestC07PinnedPublisherOperations(t *testing.T) {
 		{"hubspot", "hubspot-crm-contacts-2026-09-openapi", "hubspot-contacts-2026-09-424.json", "GET", "/crm/objects/2026-09/{objectType}", "get-/crm/objects/2026-09/{objectType}_/crm/objects/2026-03/{objectType}"},
 		{"hubspot", "hubspot-crm-deals-2026-09-openapi", "hubspot-deals-2026-09-424.json", "GET", "/crm/objects/2026-09/{objectType}", "get-/crm/objects/2026-09/{objectType}_/crm/objects/2026-03/{objectType}"},
 		{"kubernetes", "kubernetes-v1-37-2-core-openapi-v3", "kubernetes-commit-core-v3.json", "GET", "/api/v1/namespaces/{namespace}/pods", "listCoreV1NamespacedPod"},
+		{"amplitude", "amplitude-developer-openapi", "amplitude-developer.json", "GET", "/v1/projects", "listProjects"},
+		{"hunter", "hunter-v2-openapi", "hunter-openapi.json", "GET", "/domain-search", "searchDomain"},
+		{"storyblok", "storyblok-content-delivery-v2-openapi", "storyblok-cdn-v2.yaml", "GET", "/v2/cdn/links", "listLinks"},
 	} {
 		t.Run(fixture.reference, func(t *testing.T) {
 			provider, ok := catalog.FindBuiltInProvider(fixture.provider)
@@ -48,6 +51,21 @@ func TestC07PinnedPublisherOperations(t *testing.T) {
 			}
 			if validation := catalogUpdateNativeOpenAPI(t.Context(), content, source.URL, source.refreshReference(), digest); !validation.accepted() {
 				t.Fatalf("reviewed source failed updater validation: %+v", validation)
+			}
+			if expected, ok := map[string]string{"amplitude": "Proprietary", "hunter": "", "storyblok": "MIT"}[fixture.provider]; ok {
+				root := catalogUpdateNativeRoot(t.Context(), content)
+				license := mapValue(mapValue(root["info"])["license"])
+				if got := stringValue(license["name"]); got != expected {
+					t.Fatalf("source license changed to %q, want %q", got, expected)
+				}
+				if expected == "" {
+					expected = "No document-level license declaration"
+				}
+				for _, ref := range provider.SpecReferences {
+					if ref.ID == fixture.reference && !strings.Contains(ref.LicenseNote, expected) {
+						t.Fatalf("catalog license %q omits %q for %s", ref.LicenseNote, expected, ref.ID)
+					}
+				}
 			}
 			table, err := BuildOperationShapeTable(t.Context(), OperationShapeOptions{Sources: []ShapeSourceInput{{
 				ID: fixture.reference, OperationSourceInput: OperationSourceInput{Kind: OperationSourceOpenAPI, URL: source.URL, Content: content},
@@ -338,5 +356,200 @@ func TestC07SheetsSDKReusesVerifiedObject(t *testing.T) {
 		if err != nil || preferred.Revision != commit {
 			t.Fatalf("SDK preference lost the immutable revision: %v", err)
 		}
+	}
+}
+
+func TestC07CatalogUpdateReportsLocalAdvisoryCoverage(t *testing.T) {
+	for _, fixture := range []struct{ provider, status string }{
+		{"airtable", "advisory-coverage"},
+		{"odoo", "documented-source-gap"},
+	} {
+		t.Run(fixture.provider, func(t *testing.T) {
+			client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(req *http.Request) (*http.Response, error) {
+				t.Fatalf("local coverage made a publisher request to %s", req.URL)
+				return nil, nil
+			})}}
+			options := CatalogUpdateOptions{Provider: fixture.provider, Config: newCatalogRepairFixture(t)}
+			report, err := client.UpdateCatalog(t.Context(), options)
+			if err != nil || !report.Completed || len(report.Outcomes) != 1 || report.Outcomes[0].Status != fixture.status {
+				t.Fatalf("provider coverage status: %+v, %v", report.Outcomes, err)
+			}
+			var data catalog.AdvisoryEndpointCoverage
+			if err := json.Unmarshal(report.Outcomes[0].Evidence, &data); err != nil || data.Status != fixture.status {
+				t.Fatalf("provider coverage evidence: %+v, %v", data, err)
+			}
+			if fixture.provider == "airtable" && (len(data.EndpointOverlays) != 1 || data.EndpointOverlays[0].BuilderPath == "") {
+				t.Fatalf("checked-in overlay evidence missing: %+v", data)
+			}
+			if fixture.provider == "odoo" && (data.Gap == "" || len(data.EndpointOverlays) != 0) {
+				t.Fatalf("documented gap evidence missing: %+v", data)
+			}
+			resumed, err := client.UpdateCatalog(t.Context(), CatalogUpdateOptions{Resume: report.RunID, Config: CatalogUpdateConfig{StateDB: options.Config.StateDB}})
+			if err != nil || len(resumed.Outcomes) != 1 || string(resumed.Outcomes[0].Evidence) != string(report.Outcomes[0].Evidence) {
+				t.Fatalf("saved provider evidence changed: %+v, %v", resumed.Outcomes, err)
+			}
+		})
+	}
+	if got := catalog.BuiltInAdvisoryEndpointCoverage("unmeasured"); got.Status != "unexamined-source-coverage" || got.Gap != "" {
+		t.Fatalf("unmeasured coverage was treated as a documented gap: %+v", got)
+	}
+}
+
+func TestC07CuratedPublisherSecurityAndSelection(t *testing.T) {
+	for _, fixture := range []struct {
+		provider, reference string
+		protocol            catalog.SpecProtocol
+		status              catalog.AuthCompletenessStatus
+	}{
+		{"amplitude", "amplitude-developer-openapi", catalog.SpecProtocolOpenAPI, catalog.AuthStatusPresentIncomplete},
+		{"hunter", "hunter-v2-openapi", catalog.SpecProtocolOpenAPI, catalog.AuthStatusComplete},
+		{"linear", "linear-sdk-graphql-sdl", catalog.SpecProtocolGraphQL, catalog.AuthStatusOverlayRequired},
+		{"storyblok", "storyblok-content-delivery-v2-openapi", catalog.SpecProtocolOpenAPI, catalog.AuthStatusComplete},
+	} {
+		t.Run(fixture.provider, func(t *testing.T) {
+			got, err := catalog.ResolveProvider(catalog.ResolveProviderOptions{ProviderKey: fixture.provider})
+			if err != nil || got.OpenAPI.SpecRefID != fixture.reference || got.OpenAPI.Protocol != fixture.protocol ||
+				got.SecurityStatus != fixture.status {
+				t.Fatalf("resolved source or security: %+v, %v", got, err)
+			}
+		})
+	}
+}
+
+func TestC07PinnedLinearSchemaAndRejectedPostmarkCandidates(t *testing.T) {
+	dir := os.Getenv("APITOOLS_C07_QUALIFICATION_DIR")
+	if dir == "" {
+		t.Skip("set APITOOLS_C07_QUALIFICATION_DIR to the pinned C07 source directory")
+	}
+	linear, _ := catalog.FindBuiltInProvider("linear")
+	source := catalogUpdateReferenceSources(linear)[0]
+	read := func(file, expected string) []byte {
+		t.Helper()
+		content, err := os.ReadFile(filepath.Join(dir, file))
+		if err != nil || fmt.Sprintf("%x", sha256.Sum256(content)) != expected {
+			t.Fatalf("artifact %s did not reproduce %s: %v", file, expected, err)
+		}
+		return content
+	}
+	content := read("linear-schema.graphql", catalogUpdateReviewedDigest(source.HeldRevision))
+	_, accepted := qualifyCatalogUpdateNativeSource(t.Context(), source, OperationSourceGraphQL, source.URL, catalogUpdateReviewedDigest(source.HeldRevision), content)
+	if !accepted {
+		t.Fatal("Linear pin failed native updater qualification")
+	}
+	inventory, err := BuildAPISourceOperationInventory(t.Context(), APISourceInventoryOptions{Documents: []APISourceDocument{{
+		Kind: APISourceKindGraphQL, Content: content,
+	}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, op := range inventory.Operations {
+		if op.OperationID == "query.viewer" && op.Method == "query" && op.Path == "#/schema/Query/fields/viewer" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("Linear GraphQL schema omitted Query.viewer")
+	}
+	for _, fixture := range []struct{ file, digest string }{
+		{"postmark-server.yml", "fdae25f55e2ef5fb71997f1128cc4148d52e0e395aed04b4f8f9e1c86fdf44a2"},
+		{"postmark-account.yml", "bbbcda9432851b8d7d6781d9a090b9d8d70f4396a9288393f428bfa3d5c2102b"},
+	} {
+		content := read(fixture.file, fixture.digest)
+		url := "https://postmarkapp.com/swagger/" + strings.TrimPrefix(fixture.file, "postmark-")
+		got := catalogUpdateNativeOpenAPI(t.Context(), content, url, catalog.RefreshableSpecReference{}, fixture.digest)
+		if got.accepted() || got.RawStatus != CatalogRefreshInvalid {
+			t.Fatalf("the recorded Postmark qualification needs to be reviewed: %+v", got)
+		}
+	}
+}
+
+func TestC07EndpointRegistrationsKeepSourceIdentity(t *testing.T) {
+	artifacts := catalog.BuiltInEndpointOverlayArtifacts()
+	for _, expected := range []struct{ artifact, reference string }{
+		{"slack-web-message-history-overlay", "slack-web-api-docs"},
+		{"airtable-web-api-overlay", "airtable-web-api-overlay"},
+	} {
+		found := false
+		for _, artifact := range artifacts {
+			if artifact.ArtifactID == expected.artifact {
+				found = true
+				if artifact.SpecRefID != expected.reference {
+					t.Fatalf("%s source identity = %s, want %s", artifact.ArtifactID, artifact.SpecRefID, expected.reference)
+				}
+			}
+		}
+		if !found {
+			t.Fatalf("missing registry artifact %s", expected.artifact)
+		}
+	}
+	report, err := catalog.BuiltInProviderAdvisoryReport(catalog.ProviderAdvisoryOptions{ProviderKey: "slack", Artifacts: artifacts})
+	if err != nil || len(report.Providers) != 1 {
+		t.Fatalf("Slack advisory: %+v, %v", report, err)
+	}
+	for _, ref := range report.Providers[0].SpecReferences {
+		if ref.ID == "slack-web-api-docs" && ref.RegisteredArtifactPath == "advisory-overlays/slack-web-message-history-overlay.json" {
+			return
+		}
+	}
+	t.Fatalf("Slack docs reference missed the checked-in advisory path: %+v", report.Providers[0].SpecReferences)
+}
+
+func TestC07FallbackSecurityMatchesReviewedOperations(t *testing.T) {
+	for _, provider := range []string{"postmark", "storyblok"} {
+		t.Run(provider, func(t *testing.T) {
+			path := filepath.Join("catalog-openapi-cache", "advisory-overlays", provider+"-api-overlay.json")
+			body, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var artifact struct {
+				Paths map[string]map[string]struct {
+					OperationID string                `json:"operationId"`
+					Security    []map[string][]string `json:"security"`
+				} `json:"paths"`
+			}
+			if err := json.Unmarshal(body, &artifact); err != nil {
+				t.Fatal(err)
+			}
+			overlays := catalog.SecurityOverlaysForProvider(provider)
+			for route, item := range artifact.Paths {
+				for method, operation := range item {
+					if operation.OperationID == "" {
+						continue
+					}
+					reference := "postmark-api-docs"
+					if provider == "storyblok" {
+						reference = "storyblok-content-delivery-api-docs"
+						if strings.HasPrefix(route, "/v1/spaces/") {
+							reference = "storyblok-management-api-docs"
+						}
+					}
+					matches := 0
+					for _, overlay := range overlays {
+						if len(overlay.RootSecurity) != 0 || len(overlay.RootSecuritySets) != 0 {
+							t.Fatalf("%s supplied fallback security without a route", overlay.ID)
+						}
+						for _, rule := range overlay.OperationSecurity {
+							if rule.Match.OperationID != operation.OperationID || rule.Match.Method != strings.ToUpper(method) || rule.Match.Path != route {
+								continue
+							}
+							matches++
+							if overlay.SpecRefID != reference || len(operation.Security) != 1 ||
+								len(operation.Security[0]) != 1 || len(rule.Security) != 1 || len(rule.SecuritySets) != 0 {
+								t.Fatalf("unexpected scoped security for %s %s: %s, %+v", method, route, overlay.SpecRefID, rule)
+							}
+							if _, ok := operation.Security[0][rule.Security[0].Scheme]; !ok {
+								t.Fatalf("security scheme mismatch on %s %s: %+v", method, route, rule)
+							}
+						}
+					}
+					if matches != 1 {
+						t.Fatalf("%s %s has %d matching catalog security rules", method, route, matches)
+					}
+				}
+			}
+		})
 	}
 }

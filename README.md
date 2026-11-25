@@ -55,16 +55,18 @@ reviewed providers**.
 
 | Primary catalog coverage | Providers |
 | --- | ---: |
-| Official OpenAPI, Swagger, or an official OpenAPI index | 120 |
-| Other official machine-readable specs | 54 |
-| Human docs with a checked-in advisory OpenAPI overlay | 139 |
-| Human docs without a checked-in endpoint overlay | 21 |
+| Official OpenAPI, Swagger, or an official OpenAPI index | 123 |
+| Other official machine-readable specs | 55 |
+| Human docs with a checked-in advisory OpenAPI overlay | 137 |
+| Human docs without a checked-in endpoint overlay | 19 |
 
 Each provider is counted once. Dropbox, Google Ads, Google Calendar, Google
 Gemini API, Google Maps Platform, and Google Sheets use other official specs
-as their primary sources and also have advisory OpenAPI overlays. The
-[C04](docs/catalog-expansion-c04.md) and [C05](docs/catalog-expansion-c05.md)
-qualification records identify the exact supported surfaces and artifacts.
+as their primary sources and also have advisory OpenAPI overlays. Slack
+retains its archived Swagger alongside an advisory for two current methods.
+The qualification records give the reviewed surfaces and artifact evidence.
+[C04](docs/catalog-expansion-c04.md), [C05](docs/catalog-expansion-c05.md),
+[C07](docs/catalog-qualification-c07.md).
 
 ## CLI
 
@@ -419,6 +421,9 @@ The updater checks publisher size before downloading any artifact body.
 Unknown sizes and sizes over 1,000,000,000 bytes are deferred. The local
 parser limit applies separately. Run reports record publisher locators,
 checked dates, digests, skipped artifacts, and cases that need review.
+When a reviewed provider has no eligible publisher reference, its summary
+records checked-in advisory coverage and builder paths, a documented source
+gap, or unexamined coverage.
 Temporary publisher failures leave the run open. The JSON report records
 the retry reason, attempt number and `next_attempt_at`. Resume the same
 run to retry after that time and continue providers deferred by a shared

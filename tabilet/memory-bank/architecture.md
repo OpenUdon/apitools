@@ -868,6 +868,13 @@ checks the saved identity of any unfinished run before publisher access.
 A state-only inspection reports the need for recovery, and a completed
 run returns its saved snapshot after recovery.
 
+For each provider without an eligible publisher reference, a new update
+checkpoints checked-in advisory coverage, a documented source gap, or
+unexamined coverage. Advisory evidence lists the overlay and reproducible
+builder paths relative to the catalog artifact root. The updater and cache
+registration launcher use the same checked-in registry. These outcomes
+record local coverage without claiming upstream freshness.
+
 ### Catalog discovery wire foundations (M80.1)
 
 The additive `apitools.catalog-discovery/v1` types reuse StepContract and

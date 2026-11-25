@@ -14,7 +14,7 @@ evidence in the [C06 code review (xhigh) source note](../docs/history/status-C10
 | C07.1 — Prepare the first publisher inventory | `[+]` | Captured 334 unique reviewed providers and 196 machine-readable references, including 195 official references and the historical third-party Kubernetes fixture. The 181 earlier references are sorted in the [offline inventory](../../dist/c06-goal.zgalc0nf/c07-readiness/older-priority.json). Verified the launcher, mount and selected scope. Recorded the one authorized live pass with 302 provider summaries and 160 reference outcomes. C07.5 retains the remaining inventory work. Astra xhigh passed the task review. |
 | C07.2 — Qualify Dropbox, HubSpot and Kubernetes | `[+]` | Compare Dropbox official OpenAPI with the auth and operations in the overlay, then prefer it when qualified. Preserve old Stone references as provenance; UWS already has no Stone wire type. **F14 (Nit, local P1, confirmed).** The [HubSpot inventory](../../catalog_update_sources.go) enumerates services, and the [updater](../../catalog_update.go) stops after listing them. Select the reviewed families, versions and release stages, qualify stable documents through pinned native operation and compatibility checks, and label previews and other services as candidates. Keep any service with insufficient evidence out of the qualified set. Use release-tagged upstream Kubernetes OpenAPI, keep the historical fixture labeled and preserve cluster-specific exports for actual API groups and CRDs. Pinned stable Contacts/Deals list operations and Kubernetes Core Pod list passed with scoped auth evidence. Dropbox retains the reverified advisory overlay and official Stone provenance. HubSpot version migrations remain unexamined. Astra xhigh passed re-review. |
 | C07.3 — Qualify Stripe, Google Sheets and Slack | `[+]` | Separate Stripe dated stable and preview releases and check the reviewed schema and security. Compare Google Sheets Discovery revision and digest even at the same v4 URL; reconcile the advisory overlay. Retain Slack’s archived Swagger as dated evidence and check current methods and scopes against official docs before proposing gap overlays. Qualified Stripe GA with reviewed auth, compared Sheets revisions and exact pins, and added the current Slack advisory. Astra xhigh passed re-review. |
-| C07.4 — Curate the remaining sources and overlay decisions | `[ ]` | Seek official links for existing docs-only and overlay-primary rows. Prefer a usable provider source; otherwise review a bounded endpoint overlay and reproducible builder or record the concrete evidence gap. **F12 (Nit, local P2, confirmed).** Of 161 working-catalog providers without an eligible updater reference, 139 already have a checked-in overlay. Use the [advisory registry](../../catalog/advisory.go) in the [provider summary](../../catalog_update.go) to distinguish advisory coverage, a documented gap and unavailable evidence. Report upstream freshness only when observed. Inspect reusable schemes and effective root/operation auth. Keep each provider's supported subset and license evidence visible. |
+| C07.4 — Curate the remaining sources and overlay decisions | `[+]` | Seek official links for existing docs-only and overlay-primary rows. Prefer a usable provider source; otherwise review a bounded endpoint overlay and reproducible builder or record the concrete evidence gap. **F12 (Nit, local P2, confirmed).** Of 161 working-catalog providers without an eligible updater reference, 139 already have a checked-in overlay. Use the [advisory registry](../../catalog/advisory.go) in the [provider summary](../../catalog_update.go) to distinguish advisory coverage, a documented gap and unavailable evidence. Report upstream freshness only when observed. Inspect reusable schemes and effective root/operation auth. Keep each provider's supported subset and license evidence visible. Screened all 160. Qualified four official sources, retained 137 primary advisories and 19 explicit gaps, and recorded the three new local coverage outcomes. Astra xhigh passed re-review. |
 | C07.5 — Complete and reconcile the first inventory | `[ ]` | Run the authorized publisher inventory and account for each of the 334 provider IDs exactly once in the provider summary, with service/reference detail below it. Record actual versions, digests, outcomes, deferrals and review queue. Demonstrate reviewed operations for the six named providers with pinned fixtures; run catalog generation, quality and whole-unit gates. Use C10.4's accepted FND-01 failure classification and retry evidence to reconcile temporary publisher failures. |
 
 ## First publisher run
@@ -133,6 +133,34 @@ the SDK second pass reuses its verified object without fetching the body.
 [focused checks](../../dist/c07-qualification.P2FWoi/c07-3-repeat-final.log).
 The [re-reviewed diff](../../dist/c07-qualification.P2FWoi/c07-3-repeat-reviewed.diff)
 has SHA-256 `c3b53c3f9b028df19685a0a1b055fb96666d9ed5ea95df90c8e4046aafe1ac96`.
+
+C07.4 screened the 160 scoped publisher docs pages and obtained four direct
+candidate files plus the separately identified Amplitude and Linear
+repository artifacts. The selected Amplitude Developer, Hunter v2 and
+Storyblok CDN operations passed guarded OpenAPI validation and native
+shape proof. Linear passed native GraphQL qualification for `Query.viewer`.
+Both Postmark Swagger candidates failed guarded parsing. The Postmark
+advisory remains reproducible, with separate account and server auth
+requirements on its reviewed operations. Storyblok records CDN and
+Management fallback auth separately. The 137 remaining primary overlay
+providers have a tracked artifact and builder, and 19 have a documented
+source gap. New provider checkpoints distinguish advisory coverage,
+documented gap and unexamined coverage.
+[Curation evidence](../../docs/catalog-qualification-c07.md#remaining-publisher-sources-and-overlays).
+
+The C07.4 first review found the missing document license declarations,
+fallback auth scope, and mismatched source reference precedence in the
+overlay registry accessor. The revised catalog records the document
+licenses separately from repository terms, uses exact fallback operation
+auth matches, and retains the same reference precedence as the SQLite
+registry. All 146 registration literals match after field relocation.
+Go 1.26.6 build, vet, affected whole Go packages with both approved pin
+directories, catalog generator, catalog quality, artifact launcher build,
+three byte-identical overlay rebuilds and diff checks passed on
+`1568dc639aa9ecb41646c559cf34d231cddbaf12`.
+[Verification](../../dist/c07-qualification.P2FWoi/c07-4-final-gates.log).
+Astra xhigh passed the [re-reviewed diff](../../dist/c07-qualification.P2FWoi/c07-4-final-reviewed.diff)
+with SHA-256 `d4795cb48b0009f41dc2ad38c928f29703462cbd4b218aa44f17112430f3e25a`.
 
 ## Review
 

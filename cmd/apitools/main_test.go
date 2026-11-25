@@ -1235,7 +1235,10 @@ func TestCatalogSecurityAuditOutputAndJSON(t *testing.T) {
 		fmt.Sprintf("Catalog security audit: %d provider(s)", providerCount),
 		"Disposition:",
 		"Auth status:",
-		"Queued source re-review: none",
+		"Queued source re-review:",
+		"Amplitude (amplitude)",
+		"Hunter (hunter)",
+		"Storyblok (storyblok)",
 	} {
 		if !strings.Contains(text, expected) {
 			t.Fatalf("security audit output missing %q:\n%s", expected, text)
@@ -1253,8 +1256,18 @@ func TestCatalogSecurityAuditOutputAndJSON(t *testing.T) {
 			t.Fatalf("security audit json missing %q:\n%s", expected, out.String())
 		}
 	}
-	if strings.Contains(out.String(), `"disposition": "queued-source-re-review"`) {
-		t.Fatalf("security audit json has queued source re-review rows:\n%s", out.String())
+	var audit apitools.CatalogSecurityAuditReport
+	if err := json.Unmarshal(out.Bytes(), &audit); err != nil {
+		t.Fatal(err)
+	}
+	var queued []string
+	for _, provider := range audit.Providers {
+		if provider.Disposition == apitools.SecurityAuditDispositionQueuedSourceReReview {
+			queued = append(queued, provider.ProviderID)
+		}
+	}
+	if strings.Join(queued, ",") != "amplitude,hunter,storyblok" {
+		t.Fatalf("security audit json queued source re-review rows = %v", queued)
 	}
 }
 

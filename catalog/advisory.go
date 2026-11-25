@@ -81,6 +81,54 @@ type AdvisoryEndpointOverlay struct {
 	Metadata    map[string]string `json:"metadata,omitempty"`
 }
 
+// AdvisoryEndpointCoverage summarizes evidence for providers whose publisher
+// references cannot be checked by the updater. It has no freshness claim.
+type AdvisoryEndpointCoverage struct {
+	Status           string                    `json:"status"`
+	EndpointOverlays []AdvisoryEndpointOverlay `json:"endpoint_overlays,omitempty"`
+	Gap              string                    `json:"gap,omitempty"`
+}
+
+var builtInEndpointOverlaysByProvider = advisoryEndpointOverlaysByProvider(BuiltInEndpointOverlayArtifacts())
+
+// BuiltInAdvisoryEndpointCoverage returns checked-in overlay metadata or a
+// recorded source gap without opening an artifact cache.
+func BuiltInAdvisoryEndpointCoverage(providerID string) AdvisoryEndpointCoverage {
+	if overlays := builtInEndpointOverlaysByProvider[providerID]; len(overlays) > 0 {
+		return AdvisoryEndpointCoverage{Status: "advisory-coverage", EndpointOverlays: cloneAdvisoryEndpointOverlays(overlays)}
+	}
+	if gap := documentedEndpointGaps[providerID]; gap != "" {
+		return AdvisoryEndpointCoverage{Status: "documented-source-gap", Gap: gap}
+	}
+	return AdvisoryEndpointCoverage{Status: "unexamined-source-coverage"}
+}
+
+// These reviewed gaps summarize the existing endpoint overlay decisions.
+var documentedEndpointGaps = map[string]string{
+	"acumatica":                        "The ERP instance publishes endpoint and customization-specific metadata.",
+	"airwallex":                        "A reviewed subset needs explicit product, account and regional scope.",
+	"amplitude":                        "Analytics families have separate auth and project context.",
+	"anthropic":                        "A scoped operation review needs a provider artifact or dedicated model-operation evidence.",
+	"ashby":                            "Recruiting APIs need a narrower reviewed RPC subset and permission evidence.",
+	"braze":                            "Messaging and export coverage depends on product, region and permission scope.",
+	"emelia":                           "A generic REST overlay cannot reproduce the documented GraphQL operations.",
+	"kubernetes":                       "Cluster exports describe the deployed groups, versions and CRDs.",
+	"linear":                           "GraphQL requires a native schema and separate authentication metadata.",
+	"monday-com":                       "The single GraphQL endpoint needs a native schema and operation scope.",
+	"netsuite":                         "Record metadata and integration authorization are account-specific.",
+	"odoo":                             "The model-specific RPC API needs explicit model and operation evidence.",
+	"oracle-fusion-cloud-applications": "Tenant and product customization require an exported metadata snapshot.",
+	"orbit":                            "The provider shut down and the recorded metadata is historical.",
+	"philips-hue":                      "The full official endpoint reference requires login.",
+	"postbin":                          "Official text endpoint documentation was unavailable for a reviewed subset.",
+	"postman":                          "Provider-wide source and scope evidence is unavailable for the governed API surfaces.",
+	"sap-s4hana":                       "A tenant-specific OpenAPI, OData or SOAP export is needed for the target package.",
+	"sap-successfactors":               "Useful coverage requires the selected tenant's OData or SOAP metadata.",
+	"segment":                          "The documented embedded OpenAPI export needs a reproducible public artifact locator.",
+	"uproc":                            "Public examples and images do not establish stable endpoint and auth details.",
+	"workday":                          "A WSDL/SOAP or versioned REST source is needed for the selected tenant scope.",
+}
+
 // BuiltInProviderAdvisoryReport builds advisory output for built-in catalog
 // metadata without network access or cache writes.
 func BuiltInProviderAdvisoryReport(options ProviderAdvisoryOptions) (ProviderAdvisoryReport, error) {
