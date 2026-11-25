@@ -159,6 +159,7 @@ go run ./cmd/apitools search --query slack --source rfc9727 --provider-url slack
 go run ./cmd/apitools import --help
 go run ./cmd/apitools catalog check
 go run ./cmd/apitools catalog maintenance --help
+# Operator skill in .agents/skills/apitools-catalog-maintenance/SKILL.md
 go run ./cmd/apitools catalog advisory slack
 go run ./cmd/apitools catalog resolve slack
 go run ./cmd/apitools catalog materialize --help

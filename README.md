@@ -509,6 +509,8 @@ managed artifact bytes and embedding usage. Scheduled updates leave embeddings
 unrequested. Use `catalog maintenance retry --provider PROVIDER_ID --config FILE`
 for a new run limited to one reviewed provider. An existing unfinished monthly
 run resumes through `catalog maintenance run` with its original configuration.
+For agent-assisted operation, see the
+[APItools catalog maintenance skill](.agents/skills/apitools-catalog-maintenance/SKILL.md).
 
 ### Explicit catalog roots
 
