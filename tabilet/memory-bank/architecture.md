@@ -523,6 +523,12 @@ gRPC/protobuf support is metadata-only. `apitools` does not execute RPCs, use
 server reflection, open channels, negotiate TLS, contact gRPC endpoints,
 resolve credentials, fetch tokens, or select accounts/projects.
 
+Default catalog inspection prefers a built-in gRPC/protobuf reference
+before human docs. The Google Ads overlay keys operation security to the
+native service/method ID emitted by the protobuf parser. Its source-scoped
+requirement keeps the OAuth scope and developer token in one set.
+[C05 qualification](../../docs/catalog-expansion-c05.md).
+
 OData model flow:
 
 ```text

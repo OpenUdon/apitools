@@ -6,6 +6,7 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 | Milestone | Outcome | Retired | Record | Summary |
 |---|---|---|---|---|
 | C06 | completed | 2026-11-25 | [C06](status-C06.md) | Publisher update CLI, SQLite preferences and resume, bounded artifact acquisition and pinned cache. Whole review 6 passed. |
+| C05 | completed | 2026-11-25 | [C05](status-C05.md) | Nine more providers, 334 total. Google Ads native selection and operation-scoped security verified. Integrated C04/C05 review 2 passed. |
 | C04 | completed | 2026-11-25 | [C04](status-C04.md) | Nine providers and one Gemini overlay qualified by pinned offline discovery and materialization. Whole review 2 passed. |
 | M91 | completed | 2026-10-25 | [M91](status-M91.md) | Pure eligibility/mapping; exact publication/ordinary49test consumer/existingOpenUdon+Udon compatibility pass; fresh Sol/xhigh whole2 PASS/P3 reconciled; six inherited static diagnostics, absentVCS and failures retained. |
 | S10 | completed | 2026-10-22 | [S10](status-S10.md) | Two rows/whole1; OpenAPI and Google Discovery response summaries keep every top-level field (first 60 by path), then nested fields; Google inventory reports the truncation issue; unpublished. |

@@ -75,6 +75,9 @@ The built-in catalog includes nine additional providers from C04. Each
 promotion has a provider-scoped discovery proof and one reproduced selector
 from the materialized artifact. The reviewed subset and its source limits
 are recorded with the [C04 qualification evidence](../../docs/catalog-expansion-c04.md).
+C05 added nine more providers for a total of 334. The
+[C05 qualification evidence](../../docs/catalog-expansion-c05.md) records the
+selected operations, authentication metadata, and the combined disposition.
 
 ## Users
 

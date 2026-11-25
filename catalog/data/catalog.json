@@ -1848,6 +1848,35 @@
       "auth_security_review": "not-reviewed"
     },
     {
+      "id": "ebay",
+      "display_name": "eBay",
+      "aliases": [
+        "ebay sell api",
+        "ebay inventory api",
+        "ebay api"
+      ],
+      "category": "marketplace",
+      "workflow_relevance": "List programs the eBay seller account has opted into.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://developer.ebay.com/api-docs/master/sell/account/openapi/3/sell_account_v1_oas3.json",
+          "note": "Official eBay Sell Account API v1 OpenAPI 3.0.0 document version v1.9.3. Reviewed operation: getOptedInPrograms."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://developer.ebay.com/api-docs/sell/account/resources/program/methods/getOptedInPrograms",
+          "note": "Official method and OAuth permission reference for getOptedInPrograms."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-incomplete"
+    },
+    {
       "id": "egoi",
       "display_name": "E-goi",
       "aliases": [
@@ -1906,6 +1935,35 @@
       "official_machine_spec_status": "unknown",
       "user_openapi_need": "likely",
       "auth_security_review": "not-reviewed"
+    },
+    {
+      "id": "etsy",
+      "display_name": "Etsy",
+      "aliases": [
+        "etsy api",
+        "etsy open api",
+        "etsy open api v3"
+      ],
+      "category": "marketplace",
+      "workflow_relevance": "Retrieve available holidays and saved holiday preferences for an Etsy shop.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://www.etsy.com/openapi/generated/oas/3.0.0.json",
+          "note": "Official Etsy Open API v3 document. Reviewed operation: getHolidayPreferences for shops in the United States and Canada."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://developers.etsy.com/documentation/reference/#operation/getHolidayPreferences",
+          "note": "Official shop holiday preferences reference."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-complete"
     },
     {
       "id": "eventbrite",
@@ -2197,19 +2255,26 @@
         "google ads"
       ],
       "category": "advertising",
-      "workflow_relevance": "Popular Google advertising API for campaign reporting, accessible customers, GAQL searches, and advertising account automation.",
+      "workflow_relevance": "List customers directly accessible to the authenticating Google Ads principal.",
       "evidence": [
         {
           "source": "official-docs",
           "use": "review",
-          "ref": "https://developers.google.com/google-ads/api/rest/overview",
-          "note": "Official Google Ads REST overview says the API is available over gRPC or REST; no Google Discovery document was found in the public Discovery directory during M48 review."
+          "ref": "https://developers.google.com/google-ads/api/reference/rpc/v26/CustomerService/ListAccessibleCustomers",
+          "note": "Official Google Ads API v26 CustomerService method reference."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://raw.githubusercontent.com/googleapis/googleapis/d7dd444ca9b0b53e46e7594bbb705391e11f89c6/google/ads/googleads/v26/services/customer_service.proto",
+          "note": "Official Google Ads API v26 CustomerService proto, pinned as one file. Reviewed RPC: ListAccessibleCustomers. The chosen request and response declarations are local. Imported types elsewhere remain subject to native parser limits."
         }
       ],
-      "official_openapi_status": "needs-verification",
-      "official_machine_spec_status": "unknown",
+      "official_openapi_status": "unavailable",
+      "official_machine_spec_status": "known",
+      "official_machine_spec_kind": "grpc-protobuf",
       "user_openapi_need": "likely",
-      "auth_security_review": "not-reviewed"
+      "auth_security_review": "likely-incomplete"
     },
     {
       "id": "google-analytics",
@@ -2442,6 +2507,36 @@
           "use": "review",
           "ref": "https://aistudio.google.com/api-reference/models/list-models",
           "note": "Official source or operation documentation for the reviewed subset."
+        }
+      ],
+      "official_openapi_status": "unavailable",
+      "official_machine_spec_status": "known",
+      "official_machine_spec_kind": "google-discovery",
+      "user_openapi_need": "likely",
+      "auth_security_review": "likely-incomplete"
+    },
+    {
+      "id": "google-maps-platform",
+      "display_name": "Google Maps Platform",
+      "aliases": [
+        "google maps api",
+        "google places api",
+        "places api new"
+      ],
+      "category": "maps",
+      "workflow_relevance": "Get place and query predictions using the Google Maps Platform Places API (New).",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://places.googleapis.com/$discovery/rest?version=v1",
+          "note": "Official Places API (New) v1 Discovery document. Reviewed operation: Autocomplete."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://developers.google.com/maps/documentation/places/web-service/place-autocomplete",
+          "note": "Official Places API (New) Autocomplete reference."
         }
       ],
       "official_openapi_status": "unavailable",
@@ -3259,6 +3354,35 @@
       "official_machine_spec_status": "unknown",
       "user_openapi_need": "likely",
       "auth_security_review": "not-reviewed"
+    },
+    {
+      "id": "mercado-pago",
+      "display_name": "Mercado Pago",
+      "aliases": [
+        "mercadopago",
+        "mercado pago api",
+        "mercadopago api"
+      ],
+      "category": "payments",
+      "workflow_relevance": "Retrieve a payment by ID from the Mercado Pago Payments API.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://raw.githubusercontent.com/mercadopago/openapi/ac1d881294bf8b36869a0afe87c3acdfd9324dfd/spec3.json",
+          "note": "Official Mercado Pago REST document version 1.0.0. Reviewed operation: Get payment by ID."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://www.mercadopago.com.ar/developers/en/reference/online-payments/checkout-pro-preferences/get-payment/get",
+          "note": "Official Get payment reference including bearer access token and payment ID."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-complete"
     },
     {
       "id": "messagebird",
@@ -4287,6 +4411,28 @@
       "auth_security_review": "not-reviewed"
     },
     {
+      "id": "razorpay",
+      "display_name": "Razorpay",
+      "aliases": [
+        "razorpay api",
+        "razorpay payments api"
+      ],
+      "category": "payments",
+      "workflow_relevance": "Look up a Razorpay payment by ID and inspect its status and amount.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://razorpay.com/docs/api/payments/fetch-with-id",
+          "note": "Official Payments v1 endpoint. Reviewed subset: fetch one payment by ID using the merchant API."
+        }
+      ],
+      "official_openapi_status": "unavailable",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "likely",
+      "auth_security_review": "likely-incomplete"
+    },
+    {
       "id": "reddit",
       "display_name": "Reddit",
       "aliases": [
@@ -4588,6 +4734,35 @@
       "auth_security_review": "not-reviewed"
     },
     {
+      "id": "square",
+      "display_name": "Square",
+      "aliases": [
+        "square api",
+        "square connect",
+        "square merchants api"
+      ],
+      "category": "commerce",
+      "workflow_relevance": "Retrieve a seller account profile using the Square Merchants API.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://raw.githubusercontent.com/square/connect-api-specification/674f83e43690f385ef89896309fa9f5d612f312a/api.json",
+          "note": "Official Square Connect v2 API document for Square-Version 2026-11-18. Reviewed operation: RetrieveMerchant."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://developer.squareup.com/reference/square/merchants-api/retrieve-merchant",
+          "note": "Official RetrieveMerchant reference and merchant profile OAuth permission."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-incomplete"
+    },
+    {
       "id": "stackby",
       "display_name": "Stackby",
       "aliases": [
@@ -4871,6 +5046,29 @@
       "auth_security_review": "not-reviewed"
     },
     {
+      "id": "twitch",
+      "display_name": "Twitch",
+      "aliases": [
+        "twitch api",
+        "twitch helix",
+        "twitch games api"
+      ],
+      "category": "streaming",
+      "workflow_relevance": "Look up Twitch game and category metadata using the Helix API.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://dev.twitch.tv/docs/api/reference/games#get-games",
+          "note": "Official Twitch Helix Get Games endpoint and response fields."
+        }
+      ],
+      "official_openapi_status": "unavailable",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "likely",
+      "auth_security_review": "likely-incomplete"
+    },
+    {
       "id": "twitter",
       "display_name": "Twitter / X",
       "aliases": [
@@ -5057,6 +5255,30 @@
       "official_machine_spec_status": "unknown",
       "user_openapi_need": "likely",
       "auth_security_review": "not-reviewed"
+    },
+    {
+      "id": "wechat-pay",
+      "display_name": "WeChat Pay",
+      "aliases": [
+        "wechat pay api",
+        "weixin pay",
+        "wechatpay",
+        "wechat pay global"
+      ],
+      "category": "payments",
+      "workflow_relevance": "Check WeChat Pay order status in the API v3 Global common merchant mode.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://pay.wechatpay.cn/doc/global/v3/en/4012356497",
+          "note": "Official API v3 Global Query Order, scoped to common mode by WeChat Pay order number."
+        }
+      ],
+      "official_openapi_status": "unavailable",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "likely",
+      "auth_security_review": "likely-incomplete"
     },
     {
       "id": "wekan",
@@ -11118,6 +11340,48 @@
       ]
     },
     {
+      "id": "ebay",
+      "display_name": "eBay",
+      "aliases": [
+        "ebay sell api",
+        "ebay inventory api",
+        "ebay api"
+      ],
+      "category": "marketplace",
+      "workflow_relevance": "List programs the eBay seller account has opted into.",
+      "source_hints": [
+        "official-endpoint-docs",
+        "official-openapi"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "ebay",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "ebay-sell-account-v1",
+          "kind": "openapi",
+          "url": "https://developer.ebay.com/api-docs/master/sell/account/openapi/3/sell_account_v1_oas3.json",
+          "source_authority": "official-provider",
+          "version": "3.0.0",
+          "verified_at": "2026-11-24",
+          "revision": "v1.9.3 sha256:3f04cf1fd7c80160312d68be5afd7d0de00eb57fd32d508cbb5eeec526b8bfbb",
+          "license_note": "The document declares the eBay API License Agreement (https://developer.ebay.com/join/api-license-agreement). The original bytes are kept for local reference.",
+          "source_note": "Official eBay Sell Account API v1 OpenAPI 3.0.0 document version v1.9.3. Reviewed operation: getOptedInPrograms."
+        },
+        {
+          "id": "ebay-sell-account-v1-docs",
+          "kind": "human-docs",
+          "url": "https://developer.ebay.com/api-docs/sell/account/resources/program/methods/getOptedInPrograms",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official method and OAuth permission reference for getOptedInPrograms."
+        }
+      ]
+    },
+    {
       "id": "egoi",
       "display_name": "E-goi",
       "aliases": [
@@ -11308,6 +11572,48 @@
       "quirks": [
         "M28 review did not find a stable public official OpenAPI document at explicit ERPNext or Frappe OpenAPI probes.",
         "ERPNext REST resources are DocType and installation dependent; apitools records generic Frappe/ERPNext metadata only and does not choose sites, DocTypes, or credentials."
+      ]
+    },
+    {
+      "id": "etsy",
+      "display_name": "Etsy",
+      "aliases": [
+        "etsy api",
+        "etsy open api",
+        "etsy open api v3"
+      ],
+      "category": "marketplace",
+      "workflow_relevance": "Retrieve available holidays and saved holiday preferences for an Etsy shop.",
+      "source_hints": [
+        "official-endpoint-docs",
+        "official-openapi"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "etsy",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "etsy-v3-openapi",
+          "kind": "openapi",
+          "url": "https://www.etsy.com/openapi/generated/oas/3.0.0.json",
+          "source_authority": "official-provider",
+          "version": "3.0.2",
+          "verified_at": "2026-11-24",
+          "revision": "3.0.0 sha256:c68d65ed002ddb6d3381d7d4497850eaa49a80587fcd237f58df7fa52e9fdd0e",
+          "license_note": "The document reserves Etsy copyright and points to the Etsy API Developer Terms of Use (https://www.etsy.com/legal/api/). Retained for local reference.",
+          "source_note": "Official Etsy Open API v3 document. Reviewed operation: getHolidayPreferences for shops in the United States and Canada."
+        },
+        {
+          "id": "etsy-v3-shop-docs",
+          "kind": "human-docs",
+          "url": "https://developers.etsy.com/documentation/reference/#operation/getHolidayPreferences",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official shop holiday preferences reference."
+        }
       ]
     },
     {
@@ -12213,6 +12519,49 @@
       ]
     },
     {
+      "id": "google-ads",
+      "display_name": "Google Ads",
+      "aliases": [
+        "google ads api",
+        "google adwords api",
+        "google ads"
+      ],
+      "category": "advertising",
+      "workflow_relevance": "List customers directly accessible to the authenticating Google Ads principal.",
+      "source_hints": [
+        "official-grpc-protobuf",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "google-ads",
+      "official_openapi_availability": "unavailable",
+      "official_machine_spec_availability": "known",
+      "user_openapi_need": "likely",
+      "spec_references": [
+        {
+          "id": "google-ads-v26-customer-docs",
+          "kind": "human-docs",
+          "url": "https://developers.google.com/google-ads/api/reference/rpc/v26/CustomerService/ListAccessibleCustomers",
+          "source_authority": "official-docs",
+          "version": "v26",
+          "verified_at": "2026-11-24",
+          "license_note": "Google Ads API Terms and Conditions (https://developers.google.com/google-ads/api/docs/api-policy/terms) apply to API access.",
+          "source_note": "Official Google Ads API v26 CustomerService method reference."
+        },
+        {
+          "id": "google-ads-v26-customer-service",
+          "kind": "grpc-protobuf",
+          "url": "https://raw.githubusercontent.com/googleapis/googleapis/d7dd444ca9b0b53e46e7594bbb705391e11f89c6/google/ads/googleads/v26/services/customer_service.proto",
+          "source_authority": "official-github",
+          "version": "v26",
+          "verified_at": "2026-11-24",
+          "revision": "repo:d7dd444ca9b0b53e46e7594bbb705391e11f89c6 sha256:0cca59c738498fb0010f39f437d29eaff5dbe7577aae4bcdd011ae445795e685",
+          "license_note": "The proto header and official googleapis repository declare Apache-2.0 (https://github.com/googleapis/googleapis/blob/d7dd444ca9b0b53e46e7594bbb705391e11f89c6/LICENSE). API access is separately governed by https://developers.google.com/google-ads/api/docs/api-policy/terms.",
+          "source_note": "Official Google Ads API v26 CustomerService proto, pinned as one file. Reviewed RPC: ListAccessibleCustomers. The chosen request and response declarations are local. Imported types elsewhere remain subject to native parser limits."
+        }
+      ]
+    },
+    {
       "id": "google-analytics",
       "display_name": "Google Analytics",
       "aliases": [
@@ -12872,6 +13221,48 @@
           "verified_at": "2026-11-24",
           "license_note": "Provider documentation terms apply.",
           "source_note": "Official v1beta model list documentation and fields."
+        }
+      ]
+    },
+    {
+      "id": "google-maps-platform",
+      "display_name": "Google Maps Platform",
+      "aliases": [
+        "google maps api",
+        "google places api",
+        "places api new"
+      ],
+      "category": "maps",
+      "workflow_relevance": "Get place and query predictions using the Google Maps Platform Places API (New).",
+      "source_hints": [
+        "official-google-discovery",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "google-maps-platform",
+      "official_openapi_availability": "unavailable",
+      "official_machine_spec_availability": "known",
+      "user_openapi_need": "likely",
+      "spec_references": [
+        {
+          "id": "google-maps-places-v1-discovery",
+          "kind": "google-discovery",
+          "url": "https://places.googleapis.com/$discovery/rest?version=v1",
+          "source_authority": "official-provider",
+          "version": "v1",
+          "verified_at": "2026-11-24",
+          "revision": "20261123 sha256:e6db1c21f8b1c51f9ff1b5495b1bbafdf33cac27e470f0db2c7bad3afa0f7331",
+          "license_note": "Google Maps Platform Terms (https://cloud.google.com/maps-platform/terms) and Google Developers Site Policies (https://developers.google.com/terms/site-policies) apply. The Discovery document does not declare a redistribution license and is retained for local reference.",
+          "source_note": "Official Places API (New) v1 Discovery document. Reviewed operation: Autocomplete."
+        },
+        {
+          "id": "google-maps-places-v1-docs",
+          "kind": "human-docs",
+          "url": "https://developers.google.com/maps/documentation/places/web-service/place-autocomplete",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official Places API (New) Autocomplete reference."
         }
       ]
     },
@@ -15438,6 +15829,48 @@
       "quirks": [
         "M32 review did not find a stable public official OpenAPI document at explicit Medium OpenAPI probes.",
         "Medium API access is publishing-oriented and uses OAuth or integration tokens; apitools records bearer metadata only and does not publish posts."
+      ]
+    },
+    {
+      "id": "mercado-pago",
+      "display_name": "Mercado Pago",
+      "aliases": [
+        "mercadopago",
+        "mercado pago api",
+        "mercadopago api"
+      ],
+      "category": "payments",
+      "workflow_relevance": "Retrieve a payment by ID from the Mercado Pago Payments API.",
+      "source_hints": [
+        "official-endpoint-docs",
+        "official-openapi"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "mercado-pago",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "mercado-pago-rest-openapi",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/mercadopago/openapi/ac1d881294bf8b36869a0afe87c3acdfd9324dfd/spec3.json",
+          "source_authority": "official-github",
+          "version": "3.1.0",
+          "verified_at": "2026-11-24",
+          "revision": "repo:ac1d881294bf8b36869a0afe87c3acdfd9324dfd sha256:da7e3a7482982b1b6880a5f71411edcab54ce354a8eda55a970ec6c09973592b",
+          "license_note": "The artifact and repository declare Apache-2.0 (https://github.com/mercadopago/openapi/blob/ac1d881294bf8b36869a0afe87c3acdfd9324dfd/LICENSE). Developer terms (https://www.mercadopago.com.ar/developers/en/docs/resources/legal/terms-and-conditions) separately cover API access.",
+          "source_note": "Official Mercado Pago REST document version 1.0.0. Reviewed operation: Get payment by ID."
+        },
+        {
+          "id": "mercado-pago-payments-docs",
+          "kind": "human-docs",
+          "url": "https://www.mercadopago.com.ar/developers/en/reference/online-payments/checkout-pro-preferences/get-payment/get",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official Get payment reference including bearer access token and payment ID."
+        }
       ]
     },
     {
@@ -18361,6 +18794,40 @@
       ]
     },
     {
+      "id": "razorpay",
+      "display_name": "Razorpay",
+      "aliases": [
+        "razorpay api",
+        "razorpay payments api"
+      ],
+      "category": "payments",
+      "workflow_relevance": "Look up a Razorpay payment by ID and inspect its status and amount.",
+      "source_hints": [
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "razorpay",
+      "official_openapi_availability": "unavailable",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "likely",
+      "spec_references": [
+        {
+          "id": "razorpay-payments-v1-docs",
+          "kind": "human-docs",
+          "url": "https://razorpay.com/docs/api/payments/fetch-with-id",
+          "source_authority": "official-docs",
+          "version": "v1",
+          "verified_at": "2026-11-24",
+          "revision": "docs last modified 2026-10-08",
+          "license_note": "Razorpay payment terms (https://razorpay.com/terms/) apply. No redistribution license for the source pages was identified. The upstream pages are reference-only.",
+          "source_note": "Official Payments v1 endpoint. Reviewed subset: fetch one payment by ID using the merchant API."
+        }
+      ],
+      "quirks": [
+        "The checked-in OpenAPI-shaped advisory asset describes a single read endpoint. The provider advertises a Postman workspace, which is outside the catalog source families."
+      ]
+    },
+    {
       "id": "reddit",
       "display_name": "Reddit",
       "aliases": [
@@ -19543,6 +20010,48 @@
       ]
     },
     {
+      "id": "square",
+      "display_name": "Square",
+      "aliases": [
+        "square api",
+        "square connect",
+        "square merchants api"
+      ],
+      "category": "commerce",
+      "workflow_relevance": "Retrieve a seller account profile using the Square Merchants API.",
+      "source_hints": [
+        "official-endpoint-docs",
+        "official-openapi"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "square",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "square-connect-v2-openapi",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/square/connect-api-specification/674f83e43690f385ef89896309fa9f5d612f312a/api.json",
+          "source_authority": "official-github",
+          "version": "3.0.0",
+          "verified_at": "2026-11-24",
+          "revision": "repo:674f83e43690f385ef89896309fa9f5d612f312a sha256:76e7cc8ba3fd94c162a3339531aafe798d5556ac34ae03e8253df815b49305f1",
+          "license_note": "The artifact and repository declare Apache-2.0 (https://github.com/square/connect-api-specification/blob/674f83e43690f385ef89896309fa9f5d612f312a/LICENSE). Developer terms (https://squareup.com/us/en/legal/general/developers) separately cover API access.",
+          "source_note": "Official Square Connect v2 API document for Square-Version 2026-11-18. Reviewed operation: RetrieveMerchant."
+        },
+        {
+          "id": "square-merchants-v2-docs",
+          "kind": "human-docs",
+          "url": "https://developer.squareup.com/reference/square/merchants-api/retrieve-merchant",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official RetrieveMerchant reference and merchant profile OAuth permission."
+        }
+      ]
+    },
+    {
       "id": "stackby",
       "display_name": "Stackby",
       "aliases": [
@@ -20471,6 +20980,41 @@
       ]
     },
     {
+      "id": "twitch",
+      "display_name": "Twitch",
+      "aliases": [
+        "twitch api",
+        "twitch helix",
+        "twitch games api"
+      ],
+      "category": "streaming",
+      "workflow_relevance": "Look up Twitch game and category metadata using the Helix API.",
+      "source_hints": [
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "twitch",
+      "official_openapi_availability": "unavailable",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "likely",
+      "spec_references": [
+        {
+          "id": "twitch-helix-games-docs",
+          "kind": "human-docs",
+          "url": "https://dev.twitch.tv/docs/api/reference/games#get-games",
+          "source_authority": "official-docs",
+          "version": "helix",
+          "verified_at": "2026-11-24",
+          "revision": "docs observed 2026-11-24",
+          "license_note": "Twitch Developer Services Agreement (https://legal.twitch.com/en/legal/developer-agreement/) applies to API access. The source page declares no redistribution license and is reference-only.",
+          "source_note": "Official Twitch Helix Get Games endpoint and response fields."
+        }
+      ],
+      "quirks": [
+        "Get Games requires at least one ID, exact name or IGDB ID and allows up to 100 total query values."
+      ]
+    },
+    {
       "id": "twitter",
       "display_name": "Twitter / X",
       "aliases": [
@@ -21083,6 +21627,42 @@
       ],
       "quirks": [
         "M21 review found Webflow API docs but no stable public official OpenAPI download; OpenAPI-only workflows need a generated or user-provided OpenAPI document."
+      ]
+    },
+    {
+      "id": "wechat-pay",
+      "display_name": "WeChat Pay",
+      "aliases": [
+        "wechat pay api",
+        "weixin pay",
+        "wechatpay",
+        "wechat pay global"
+      ],
+      "category": "payments",
+      "workflow_relevance": "Check WeChat Pay order status in the API v3 Global common merchant mode.",
+      "source_hints": [
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "wechat-pay",
+      "official_openapi_availability": "unavailable",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "likely",
+      "spec_references": [
+        {
+          "id": "wechat-pay-v3-global-order-docs",
+          "kind": "human-docs",
+          "url": "https://pay.wechatpay.cn/doc/global/v3/en/4012356497",
+          "source_authority": "official-docs",
+          "version": "v3",
+          "verified_at": "2026-11-24",
+          "revision": "docs update 2025-02-25",
+          "license_note": "Provider merchant access terms apply (see https://pay.wechatpay.cn/doc/global/v3/en/4012357180). The source page declares no redistribution license and is reference-only.",
+          "source_note": "Official API v3 Global Query Order, scoped to common mode by WeChat Pay order number."
+        }
+      ],
+      "quirks": [
+        "The advisory asset covers common merchant mode only and uses a symbolic request signature scheme."
       ]
     },
     {
@@ -22789,6 +23369,18 @@
       "source_note": "Dropcontact has official human API docs but no recorded stable public official OpenAPI document; X-Access-Token metadata comes from advisory overlay notes."
     },
     {
+      "provider_id": "ebay",
+      "spec_ref_id": "ebay-sell-account-v1",
+      "status": "present-incomplete",
+      "source_refs": [
+        "https://developer.ebay.com/api-docs/master/sell/account/openapi/3/sell_account_v1_oas3.json",
+        "https://developer.ebay.com/api-docs/sell/account/resources/program/methods/getOptedInPrograms",
+        "https://developer.ebay.com/api-docs/sell/account/static/overview.html",
+        "https://developer.ebay.com/develop/guides/sell/authorization"
+      ],
+      "source_note": "All inspected Account operations declare individual OAuth requirements. The selected operation names both account scopes in one requirement, although official docs allow either scope. The scoped overlay records the alternatives."
+    },
+    {
       "provider_id": "egoi",
       "spec_ref_id": "egoi-marketing-api-v3-openapi",
       "status": "complete",
@@ -22826,6 +23418,17 @@
         "https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication"
       ],
       "source_note": "ERPNext/Frappe has official human REST API docs but no recorded stable public official OpenAPI document; token authentication metadata comes from advisory overlay notes."
+    },
+    {
+      "provider_id": "etsy",
+      "spec_ref_id": "etsy-v3-openapi",
+      "status": "complete",
+      "source_refs": [
+        "https://www.etsy.com/openapi/generated/oas/3.0.0.json",
+        "https://developers.etsy.com/documentation/reference/#operation/getHolidayPreferences",
+        "https://developers.etsy.com/documentation/essentials/authentication/"
+      ],
+      "source_note": "The root uses the reusable x-api-key scheme. The selected operation explicitly requires that key and the shops_r OAuth authorization-code scope together, consistent with the documented app-key and scoped-user requirements."
     },
     {
       "provider_id": "facebook",
@@ -22985,6 +23588,17 @@
       "source_note": "Gong has official API human docs but no recorded stable public official OpenAPI document; access key/secret Basic auth and OAuth bearer metadata comes from advisory overlay notes."
     },
     {
+      "provider_id": "google-ads",
+      "spec_ref_id": "google-ads-v26-customer-service",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://raw.githubusercontent.com/googleapis/googleapis/d7dd444ca9b0b53e46e7594bbb705391e11f89c6/google/ads/googleads/v26/services/customer_service.proto",
+        "https://developers.google.com/google-ads/api/reference/rpc/v26/CustomerService/ListAccessibleCustomers",
+        "https://developers.google.com/google-ads/api/docs/concepts/call-structure"
+      ],
+      "source_note": "CustomerService declares the adwords OAuth scope. Official call structure requires the developer-token metadata together with an OAuth access token; login-customer-id is unnecessary for this direct-access listing."
+    },
+    {
       "provider_id": "google-calendar",
       "spec_ref_id": "calendar-discovery-v3",
       "status": "overlay-required",
@@ -23012,6 +23626,18 @@
         "https://aistudio.google.com/docs/api-key"
       ],
       "source_note": "The v1beta Discovery method declares no OAuth scopes, and its API-wide auth metadata does not describe the operational Gemini API key requirement for this method."
+    },
+    {
+      "provider_id": "google-maps-platform",
+      "spec_ref_id": "google-maps-places-v1-discovery",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://places.googleapis.com/$discovery/rest?version=v1",
+        "https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places/autocomplete",
+        "https://developers.google.com/maps/documentation/places/web-service/place-autocomplete",
+        "https://developers.google.com/maps/documentation/places/web-service/get-api-key?setupProd=configure"
+      ],
+      "source_note": "Places API (New) allows a restricted API key or an OAuth bearer token. Discovery lists inherited key query input and OAuth scopes but omits the documented X-Goog-Api-Key header."
     },
     {
       "provider_id": "google-sheets",
@@ -23471,6 +24097,17 @@
         "https://github.com/Medium/medium-api-docs"
       ],
       "source_note": "Medium has official human API docs but no recorded stable public official OpenAPI document; bearer access-token metadata comes from advisory overlay notes."
+    },
+    {
+      "provider_id": "mercado-pago",
+      "spec_ref_id": "mercado-pago-rest-openapi",
+      "status": "complete",
+      "source_refs": [
+        "https://raw.githubusercontent.com/mercadopago/openapi/ac1d881294bf8b36869a0afe87c3acdfd9324dfd/spec3.json",
+        "https://www.mercadopago.com.ar/developers/en/reference/online-payments/checkout-pro-preferences/get-payment/get",
+        "https://www.mercadopago.com.ar/developers/en/docs/your-integrations/credentials"
+      ],
+      "source_note": "The root and selected operation both require bearerAuth. The reusable HTTP bearer scheme matches the private access token documented for this Payments operation."
     },
     {
       "provider_id": "messagebird",
@@ -24067,6 +24704,17 @@
       "source_note": "Raindrop.io has official human API docs but no recorded stable public official OpenAPI document; OAuth bearer metadata comes from advisory overlay notes."
     },
     {
+      "provider_id": "razorpay",
+      "spec_ref_id": "razorpay-payments-v1-docs",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://razorpay.com/docs/api/payments/fetch-with-id",
+        "https://razorpay.com/docs/api/authentication",
+        "https://razorpay.com/blog/?p=7242"
+      ],
+      "source_note": "Official documentation calls for HTTP Basic with the Razorpay merchant key ID and key secret for this operation. The scoped overlay contains credential field names only."
+    },
+    {
       "provider_id": "reddit",
       "spec_ref_id": "reddit-api-docs",
       "status": "overlay-required",
@@ -24280,6 +24928,18 @@
       "source_note": "Spotify's official Web API OpenAPI document includes OAuth2 authorization-code security metadata with operation-level security requirements."
     },
     {
+      "provider_id": "square",
+      "spec_ref_id": "square-connect-v2-openapi",
+      "status": "present-incomplete",
+      "source_refs": [
+        "https://raw.githubusercontent.com/square/connect-api-specification/674f83e43690f385ef89896309fa9f5d612f312a/api.json",
+        "https://developer.squareup.com/reference/square/merchants-api/retrieve-merchant",
+        "https://developer.squareup.com/docs/build-basics/access-tokens",
+        "https://developer.squareup.com/docs/oauth-api/square-permissions#merchants"
+      ],
+      "source_note": "The document assigns security at the operation level and RetrieveMerchant requires MERCHANT_PROFILE_READ for OAuth. Square documents its personal bearer access token as a separate alternative for its owner account."
+    },
+    {
       "provider_id": "stackby",
       "spec_ref_id": "stackby-api-key-docs",
       "status": "overlay-required",
@@ -24466,6 +25126,16 @@
       "source_note": "Twist has official API v3 human docs but no recorded stable public official OpenAPI document; OAuth/test bearer token metadata comes from advisory overlay notes."
     },
     {
+      "provider_id": "twitch",
+      "spec_ref_id": "twitch-helix-games-docs",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://dev.twitch.tv/docs/api/reference/games#get-games",
+        "https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/"
+      ],
+      "source_note": "Get Games accepts a Twitch app or user OAuth access token, together with the Client-Id header matching that token. The endpoint does not name an additional OAuth scope."
+    },
+    {
       "provider_id": "twitter",
       "spec_ref_id": "twitter-api-v2-openapi",
       "status": "complete",
@@ -24576,6 +25246,17 @@
         "https://developer.vonage.com/en/api/messages"
       ],
       "source_note": "Vonage's official Messages API OpenAPI document includes bearer and basic security schemes with operation-level security requirements."
+    },
+    {
+      "provider_id": "wechat-pay",
+      "spec_ref_id": "wechat-pay-v3-global-order-docs",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://pay.wechatpay.cn/doc/global/v3/en/4012356497",
+        "https://pay.wechatpay.cn/doc/global/v3/en/4012357147",
+        "https://pay.wechatpay.cn/doc/global/v3/en/4012357105"
+      ],
+      "source_note": "API v3 Global requires a signed Authorization header using WECHATPAY2-SHA256-RSA2048 with merchant key and certificate context. Common mode requires mchid in the query. The overlay describes the signature symbolically and carries no signing material or code."
     },
     {
       "provider_id": "wekan",
@@ -27610,6 +28291,71 @@
       "source_note": "Dropcontact has official human API docs but no recorded stable public official OpenAPI document; X-Access-Token metadata comes from advisory overlay notes."
     },
     {
+      "id": "ebay-sell-account-v1-auth-review",
+      "provider_id": "ebay",
+      "spec_ref_id": "ebay-sell-account-v1",
+      "status": "present-incomplete",
+      "security_schemes": [
+        {
+          "name": "api_auth",
+          "type": "oauth2",
+          "flows": [
+            {
+              "type": "authorizationCode",
+              "authorization_url": "https://auth.ebay.com/oauth2/authorize",
+              "token_url": "https://api.ebay.com/identity/v1/oauth2/token",
+              "scopes": [
+                "https://api.ebay.com/oauth/api_scope/sell.account.readonly",
+                "https://api.ebay.com/oauth/api_scope/sell.account"
+              ]
+            }
+          ],
+          "scopes": [
+            "https://api.ebay.com/oauth/api_scope/sell.account.readonly",
+            "https://api.ebay.com/oauth/api_scope/sell.account"
+          ]
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "getOptedInPrograms",
+            "method": "GET",
+            "path": "/program/get_opted_in_programs"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "api_auth",
+                  "scopes": [
+                    "https://api.ebay.com/oauth/api_scope/sell.account.readonly"
+                  ]
+                }
+              ]
+            },
+            {
+              "requirements": [
+                {
+                  "scheme": "api_auth",
+                  "scopes": [
+                    "https://api.ebay.com/oauth/api_scope/sell.account"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://developer.ebay.com/api-docs/master/sell/account/openapi/3/sell_account_v1_oas3.json",
+        "https://developer.ebay.com/api-docs/sell/account/resources/program/methods/getOptedInPrograms",
+        "https://developer.ebay.com/api-docs/sell/account/static/overview.html",
+        "https://developer.ebay.com/develop/guides/sell/authorization"
+      ],
+      "source_note": "All inspected Account operations declare individual OAuth requirements. The selected operation names both account scopes in one requirement, although official docs allow either scope. The scoped overlay records the alternatives."
+    },
+    {
       "id": "emelia-api-auth-overlay",
       "provider_id": "emelia",
       "spec_ref_id": "emelia-graphql-api-docs",
@@ -28192,6 +28938,65 @@
         "https://developers.google.com/admin-sdk/directory/v1/guides/authorizing"
       ],
       "source_note": "Google Admin SDK publishes an official Google Discovery document rather than OpenAPI; OAuth scopes are recorded as metadata only, and apitools must not fetch tokens or choose Google accounts or projects."
+    },
+    {
+      "id": "google-ads-v26-customer-service-auth-review",
+      "provider_id": "google-ads",
+      "spec_ref_id": "google-ads-v26-customer-service",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "googleAdsOAuth",
+          "type": "oauth2",
+          "flows": [
+            {
+              "type": "authorizationCode",
+              "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth",
+              "token_url": "https://oauth2.googleapis.com/token",
+              "scopes": [
+                "https://www.googleapis.com/auth/adwords"
+              ]
+            }
+          ],
+          "scopes": [
+            "https://www.googleapis.com/auth/adwords"
+          ]
+        },
+        {
+          "name": "googleAdsDeveloperToken",
+          "type": "apiKey",
+          "in": "header",
+          "parameter_name": "developer-token"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "google.ads.googleads.v26.services.CustomerService/ListAccessibleCustomers"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "googleAdsOAuth",
+                  "scopes": [
+                    "https://www.googleapis.com/auth/adwords"
+                  ]
+                },
+                {
+                  "scheme": "googleAdsDeveloperToken"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://raw.githubusercontent.com/googleapis/googleapis/d7dd444ca9b0b53e46e7594bbb705391e11f89c6/google/ads/googleads/v26/services/customer_service.proto",
+        "https://developers.google.com/google-ads/api/reference/rpc/v26/CustomerService/ListAccessibleCustomers",
+        "https://developers.google.com/google-ads/api/docs/concepts/call-structure"
+      ],
+      "source_note": "CustomerService declares the adwords OAuth scope. Official call structure requires the developer-token metadata together with an OAuth access token; login-customer-id is unnecessary for this direct-access listing."
     },
     {
       "id": "google-analytics-discovery-auth-overlay",
@@ -28788,6 +29593,107 @@
         "https://aistudio.google.com/docs/api-key"
       ],
       "source_note": "The selected documented REST surface accepts a Gemini API key carried in x-goog-api-key. Provider-side key restrictions remain separate from this request metadata."
+    },
+    {
+      "id": "google-maps-places-v1-discovery-auth-review",
+      "provider_id": "google-maps-platform",
+      "spec_ref_id": "google-maps-places-v1-discovery",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "googleMapsKeyHeader",
+          "type": "apiKey",
+          "in": "header",
+          "parameter_name": "X-Goog-Api-Key"
+        },
+        {
+          "name": "googleMapsKeyQuery",
+          "type": "apiKey",
+          "in": "query",
+          "parameter_name": "key"
+        },
+        {
+          "name": "googleMapsOAuth",
+          "type": "oauth2",
+          "flows": [
+            {
+              "type": "authorizationCode",
+              "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth",
+              "token_url": "https://oauth2.googleapis.com/token",
+              "scopes": [
+                "https://www.googleapis.com/auth/maps-platform.places.autocomplete",
+                "https://www.googleapis.com/auth/maps-platform.places",
+                "https://www.googleapis.com/auth/cloud-platform"
+              ]
+            }
+          ],
+          "scopes": [
+            "https://www.googleapis.com/auth/maps-platform.places.autocomplete",
+            "https://www.googleapis.com/auth/maps-platform.places",
+            "https://www.googleapis.com/auth/cloud-platform"
+          ]
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "places.places.autocomplete"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "googleMapsKeyHeader"
+                }
+              ]
+            },
+            {
+              "requirements": [
+                {
+                  "scheme": "googleMapsKeyQuery"
+                }
+              ]
+            },
+            {
+              "requirements": [
+                {
+                  "scheme": "googleMapsOAuth",
+                  "scopes": [
+                    "https://www.googleapis.com/auth/maps-platform.places.autocomplete"
+                  ]
+                }
+              ]
+            },
+            {
+              "requirements": [
+                {
+                  "scheme": "googleMapsOAuth",
+                  "scopes": [
+                    "https://www.googleapis.com/auth/maps-platform.places"
+                  ]
+                }
+              ]
+            },
+            {
+              "requirements": [
+                {
+                  "scheme": "googleMapsOAuth",
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://places.googleapis.com/$discovery/rest?version=v1",
+        "https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places/autocomplete",
+        "https://developers.google.com/maps/documentation/places/web-service/place-autocomplete",
+        "https://developers.google.com/maps/documentation/places/web-service/get-api-key?setupProd=configure"
+      ],
+      "source_note": "Places API (New) allows a restricted API key or an OAuth bearer token. Discovery lists inherited key query input and OAuth scopes but omits the documented X-Goog-Api-Key header."
     },
     {
       "id": "google-perspective-discovery-auth-overlay",
@@ -31457,6 +32363,44 @@
       "source_note": "Raindrop.io has official human API docs but no recorded stable public official OpenAPI document; OAuth bearer metadata comes from advisory overlay notes."
     },
     {
+      "id": "razorpay-payments-v1-docs-auth-review",
+      "provider_id": "razorpay",
+      "spec_ref_id": "razorpay-payments-v1-docs",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "razorpayBasic",
+          "type": "http",
+          "description": "Merchant key ID and key secret as Basic credentials.",
+          "scheme": "basic"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "fetchRazorpayPayment",
+            "method": "GET",
+            "path": "/v1/payments/{id}"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "razorpayBasic"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://razorpay.com/docs/api/payments/fetch-with-id",
+        "https://razorpay.com/docs/api/authentication",
+        "https://razorpay.com/blog/?p=7242"
+      ],
+      "source_note": "Official documentation calls for HTTP Basic with the Razorpay merchant key ID and key secret for this operation. The scoped overlay contains credential field names only."
+    },
+    {
       "id": "reddit-oauth-auth-overlay",
       "provider_id": "reddit",
       "spec_ref_id": "reddit-api-docs",
@@ -31821,6 +32765,72 @@
         "https://docs.splunk.com/Documentation/Splunk/latest/RESTREF"
       ],
       "source_note": "Splunk has human REST API docs in this catalog entry but no recorded stable public OpenAPI document for the general Enterprise API; docs describe authentication tokens, session keys, and credentials, so OpenAPI imports need an advisory auth overlay."
+    },
+    {
+      "id": "square-connect-v2-openapi-auth-review",
+      "provider_id": "square",
+      "spec_ref_id": "square-connect-v2-openapi",
+      "status": "present-incomplete",
+      "security_schemes": [
+        {
+          "name": "squarePersonalBearer",
+          "type": "http",
+          "description": "Personal access token for an integration accessing its own Square account.",
+          "scheme": "bearer"
+        },
+        {
+          "name": "oauth2",
+          "type": "oauth2",
+          "flows": [
+            {
+              "type": "authorizationCode",
+              "authorization_url": "https://connect.squareup.com/oauth2/authorize",
+              "token_url": "https://connect.squareup.com/oauth2/token",
+              "scopes": [
+                "MERCHANT_PROFILE_READ"
+              ]
+            }
+          ],
+          "scopes": [
+            "MERCHANT_PROFILE_READ"
+          ]
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "RetrieveMerchant",
+            "method": "GET",
+            "path": "/v2/merchants/{merchant_id}"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "squarePersonalBearer"
+                }
+              ]
+            },
+            {
+              "requirements": [
+                {
+                  "scheme": "oauth2",
+                  "scopes": [
+                    "MERCHANT_PROFILE_READ"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://raw.githubusercontent.com/square/connect-api-specification/674f83e43690f385ef89896309fa9f5d612f312a/api.json",
+        "https://developer.squareup.com/reference/square/merchants-api/retrieve-merchant",
+        "https://developer.squareup.com/docs/build-basics/access-tokens",
+        "https://developer.squareup.com/docs/oauth-api/square-permissions#merchants"
+      ],
+      "source_note": "The document assigns security at the operation level and RetrieveMerchant requires MERCHANT_PROFILE_READ for OAuth. Square documents its personal bearer access token as a separate alternative for its owner account."
     },
     {
       "id": "stackby-api-key-auth-overlay",
@@ -32300,6 +33310,78 @@
       "source_note": "Twist has official API v3 human docs but no recorded stable public official OpenAPI document; OAuth/test bearer token metadata comes from advisory overlay notes."
     },
     {
+      "id": "twitch-helix-games-docs-auth-review",
+      "provider_id": "twitch",
+      "spec_ref_id": "twitch-helix-games-docs",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "twitchAppOAuth",
+          "type": "oauth2",
+          "flows": [
+            {
+              "type": "clientCredentials",
+              "token_url": "https://id.twitch.tv/oauth2/token"
+            }
+          ]
+        },
+        {
+          "name": "twitchUserOAuth",
+          "type": "oauth2",
+          "flows": [
+            {
+              "type": "authorizationCode",
+              "authorization_url": "https://id.twitch.tv/oauth2/authorize",
+              "token_url": "https://id.twitch.tv/oauth2/token"
+            }
+          ]
+        },
+        {
+          "name": "twitchClientID",
+          "type": "apiKey",
+          "description": "Registered client identifier matching the token.",
+          "in": "header",
+          "parameter_name": "Client-Id"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "getTwitchGames",
+            "method": "GET",
+            "path": "/helix/games"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "twitchAppOAuth"
+                },
+                {
+                  "scheme": "twitchClientID"
+                }
+              ]
+            },
+            {
+              "requirements": [
+                {
+                  "scheme": "twitchUserOAuth"
+                },
+                {
+                  "scheme": "twitchClientID"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://dev.twitch.tv/docs/api/reference/games#get-games",
+        "https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/"
+      ],
+      "source_note": "Get Games accepts a Twitch app or user OAuth access token, together with the Client-Id header matching that token. The endpoint does not name an additional OAuth scope."
+    },
+    {
       "id": "typeform-rest-auth-overlay",
       "provider_id": "typeform",
       "spec_ref_id": "typeform-developer-docs",
@@ -32514,6 +33596,44 @@
         "https://developers.webflow.com/data/reference/authorization"
       ],
       "source_note": "Webflow has human API docs in this catalog entry but no recorded stable public OpenAPI download; docs describe bearer-token authorization for Data API requests."
+    },
+    {
+      "id": "wechat-pay-v3-global-order-docs-auth-review",
+      "provider_id": "wechat-pay",
+      "spec_ref_id": "wechat-pay-v3-global-order-docs",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "wechatPaySignature",
+          "type": "http",
+          "description": "Symbolic signed Authorization header for an API v3 Global merchant request.",
+          "scheme": "wechatpay2-sha256-rsa2048"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "queryWeChatPayOrder",
+            "method": "GET",
+            "path": "/v3/global/transactions/id/{id}"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "wechatPaySignature"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://pay.wechatpay.cn/doc/global/v3/en/4012356497",
+        "https://pay.wechatpay.cn/doc/global/v3/en/4012357147",
+        "https://pay.wechatpay.cn/doc/global/v3/en/4012357105"
+      ],
+      "source_note": "API v3 Global requires a signed Authorization header using WECHATPAY2-SHA256-RSA2048 with merchant key and certificate context. Common mode requires mchid in the query. The overlay describes the signature symbolically and carries no signing material or code."
     },
     {
       "id": "wekan-rest-api-auth-overlay",

@@ -121,6 +121,34 @@ func TestResolveProviderPrefersSmithyBeforeHumanDocs(t *testing.T) {
 	}
 }
 
+func TestResolveProviderPrefersGRPCProtobufBeforeHumanDocs(t *testing.T) {
+	proto := SpecReference{ID: "customers-proto", Kind: SpecKindGRPCProtobuf, URL: "https://example.com/customers.proto", SourceAuthority: SourceAuthorityOfficialProvider, SourceNote: "Provider protobuf."}
+	docs := SpecReference{ID: "customers-docs", Kind: SpecKindHumanDocs, URL: "https://example.com/customers", SourceAuthority: SourceAuthorityOfficialDocs, SourceNote: "Provider documentation."}
+	tests := map[string][]SpecReference{
+		"protobuf first": {proto, docs},
+		"docs first":     {docs, proto},
+	}
+	for name, refs := range tests {
+		t.Run(name, func(t *testing.T) {
+			resolved, err := ResolveProvider(ResolveProviderOptions{
+				Catalog: Catalog{Providers: []Provider{{
+					ID: "customers", DisplayName: "Customers", CandidateID: "customers",
+					ReviewState: ProviderReviewedCatalogEntry, SpecReferences: refs,
+					OfficialOpenAPIAvailability: SpecAvailabilityUnavailable, OfficialMachineSpecAvailability: SpecAvailabilityKnown,
+					UserOpenAPINeed: UserOpenAPINeedLikely,
+				}}},
+				ProviderKey: "customers",
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if resolved.OpenAPI.SpecRefID != proto.ID || resolved.OpenAPI.Protocol != SpecProtocolGRPCProtobuf {
+				t.Fatalf("resolved source = %+v, want %s/%s", resolved.OpenAPI, proto.ID, SpecProtocolGRPCProtobuf)
+			}
+		})
+	}
+}
+
 func TestResolveProviderPrefersDropboxStoneBeforeHumanDocs(t *testing.T) {
 	resolved, err := ResolveProvider(ResolveProviderOptions{ProviderKey: "dropbox"})
 	if err != nil {

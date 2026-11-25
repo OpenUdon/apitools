@@ -60,6 +60,10 @@ bounded indexing of an operation and whole-source shape-table projection
 can differ on the same pinned bytes. Record the result at each boundary
 where it was observed. [C04 operation proofs](../../docs/catalog-expansion-c04.md).
 
+For an operation-scoped security overlay, use the operation ID emitted by
+the native parser. Verify through security inspection that the indexed ID
+resolves to all requirements in the intended set. [C05 Google Ads proof](../../docs/catalog-expansion-c05.md#maps-advertising-and-marketplaces).
+
 ## Keep trust projections independent of prompt summaries
 
 - **Applies when:** Producing schemas for advisory binding or verifying cached

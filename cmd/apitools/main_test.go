@@ -1141,6 +1141,40 @@ func TestCatalogInspectLabelsResolvedDiscoveryProtocol(t *testing.T) {
 	}
 }
 
+func TestCatalogInspectAndResolveIdentifyGoogleAdsProtobuf(t *testing.T) {
+	const specID = "google-ads-v26-customer-service"
+	var out, errOut bytes.Buffer
+	code := run([]string{"catalog", "inspect", "google-ads"}, &out, &errOut)
+	if code != 0 {
+		t.Fatalf("inspect code = %d: %s", code, errOut.String())
+	}
+	for _, expected := range []string{"Resolved gRPC/Protobuf: built-in-spec-reference", "spec=" + specID, "protocol=grpc-protobuf"} {
+		if !strings.Contains(out.String(), expected) {
+			t.Fatalf("inspect output missing %q:\n%s", expected, out.String())
+		}
+	}
+
+	out.Reset()
+	errOut.Reset()
+	code = run([]string{"catalog", "resolve", "google-ads", "--cache", filepath.Join(t.TempDir(), "cache.sqlite"), "--json"}, &out, &errOut)
+	if code != 0 {
+		t.Fatalf("resolve code = %d: %s", code, errOut.String())
+	}
+	var resolutions []catalog.ProviderResolution
+	if err := json.Unmarshal(out.Bytes(), &resolutions); err != nil {
+		t.Fatal(err)
+	}
+	if len(resolutions) != 1 || resolutions[0].ProviderID != "google-ads" {
+		t.Fatalf("resolve output = %+v", resolutions)
+	}
+	for _, spec := range resolutions[0].SpecReferences {
+		if spec.ID == specID && spec.Protocol == catalog.SpecProtocolGRPCProtobuf && spec.UWSSourceType == "grpc-protobuf" {
+			return
+		}
+	}
+	t.Fatalf("catalog resolve did not list %s as grpc-protobuf: %+v", specID, resolutions[0].SpecReferences)
+}
+
 func TestCatalogInspectUserOpenAPIOverridesBuiltInSecurity(t *testing.T) {
 	var out bytes.Buffer
 	var errOut bytes.Buffer

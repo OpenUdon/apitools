@@ -50,19 +50,21 @@ operations.
 
 ## Reviewed provider catalog
 
-The built-in [provider catalog](catalog/data/catalog.json) contains **325
+The built-in [provider catalog](catalog/data/catalog.json) contains **334
 reviewed providers**.
 
 | Primary catalog coverage | Providers |
 | --- | ---: |
-| Official OpenAPI, Swagger, or an official OpenAPI index | 116 |
-| Other official machine-readable specs | 52 |
-| Human docs with a checked-in advisory OpenAPI overlay | 136 |
+| Official OpenAPI, Swagger, or an official OpenAPI index | 120 |
+| Other official machine-readable specs | 54 |
+| Human docs with a checked-in advisory OpenAPI overlay | 139 |
 | Human docs without a checked-in endpoint overlay | 21 |
 
-Each provider is counted once. Dropbox, Google Calendar, Google Gemini API,
-and Google Sheets are counted under other official specs and also have
-advisory OpenAPI overlays.
+Each provider is counted once. Dropbox, Google Ads, Google Calendar, Google
+Gemini API, Google Maps Platform, and Google Sheets use other official specs
+as their primary sources and also have advisory OpenAPI overlays. The
+[C04](docs/catalog-expansion-c04.md) and [C05](docs/catalog-expansion-c05.md)
+qualification records identify the exact supported surfaces and artifacts.
 
 ## CLI
 

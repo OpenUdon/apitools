@@ -126,10 +126,12 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"drift",
 		"dropbox",
 		"dropcontact",
+		"ebay",
 		"egoi",
 		"elastic",
 		"emelia",
 		"erpnext",
+		"etsy",
 		"eventbrite",
 		"facebook",
 		"facebook-lead-ads",
@@ -164,6 +166,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"google-firebase-realtime-database",
 		"google-firestore",
 		"google-gemini",
+		"google-maps-platform",
 		"google-perspective",
 		"google-sheets",
 		"google-slides",
@@ -216,6 +219,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"mattermost",
 		"mautic",
 		"medium",
+		"mercado-pago",
 		"messagebird",
 		"metabase",
 		"microsoft-entra",
@@ -277,6 +281,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"quickbooks",
 		"quickchart",
 		"raindrop",
+		"razorpay",
 		"reddit",
 		"rocket-chat",
 		"rundeck",
@@ -298,6 +303,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"snowflake",
 		"splunk",
 		"spotify",
+		"square",
 		"stackby",
 		"storyblok",
 		"strapi",
@@ -318,6 +324,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"twake",
 		"twilio",
 		"twist",
+		"twitch",
 		"twitter",
 		"typeform",
 		"unleashed-software",
@@ -330,6 +337,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"vero",
 		"vonage",
 		"webflow",
+		"wechat-pay",
 		"wekan",
 		"whatsapp",
 		"wise",
@@ -752,11 +760,11 @@ func TestBuiltInCandidateClassificationValues(t *testing.T) {
 	for _, candidate := range BuiltInCandidates() {
 		wantOpenAPI, wantAuth := SpecStatusNeedsVerification, AuthSecurityNotReviewed
 		switch candidate.ID {
-		case "amazon-selling-partner", "datadog", "digitalocean", "hugging-face-hub", "miro", "plaid", "vercel":
+		case "amazon-selling-partner", "datadog", "digitalocean", "ebay", "hugging-face-hub", "miro", "plaid", "square", "vercel":
 			wantOpenAPI, wantAuth = SpecStatusKnown, AuthSecurityLikelyIncomplete
-		case "google-gemini":
+		case "google-ads", "google-gemini", "google-maps-platform", "razorpay", "twitch", "wechat-pay":
 			wantOpenAPI, wantAuth = SpecStatusUnavailable, AuthSecurityLikelyIncomplete
-		case "mongodb-atlas":
+		case "etsy", "mercado-pago", "mongodb-atlas":
 			wantOpenAPI, wantAuth = SpecStatusKnown, AuthSecurityLikelyComplete
 		}
 		if candidate.OfficialOpenAPIStatus != wantOpenAPI {

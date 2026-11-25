@@ -67,7 +67,9 @@ overlay would hide native operation semantics.
 | GetResponse | `getresponse-api-v3-overlay.json` | REST-shaped API v3 docs support a focused campaigns, contacts, newsletters, and tags subset with API-key auth. |
 | Ghost | `ghost-admin-api-overlay.json` | REST-shaped Admin API docs support a focused posts, pages, tags, users, and members subset; admin host remains operator supplied. |
 | Gong | `gong-public-api-overlay.json` | Public help docs support a narrow users and call-upload subset; the full API reference remains account-session gated. |
+| Google Ads | `google-ads-v26-accessible-customers-overlay.json` | Official v26 documentation supports the REST binding for listing directly accessible customers. The scoped protobuf remains primary. |
 | Google Calendar | `google-calendar-v3-overlay.json` | Official Discovery and REST docs support a focused calendars, events, free/busy, and event notification channel subset. |
+| Google Maps Platform | `google-maps-places-autocomplete-overlay.json` | Places API (New) docs support a text autocomplete request and selected prediction fields. Google Discovery remains primary. |
 | Google Sheets | `google-sheets-v4-overlay.json` | Official Discovery and REST docs support a focused spreadsheets and spreadsheet values subset. |
 | GoTo Webinar | `gotowebinar-api-overlay.json` | API v2 docs support a focused webinars, sessions, registrants, attendees, panelists, and co-organizers subset with OAuth2 bearer auth. |
 | Grist | `grist-rest-api-overlay.json` | REST API usage and reference docs support a focused organizations, workspaces, documents, tables, records, SQL queries, and webhooks subset; site host remains operator supplied. |
@@ -109,6 +111,7 @@ overlay would hide native operation semantics.
 | QuickBooks | `quickbooks-online-accounting-api-overlay.json` | REST-shaped Accounting API docs support a focused customer, invoice, payment, and company-info subset. |
 | QuickChart | `quickchart-api-overlay.json` | Chart and QR-code docs support a focused anonymous chart, QR, and Graphviz rendering subset. |
 | Raindrop.io | `raindrop-api-overlay.json` | REST-shaped API docs support a focused raindrops, collections, tags, filters, highlights, and user subset with OAuth bearer auth. |
+| Razorpay | `razorpay-v1-payment-overlay.json` | Official Payments v1 docs support a payment lookup by ID with its status and amount fields. |
 | Reddit | `reddit-api-overlay.json` | Generated API docs support a focused OAuth API subset for identity, user/subreddit lookup, listings, and submit operations. |
 | Salesforce | `salesforce-rest-core-overlay.json` | REST API docs support a focused sObject/query/composite subset; instance and API version remain operator supplied. |
 | Salesmate | `salesmate-api-overlay.json` | API docs and support docs support a focused contacts, companies, deals, activities, and users subset with sessionToken and x-linkname headers. |
@@ -128,6 +131,7 @@ overlay would hide native operation semantics.
 | Travis CI | `travis-ci-api-overlay.json` | API v3 docs support a focused repositories, builds, jobs, requests, branches, and environment-variable subset with token and API-version headers. |
 | Twake | `twake-developers-api-overlay.json` | Developers API docs support the documented application-authenticated message save/remove subset; workspace and channel identifiers remain operator supplied. |
 | Twist | `twist-api-v3-overlay.json` | API v3 docs support a focused users, workspaces, channels, threads, comments, messages, and hooks subset with bearer auth. |
+| Twitch | `twitch-helix-games-overlay.json` | Official Helix docs support the Get Games lookup and the combined OAuth token and client ID requirement. |
 | Typeform | `typeform-rest-api-overlay.json` | REST-shaped Typeform docs support a focused forms, responses, webhooks, and workspaces subset. |
 | Unleashed Software | `unleashed-software-api-overlay.json` | API docs support a focused sales orders, stock on hand, products, customers, suppliers, purchase orders, and warehouses subset; signature calculation remains outside apitools. |
 | Vero | `vero-track-api-overlay.json` | Track API docs support a focused users, events, tags, and unsubscribe subset with auth_token request parameters. |
@@ -145,6 +149,7 @@ overlay would hide native operation semantics.
 | Home Assistant | `home-assistant-rest-api-overlay.json` | REST API docs support a focused status, config, states, services, history, template, events, and camera proxy subset; local entity schemas remain instance-specific. |
 | NetScaler ADC | `netscaler-adc-nitro-api-overlay.json` | NITRO API docs support a focused login, load-balancing, service, server, content-switching, and statistics subset; appliance host remains operator supplied. |
 | Venafi | `venafi-api-overlay.json` | TLS Protect Cloud and Datacenter docs support a focused certificate, certificate request, application, preference, OAuth, request, and retrieve subset. |
+| WeChat Pay | `wechat-pay-v3-global-order-overlay.json` | Official API v3 Global docs support the common-mode order lookup by WeChat Pay order number, with symbolic signature metadata. |
 | Wekan | `wekan-rest-api-overlay.json` | REST API wiki docs and OpenAPI generator docs support a focused login, user, board, list, card, and checklist subset; host and board schemas remain operator supplied. |
 | Zammad | `zammad-api-overlay.json` | API docs support a focused ticket, user, group, organization, article, object attribute, and search subset; instance host remains operator supplied. |
 | Humantic AI | `humantic-ai-api-overlay.json` | API docs support a focused user-profile create, retrieve, and update subset; profile analysis execution remains outside apitools. |
