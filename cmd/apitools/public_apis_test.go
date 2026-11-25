@@ -29,10 +29,14 @@ func TestSearchPublicAPIsMarkdownCLI(t *testing.T) {
 	}))
 	defer server.Close()
 	serverURL = server.URL
-	for _, source := range []string{"public-apis", "auto"} {
+	for _, source := range []string{"public-apis", "auto", ""} {
 		for _, query := range []string{"mail", "zzzznomatch"} {
 			var out, errOut bytes.Buffer
-			code := runSearchWithClient([]string{"--query", query, "--source", source, "--limit", "1", "--json"}, &out, &errOut, func(string) (*apitools.Client, func(), error) {
+			args := []string{"--query", query, "--limit", "1", "--json"}
+			if source != "" {
+				args = append(args, "--source", source)
+			}
+			code := runSearchWithClient(args, &out, &errOut, func(string) (*apitools.Client, func(), error) {
 				return &apitools.Client{PublicAPIsURL: server.URL + "/list", APIsGuruListURL: server.URL + "/guru", LAPSearchURL: server.URL + "/lap", AllowUnsafeHosts: true}, func() {}, nil
 			})
 			if code != 0 || errOut.Len() != 0 {
@@ -41,6 +45,13 @@ func TestSearchPublicAPIsMarkdownCLI(t *testing.T) {
 			var report apitools.SearchReport
 			if err := json.Unmarshal(out.Bytes(), &report); err != nil {
 				t.Fatal(err)
+			}
+			wantSource := apitools.Source(source)
+			if wantSource == "" {
+				wantSource = apitools.SourceAuto
+			}
+			if report.Source != wantSource {
+				t.Fatalf("%s %s: expected public source %q, got %q", source, query, wantSource, report.Source)
 			}
 			if query == "mail" {
 				if len(report.Results) != 1 || !report.Results[0].Validated || report.Results[0].SpecURL != server.URL+"/openapi.json" {

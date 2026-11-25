@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/url"
@@ -52,7 +53,7 @@ func usage(out io.Writer) {
 	fmt.Fprintln(out, "Usage: apitools <command>")
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "Commands:")
-	fmt.Fprintln(out, "  search   search APIs.guru with bounded LAP, RFC 9727, and public-apis fallbacks")
+	fmt.Fprintln(out, "  search   search reviewed providers with public API directory fallback")
 	fmt.Fprintln(out, "  versions check official API versions against a held baseline")
 	fmt.Fprintln(out, "  import   download and validate an OpenAPI document")
 	fmt.Fprintln(out, "  catalog  inspect built-in provider catalog metadata")
@@ -1619,7 +1620,7 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 	fs := newCommandFlagSet("apitools search")
 	query := fs.String("query", "", "Search query")
 	limit := fs.Int("limit", 10, "Maximum result count")
-	source := fs.String("source", string(apitools.SourceAuto), "Search source: auto, reviewed, apis-guru, lap-registry, rfc9727, or public-apis")
+	source := fs.String("source", string(apitools.SourceAuto), "Search source: auto, reviewed, apis-guru, lap-registry, rfc9727, or public-apis. Omit to try reviewed providers first")
 	configPath := fs.String("config", "", "Reviewed provider search JSON configuration")
 	providerURL := fs.String("provider-url", "", "Provider URL or hostname for RFC 9727 /.well-known/api-catalog discovery")
 	publicProbe := fs.Int("public-probe", 0, "Maximum public-apis well-known URL probes; defaults to limit*5, capped at 50")
@@ -1628,7 +1629,7 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 	cachePath := fs.String("cache", "", "SQLite cache path; disabled when empty")
 	cacheMode := fs.String("cache-mode", string(apitools.CacheModeReadWrite), "Cache mode: read-write, refresh, offline, or bypass")
 	cacheTTL := fs.Duration("cache-ttl", apitools.DefaultCacheMaxAge, "Maximum age for cached search results")
-	offline := fs.Bool("offline", false, "Use only cached search results; shorthand for --cache-mode offline")
+	offline := fs.Bool("offline", false, "Use reviewed local data or cached public results; shorthand for --cache-mode offline")
 	jsonOut := fs.Bool("json", false, "Write JSON output")
 	fs.Usage = func() {
 		fmt.Fprintln(fs.Output(), "Usage: apitools search --query <text> [--limit 10] [--source auto|reviewed|apis-guru|lap-registry|rfc9727|public-apis] [--config FILE] [--provider-url example.com] [--public-probe 25] [--probe-timeout 5s] [--probe-budget 30s] [--cache cache.sqlite] [--cache-mode read-write|refresh|offline|bypass] [--json]")
@@ -1651,11 +1652,19 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	if *source == "reviewed" {
-		if strings.TrimSpace(*providerURL) != "" {
-			fmt.Fprintln(errOut, "--provider-url selects publisher-scoped discovery and cannot be combined with --source reviewed")
-			return exitUsage
+	explicitSource := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == "source" {
+			explicitSource = true
 		}
+	})
+	reviewedOnly := *source == "reviewed"
+	providerScoped := strings.TrimSpace(*providerURL) != ""
+	if reviewedOnly && providerScoped {
+		fmt.Fprintln(errOut, "--provider-url selects publisher-scoped discovery and cannot be combined with --source reviewed")
+		return exitUsage
+	}
+	if reviewedOnly || (!explicitSource && !providerScoped) {
 		mode, err := checkedReviewedSearchMode(*cacheMode, *offline)
 		if err != nil {
 			fmt.Fprintln(errOut, err)
@@ -1673,7 +1682,15 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 			fmt.Fprintln(errOut, err)
 			return exitRuntime
 		}
-		return printReviewedSearchReport(out, errOut, report, *jsonOut)
+		if reviewedOnly {
+			return printReviewedSearchReport(out, errOut, report, *jsonOut)
+		}
+		if len(report.Results) > 0 {
+			switch report.Results[0].Match {
+			case apitools.ReviewedProviderExactMatch, apitools.ReviewedProviderOperationMatch, apitools.ReviewedProviderSemanticMatch:
+				return printReviewedSearchReport(out, errOut, report, *jsonOut)
+			}
+		}
 	}
 	client, closeCache, err := newClient(*cachePath)
 	if err != nil {

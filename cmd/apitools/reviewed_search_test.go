@@ -3,6 +3,9 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -85,7 +88,7 @@ func TestReviewedSearchOfflineConfigDisablesEmbeddingRequests(t *testing.T) {
 	}
 	for _, mode := range [][]string{{"--offline"}, {"--cache-mode", "offline"}} {
 		var out, errOut bytes.Buffer
-		args := append([]string{"search", "--query", "send slack message", "--source", "reviewed", "--config", path, "--json"}, mode...)
+		args := append([]string{"search", "--query", "send slack message", "--config", path, "--json"}, mode...)
 		if code := run(args, &out, &errOut); code != exitSuccess {
 			t.Fatalf("exit %d: %s", code, errOut.String())
 		}
@@ -106,5 +109,105 @@ func TestReviewedSearchRejectsAnInvalidCacheMode(t *testing.T) {
 		"--cache-mode", "offine", "--config", "missing-config.json"}, &out, &errOut)
 	if code != exitRuntime || !strings.Contains(errOut.String(), "unknown cache mode") || out.Len() != 0 {
 		t.Fatalf("invalid mode allowed lookup: %d, %q, %q", code, out.String(), errOut.String())
+	}
+}
+
+func TestReviewedSearchDefaultUsesReviewedEvidence(t *testing.T) {
+	for _, tt := range []struct {
+		query string
+		match apitools.ReviewedProviderMatchKind
+		want  map[string]string
+	}{
+		{"send slack message", apitools.ReviewedProviderOperationMatch, map[string]string{"slack": "#/paths/~1chat.postMessage/post"}},
+		{"refund payment", apitools.ReviewedProviderOperationMatch, map[string]string{
+			"stripe": "#/paths/~1v1~1refunds/post", "square": "#/paths/~1v2~1refunds/post", "mercado-pago": "#/paths/~1v1~1payments~1{id}~1refunds/post",
+		}},
+		{"slack web api", apitools.ReviewedProviderExactMatch, map[string]string{"slack": ""}},
+	} {
+		t.Run(tt.query, func(t *testing.T) {
+			var out, errOut bytes.Buffer
+			code := runSearchWithClient([]string{"--query", tt.query, "--json", "--offline"}, &out, &errOut, func(string) (*apitools.Client, func(), error) {
+				t.Fatal("the default reviewed match opened a public search client")
+				return nil, nil, nil
+			})
+			if code != exitSuccess {
+				t.Fatalf("exit %d: %s", code, errOut.String())
+			}
+			var report apitools.ReviewedProviderSearchReport
+			if err := json.Unmarshal(out.Bytes(), &report); err != nil {
+				t.Fatal(err)
+			}
+			if report.Source != "reviewed-catalog" || len(report.Results) == 0 || report.Results[0].Match != tt.match {
+				t.Fatalf("unexpected default search: %+v", report)
+			}
+			found := make(map[string]bool)
+			for _, result := range report.Results {
+				id := result.Profile.ProviderID
+				selector, expected := tt.want[id]
+				if !expected || result.Match != tt.match {
+					continue
+				}
+				if selector == "" {
+					found[id] = true
+				}
+				for _, operation := range result.MatchedCapabilities {
+					if operation.Selector == selector && len(operation.SHA256) == 64 {
+						found[id] = true
+					}
+				}
+			}
+			if len(found) != len(tt.want) {
+				t.Fatalf("for %q got verified providers %v, expected %v", tt.query, found, tt.want)
+			}
+		})
+	}
+}
+
+func TestReviewedSearchPreservesExplicitAndScopedPublicSources(t *testing.T) {
+	var baseURL string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/guru":
+			_, _ = w.Write([]byte(`{}`))
+		case "/lap":
+			w.Header().Set("Content-Type", "text/lap")
+			_, _ = w.Write([]byte("@search_query slack\n@total 0\n"))
+		case "/list":
+			fmt.Fprintf(w, `{"entries":[{"API":"Slack","Description":"Fixture service","Link":%q,"Category":"Communication"}]}`, baseURL+"/docs")
+		case "/openapi.json":
+			_, _ = w.Write([]byte(`{"openapi":"3.0.0","info":{"title":"Slack Fixture","version":"1"},"paths":{}}`))
+		case "/.well-known/api-catalog":
+			w.Header().Set("Content-Type", "application/linkset+json")
+			fmt.Fprintf(w, `{"linkset":[{"anchor":%q,"service-desc":[{"href":%q,"type":"application/json"}]}]}`, baseURL+"/api/slack", baseURL+"/openapi.json")
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+	baseURL = server.URL
+	for _, tt := range []struct {
+		args   []string
+		source apitools.Source
+	}{
+		{[]string{"--source=auto"}, apitools.SourcePublicAPIs},
+		{[]string{"--source", "public-apis"}, apitools.SourcePublicAPIs},
+		{[]string{"--provider-url", baseURL + "/docs"}, apitools.SourceRFC9727},
+	} {
+		var out, errOut bytes.Buffer
+		args := append([]string{"--query", "slack", "--json", "--config", "unused-reviewed-config.json"}, tt.args...)
+		code := runSearchWithClient(args, &out, &errOut, func(string) (*apitools.Client, func(), error) {
+			return &apitools.Client{APIsGuruListURL: baseURL + "/guru", LAPSearchURL: baseURL + "/lap",
+				PublicAPIsURL: baseURL + "/list", AllowUnsafeHosts: true}, func() {}, nil
+		})
+		if code != exitSuccess {
+			t.Fatalf("%v exit %d: %s", tt.args, code, errOut.String())
+		}
+		var report apitools.SearchReport
+		if err := json.Unmarshal(out.Bytes(), &report); err != nil {
+			t.Fatal(err)
+		}
+		if len(report.Results) != 1 || report.Results[0].Source != string(tt.source) || report.Results[0].SpecURL != baseURL+"/openapi.json" {
+			t.Fatalf("%v changed public results: %+v", tt.args, report)
+		}
 	}
 }

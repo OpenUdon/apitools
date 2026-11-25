@@ -896,6 +896,13 @@ offline mode and unavailable or over-budget semantic lookups keep the
 local lexical results. Semantic provider relevance is separate from
 evidence that a specific operation matched.
 
+The CLI tries reviewed retrieval when neither a source nor a provider URL
+was specified. Exact, covered-operation and qualified semantic matches can
+answer from the reviewed path. Metadata-only and empty matches pass to the
+existing public search chain and its cache and network controls. Explicit
+public sources and provider URLs go directly through that chain or its
+selected adapter. The Go `Client.Search` contract remains public discovery.
+
 ### Catalog discovery wire foundations (M80.1)
 
 The additive `apitools.catalog-discovery/v1` types reuse StepContract and

@@ -140,9 +140,24 @@ func TestSearchHelpDocumentsFlags(t *testing.T) {
 		t.Fatalf("code = %d\n%s", code, out.String())
 	}
 	text := out.String()
-	for _, expected := range []string{"Usage: apitools search", "-query", "-limit", "-source", "-provider-url", "lap-registry", "rfc9727", "-public-probe", "-probe-timeout", "-probe-budget", "-cache", "-cache-mode", "-cache-ttl", "-offline", "-json"} {
+	for _, expected := range []string{"Usage: apitools search", "-query", "-limit", "-source", "-provider-url", "lap-registry", "rfc9727", "-public-probe", "-probe-timeout", "-probe-budget", "-cache", "-cache-mode", "-cache-ttl", "-offline", "-json", "Omit to try reviewed providers first"} {
 		if !strings.Contains(text, expected) {
 			t.Fatalf("help missing %q:\n%s", expected, text)
+		}
+	}
+}
+
+func TestSearchSummaryInRootAndCatalogHelp(t *testing.T) {
+	for _, tt := range []struct {
+		args []string
+		want string
+	}{
+		{[]string{"--help"}, "search reviewed providers with public API directory fallback"},
+		{[]string{"catalog", "--help"}, "search catalog operations or providers"},
+	} {
+		var out, errOut bytes.Buffer
+		if code := run(tt.args, &out, &errOut); code != exitSuccess || !strings.Contains(out.String(), tt.want) {
+			t.Fatalf("%v exit %d, expected %q: %s%s", tt.args, code, tt.want, out.String(), errOut.String())
 		}
 	}
 }

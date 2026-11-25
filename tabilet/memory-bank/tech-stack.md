@@ -152,6 +152,8 @@ staticcheck ./...
 
 # CLI smoke checks
 go run ./cmd/apitools search --help
+go run ./cmd/apitools search --query "send slack message" --offline
+go run ./cmd/apitools search --query "refund payment" --source reviewed --json
 go run ./cmd/apitools search --query slack --source lap-registry
 go run ./cmd/apitools search --query slack --source rfc9727 --provider-url slack.com
 go run ./cmd/apitools import --help

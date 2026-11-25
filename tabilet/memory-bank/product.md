@@ -244,10 +244,12 @@ identifies the reviewed bytes. [Profile guide](../../docs/catalog-search-profile
 
 ## Primary Workflows
 
-1. Search public sources for an API document matching a service or intent.
-   APIs.guru remains primary; LAP Registry is an experimental second source;
-   an explicit provider hostname enables one non-recursive RFC 9727 lookup;
-   public-apis probing remains a compatibility fallback.
+1. Search reviewed providers by identity or intent. The CLI prefers exact
+   identities and evidenced operations. The result identifies reviewed scope,
+   freshness, and provenance. A weak match can continue to public discovery.
+   APIs.guru leads the public chain, followed by experimental LAP Registry.
+   An explicit provider hostname enables one non-recursive RFC 9727 lookup.
+   Public-apis probing remains a compatibility fallback.
 2. Safely download, validate, and import a selected OpenAPI/Swagger document.
 3. Scan local project files for API documents without network access.
    Family-aware scans require explicit file or directory roots, validate all

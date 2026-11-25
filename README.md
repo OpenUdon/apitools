@@ -73,11 +73,11 @@ The qualification records give the reviewed surfaces and artifact evidence.
 
 ```bash
 go run ./cmd/apitools --help
-go run ./cmd/apitools search --query slack
+go run ./cmd/apitools search --query "send slack message" --offline
+go run ./cmd/apitools search --query "refund payment" --json
 go run ./cmd/apitools search --query slack --source lap-registry
 go run ./cmd/apitools search --query slack --source rfc9727 --provider-url slack.com
-go run ./cmd/apitools search --query slack --json
-go run ./cmd/apitools search --query slack --cache ~/.cache/apitools/cache.sqlite
+go run ./cmd/apitools search --query slack --source auto --cache ~/.cache/apitools/cache.sqlite
 go run ./cmd/apitools import --url https://example.com/openapi.yaml --dir ./openapi --name example
 go run ./cmd/apitools catalog list
 go run ./cmd/apitools catalog resolve gmail openweathermap
@@ -98,7 +98,19 @@ and other usage failures exit 2 on stderr; runtime failures exit 1 on stderr.
 Use `--` when a provider value begins with `-`. A `--help` token consumed as a
 flag value or supplied after `--` is data, not a help request.
 
-Search uses APIs.guru first, then the experimental LAP Registry adapter. When
+By default, `search` checks the 334 reviewed providers first. An exact
+provider identity or an evidenced operation match can answer from the local
+catalog. A configured embedding endpoint can also surface a relevant reviewed
+provider. Text and JSON identify the match, source, coverage and available
+freshness evidence. Use `--source reviewed` to keep the search within the
+reviewed catalog, including matches on descriptions and keywords. `--offline`
+uses the local reviewed index and any configured public search cache.
+[Reviewed search and configuration](docs/catalog-search-profiles.md#sqlite-provider-search).
+
+When the default search finds only general provider metadata or no reviewed
+match, it runs the public search chain. Explicit `--source auto` selects that
+chain directly. In the chain, APIs.guru comes first, followed by the
+experimental LAP Registry adapter. When
 `--provider-url` is present, it next checks that publisher's RFC 9727
 `/.well-known/api-catalog`; the legacy public-apis path probe remains the final
 compatibility fallback. LAP returns its reported original `source_url`, and

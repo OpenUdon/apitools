@@ -58,12 +58,21 @@ retained catalog artifact root. Run `go test -count=1 ./catalog -run
 
 ## SQLite provider search
 
-Use `apitools search --source reviewed --query "send slack message"` for a
-reviewed catalog lookup. Add `--json` for the versioned
+Use `apitools search --query "send slack message"` for a reviewed catalog
+lookup. Add `--source reviewed` to include general metadata matches even
+when the query has no strong reviewed result. Add `--json` for the versioned
 `apitools.reviewed-provider-search.v1` report. Exact provider IDs, names,
 and aliases rank first. Full-text matches on individual operation labels
 rank next, with general provider text matches last. The report identifies
 the match type and each matched operation's selector and digest.
+
+With no source or provider URL specified, the CLI returns reviewed results
+when the top match is an exact provider, a covered operation, or a semantic
+provider with selected operation evidence. A description or keyword match
+alone falls through to public discovery. The public path retains its original
+output, cache and network controls. Explicit `--source auto`, individual
+public sources and `--provider-url` use that path directly. Automation that
+requires a stable output shape can select `--source reviewed` or `--source auto`.
 
 Search builds a private in-memory SQLite index by default. To reuse an
 index on disk, pass `--config FILE` with `index_db` set to a path in an
@@ -109,8 +118,10 @@ Provider vectors are reused by endpoint, model and content digest. The
 explicit query vector is computed for each semantic lookup. When provider
 text changes, only missing provider vectors need to be regenerated.
 
-The text and JSON reports include counted usage when embedding configuration
-is supplied. Exact identity matches, offline mode, missing configuration,
+The reviewed text and JSON reports include counted usage when embedding
+configuration is supplied. Default search can attempt embeddings before
+falling through to a public report, which keeps its original fields.
+Exact identity matches, offline mode, missing configuration,
 budget exhaustion and endpoint errors use lexical results. A semantic
 provider match indicates relevance to a profile with reviewed operations.
 Operation matches carry their own selector and artifact provenance.

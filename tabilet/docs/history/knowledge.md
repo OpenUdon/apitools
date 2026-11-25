@@ -396,3 +396,19 @@ evidence: llm_plan.go and normalization/invalid-response regression tests.
 - **Why it matters:** Non-standard effect strings cause qualification failures. Wildcard inputs conceal missing parameter dependencies. Recommending non-selectable candidates violates human confirmation boundaries and can authorize incorrect operations.
 - **Evidence:** [M89](../docs/history/status-M89.md), review findings F10, F11, F12, F13; `llm_plan.go`, `llm_recommend.go`, `llm_plan_test.go`, and `llm_recommend_test.go`.
 ````
+
+## 2026-11-25 — Reviewed-provider retrieval leads default CLI search
+
+Original: `tabilet/memory-bank/product.md`, Primary Workflows, item 1.
+C08 adds reviewed-first CLI retrieval. The original source order still applies
+when the CLI reaches public discovery and when Go callers select automatic
+discovery. The [current workflow](../../memory-bank/product.md#primary-workflows)
+and [operator documentation](../../../docs/catalog-search-profiles.md#sqlite-provider-search)
+record the replacement and routing evidence.
+
+```markdown
+1. Search public sources for an API document matching a service or intent.
+   APIs.guru remains primary; LAP Registry is an experimental second source;
+   an explicit provider hostname enables one non-recursive RFC 9727 lookup;
+   public-apis probing remains a compatibility fallback.
+```
