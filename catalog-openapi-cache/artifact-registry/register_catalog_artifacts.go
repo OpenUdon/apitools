@@ -1821,6 +1821,14 @@ var specArtifacts = []specArtifact{
 
 var overlayArtifacts = []overlayArtifact{
 	{
+		providerID:  "slack",
+		artifactID:  "slack-web-message-history-overlay",
+		path:        "advisory-overlays/slack-web-message-history-overlay.json",
+		builderPath: "overlay-builders/build_slack_web_advisory_overlay.go",
+		sourceURL:   "https://docs.slack.dev/reference/methods/chat.postMessage/",
+		metadata:    map[string]string{"spec_ref_id": "slack-web-api-docs"},
+	},
+	{
 		providerID:  "razorpay",
 		artifactID:  "razorpay-v1-payment-overlay",
 		path:        "advisory-overlays/razorpay-v1-payment-overlay.json",

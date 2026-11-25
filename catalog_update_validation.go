@@ -7,11 +7,62 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/OpenUdon/apitools/catalog"
 	"github.com/OpenUdon/apitools/internal/sourceguard"
 )
+
+type catalogUpdateNativeEvidence struct {
+	ReviewedOperation string `json:"reviewed_operation"`
+}
+
+var catalogUpdateReviewedSheets = map[string]string{
+	"sheets-discovery-v4":     "82c209f3b283637103a1332ec34b350cb617716a3c6d956e89de44784a9e1573",
+	"sheets-sdk-discovery-v4": "1ec492cc174692abaf513b32286b6e455aa68b08e17b60b8fba21afeaec7925d",
+}
+
+func qualifyCatalogUpdateNativeSource(ctx context.Context, source catalogUpdateSource, kind OperationSourceKind, url, digest string, body []byte) (*catalogUpdateNativeEvidence, bool) {
+	_, err := BuildOperationShapeTable(ctx, OperationShapeOptions{Sources: []ShapeSourceInput{{
+		ID: "catalog-update", OperationSourceInput: OperationSourceInput{Kind: kind, URL: url, Content: body},
+	}}})
+	if err == nil {
+		return nil, true
+	}
+	// Sheets' complete shape table did not pass the native budget. Exact
+	// reviewed pins can still prove the selected method through the guarded
+	// Discovery inventory. This proof never advances an unreviewed revision.
+	if ctx.Err() != nil || kind != OperationSourceGoogleDiscovery || source.ProviderID != "google-sheets" ||
+		catalogUpdateReviewedSheets[source.ReferenceID] != digest ||
+		!hasCatalogUpdateReviewedDigest(source.HeldRevision, digest) {
+		return nil, false
+	}
+	actual := sha256.Sum256(body)
+	if hex.EncodeToString(actual[:]) != digest {
+		return nil, false
+	}
+	inventory, err := BuildAPISourceOperationInventory(ctx, APISourceInventoryOptions{Documents: []APISourceDocument{{
+		Kind: APISourceKindGoogleDiscovery, Content: body,
+	}}})
+	if err != nil {
+		return nil, false
+	}
+	for _, op := range inventory.Operations {
+		if op.OperationID != "sheets.spreadsheets.values.get" || op.Method != "GET" ||
+			strings.TrimPrefix(op.Path, "/") != "v4/spreadsheets/{spreadsheetId}/values/{range}" {
+			continue
+		}
+		for _, set := range op.SecurityRequirementSets {
+			for _, requirement := range set.Requirements {
+				if slices.Contains(requirement.Scopes, "https://www.googleapis.com/auth/spreadsheets.readonly") {
+					return &catalogUpdateNativeEvidence{ReviewedOperation: op.OperationID}, true
+				}
+			}
+		}
+	}
+	return nil, false
+}
 
 type catalogUpdateOpenAPIEvidence struct {
 	RawStatus       string   `json:"raw_status"`

@@ -2,12 +2,16 @@ package apitools
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/OpenUdon/apitools/catalog"
+	"github.com/OpenUdon/apitools/internal/catalogupdate"
 )
 
 func TestC07PinnedPublisherOperations(t *testing.T) {
@@ -126,6 +130,213 @@ func TestC07HubSpotSecuritySchemesHaveSpecScope(t *testing.T) {
 	for _, conflict := range view.Conflicts {
 		if conflict.Type == catalog.SecurityInspectionConflictDuplicateScheme {
 			t.Fatalf("HubSpot qualification introduced a conflicting scheme: %+v", conflict)
+		}
+	}
+}
+
+func TestC07StripeAndSheetsPinnedVersions(t *testing.T) {
+	dir := os.Getenv("APITOOLS_C07_QUALIFICATION_DIR")
+	if dir == "" {
+		t.Skip("set APITOOLS_C07_QUALIFICATION_DIR to the pinned C07 source directory")
+	}
+	read := func(name, digest string) []byte {
+		t.Helper()
+		data, err := os.ReadFile(filepath.Join(dir, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if fmt.Sprintf("%x", sha256.Sum256(data)) != digest {
+			t.Fatalf("qualification artifact changed: %s", name)
+		}
+		return data
+	}
+	ga := read("stripe-ga.json", "e1fd0c9ed163b6ec53594ac30d60b251d7cef5a0ee911760bc89cdceafbe227b")
+	preview := read("stripe-preview.json", "572ffda97268638f84807dbbc1bcdbf643bc75688d89065895f686c19cbc032c")
+	var gaDoc map[string]any
+	if err := json.Unmarshal(ga, &gaDoc); err != nil {
+		t.Fatal(err)
+	}
+	var previewDoc map[string]any
+	if err := json.Unmarshal(preview, &previewDoc); err != nil {
+		t.Fatal(err)
+	}
+	if mapValue(gaDoc["info"])["version"] != "2026-11-18.endive" || mapValue(previewDoc["info"])["version"] != "2026-11-18.preview" {
+		t.Fatal("Stripe GA and preview artifacts must remain separate")
+	}
+	stripe, _ := catalog.FindBuiltInProvider("stripe")
+	source := catalogUpdateReferenceSources(stripe)[0]
+	if pin := catalogUpdateReviewedDigest(source.HeldRevision); pin != fmt.Sprintf("%x", sha256.Sum256(ga)) || !strings.Contains(source.URL, "/latest/") ||
+		!catalogUpdateNativeOpenAPI(t.Context(), ga, source.URL, source.refreshReference(), pin).accepted() {
+		t.Fatal("Stripe GA pin failed updater validation")
+	}
+	get := mapValue(mapValue(mapValue(gaDoc["paths"])["/v1/payment_intents/{intent}"])["get"])
+	response := mapValue(mapValue(get["responses"])["200"])
+	schema := mapValue(mapValue(mapValue(response["content"])["application/json"])["schema"])
+	if get["operationId"] != "GetPaymentIntentsIntent" || schema["$ref"] != "#/components/schemas/payment_intent" || get["security"] != nil {
+		t.Fatal("Stripe PaymentIntent retrieval contract changed")
+	}
+	params, _ := get["parameters"].([]any)
+	intentPath := false
+	for _, param := range params {
+		info := mapValue(param)
+		intentPath = intentPath || info["name"] == "intent" && info["in"] == "path" && info["required"] == true
+	}
+	if !intentPath {
+		t.Fatal("Stripe PaymentIntent retrieval lacks a required intent path parameter")
+	}
+	schemes := mapValue(mapValue(gaDoc["components"])["securitySchemes"])
+	security, ok := gaDoc["security"].([]any)
+	if !ok || len(security) != 2 || mapValue(schemes["basicAuth"])["scheme"] != "basic" || mapValue(schemes["bearerAuth"])["scheme"] != "bearer" ||
+		mapValue(security[0])["basicAuth"] == nil || mapValue(security[1])["bearerAuth"] == nil {
+		t.Fatal("Stripe GA does not provide the expected Basic and Bearer alternatives")
+	}
+
+	sheets, _ := catalog.FindBuiltInProvider("google-sheets")
+	for _, version := range []struct{ file, revision, digest, reference string }{
+		{"sheets-prior-sdk.json", "20260213", "60b9c02762346133a6ff3ee24b3c3f9e1f469666fb772048c0ea0a231030cae1", ""},
+		{"sheets-current-sdk.json", "20261109", "1ec492cc174692abaf513b32286b6e455aa68b08e17b60b8fba21afeaec7925d", "sheets-sdk-discovery-v4"},
+		{"sheets-canonical-v4.json", "20261118", "82c209f3b283637103a1332ec34b350cb617716a3c6d956e89de44784a9e1573", "sheets-discovery-v4"},
+	} {
+		data := read(version.file, version.digest)
+		doc, err := decodeShapeDocument(t.Context(), data)
+		if err != nil || doc["version"] != "v4" || doc["revision"] != version.revision {
+			t.Fatalf("unexpected Sheets Discovery version in %s: %v", version.file, err)
+		}
+		inventory, err := BuildAPISourceOperationInventory(t.Context(), APISourceInventoryOptions{Documents: []APISourceDocument{{
+			Kind: APISourceKindGoogleDiscovery, Content: data,
+		}}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		found := false
+		for _, operation := range inventory.Operations {
+			found = found || operation.OperationID == "sheets.spreadsheets.values.get" && operation.Method == "GET" &&
+				strings.TrimPrefix(operation.Path, "/") == "v4/spreadsheets/{spreadsheetId}/values/{range}"
+		}
+		if !found {
+			t.Fatalf("missing Sheets values.get in revision %s", version.revision)
+		}
+		var reviewed catalogUpdateSource
+		for _, candidate := range catalogUpdateReferenceSources(sheets) {
+			if candidate.ReferenceID == version.reference {
+				reviewed = candidate
+			}
+		}
+		if version.reference == "" {
+			repin := catalogUpdateSource{
+				ProviderID: "google-sheets", ReferenceID: "sheets-sdk-discovery-v4",
+				URL:          "https://raw.githubusercontent.com/googleapis/google-api-go-client/e9015cc2681ce9d6300f4fae2ae6b075c6d75ead/sheets/v4/sheets-api.json",
+				HeldRevision: "sha256:" + version.digest,
+			}
+			if _, accepted := qualifyCatalogUpdateNativeSource(t.Context(), repin, OperationSourceGoogleDiscovery, repin.URL, version.digest, data); accepted {
+				t.Fatal("a catalog repin alone authorized the reduced Sheets proof")
+			}
+			continue
+		}
+		proof, accepted := qualifyCatalogUpdateNativeSource(t.Context(), reviewed, OperationSourceGoogleDiscovery, reviewed.URL, version.digest, data)
+		if !accepted || proof == nil || proof.ReviewedOperation != "sheets.spreadsheets.values.get" {
+			t.Fatalf("missing exact-pin Sheets proof for %s", version.reference)
+		}
+		reviewed.HeldRevision = ""
+		if _, accepted := qualifyCatalogUpdateNativeSource(t.Context(), reviewed, OperationSourceGoogleDiscovery, reviewed.URL, version.digest, data); accepted {
+			t.Fatal("unreviewed Sheets bytes passed the selected-method proof")
+		}
+	}
+}
+
+func TestC07SlackAdvisoryOperations(t *testing.T) {
+	p := "catalog-openapi-cache/advisory-overlays/slack-web-message-history-overlay.json"
+	data, err := os.ReadFile(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	table, err := BuildOperationShapeTable(t.Context(), OperationShapeOptions{Sources: []ShapeSourceInput{{
+		ID: "slack", OperationSourceInput: OperationSourceInput{Kind: OperationSourceOpenAPI, Content: data},
+	}}})
+	if err != nil || len(table.Operations) != 2 {
+		t.Fatalf("Slack advisory native operations: %d, %v", len(table.Operations), err)
+	}
+	doc, err := decodeShapeDocument(t.Context(), data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []struct{ method, path, scope string }{
+		{"POST", "/chat.postMessage", "chat:write"},
+		{"GET", "/conversations.history", "channels:history"},
+	} {
+		operation := mapValue(mapValue(mapValue(doc["paths"])[expected.path])[strings.ToLower(expected.method)])
+		security, ok := operation["security"].([]any)
+		if !ok || len(security) != 1 {
+			t.Fatalf("%s %s lacks one scoped requirement", expected.method, expected.path)
+		}
+		scopes, ok := mapValue(security[0])["slackOAuth2"].([]any)
+		if !ok || len(scopes) != 1 || scopes[0] != expected.scope {
+			t.Fatalf("%s %s lacks scoped OAuth requirement %s", expected.method, expected.path, expected.scope)
+		}
+	}
+}
+
+func TestC07SheetsSDKReusesVerifiedObject(t *testing.T) {
+	dir := os.Getenv("APITOOLS_C07_QUALIFICATION_DIR")
+	if dir == "" {
+		t.Skip("set APITOOLS_C07_QUALIFICATION_DIR to the pinned C07 source directory")
+	}
+	content, err := os.ReadFile(filepath.Join(dir, "sheets-current-sdk.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	provider, _ := catalog.FindBuiltInProvider("google-sheets")
+	var source catalogUpdateSource
+	for _, candidate := range catalogUpdateReferenceSources(provider) {
+		if candidate.ReferenceID == "sheets-sdk-discovery-v4" {
+			source = candidate
+		}
+	}
+	commit, _ := catalogUpdateGitFile(source.URL)
+	if commit == "" {
+		t.Fatal("missing the pinned Google SDK file locator")
+	}
+	ctx := t.Context()
+	config := newCatalogRepairFixture(t)
+	cache, err := catalogupdate.OpenArtifactCache(config.CacheDir, "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	store, err := catalogupdate.OpenStore(ctx, config.StateDB, cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	var artifactRequests int
+	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(req *http.Request) (*http.Response, error) {
+		if req.URL.Host == "api.github.com" && req.URL.Path == "/repos/googleapis/google-api-go-client/commits" {
+			return catalogRepairResponse(req, fmt.Sprintf(`[{"sha":%q}]`, commit)), nil
+		}
+		if req.URL.String() != source.URL {
+			t.Fatalf("unexpected request %s", req.URL)
+		}
+		artifactRequests++
+		return catalogRepairResponse(req, string(content)), nil
+	})}}
+	for i, status := range []string{"reviewed-pin-reproduced", "unchanged"} {
+		run, err := store.StartRun(ctx, catalog.BuiltInCatalogManifest().CatalogSHA256, []string{provider.ID})
+		if err != nil {
+			t.Fatal(err)
+		}
+		outcome, err := client.checkCatalogUpdateSource(ctx, store, run.ID, provider, source, config, nil)
+		if err != nil || outcome.Status != status || artifactRequests != 2 {
+			t.Fatalf("SDK attempt %d status %s used %d artifact requests: %v", i+1, outcome.Status, artifactRequests, err)
+		}
+		if i == 0 {
+			var evidence catalogUpdateEvidence
+			if err := json.Unmarshal(outcome.Evidence, &evidence); err != nil || evidence.Source.NativeRevision != "20261109" || evidence.Source.Revision != commit || evidence.Native == nil {
+				t.Fatalf("missing separate native and Git revision evidence: %v", err)
+			}
+		}
+		preferred, err := store.PreferredVersion(ctx, provider.ID, source.ReferenceID, source.Service)
+		if err != nil || preferred.Revision != commit {
+			t.Fatalf("SDK preference lost the immutable revision: %v", err)
 		}
 	}
 }

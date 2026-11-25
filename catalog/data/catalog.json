@@ -13335,8 +13335,8 @@
           "url": "https://sheets.googleapis.com/$discovery/rest?version=v4",
           "source_authority": "official-provider",
           "version": "v4",
-          "verified_at": "2026-05-18",
-          "revision": "revision:20260511",
+          "verified_at": "2026-11-25",
+          "revision": "revision:20261118 sha256:82c209f3b283637103a1332ec34b350cb617716a3c6d956e89de44784a9e1573",
           "license_note": "Google Developers Site Policies apply to documentation and code samples.",
           "source_note": "Official Google Sheets API Discovery document; it is machine-readable but not OpenAPI."
         },
@@ -13357,10 +13357,22 @@
           "verified_at": "2026-05-18",
           "license_note": "Provider documentation terms apply.",
           "source_note": "Official Google Sheets API OAuth scope documentation."
+        },
+        {
+          "id": "sheets-sdk-discovery-v4",
+          "kind": "google-discovery",
+          "url": "https://raw.githubusercontent.com/googleapis/google-api-go-client/558e74f3dbcd94a38e2f3e9960c9c032f3a9ee8a/sheets/v4/sheets-api.json",
+          "source_authority": "official-github",
+          "version": "v4",
+          "verified_at": "2026-11-25",
+          "revision": "revision:20261109 sha256:1ec492cc174692abaf513b32286b6e455aa68b08e17b60b8fba21afeaec7925d",
+          "license_note": "Google API Go client repository is Apache-2.0. Keep the publisher snapshot in local verification storage.",
+          "source_note": "Pinned Google-maintained SDK copy of the Sheets v4 Discovery document. Use this local review pin when direct bounded acquisition from the canonical URL cannot establish the response size."
         }
       ],
       "quirks": [
-        "Google Discovery documents are native machine-readable metadata, not OpenAPI; OpenAPI-only workflows need downstream lowering or a user-provided OpenAPI document."
+        "Google Discovery documents are native machine-readable metadata, not OpenAPI; OpenAPI-only workflows need downstream lowering or a user-provided OpenAPI document.",
+        "The canonical v4 Discovery URL is stable across revisions. The pinned SDK copy records a separately verified revision and digest."
       ]
     },
     {
@@ -19793,13 +19805,13 @@
         {
           "id": "slack-web-openapi-v2",
           "kind": "openapi",
-          "url": "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2_without_examples.json",
+          "url": "https://raw.githubusercontent.com/slackapi/slack-api-specs/dfea73e06d146c368d7f94b52ac90796dc4e27e1/web-api/slack_web_openapi_v2_without_examples.json",
           "source_authority": "official-github",
-          "version": "OpenAPI 2.0",
-          "verified_at": "2026-05-18",
-          "revision": "repo:bc08db49625630e3585bf2f1322128ea04f2a7f3 blob:f7b1affd1fb34f9473cd87980428883019b29c07",
-          "license_note": "Repository license applies; repository is archived and read-only.",
-          "source_note": "Official Slack API specs repository Web API OpenAPI document; repository was archived by its owner in 2024."
+          "version": "Swagger 2.0 / Slack archive 1.7.0",
+          "verified_at": "2026-11-25",
+          "revision": "archive:dfea73e06d146c368d7f94b52ac90796dc4e27e1",
+          "license_note": "The archived Slack specification repository is MIT-licensed.",
+          "source_note": "Historical Slack Web API Swagger 1.7.0 evidence. The repository was archived in 2024. Check current method docs and the bounded message/history advisory overlay for current coverage."
         },
         {
           "id": "slack-web-api-docs",
@@ -19812,7 +19824,8 @@
         }
       ],
       "quirks": [
-        "The official Slack OpenAPI repository is archived, so freshness should be checked against current Slack docs before import."
+        "The official Slack OpenAPI repository is archived, so freshness should be checked against current Slack docs before import.",
+        "The archived Swagger uses classic chat scope names and lists all history scopes in one set. The current advisory subset covers text message posting and public-channel history."
       ]
     },
     {
@@ -20311,11 +20324,11 @@
         {
           "id": "stripe-latest-openapi-spec3",
           "kind": "openapi",
-          "url": "https://raw.githubusercontent.com/stripe/openapi/master/latest/openapi.spec3.json",
+          "url": "https://raw.githubusercontent.com/stripe/openapi/0f6d4dfafe157c10df393ce8a27d00b186ab3955/latest/openapi.spec3.json",
           "source_authority": "official-github",
-          "version": "2026-04-22.dahlia",
-          "verified_at": "2026-05-18",
-          "revision": "repo:c29a3d372d2cdd1085a6d1cc18bd968a84129c7b etag:\"9fcfad85998e57740095245e3c28175d56684340bbddfa08de65199319ebdb07\"",
+          "version": "2026-11-18.endive",
+          "verified_at": "2026-11-25",
+          "revision": "sha256:e1fd0c9ed163b6ec53594ac30d60b251d7cef5a0ee911760bc89cdceafbe227b",
           "license_note": "Stripe OpenAPI repository license applies.",
           "source_note": "Official Stripe OpenAPI repository latest generally available public specification."
         },
@@ -20339,7 +20352,8 @@
         }
       ],
       "quirks": [
-        "Stripe's repository marks latest/openapi.spec3.json as the recommended GA public spec; openapi/spec3.json is legacy v1-only and should not be preferred for new imports."
+        "Stripe's repository marks latest/openapi.spec3.json as the recommended GA public spec; openapi/spec3.json is legacy v1-only and should not be preferred for new imports.",
+        "The pinned dated Endive artifact is GA. Public preview and expanded SDK-only artifacts are candidates for separate review."
       ]
     },
     {
@@ -23683,6 +23697,16 @@
       "source_note": "Google Sheets' official machine-readable source is Google Discovery, not OpenAPI; OAuth security metadata needs advisory OpenAPI overlay mapping."
     },
     {
+      "provider_id": "google-sheets",
+      "spec_ref_id": "sheets-sdk-discovery-v4",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://raw.githubusercontent.com/googleapis/google-api-go-client/558e74f3dbcd94a38e2f3e9960c9c032f3a9ee8a/sheets/v4/sheets-api.json",
+        "https://developers.google.com/workspace/sheets/api/scopes"
+      ],
+      "source_note": "The pinned native Discovery document lists OAuth scopes per method. The catalog overlay describes the reviewed subset for OpenAPI-oriented consumers."
+    },
+    {
       "provider_id": "gotify",
       "spec_ref_id": "gotify-server-openapi",
       "status": "complete",
@@ -24955,7 +24979,7 @@
       "spec_ref_id": "slack-web-openapi-v2",
       "status": "present-incomplete",
       "source_refs": [
-        "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2_without_examples.json"
+        "https://raw.githubusercontent.com/slackapi/slack-api-specs/dfea73e06d146c368d7f94b52ac90796dc4e27e1/web-api/slack_web_openapi_v2_without_examples.json"
       ],
       "source_note": "Slack's archived official OpenAPI document includes OAuth metadata and operation security but needs freshness review against current Slack docs."
     },
@@ -25057,7 +25081,8 @@
       "spec_ref_id": "stripe-latest-openapi-spec3",
       "status": "complete",
       "source_refs": [
-        "https://raw.githubusercontent.com/stripe/openapi/master/latest/openapi.spec3.json"
+        "https://raw.githubusercontent.com/stripe/openapi/0f6d4dfafe157c10df393ce8a27d00b186ab3955/latest/openapi.spec3.json",
+        "https://docs.stripe.com/api/authentication"
       ],
       "source_note": "Stripe's official latest OpenAPI document includes basic and bearer HTTP security schemes plus root security requirements."
     },
@@ -29835,19 +29860,248 @@
           ]
         }
       ],
-      "root_security": [
+      "operation_security": [
         {
-          "scheme": "googleOAuth2",
-          "scopes": [
-            "https://www.googleapis.com/auth/spreadsheets.readonly"
+          "match": {
+            "method": "POST",
+            "path": "/v4/spreadsheets"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "GET",
+            "path": "/v4/spreadsheets/{spreadsheetId}"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets.readonly"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "GET",
+            "path": "/v4/spreadsheets/{spreadsheetId}/values/{range}"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets.readonly"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "PUT",
+            "path": "/v4/spreadsheets/{spreadsheetId}/values/{range}"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "POST",
+            "path": "/v4/spreadsheets/{spreadsheetId}/values/{range}:append"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "POST",
+            "path": "/v4/spreadsheets/{spreadsheetId}/values:batchUpdate"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "POST",
+            "path": "/v4/spreadsheets/{spreadsheetId}:batchUpdate"
+          },
+          "security": [
+            {
+              "scheme": "googleOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets"
+              ]
+            }
           ]
         }
       ],
       "source_refs": [
         "https://sheets.googleapis.com/$discovery/rest?version=v4",
-        "https://developers.google.com/workspace/sheets/api/scopes"
+        "https://developers.google.com/workspace/sheets/api/scopes",
+        "https://developers.google.com/workspace/sheets/api/reference/rest"
       ],
-      "source_note": "Google Sheets publishes an official Google Discovery document rather than OpenAPI; Google documents OAuth scopes separately, so OpenAPI-only consumers need an advisory OAuth2 overlay."
+      "source_note": "The reviewed Sheets subset declares scopes per operation. Read and write methods have distinct access requirements."
+    },
+    {
+      "id": "google-sheets-sdk-discovery-auth-overlay",
+      "provider_id": "google-sheets",
+      "spec_ref_id": "sheets-sdk-discovery-v4",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "googleSheetsSDKOAuth2",
+          "type": "oauth2",
+          "description": "Google OAuth 2.0 authorization code flow with provider-specific scopes.",
+          "flows": [
+            {
+              "type": "authorizationCode",
+              "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth",
+              "token_url": "https://oauth2.googleapis.com/token",
+              "scopes": [
+                "https://www.googleapis.com/auth/drive.file",
+                "https://www.googleapis.com/auth/spreadsheets",
+                "https://www.googleapis.com/auth/spreadsheets.readonly"
+              ]
+            }
+          ],
+          "scopes": [
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/spreadsheets.readonly"
+          ]
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "method": "POST",
+            "path": "/v4/spreadsheets"
+          },
+          "security": [
+            {
+              "scheme": "googleSheetsSDKOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "GET",
+            "path": "/v4/spreadsheets/{spreadsheetId}"
+          },
+          "security": [
+            {
+              "scheme": "googleSheetsSDKOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets.readonly"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "GET",
+            "path": "/v4/spreadsheets/{spreadsheetId}/values/{range}"
+          },
+          "security": [
+            {
+              "scheme": "googleSheetsSDKOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets.readonly"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "PUT",
+            "path": "/v4/spreadsheets/{spreadsheetId}/values/{range}"
+          },
+          "security": [
+            {
+              "scheme": "googleSheetsSDKOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "POST",
+            "path": "/v4/spreadsheets/{spreadsheetId}/values/{range}:append"
+          },
+          "security": [
+            {
+              "scheme": "googleSheetsSDKOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "POST",
+            "path": "/v4/spreadsheets/{spreadsheetId}/values:batchUpdate"
+          },
+          "security": [
+            {
+              "scheme": "googleSheetsSDKOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets"
+              ]
+            }
+          ]
+        },
+        {
+          "match": {
+            "method": "POST",
+            "path": "/v4/spreadsheets/{spreadsheetId}:batchUpdate"
+          },
+          "security": [
+            {
+              "scheme": "googleSheetsSDKOAuth2",
+              "scopes": [
+                "https://www.googleapis.com/auth/spreadsheets"
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://raw.githubusercontent.com/googleapis/google-api-go-client/558e74f3dbcd94a38e2f3e9960c9c032f3a9ee8a/sheets/v4/sheets-api.json",
+        "https://developers.google.com/workspace/sheets/api/scopes",
+        "https://developers.google.com/workspace/sheets/api/reference/rest"
+      ],
+      "source_note": "The reviewed Sheets subset declares scopes per operation. Read and write methods have distinct access requirements."
     },
     {
       "id": "google-slides-discovery-auth-overlay",
@@ -32939,7 +33193,7 @@
         }
       ],
       "source_refs": [
-        "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2_without_examples.json",
+        "https://raw.githubusercontent.com/slackapi/slack-api-specs/dfea73e06d146c368d7f94b52ac90796dc4e27e1/web-api/slack_web_openapi_v2_without_examples.json",
         "https://api.slack.com/web",
         "https://api.slack.com/authentication/token-types"
       ],

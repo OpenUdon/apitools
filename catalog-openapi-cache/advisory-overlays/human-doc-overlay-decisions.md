@@ -119,6 +119,7 @@ overlay would hide native operation semantics.
 | ServiceNow | `servicenow-rest-api-overlay.json` | REST API Explorer and Table API docs support a focused instance/table/import subset. |
 | Sendy | `sendy-api-overlay.json` | Installation-hosted API docs support a focused subscribe, unsubscribe, list, campaign, and subscriber-count subset; host remains operator supplied. |
 | Shopify | `shopify-admin-rest-overlay.json` | Admin REST docs support a focused products, orders, customers, webhooks, and inventory subset. |
+| Slack | `slack-web-message-history-overlay.json` | Current method and OAuth docs support a narrow JSON text message and public-channel history subset. The archived Swagger remains historical evidence. |
 | Stackby | `stackby-api-overlay.json` | Developer API docs and API-key help support a focused stacks, tables, and rows subset; stack/table identifiers remain operator supplied. |
 | SurveyMonkey | `surveymonkey-api-v3-overlay.json` | API v3 docs support a focused surveys, collectors, responses, questions, and webhooks subset. |
 | Splunk | `splunk-enterprise-rest-overlay.json` | REST API docs support a focused server, search jobs, results, and saved-search subset; product version remains review-sensitive. |

@@ -1,11 +1,11 @@
 {
   "version": "apitools.catalog-manifest.v1",
   "catalog_version": "apitools.catalog.v1",
-  "catalog_sha256": "3725fc86bdb78f900c9fea4fc81023fd9422c0e2ff5ce6d424ff26bc86940a28",
-  "catalog_bytes": 1463340,
+  "catalog_sha256": "fea7be6ed75785470c725e40080cc51d595277fc3f9d0b19a62448b1cf05e2aa",
+  "catalog_bytes": 1472085,
   "candidate_count": 334,
   "provider_count": 334,
-  "spec_reference_count": 944,
-  "security_classification_count": 297,
-  "security_overlay_count": 267
+  "spec_reference_count": 945,
+  "security_classification_count": 298,
+  "security_overlay_count": 268
 }

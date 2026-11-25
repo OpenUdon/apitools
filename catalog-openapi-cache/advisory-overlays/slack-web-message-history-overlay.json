@@ -1,0 +1,203 @@
+{
+  "components": {
+    "securitySchemes": {
+      "slackOAuth2": {
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://slack.com/oauth/v2/authorize",
+            "scopes": {
+              "channels:history": "Read messages in eligible public channels.",
+              "chat:write": "Send messages to participating conversations."
+            },
+            "tokenUrl": "https://slack.com/api/oauth.v2.access"
+          }
+        },
+        "type": "oauth2"
+      }
+    }
+  },
+  "info": {
+    "description": "Reviewed JSON message posting and public-channel history from Slack's current documentation.",
+    "title": "Slack Web API Advisory Overlay",
+    "version": "1.0.0"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/chat.postMessage": {
+      "post": {
+        "externalDocs": {
+          "url": "https://docs.slack.dev/reference/methods/chat.postMessage/"
+        },
+        "operationId": "postSlackMessage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "channel": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "thread_ts": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "channel",
+                  "text"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "channel": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "ts": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Slack Web API result. Inspect ok and error for method failures."
+          }
+        },
+        "security": [
+          {
+            "slackOAuth2": [
+              "chat:write"
+            ]
+          }
+        ],
+        "summary": "Post a text message to a participating Slack conversation"
+      }
+    },
+    "/conversations.history": {
+      "get": {
+        "externalDocs": {
+          "url": "https://docs.slack.dev/reference/methods/conversations.history/"
+        },
+        "operationId": "getSlackPublicChannelHistory",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "channel",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    },
+                    "messages": {
+                      "items": {
+                        "properties": {
+                          "text": {
+                            "type": "string"
+                          },
+                          "ts": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "response_metadata": {
+                      "properties": {
+                        "next_cursor": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Slack Web API result. Inspect ok and error for method failures."
+          }
+        },
+        "security": [
+          {
+            "slackOAuth2": [
+              "channels:history"
+            ]
+          }
+        ],
+        "summary": "Read messages in an eligible public Slack channel"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://slack.com/api"
+    }
+  ],
+  "x-apitools-overlay": {
+    "derived_from_docs": true,
+    "official_openapi": false,
+    "overlay_id": "slack-web-message-history-overlay",
+    "provider_id": "slack",
+    "source_note": "The archived Swagger uses classic chat scopes and an aggregate history scope list. This overlay represents a small current subset.",
+    "source_refs": [
+      "https://docs.slack.dev/reference/methods/chat.postMessage/",
+      "https://docs.slack.dev/reference/methods/conversations.history/",
+      "https://docs.slack.dev/authentication/installing-with-oauth/"
+    ]
+  }
+}

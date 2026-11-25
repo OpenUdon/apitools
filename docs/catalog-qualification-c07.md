@@ -67,3 +67,56 @@ Kubernetes release uses Apache-2.0, and Dropbox's Stone repository uses MIT.
 Upstream bytes are retained in ignored qualification storage. The catalog
 tracks URLs and digests, and the Dropbox advisory retains its reproducible
 builder. [Kubernetes license](https://github.com/kubernetes/kubernetes/blob/v1.37.2/LICENSE).
+
+## Stripe, Google Sheets and Slack
+
+The Stripe public GA artifact at `0f6d4dfafe157c10df393ce8a27d00b186ab3955`
+declares `2026-11-18.endive`. The separate public preview SDK artifact at
+that commit declares `2026-11-18.preview`, and remains a candidate. The
+reviewed GA `GET /v1/payment_intents/{intent}` reproduces
+`GetPaymentIntentsIntent`, a required path ID, and a PaymentIntent response
+schema. It inherits the source's Basic or Bearer security alternatives.
+The previous pin was `2026-04-22.dahlia`. A dated major-version change still
+requires a compatibility review for any existing workflow. [Stripe GA files](https://github.com/stripe/openapi/tree/0f6d4dfafe157c10df393ce8a27d00b186ab3955/latest),
+[preview files](https://github.com/stripe/openapi/tree/0f6d4dfafe157c10df393ce8a27d00b186ab3955/preview),
+[versioning](https://docs.stripe.com/api/versioning),
+[selected operation](https://docs.stripe.com/api/payment_intents/retrieve).
+
+Google's canonical Sheets v4 Discovery URL is stable across revisions. The
+catalog held revision `20260511` without a legacy byte digest. The canonical
+HEAD returned HTTP 400. A one-byte range preflight returned a 394,610-byte
+Content-Length and no complete body. A GET bounded to that declared size
+returned revision `20261118` and SHA-256
+`82c209f3b283637103a1332ec34b350cb617716a3c6d956e89de44784a9e1573` at the
+same canonical URL. The updater's routine HEAD guard still applies. Google's
+SDK repository also supplies independent, downloadable v4 snapshots. The pinned
+SDK copy at `558e74f3dbcd94a38e2f3e9960c9c032f3a9ee8a` reports revision
+`20261109` and SHA-256
+`1ec492cc174692abaf513b32286b6e455aa68b08e17b60b8fba21afeaec7925d`.
+The earlier SDK copy at `e9015cc2681ce9d6300f4fae2ae6b075c6d75ead` reports
+revision `20260213` and SHA-256
+`60b9c02762346133a6ff3ee24b3c3f9e1f469666fb772048c0ea0a231030cae1`.
+All three reproduce `sheets.spreadsheets.values.get` in the native inventory.
+The full native shape proof remains bounded. The updater can retain the two
+exact reviewed pins using the selected operation and its read scope. A new
+digest requires independent qualification. The seven routes in the
+OpenAPI advisory remain a bounded subset with per-operation read or write
+scopes. The catalog's auth evidence now preserves that distinction for the
+canonical and SDK references. A GitHub snapshot keeps its commit as the
+artifact identity for cache reuse and reports the Discovery revision
+separately after reading the document. [Canonical URL](https://developers.google.com/workspace/sheets/api/quickstart/js),
+[pinned SDK copy](https://raw.githubusercontent.com/googleapis/google-api-go-client/558e74f3dbcd94a38e2f3e9960c9c032f3a9ee8a/sheets/v4/sheets-api.json),
+[selected operation](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/get).
+
+Slack's archived Swagger `1.7.0`, pinned at
+`dfea73e06d146c368d7f94b52ac90796dc4e27e1`, remains dated evidence. It lists
+classic `chat:write:user` and `chat:write:bot` together for message posting.
+It groups all four history scopes into a single requirement. Current docs
+specify `chat:write` for text messages and history scopes relevant to the
+conversation type. The reproducible [message and history overlay](../catalog-openapi-cache/advisory-overlays/slack-web-message-history-overlay.json)
+covers text posting in participating conversations and public-channel
+history with `channels:history`, using Slack's current OAuth v2 metadata.
+[Archived spec](https://github.com/slackapi/slack-api-specs),
+[text message docs](https://docs.slack.dev/reference/methods/chat.postMessage/),
+[history docs](https://docs.slack.dev/reference/methods/conversations.history/),
+[Slack OAuth v2](https://docs.slack.dev/authentication/installing-with-oauth/).

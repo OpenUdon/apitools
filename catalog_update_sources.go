@@ -25,6 +25,7 @@ type catalogUpdateSource struct {
 	HeldVersion         string
 	HeldRevision        string
 	Revision            string
+	NativeRevision      string `json:"NativeRevision,omitempty"`
 	Stage               string
 	Stable              bool
 	DocumentationBanner string `json:"DocumentationBanner,omitempty"`

@@ -13,7 +13,7 @@ evidence in the [C06 code review (xhigh) source note](../docs/history/status-C10
 | --- | --- | --- |
 | C07.1 — Prepare the first publisher inventory | `[+]` | Captured 334 unique reviewed providers and 196 machine-readable references, including 195 official references and the historical third-party Kubernetes fixture. The 181 earlier references are sorted in the [offline inventory](../../dist/c06-goal.zgalc0nf/c07-readiness/older-priority.json). Verified the launcher, mount and selected scope. Recorded the one authorized live pass with 302 provider summaries and 160 reference outcomes. C07.5 retains the remaining inventory work. Astra xhigh passed the task review. |
 | C07.2 — Qualify Dropbox, HubSpot and Kubernetes | `[+]` | Compare Dropbox official OpenAPI with the auth and operations in the overlay, then prefer it when qualified. Preserve old Stone references as provenance; UWS already has no Stone wire type. **F14 (Nit, local P1, confirmed).** The [HubSpot inventory](../../catalog_update_sources.go) enumerates services, and the [updater](../../catalog_update.go) stops after listing them. Select the reviewed families, versions and release stages, qualify stable documents through pinned native operation and compatibility checks, and label previews and other services as candidates. Keep any service with insufficient evidence out of the qualified set. Use release-tagged upstream Kubernetes OpenAPI, keep the historical fixture labeled and preserve cluster-specific exports for actual API groups and CRDs. Pinned stable Contacts/Deals list operations and Kubernetes Core Pod list passed with scoped auth evidence. Dropbox retains the reverified advisory overlay and official Stone provenance. HubSpot version migrations remain unexamined. Astra xhigh passed re-review. |
-| C07.3 — Qualify Stripe, Google Sheets and Slack | `[ ]` | Separate Stripe dated stable and preview releases and check the reviewed schema and security. Compare Google Sheets Discovery revision and digest even at the same v4 URL; reconcile the advisory overlay. Retain Slack’s archived Swagger as dated evidence and check current methods and scopes against official docs before proposing gap overlays. |
+| C07.3 — Qualify Stripe, Google Sheets and Slack | `[+]` | Separate Stripe dated stable and preview releases and check the reviewed schema and security. Compare Google Sheets Discovery revision and digest even at the same v4 URL; reconcile the advisory overlay. Retain Slack’s archived Swagger as dated evidence and check current methods and scopes against official docs before proposing gap overlays. Qualified Stripe GA with reviewed auth, compared Sheets revisions and exact pins, and added the current Slack advisory. Astra xhigh passed re-review. |
 | C07.4 — Curate the remaining sources and overlay decisions | `[ ]` | Seek official links for existing docs-only and overlay-primary rows. Prefer a usable provider source; otherwise review a bounded endpoint overlay and reproducible builder or record the concrete evidence gap. **F12 (Nit, local P2, confirmed).** Of 161 working-catalog providers without an eligible updater reference, 139 already have a checked-in overlay. Use the [advisory registry](../../catalog/advisory.go) in the [provider summary](../../catalog_update.go) to distinguish advisory coverage, a documented gap and unavailable evidence. Report upstream freshness only when observed. Inspect reusable schemes and effective root/operation auth. Keep each provider's supported subset and license evidence visible. |
 | C07.5 — Complete and reconcile the first inventory | `[ ]` | Run the authorized publisher inventory and account for each of the 334 provider IDs exactly once in the provider summary, with service/reference detail below it. Record actual versions, digests, outcomes, deferrals and review queue. Demonstrate reviewed operations for the six named providers with pinned fixtures; run catalog generation, quality and whole-unit gates. Use C10.4's accepted FND-01 failure classification and retry evidence to reconcile temporary publisher failures. |
 
@@ -111,6 +111,28 @@ with the C04/C05 and C07 pinned source directories. All passed.
 [Affected-unit checks](../../dist/c07-qualification.P2FWoi/c07-2-final-gates.log).
 The [reviewed diff](../../dist/c07-qualification.P2FWoi/c07-2-reviewed.diff)
 has SHA-256 `1f29b1f7618e55c990d0fcda9fd73f4b214d22bb713cf7bd470f9f1d93defd27`.
+
+C07.3 qualified the Stripe GA PaymentIntent retrieval schema and Basic or
+Bearer alternatives from the Endive pin. Preview bytes remain a candidate.
+The same Sheets v4 URL returned a newer Discovery revision under a bounded
+read. The prior catalog revision had no retained digest. The SDK snapshots
+and canonical pin reproduce the selected native method, and the updater
+has a bounded exact-pin proof for the two reviewed references. Slack
+retains the archived Swagger provenance and adds a reproducible current
+message and public-channel history overlay.
+[Source and operation evidence](../../docs/catalog-qualification-c07.md#stripe-google-sheets-and-slack).
+
+Verification on `e469981476c62ec52d3ad9d49a1a1a95d5a70ecf` passed. It ran
+`go build ./...`, `go vet ./...`, `go test -count=1 . ./catalog ./cmd/apitools`
+with the C04/C05 and C07 source pins, the generator and catalog quality
+checks, and `git diff --check`. The first review required a fixed per-ref
+digest for the reduced Sheets proof and separate Git and Discovery revision
+identities. A legacy catalog repin now fails the selected-method proof, and
+the SDK second pass reuses its verified object without fetching the body.
+[Affected-unit checks](../../dist/c07-qualification.P2FWoi/c07-3-repeat-gates.log),
+[focused checks](../../dist/c07-qualification.P2FWoi/c07-3-repeat-final.log).
+The [re-reviewed diff](../../dist/c07-qualification.P2FWoi/c07-3-repeat-reviewed.diff)
+has SHA-256 `c3b53c3f9b028df19685a0a1b055fb96666d9ed5ea95df90c8e4046aafe1ac96`.
 
 ## Review
 

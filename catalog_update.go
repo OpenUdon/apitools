@@ -283,6 +283,7 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 type catalogUpdateBaselineEvidence struct {
 	Preferred catalogupdate.Version         `json:"version"`
 	OpenAPI   *catalogUpdateOpenAPIEvidence `json:"openapi_validation,omitempty"`
+	Native    *catalogUpdateNativeEvidence  `json:"native_validation,omitempty"`
 	Artifact  *catalogUpdateArtifact        `json:"-"`
 }
 
@@ -291,6 +292,7 @@ type catalogUpdateEvidence struct {
 	Artifact         *catalogUpdateArtifact              `json:"artifact,omitempty"`
 	ReviewedBaseline *catalogUpdateBaselineEvidence      `json:"reviewed_baseline,omitempty"`
 	OpenAPI          *catalogUpdateOpenAPIEvidence       `json:"openapi_validation,omitempty"`
+	Native           *catalogUpdateNativeEvidence        `json:"native_validation,omitempty"`
 	Inventory        *catalogUpdateInventory             `json:"inventory,omitempty"`
 	Diagnostic       string                              `json:"diagnostic,omitempty"`
 	Retry            *catalogUpdateRetry                 `json:"publisher_retry,omitempty"`
@@ -503,12 +505,12 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 			return recordHeadFailure("publisher-spec-invalid", "Local validation established neither a valid OpenAPI document nor evidence for the exact reviewed artifact.", target, nil)
 		}
 		resolved.Version = firstNonEmpty(validation.Version, resolved.Version)
-	} else if _, err := BuildOperationShapeTable(ctx, OperationShapeOptions{
-		Sources: []ShapeSourceInput{{
-			ID: "catalog-update", OperationSourceInput: OperationSourceInput{Kind: kind, URL: artifact.URL, Content: body.Bytes()},
-		}},
-	}); err != nil {
-		return recordHeadFailure("publisher-spec-unexamined", "Local source validation did not establish a native operation inventory.", target, nil)
+	} else {
+		validation, ok := qualifyCatalogUpdateNativeSource(ctx, source, kind, artifact.URL, artifact.SHA256, body.Bytes())
+		if !ok {
+			return recordHeadFailure("publisher-spec-unexamined", "Local source validation did not establish a native operation inventory.", target, nil)
+		}
+		evidence.Native = validation
 	}
 	object := catalogupdate.Object{SHA256: artifact.SHA256, Bytes: artifact.Bytes}
 	resolved.Revision = firstNonEmpty(resolved.Revision, "sha256:"+artifact.SHA256)
@@ -518,7 +520,10 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 			return recordHeadFailure("publisher-spec-unexamined", "Native source provenance could not be read within the validation budget.", target, nil)
 		}
 		resolved.Version = firstNonEmpty(stringValue(native["version"]), resolved.Version)
-		resolved.Revision = firstNonEmpty(stringValue(native["revision"]), resolved.Revision)
+		resolved.NativeRevision = stringValue(native["revision"])
+		if resolved.ResolvedURL == "" {
+			resolved.Revision = firstNonEmpty(resolved.NativeRevision, resolved.Revision)
+		}
 	}
 	evidence.Source = c.catalogUpdateEvidenceSource(resolved)
 	matchesReviewedPin := catalogPin == object.SHA256
@@ -804,15 +809,11 @@ func qualifyCatalogUpdateBaseline(ctx context.Context, source catalogUpdateSourc
 		evidence.OpenAPI = &validation
 		return evidence, validation.accepted()
 	}
-	_, err := BuildOperationShapeTable(ctx, OperationShapeOptions{
-		Sources: []ShapeSourceInput{{
-			ID:                   "catalog-update",
-			OperationSourceInput: OperationSourceInput{Kind: kind, URL: version.URL, Content: body},
-		}},
-	})
-	if err != nil {
+	validation, ok := qualifyCatalogUpdateNativeSource(ctx, source, kind, version.URL, version.Object.SHA256, body)
+	if !ok {
 		return evidence, false
 	}
+	evidence.Native = validation
 	if kind == OperationSourceGoogleDiscovery {
 		native, err := decodeShapeDocument(ctx, body)
 		if err != nil {
