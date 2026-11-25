@@ -18,7 +18,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const stateSchema = 1
+const stateSchema = 2
 
 // Store keeps the durable run and artifact registry on the configured local
 // state filesystem. The owner supplies and closes the artifact cache root.
@@ -160,13 +160,21 @@ func (s *Store) initialize(ctx context.Context) error {
 		return err
 	}
 	switch version {
-	case stateSchema:
+	case 1, stateSchema:
 		var ok int
 		if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name IN ('update_run','update_provider','update_outcome','update_object')").Scan(&ok); err != nil {
 			return err
 		}
 		if ok != 4 {
 			return errors.New("file is not a catalog maintenance database")
+		}
+		if version == stateSchema {
+			if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM sqlite_schema WHERE type='table' AND name IN ('update_version','update_preferred')").Scan(&ok); err != nil {
+				return err
+			}
+			if ok != 2 {
+				return errors.New("catalog maintenance database lacks version tables")
+			}
 		}
 	case 0:
 		var tables int
@@ -181,6 +189,11 @@ func (s *Store) initialize(ctx context.Context) error {
 		}
 	default:
 		return fmt.Errorf("unsupported catalog maintenance schema %d", version)
+	}
+	if version < stateSchema {
+		if _, err := tx.ExecContext(ctx, versionSchemaSQL); err != nil {
+			return err
+		}
 	}
 	return tx.Commit()
 }

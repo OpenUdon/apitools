@@ -111,9 +111,9 @@ func catalogUpdateReferenceIdentity(ref catalog.SpecReference) (service, version
 	if err != nil || u.Host == "" {
 		return ref.ID, ""
 	}
-	normalized := u.Path
+	normalized := u.EscapedPath()
 	if u.Hostname() == "raw.githubusercontent.com" {
-		parts := strings.SplitN(strings.TrimPrefix(u.Path, "/"), "/", 4)
+		parts := strings.SplitN(strings.TrimPrefix(normalized, "/"), "/", 4)
 		if len(parts) == 4 && parts[2] != "refs" {
 			normalized = "/" + parts[0] + "/" + parts[1] + "/" + parts[3]
 		}
