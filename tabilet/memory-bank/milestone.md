@@ -552,7 +552,7 @@ concurrent ledger writers. A goal-protocol run keeps its own scoped ownership ru
 
 ## Current Dashboard
 
-The remaining APItools catalog maintenance milestone is **C09**.
+The remaining APItools catalog horizon is **C09 → C12**.
 Reviewed-provider search and embeddings passed
 [C08](../docs/history/status-C08.md) whole review 2.
 [C06](../docs/history/status-C06.md) delivered the update CLI, SQLite state
@@ -560,8 +560,11 @@ and artifact storage. C04 and C05 qualified the 334-provider baseline.
 [C10](../docs/history/status-C10.md) delivered the updater repairs. The
 first supervised publisher run is complete with 334 provider summaries
 and 195 reference outcomes. Provider qualification and inventory
-reconciliation are accepted after whole review 2. The work is package-local
-and serial. [C07 retired record](../docs/history/status-C07.md).
+reconciliation are accepted after whole review 2. [C12](#c12--public-catalog-website)
+plans a static public catalog website at `apis.kinet.com` after accepted C09.
+C09's rows and its integrated C06–C09/C10 review are unchanged; only the open
+review findings register's horizon closure moves from C09 to C12.
+The work is package-local and serial. [C07 retired record](../docs/history/status-C07.md).
 See the [status index](#status-files) and
 [catalog acceptance criteria](#monthly-reviewed-catalog).
 
@@ -623,6 +626,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 | ID | Status file | State |
 | --- | --- | --- |
 | C09 | [status-C09.md](status-C09.md) | Pending after accepted C08 |
+| C12 | [status-C12.md](status-C12.md) | Pending; requires accepted C09 |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
 
 Closed milestones are recorded in the history index.
@@ -690,6 +694,159 @@ run and can inspect its report before enabling recurrence. Verify the
 selective re-embedding. Use accepted C10 evidence to check repeat-run outcomes,
 retry behavior and access to prior reports. Review the complete change against
 the C06 baseline.
+
+### C12 — Public catalog website
+
+**Dependency and owner.** After accepted [C09](status-C09.md). APItools owns
+the static site generator, committed monthly change records, manual GitHub
+Pages workflow and maintenance-skill additions. **Parallel-safe: no.** C11 is
+skipped because the [M86](status-M86.md) records use an unqualified `C11` for
+`UWS:C11`. C12 is outside the C09 launch reference and needs its own launch
+after C09. This is new requested work approved on 2026-11-25, with
+corrections approved later the same day, so no P1/P2 review label applies.
+[C12 ledger](status-C12.md).
+
+**Closing duty.** C12 becomes the last active milestone of the catalog
+horizon, so C12.5 owns horizon closure of the
+[open review findings](#open-review-findings) register, including FND-04,
+FND-05, FND-07 and FND-08, under the register's existing rules. Findings owned
+by C09 rows stay with C09. C09's rows and its integrated C06–C09/C10 review are
+unchanged; only the register's horizon closure moves from C09 to C12.
+
+**Approved decisions (2026-11-25).**
+
+- The site uses a narrower sign-off than the
+  [Published provider version directory](#candidate-directions) candidate: the
+  owner signs off in C12.1. Because the site does no crawling, the crawl-policy
+  gate stays with the wider directory.
+- Host on GitHub Pages with custom domain `apis.kinet.com`, deployed from a
+  workflow artifact. Commit no generated pages to any branch.
+- Publish manually after the monthly review. The monthly job cannot publish.
+- Ship versioned JSON at launch in APItools' own small format. APIs.guru
+  `list.json` compatibility stays with the wider directory.
+- Recorded assumption: the audience is developers and agents choosing an API.
+  Unchecked at planning time: ownership, DNS or current use of
+  `apis.kinet.com`, and whether Pages is enabled on the repository; C12.1 owns
+  those checks.
+
+**Scope.** Build a static, independent site only from committed, reviewed
+catalog data: provider and category pages with coverage, provenance and
+verification dates, in-browser keyword search, monthly changes, and versioned
+JSON. Add maintainer-only `cmd/catalogsite` using the Go standard library with
+no new public Go API. Build deterministically from an identified clean commit
+with a pinned Go toolchain; "offline" means the generator makes no network
+request, while a hosted runner may download pinned modules verified by
+`go.sum`. Take the base URL as an explicit build input, use relative internal
+links, and publish a SHA-256 manifest of the output. Support browsing without
+JavaScript, escape all catalog text, allow only HTTPS source links, include a
+restrictive in-page CSP, and emit accessible markup. Site search matches words
+in public profile text and must not present an incidental operation-label
+match as a supported capability. It follows the evidence rules accepted in
+[C08](../docs/history/status-C08.md#status-record), whose whole review round 1
+P1-1 closed in round 2. [FND-07](#open-review-findings) (plural recall and
+incidental label terms) is open, so site search must not present that
+limitation as a capability claim. Before sign-off, C12.1
+resolves how operation labels such as Jenkins "Get CSRF crumb" and FileMaker
+"Delete session" are published; these examples come from C08 whole review
+round 1 L-2 ([C08 record](../docs/history/status-C08.md#status-record)). Compare two reviewed revisions
+into a small committed monthly record. Add a manual-only Pages workflow with
+every GitHub Action pinned by commit SHA and least workflow permissions, and
+`apitools-catalog-maintenance` skill steps for preview, publish and rollback.
+Document domain verification, DNS rollback and removal: verify the domain
+before adding DNS, and remove DNS before retiring the site.
+
+**Going live.** C12.5 performs these ordered steps, each needing separate
+explicit approval:
+
+1. Push the workflow to `main`. This publishes every unpushed local commit, so
+   list them for the owner first.
+2. Verify the domain with GitHub.
+3. Enable Pages with GitHub Actions as the source and set the custom domain.
+4. Add the DNS record.
+5. Dispatch the deployment.
+6. Enforce HTTPS once the certificate issues.
+
+Each deployment is a counted class R attempt under the
+[verification-attempt gate](#verification-attempt-gate) and its existing
+limit.
+
+**Excluded.** Spec or overlay bytes; auth guidance
+([FND-05](#open-review-findings) remains open); hosted semantic search;
+accounts; user submissions; analytics; logos; third-party assets; and
+`"current"` or `"latest"` claims.
+
+**Acceptance.**
+
+- C12.1 records the owner's publication sign-off and takedown contact.
+- Every built-in provider at the built commit (334 at planning) appears once
+  with the correct coverage label.
+- Keyword search finds providers by name, alias, category and keyword, and all
+  provider and category pages are reachable without JavaScript.
+- Two builds of one commit are byte-identical.
+- Hostile text cannot inject markup or scripts.
+- Output contains no spec bytes, credentials or secret values, or private host
+  paths.
+- Output makes no claim that a provider or version is current or latest.
+- Every internal link resolves.
+- Canonical URLs and the JSON use the approved hostname.
+- JSON carries a documented schema version and the source commit.
+- Pages carry the in-page CSP, load no third-party assets and pass named
+  accessibility checks in the Go tests (document language, title, landmarks,
+  form labels, link text).
+- The monthly changes page matches the committed record for its two reviewed
+  revisions, including the first publication, which has no predecessor.
+- The monthly job cannot publish.
+- The rollback steps are exercised on the loopback preview.
+- The live site matches its recorded commit: live files match the published
+  SHA-256 manifest.
+- The hostname serves a valid certificate and HTTP redirects to HTTPS.
+
+**Known limit.** GitHub Pages cannot set custom response headers, so the CSP is
+in the page and cannot block framing. The owner was told this before choosing
+Pages.
+
+**Write set and compatibility.** Maintainer-only `cmd/catalogsite`, its offline
+fixtures and tests, committed monthly change records, the manual-only GitHub
+Pages workflow, `apitools-catalog-maintenance` skill and operator docs, and
+`tabilet/memory-bank/status-C12.md`. No generated pages are committed to any
+branch. No change to the Go API, CLI search, downstream consumers or pins.
+
+**Verification.** Follow the [test policy](test-policy.md): existing class O
+[row checks and whole-unit gates](test-policy.md#project-specifics), generator
+tests, and an uncounted loopback preview as the local diagnostic loop. The
+C12.1 read-only live DNS/host readiness check (which gates C12.2–C12.5) and
+each C12.5 deployment with its live manifest, certificate and redirect checks
+are [class R checks](test-policy.md#class-r-runs) under the
+[verification-attempt gate](#verification-attempt-gate). Whole review starts at
+0/10; review and model roles follow
+[Monthly reviewed catalog](#monthly-reviewed-catalog).
+
+**Authority.** `git.commit` and `cli.local` use `goal-policy`. The read-only
+live DNS/host inspection in C12.1 and each C12.5 going-live step (push to
+`main`, GitHub domain verification, Pages source and custom-domain settings,
+the DNS record for `apis.kinet.com`, deployment dispatch and HTTPS
+enforcement) require separate explicit human approval; this plan grants none
+of them. Keep DNS/host credentials out of the repository and registrar account
+details out of the planning records.
+
+```yaml
+AUTHORIZATION_REQUIREMENTS:
+  git.commit:
+    via: goal-policy
+    executor: assigned-agent
+  cli.local:
+    via: goal-policy
+    executor: assigned-agent
+    scope: declared-implementation-and-verification
+  git.push:
+    via: explicit
+    executor: coordinator
+    scope:
+      repository: /home/peter/Workspace/apitools
+      remote: git@github.com-tabilet:OpenUdon/apitools.git
+      ref: refs/heads/main
+      mode: fast-forward
+```
 
 ### M86 — HCL-free UWS adoption (conditional)
 
@@ -877,7 +1034,7 @@ the work automatically.
 | Embedded baseline catalog root | M81's approved decision 3 keeps catalog roots caller-supplied. Embedding the 141 committed advisory overlays (about 2 MB) and their index would give published consumers a zero-setup offline root, but it widens distribution before the committed-overlay redistribution audit proposed in the [catalog upgrade proposal](../../docs/catalog-upgrade-2026-09.md) and adds binary size for every consumer. | The committed-overlay redistribution audit completes, and a consumer needs a zero-setup offline root. |
 | Go and public-directory search refinements | Accepted C08 delivered reviewed-first automatic CLI search. Existing Go callers and explicit directory behavior require separate proposals for changes. `Client.Search` keeps APIs.guru's `preferred` version and falls back to a lexicographic sort of version keys when it is missing (`providers.go`), and `auto` stops at the first source with matches (`client.go`). Changing either default alters results that OpenUdon and other callers rely on, so S05 reports versions through a separate opt-in command instead. Separately, the retired M80.4 remote tier sets `client.Cache = nil` with `CacheModeBypass` (`catalog_discovery_remote.go`), so each remote lookup re-downloads the whole APIs.guru directory list; S05 avoids that cost for its own checks but does not change the retired behavior. | Approve a default-behavior change with consumer reconciliation, observe APIs.guru entries whose `preferred` version is missing or unusable, or measure the directory download as a latency problem for a consumer. |
 | Identify APItools on guarded downloads | No `User-Agent` is set on any guarded request, so hosts see Go's default agent. S05's new probe primitive sends a stable tool identifier, but adding one to the shared download path changes the requests every existing caller makes, including OpenUdon's pinned use. | A publisher rejects the default agent, an operator requires identified egress, S05's probe evidence shows the identifier is worth sharing, or the provider version directory's crawl policy requires it; then approve it with consumer reconciliation. |
-| Published provider version directory | C06–C09 own the local maintained catalog and monthly refresh. Publishing a shared directory remains deferred. A shared, published directory that grows with demand: one record per provider and service with its locator, recipe, resolved URL, digest, `checked_at`, evidence label, and the age of any APIs.guru baseline, in an APIs.guru-`list.json`-compatible shape with `x-apitools-*` extensions and `preferred` naming the highest verified comparable version within the recorded checked scope (no global latest claim or new preference from conflicting evidence). Seeds are APIs.guru's list (CC0 for its contributors' work; frozen since April 2023, with `x-origin` on every entry) and the public-apis README (MIT; about 1,970 docs links, 20% overlapping APIs.guru), plus the curated catalog; a monthly deterministic job (conditional GETs and one GitHub tree listing per repository; 2,632 of APIs.guru's origins sit in 154 GitHub repositories, the other 1,381 spread over 769 hosts) re-verifies records, and LLM discovery runs only on demand per provider. It holds metadata only, never spec bytes, and is published as a separate artifact, not inside this module or on the code repository's `main`. User submissions are untrusted leads until the job verifies them. Considered and rejected: cloning APIs.guru (the clone has no `list.json`, and the data is frozen), mirroring spec bytes (only 27% of APIs.guru specs declare a license, and the module zip is capped at 500 MiB), and daily pushes of data into the code repository (consumers pin exact revisions). S05 delivered the per-provider record this would aggregate; its legal, crawl-policy and operator gates remain separate. | S05 is delivered and its record shape is stable, legal sign-off covers publication and a crawl policy (identifying User-Agent, rate limits, robots, takedown handling, GitHub API terms), and an operator wants a shared directory; then approve a bounded milestone with its own gating row for that sign-off. |
+| Published provider version directory | C06–C09 own the local maintained catalog and monthly refresh, and [C12](#c12--public-catalog-website) owns the static public website and small versioned JSON for the built-in reviewed providers at `apis.kinet.com` under C12.1's narrower sign-off. Publishing the broader demand-grown directory remains deferred: one record per provider and service beyond the reviewed catalog with its locator, recipe, resolved URL, digest, `checked_at`, evidence label, and the age of any APIs.guru baseline, in an APIs.guru-`list.json`-compatible shape with `x-apitools-*` extensions and `preferred` naming the highest verified comparable version within the recorded checked scope (no global latest claim or new preference from conflicting evidence). Unreviewed seeds are APIs.guru's list (CC0 for its contributors' work; frozen since April 2023, with `x-origin` on every entry) and the public-apis README (MIT; about 1,970 docs links, 20% overlapping APIs.guru), alongside the curated catalog; a monthly deterministic crawl job (conditional GETs and one GitHub tree listing per repository; 2,632 of APIs.guru's origins sit in 154 GitHub repositories, the other 1,381 spread over 769 hosts) re-verifies records, and LLM discovery runs only on demand per provider. It holds metadata only, never spec bytes, and is published as a separate artifact, not inside this module or on the code repository's `main`. User submissions are untrusted leads until the job verifies them. Considered and rejected: cloning APIs.guru (the clone has no `list.json`, and the data is frozen), mirroring spec bytes (only 27% of APIs.guru specs declare a license, and the module zip is capped at 500 MiB), and daily pushes of data into the code repository (consumers pin exact revisions). S05 delivered the per-provider record this would aggregate; its wider publication, crawl-policy and operator gates remain separate from C12's non-crawling reviewed-catalog site. | S05 is delivered and its record shape is stable, legal sign-off covers wider directory publication and a crawl policy (identifying User-Agent, rate limits, robots, takedown handling, GitHub API terms), and an operator wants the broader shared directory beyond C12's reviewed-catalog site; then approve a bounded milestone with its own gating row for that sign-off. |
 | Production adoption of experimental LAP/RFC 9727 discovery | The adapters are intentionally experimental, and OpenUdon still selects APIs.guru explicitly. | Collect reliability/coverage evidence and approve the downstream OpenUdon discovery policy and network budget. |
 | Remove deprecated Discovery and Smithy wrappers | Sibling consumers may still rely on compatibility imports, and removal is a public breaking change. | Confirm no active sibling imports remain, approve release notes, and pass downstream compatibility checks. |
 | Network and local-scan hardening batch | Review "apitools Code Review" Pass 1 (baseline `a5699e5`) findings #7 (LAP registry validates every entry by DNS before scoring/limit and fails the whole search on one bad `source_url`, `remote_discovery.go`), #9 (unsafe-IP list omits `240.0.0.0/4`, IPv4-compatible `::/96`, and `fec0::/10`, `download.go`), #11 (OpenAPI metadata paths skip the `sourceguard.CheckJSON`/`CheckYAML` preflight, `validation.go`, `local.go`, `local_source_discovery.go`), #12 (`.bin` is always treated as a protobuf descriptor, `local_source_discovery.go`), #13 (regular-file-to-FIFO swap between `Lstat` and `Open` can block, `local_read.go`, `internal/artifactio`), and #14 (`Discoverer` exposes no port/transport options, `discovery.go`). All were revalidated at `a5699e570fb5d6288fdd255c71d229fb062b50b3` as Lower severity; no supported scenario fails and no private-host or root-escape path was found. | Approve a hardening batch after S02, or promote any item earlier if it becomes reachable in a supported deployment or a downstream consumer depends on it. |
