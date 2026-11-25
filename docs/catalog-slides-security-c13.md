@@ -55,3 +55,8 @@ APITOOLS_C13_SLIDES_DISCOVERY_DIR="$SLIDES_SOURCE_DIR" \
 
 This checks both digests, parses the native methods and verifies the
 selected advisory paths and scopes.
+
+`apitools catalog overlay-view google-slides` lists the five advisory rules.
+The standalone view does not load the Discovery operations, so it displays
+the method matches as unresolved. The retained-source check above verifies
+each path against the native methods.

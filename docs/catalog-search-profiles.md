@@ -72,8 +72,9 @@ the selected label, allowing simple singular and plural forms such as
 “message” and “messages.” Provider identity words keep their exact matching
 rules. A query for “list user” can match “list users.” A label that mentions
 a user or product while describing another resource needs additional evidence
-from the query. A broad word such as “time” alone can still find providers by
-metadata. The report identifies the match type
+from the query. Reviewed labels for user details and current account profiles
+can match those records directly. A broad word such as “time” alone can still
+find providers by metadata. The report identifies the match type
 and gives selectors and digests for up to 10 matched operations per provider.
 
 With no source or provider URL specified, the CLI returns reviewed results

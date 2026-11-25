@@ -440,6 +440,7 @@ FROM search_operation WHERE search_operation MATCH ? ORDER BY 4,1,2,3`, expressi
 // operation evidence from the reviewed label.
 func reviewedOperationEvidence(query, identity, label []string) bool {
 	evidence := false
+	wantsCurrentAccount := slices.Contains(query, "current")
 	for _, term := range query {
 		if slices.Contains(identity, term) {
 			continue
@@ -455,6 +456,10 @@ func reviewedOperationEvidence(query, identity, label []string) bool {
 				continue
 			}
 			matched = true
+			if term == "account" && word == "account" && wantsCurrentAccount &&
+				slices.Contains(label[:i], "current") && reviewedOperationTarget(label, identity, i) {
+				evidence = true
+			}
 			if isGenericReviewedOperationWord(term) || isGenericReviewedOperationWord(word) {
 				continue
 			}
@@ -483,15 +488,20 @@ func isGenericReviewedOperationWord(word string) bool {
 	}
 }
 
-// A user or product can qualify another resource or occur in a description
-// after that resource. Only a direct target supplies evidence on its own.
+// A user, product or account can qualify another resource. Require the
+// direct target or a reviewed phrase describing that same record.
 func reviewedOperationTarget(label, identity []string, target int) bool {
-	if target+1 < len(label) {
-		switch label[target+1] {
-		case "by", "or":
-		default:
-			return false
-		}
+	word, tail := label[target], label[target+1:]
+	user := word == "user" || word == "users"
+	userDetails := user && (slices.Equal(tail, []string{"info"}) ||
+		slices.Equal(tail, []string{"account", "details"}) ||
+		slices.Equal(tail, []string{"about", "data"}))
+	accountProfile := word == "account" && slices.Equal(tail, []string{"profile"})
+	if len(tail) != 0 && tail[0] != "by" && tail[0] != "or" && !userDetails && !accountProfile {
+		return false
+	}
+	if user && target >= 3 && slices.Equal(label[target-2:target], []string{"openid", "connect"}) {
+		target -= 2
 	}
 	for i := 1; i < target; i++ {
 		switch label[i] {

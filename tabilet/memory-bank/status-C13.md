@@ -23,7 +23,7 @@ deferral when a named provider's documentation gap matters to approved work.
 
 ## Review
 
-Review gate iterations: 0
+Review gate iterations: 1
 
 The owner launched C13 by approving the raw launch SHA-256
 `f2d3b9aaa0b756a5c992d196ec3cf7ae4f4d8e930c948d5197916bbaae9d087e`.
@@ -219,3 +219,52 @@ FND-05 is fixed within the revision-qualified five-method scope.
 [Resolved inputs](../../dist/c13-goal/c13-3-consumer-exact-resolved.log),
 [OpenUdon rerun](../../dist/c13-goal/c13-3-openudon-exact.log),
 and [Udon rerun](../../dist/c13-goal/c13-3-udon-exact.log).
+
+Integrated whole review round 1 started at exact candidate
+`98cd870a798567c1b1f9d9a2d64115abe44a3ab7` with review limit 10.
+[Committed C13 delta](../../dist/c13-goal/c13-integrated-round1-delta.diff)
+SHA-256 `3497767d627ea053f63d57c89254dbe551800699fb3bb3960e4cb0fb49cfe89b`.
+[Review packet](../../dist/c13-goal/c13-integrated-round1-review.txt)
+SHA-256 `9e12cd07e0f0f20898d407e968b8e09162b91ed89fdb471fad12fc6f85dc833b`.
+Use the exact verified product inputs from the task gates and the retained
+C07 and C08 source evidence. C13 owns the three finding fixes. C12 retains
+final horizon closure.
+
+Integrated whole review round 1 passed with no blockers. Opus 5.5 high
+dispatched at 23:01:24Z and handed back at 23:11:42Z on 2026-11-25.
+[Report](../../dist/c13-goal/c13-whole-round1-report.md) and
+[dispatch proof](../../dist/c13-goal/c13-whole-round1-dispatch.json).
+F1 is a P2 regression from the initial relevance correction. The added
+selector matrix reproduced six genuine user and account matches dropping
+out at the first whole candidate. Preserve reviewed same-record label
+phrases and explicit current-account lookups. Test them with the prior
+positives and negatives, including Eventbrite's current-user qualifier.
+[Red regression](../../dist/c13-goal/c13-whole-r1-regression-red.log).
+
+Round 1 Lower dispositions. F2 keeps the approved clear fallback warning
+and avoids sending raw upstream failure context to stderr on successful
+reviewed output. F3 documents the inspection view's unresolved markers
+and how to verify native paths. F4 repeats the ZIP-entry comparisons and
+pin check with command traces. F5 reruns diff validation against the
+integrated starting commit. [ZIP receipt](../../dist/c13-goal/slides-exact-zip-receipt.log).
+
+Integrated corrective gate `c13-whole-r1-a1` started at
+`98cd870a798567c1b1f9d9a2d64115abe44a3ab7` with exact product and ordinary
+documentation diff SHA-256
+`c630cdc39bfec81dddfaa6feec772eedc1deff15b8f9f89d6f4d474b09d382fd`.
+Run the full labeled matrix, offline build and vet, pinned whole tests,
+generator freshness, catalog quality, CLI checks and an integrated diff
+check. Requalify exact OpenUdon and Udon snapshots with the changed files
+compared before testing.
+[Required gates](../../dist/c13-goal/c13-whole-r1-correction-gates.log).
+
+The corrected 43-case matrix passed at precision 31/31 and recall 31/31.
+The same expanded matrix on the published pre-C13 source measured
+precision 22/32 and recall 22/31. The existing stem and exact-identity
+checks also passed. Build, vet, the pinned whole Go test (93.450s),
+catalog generation and quality, CLI checks including Slides inspection,
+and the integrated diff check passed. Exact OpenUdon (74.169s) and Udon
+(63.489s) also passed. [Original matrix](../../dist/c13-goal/c13-whole-r1-original-baseline.log),
+[consumer inputs](../../dist/c13-goal/c13-whole-r1-consumer-inputs.log),
+[OpenUdon](../../dist/c13-goal/c13-whole-r1-openudon.log),
+and [Udon](../../dist/c13-goal/c13-whole-r1-udon.log).
