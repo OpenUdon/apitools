@@ -9,8 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
-	"net/url"
 	"strings"
 	"time"
 
@@ -182,12 +182,18 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 	return report, err
 }
 
+type catalogUpdateBaselineEvidence struct {
+	Preferred catalogupdate.Version         `json:"version"`
+	OpenAPI   *catalogUpdateOpenAPIEvidence `json:"openapi_validation,omitempty"`
+}
+
 type catalogUpdateEvidence struct {
-	Source     catalogUpdateSource           `json:"source"`
-	Artifact   *catalogUpdateArtifact        `json:"artifact,omitempty"`
-	OpenAPI    *catalogUpdateOpenAPIEvidence `json:"openapi_validation,omitempty"`
-	Inventory  *catalogUpdateInventory       `json:"inventory,omitempty"`
-	Diagnostic string                        `json:"diagnostic,omitempty"`
+	Source           catalogUpdateSource            `json:"source"`
+	Artifact         *catalogUpdateArtifact         `json:"artifact,omitempty"`
+	ReviewedBaseline *catalogUpdateBaselineEvidence `json:"reviewed_baseline,omitempty"`
+	OpenAPI          *catalogUpdateOpenAPIEvidence  `json:"openapi_validation,omitempty"`
+	Inventory        *catalogUpdateInventory        `json:"inventory,omitempty"`
+	Diagnostic       string                         `json:"diagnostic,omitempty"`
 }
 
 func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupdate.Store, runID string,
@@ -203,7 +209,7 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 		out.Evidence, err = json.Marshal(evidence)
 		if err == nil {
 			if promotion != nil {
-				err = store.AcceptVersionAndRecord(ctx, *promotion, expected, runID, out)
+				err = store.AcceptDirectVersionAndRecord(ctx, *promotion, expected, runID, out)
 			} else {
 				err = store.Record(ctx, runID, out)
 			}
@@ -213,17 +219,62 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 	if source.Kind == catalog.SpecKindDropboxStone {
 		return emit("publisher-source-review", "Check the official Dropbox OpenAPI before substituting Stone provenance.")
 	}
-	resolved, err := c.resolveCatalogUpdateSource(ctx, source)
-	evidence.Source = resolved
-	if err != nil || resolved.Resolution == "unexamined-locator" {
-		return emit("publisher-source-unexamined", "Could not establish the publisher artifact locator.")
-	}
-	target := firstNonEmpty(resolved.ResolvedURL, resolved.URL)
+	kind := OperationSourceKind(catalog.RefreshableSpecReference{Kind: source.Kind}.ProtocolClassification().UWSSourceType())
 	held, err := store.PreferredVersion(ctx, source.ProviderID, source.ReferenceID, source.Service)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return out, err
 	}
+	if held.Object.SHA256 == "" {
+		held, err = store.ReviewedReferencePreference(ctx, source.ProviderID, source.ReferenceID)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+		case errors.Is(err, catalogupdate.ErrAmbiguousReferencePreference):
+			return emit("review-required", "The reviewed reference needs an explicit service match.")
+		case err != nil:
+			return out, err
+		}
+	}
+	previous := held
 	catalogPin := catalogUpdateReviewedDigest(source.HeldRevision)
+	authoredCommit, _ := catalogUpdateGitFile(source.URL)
+	changeBaseline := held.Object.SHA256 == "" || held.CatalogPin != catalogPin || held.Locator != source.URL
+	resourceMoved := held.Object.SHA256 != "" && held.Locator != source.URL &&
+		!sameCatalogUpdateGitFile(held.Locator, source.URL) && !sameCatalogUpdateGitFile(held.URL, source.URL)
+	canReproduceMovedPin := !resourceMoved || (authoredCommit != "" && catalogPin != held.CatalogPin)
+	setPromotion := func(version *catalogupdate.Version) {
+		promotion = version
+		if previous.Object.SHA256 != "" {
+			expected = &previous
+		}
+	}
+	// A failed head check does not invalidate separately observed reviewed
+	// bytes. Keep the head status for retry and attach the accepted baseline.
+	recordHeadFailure := func(status, diagnostic, target string) (catalogupdate.Outcome, error) {
+		if ctx.Err() != nil {
+			return out, ctx.Err()
+		}
+		if changeBaseline && catalogPin != "" && canReproduceMovedPin && validOperationSourceKind(kind) {
+			anchored, err := c.catalogUpdateReviewedBaseline(ctx, store, source, held, target, catalogPin)
+			if err != nil && !errors.Is(err, catalogupdate.ErrObjectIntegrity) {
+				return out, err
+			}
+			if anchored.Preferred.Object.SHA256 != "" {
+				evidence.ReviewedBaseline = &anchored
+				out.Object = &anchored.Preferred.Object
+				setPromotion(&anchored.Preferred)
+			}
+		}
+		return emit(status, diagnostic)
+	}
+	resolved, err := c.resolveCatalogUpdateSource(ctx, source)
+	if held.Service != "" {
+		resolved.Service = held.Service
+	}
+	evidence.Source = resolved
+	if err != nil || resolved.Resolution == "unexamined-locator" {
+		return recordHeadFailure("publisher-source-unexamined", "Could not establish the publisher artifact locator.", "")
+	}
+	target := firstNonEmpty(resolved.ResolvedURL, resolved.URL)
 	if resolved.ResolvedURL != "" && target == held.URL && resolved.Revision == held.Revision &&
 		held.Locator == source.URL && (catalogPin == "" || held.CatalogPin == catalogPin) {
 		file, err := store.OpenObject(ctx, held.Object)
@@ -246,10 +297,13 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 		return out, ctx.Err()
 	}
 	if err != nil {
-		return emit("publisher-check-failed", "Publisher did not return a matching downloadable artifact.")
+		return recordHeadFailure("publisher-check-failed", "Publisher did not return a matching downloadable artifact.", target)
 	}
 	if artifact.Status != catalogUpdateDownloaded {
-		return emit(artifact.Status, "")
+		return recordHeadFailure(artifact.Status, "", target)
+	}
+	if resolved.ResolvedURL != "" && artifact.URL != resolved.ResolvedURL {
+		return recordHeadFailure("publisher-source-unexamined", "The artifact redirected away from the resolved immutable locator.", target)
 	}
 	if source.Kind == catalog.SpecKindOpenAPIIndex {
 		inventory, err := hubSpotUpdateInventory(artifact.URL, artifact.CheckedAt, body.Bytes())
@@ -259,7 +313,6 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 		evidence.Inventory = &inventory
 		return emit("publisher-index-inventoried", "")
 	}
-	kind := OperationSourceKind(catalog.RefreshableSpecReference{Kind: source.Kind}.ProtocolClassification().UWSSourceType())
 	if !validOperationSourceKind(kind) {
 		return emit("publisher-source-review", "The current artifact kind needs a reviewed source recipe.")
 	}
@@ -270,7 +323,7 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 		}
 		evidence.OpenAPI = &validation
 		if !validation.accepted() {
-			return emit("publisher-spec-invalid", "Local validation established neither a valid OpenAPI document nor evidence for the exact reviewed artifact.")
+			return recordHeadFailure("publisher-spec-invalid", "Local validation established neither a valid OpenAPI document nor evidence for the exact reviewed artifact.", target)
 		}
 		resolved.Version = firstNonEmpty(validation.Version, resolved.Version)
 	} else if _, err := BuildOperationShapeTable(ctx, OperationShapeOptions{
@@ -278,68 +331,67 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 			ID: "catalog-update", OperationSourceInput: OperationSourceInput{Kind: kind, URL: artifact.URL, Content: body.Bytes()},
 		}},
 	}); err != nil {
-		return emit("publisher-spec-unexamined", "Local source validation did not establish a native operation inventory.")
+		return recordHeadFailure("publisher-spec-unexamined", "Local source validation did not establish a native operation inventory.", target)
 	}
 	object := catalogupdate.Object{SHA256: artifact.SHA256, Bytes: artifact.Bytes}
 	resolved.Revision = firstNonEmpty(resolved.Revision, "sha256:"+artifact.SHA256)
 	if kind == OperationSourceGoogleDiscovery {
 		native, err := decodeShapeDocument(ctx, body.Bytes())
 		if err != nil {
-			return emit("publisher-spec-unexamined", "Native source provenance could not be read within the validation budget.")
+			return recordHeadFailure("publisher-spec-unexamined", "Native source provenance could not be read within the validation budget.", target)
 		}
 		resolved.Version = firstNonEmpty(stringValue(native["version"]), resolved.Version)
 		resolved.Revision = firstNonEmpty(stringValue(native["revision"]), resolved.Revision)
 	}
 	evidence.Source = resolved
 	matchesReviewedPin := catalogPin == object.SHA256
-	if held.Object.SHA256 == "" {
-		previous, err := store.ReviewedReferencePreference(ctx, source.ProviderID, source.ReferenceID)
-		switch {
-		case err == nil:
-			if previous.Locator != source.URL && !matchesReviewedPin {
-				return emit("review-required", "The publisher did not reproduce the reviewed pin at the new locator.")
-			}
-			held = previous
-			resolved.Service = held.Service
-			evidence.Source = resolved
-		case errors.Is(err, sql.ErrNoRows):
-		case errors.Is(err, catalogupdate.ErrAmbiguousReferencePreference):
-			return emit("review-required", "The reviewed reference needs an explicit service match.")
-		default:
-			return out, err
-		}
+	if !canReproduceMovedPin && !matchesReviewedPin {
+		return emit("review-required", "The publisher did not reproduce the reviewed pin at the new locator.")
 	}
 	if matchesReviewedPin && held.CatalogPin == catalogPin && held.Object != object {
 		return emit("review-required", "Publisher returned the standing catalog pin after a newer local acceptance.")
 	}
-	// Databases created before the review identity was recorded cannot show
-	// whether a different, older artifact is a fresh review or a replay.
-	if matchesReviewedPin && held.Object.SHA256 != "" && held.CatalogPin == "" && held.Object != object {
-		order, ordered := catalogUpdateVersionOrder(held.Version, resolved.Version)
-		if !ordered || order <= 0 {
-			return emit("review-required", "The migrated preference predates recorded review identity and a strictly newer release was not established.")
-		}
-	}
-	if !matchesReviewedPin && catalogPin != "" && held.Object.SHA256 != "" &&
-		(held.CatalogPin != catalogPin || held.Locator != source.URL) {
-		return emit("review-required", "The publisher did not reproduce the new reviewed catalog pin.")
-	}
-	adoptReviewedPin := matchesReviewedPin && (held.CatalogPin != catalogPin || held.Locator != source.URL)
-	key := source.ProviderID + "/" + source.ReferenceID
-	if held.Object.SHA256 == "" && !adoptReviewedPin && kind == OperationSourceOpenAPI && len(config.ReviewedOperations[key]) > 0 {
-		reconstructed, err := c.reconstructCatalogUpdateBaseline(ctx, store, source)
+	if matchesReviewedPin {
+		allowed, err := catalogUpdateCanReplaceWithPin(ctx, store, held, object, catalogPin, resolved.Version)
 		if err != nil {
-			if errors.Is(err, catalogupdate.ErrObjectIntegrity) {
-				return emit("review-required", "The immutable baseline cache entry could not be safely restored.")
-			}
 			return out, err
 		}
-		held = reconstructed
+		if !allowed {
+			return emit("review-required", "The reviewed artifact would replay an earlier pin or replace a newer release.")
+		}
+	}
+	adoptReviewedPin := matchesReviewedPin && changeBaseline && (authoredCommit == "" || artifact.URL == source.URL)
+	key := source.ProviderID + "/" + source.ReferenceID
+	var adoptedBaseline bool
+	if !adoptReviewedPin && catalogPin != "" && changeBaseline {
+		anchored, err := c.catalogUpdateReviewedBaseline(ctx, store, source, held, target, catalogPin)
+		switch {
+		case errors.Is(err, catalogupdate.ErrObjectIntegrity):
+			return emit("review-required", "The reviewed baseline cache entry could not be safely restored.")
+		case err != nil:
+			return out, err
+		case anchored.Preferred.Object.SHA256 != "":
+			held = anchored.Preferred
+			adoptedBaseline = true
+			evidence.ReviewedBaseline = &anchored
+		case held.Object.SHA256 != "":
+			return emit("review-required", "The publisher did not reproduce the new reviewed catalog pin.")
+		}
+	}
+	// A reproduced baseline can be committed with this checkpoint even when
+	// the separately observed publisher head cannot be accepted.
+	reviewCandidate := func(reason string) (catalogupdate.Outcome, error) {
+		if !adoptedBaseline {
+			return emit("review-required", reason)
+		}
+		setPromotion(&held)
+		out.Object = &held.Object
+		return emit("reviewed-pin-reproduced", reason)
 	}
 	if config.RetainImmutable || resolved.ResolvedURL == "" || held.Object.SHA256 != "" || adoptReviewedPin {
 		if err := store.PutObject(ctx, object, bytes.NewReader(body.Bytes())); err != nil {
 			if errors.Is(err, catalogupdate.ErrObjectIntegrity) {
-				return emit("review-required", "The candidate's cache entry could not be safely restored.")
+				return reviewCandidate("The candidate's cache entry could not be safely restored.")
 			}
 			return out, err
 		}
@@ -352,11 +404,11 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 	}
 	if adoptReviewedPin {
 		version.CatalogPin = catalogPin
-		promotion = &version
-		if held.Object.SHA256 != "" {
-			expected = &held
-		}
+		setPromotion(&version)
 		return emit("reviewed-pin-reproduced", "")
+	}
+	if adoptedBaseline && held.Object == object {
+		return reviewCandidate("")
 	}
 	if held.Object.SHA256 == "" {
 		return emit("review-required", "No previously accepted local version is available for comparison.")
@@ -364,24 +416,36 @@ func (c *Client) checkCatalogUpdateSource(ctx context.Context, store *catalogupd
 	if held.Object == object && held.URL == artifact.URL && held.Revision == resolved.Revision && held.Locator == source.URL {
 		return emit("unchanged", "")
 	}
+	if previous.Object.SHA256 != "" && previous.Object != object {
+		replay, err := store.HasAcceptedCatalogDigest(ctx, previous, object.SHA256)
+		if err != nil {
+			return out, err
+		}
+		if replay {
+			return reviewCandidate("The publisher returned an earlier accepted artifact.")
+		}
+	}
 	if !catalogUpdateVersionCanAdvance(held.Version, version.Version) {
-		return emit("review-required", "Publisher version stability or order needs review.")
+		return reviewCandidate("Publisher version stability or order needs review.")
+	}
+	if order, known := catalogUpdateVersionOrder(previous.Version, version.Version); adoptedBaseline && known && order < 0 {
+		return reviewCandidate("The publisher head is older than the previous local preference.")
 	}
 	if hasCatalogUpdateSecurityOverlay(provider.ID, source.ReferenceID) {
-		return emit("review-required", "The source has advisory security evidence that needs separate review.")
+		return reviewCandidate("The source has advisory security evidence that needs separate review.")
 	}
 	comparison, err := c.proveCompatibleCatalogVersion(ctx, store, held, version, kind, config.ReviewedOperations[key])
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) || errors.Is(err, catalogupdate.ErrObjectIntegrity) {
-			return emit("review-required", "The previously accepted artifact is unavailable for compatibility comparison.")
+			return reviewCandidate("The previously accepted artifact is unavailable for compatibility comparison.")
 		}
 		return out, err
 	}
 	if comparison == catalogUpdateCompatible {
-		promotion, expected = &version, &held
+		setPromotion(&version)
 		return emit("accepted-compatible", "")
 	}
-	return emit("review-required", string(comparison))
+	return reviewCandidate(string(comparison))
 }
 
 func catalogUpdateVersionCanAdvance(held, candidate string) bool {
@@ -427,44 +491,146 @@ func catalogUpdateReviewedDigest(revision string) string {
 	return result
 }
 
-func (c *Client) reconstructCatalogUpdateBaseline(ctx context.Context, store *catalogupdate.Store, source catalogUpdateSource) (catalogupdate.Version, error) {
-	u, err := url.Parse(source.URL)
-	if err != nil || u.Hostname() != "raw.githubusercontent.com" || u.Scheme != "https" {
-		return catalogupdate.Version{}, nil
+// catalogUpdateReviewedBaseline verifies a changed authored pin without
+// changing the preference. The caller commits it with the outcome, or uses
+// it to prove the current publisher artifact and commits that one instead.
+func (c *Client) catalogUpdateReviewedBaseline(ctx context.Context, store *catalogupdate.Store, source catalogUpdateSource,
+	held catalogupdate.Version, target, pin string,
+) (catalogUpdateBaselineEvidence, error) {
+	if _, err := c.versionURLSyntax(source.URL); err != nil {
+		return catalogUpdateBaselineEvidence{}, nil
 	}
-	pieces := strings.SplitN(strings.TrimPrefix(u.Path, "/"), "/", 4)
-	if len(pieces) != 4 || !catalogUpdateGitCommit.MatchString(pieces[2]) || !strings.Contains(source.HeldRevision, "sha256:") {
-		return catalogupdate.Version{}, nil
+	authoredCommit, _ := catalogUpdateGitFile(source.URL)
+	limit := int64(DefaultMaxBytes)
+	if configured := c.effective().MaxBytes; configured > 0 && configured < limit {
+		limit = configured
+	}
+	if held.Object.SHA256 == pin && held.Object.Bytes <= limit &&
+		((authoredCommit == "" && held.Locator == source.URL) ||
+			(authoredCommit != "" && held.URL == source.URL && held.Revision == authoredCommit)) {
+		file, err := store.OpenObject(ctx, held.Object)
+		if err == nil {
+			raw, err := io.ReadAll(io.LimitReader(file, held.Object.Bytes+1))
+			closeErr := file.Close()
+			if err != nil {
+				return catalogUpdateBaselineEvidence{}, err
+			}
+			if closeErr != nil {
+				return catalogUpdateBaselineEvidence{}, closeErr
+			}
+			sum := sha256.Sum256(raw)
+			if int64(len(raw)) == held.Object.Bytes && hex.EncodeToString(sum[:]) == pin {
+				held.Locator, held.CatalogPin = source.URL, pin
+				evidence, valid := qualifyCatalogUpdateBaseline(ctx, source, held, raw)
+				if ctx.Err() != nil {
+					return catalogUpdateBaselineEvidence{}, ctx.Err()
+				}
+				if valid {
+					return evidence, nil
+				}
+			}
+		}
+		if err != nil && !errors.Is(err, fs.ErrNotExist) && !errors.Is(err, catalogupdate.ErrObjectIntegrity) {
+			return catalogUpdateBaselineEvidence{}, err
+		}
+	}
+	if authoredCommit == "" || source.URL == target ||
+		(held.CatalogPin == pin && held.Object.SHA256 != pin) {
+		return catalogUpdateBaselineEvidence{}, nil
+	}
+	if held.Service != "" {
+		source.Service = held.Service
+	}
+	authored, err := c.reconstructCatalogUpdateBaseline(ctx, store, source)
+	if err != nil || authored.Preferred.Object.SHA256 == "" {
+		return authored, err
+	}
+	allowed, err := catalogUpdateCanReplaceWithPin(ctx, store, held, authored.Preferred.Object, pin, authored.Preferred.Version)
+	if err != nil || !allowed {
+		return catalogUpdateBaselineEvidence{}, err
+	}
+	return authored, nil
+}
+
+func catalogUpdateCanReplaceWithPin(ctx context.Context, store *catalogupdate.Store, held catalogupdate.Version,
+	authored catalogupdate.Object, pin, version string,
+) (bool, error) {
+	if held.Object.SHA256 == "" || held.Object == authored {
+		return true, nil
+	}
+	order, known := catalogUpdateVersionOrder(held.Version, version)
+	// Migrated v2 preferences have no reviewed anchor. Require evidence of
+	// a strictly newer release before replacing their bytes with a new pin.
+	if held.CatalogPin == "" {
+		return known && order > 0, nil
+	}
+	if known && order < 0 {
+		return false, nil
+	}
+	replay, err := store.HasAcceptedCatalogDigest(ctx, held, pin)
+	return !replay, err
+}
+
+func (c *Client) reconstructCatalogUpdateBaseline(ctx context.Context, store *catalogupdate.Store, source catalogUpdateSource) (catalogUpdateBaselineEvidence, error) {
+	commit, _ := catalogUpdateGitFile(source.URL)
+	kind := OperationSourceKind(source.refreshReference().ProtocolClassification().UWSSourceType())
+	if commit == "" || !validOperationSourceKind(kind) || catalogUpdateReviewedDigest(source.HeldRevision) == "" {
+		return catalogUpdateBaselineEvidence{}, nil
 	}
 	var body bytes.Buffer
 	artifact, err := c.acquireCatalogUpdateArtifact(ctx, source.URL, DefaultMaxBytes, &body)
 	if ctx.Err() != nil {
-		return catalogupdate.Version{}, ctx.Err()
+		return catalogUpdateBaselineEvidence{}, ctx.Err()
 	}
 	if err != nil || artifact.Status != catalogUpdateDownloaded || artifact.URL != source.URL ||
 		!hasCatalogUpdateReviewedDigest(source.HeldRevision, artifact.SHA256) {
-		return catalogupdate.Version{}, nil
-	}
-	validation := catalogUpdateNativeOpenAPI(ctx, body.Bytes(), artifact.URL, source.refreshReference(), artifact.SHA256)
-	if ctx.Err() != nil {
-		return catalogupdate.Version{}, ctx.Err()
-	}
-	if !validation.accepted() {
-		return catalogupdate.Version{}, nil
+		return catalogUpdateBaselineEvidence{}, nil
 	}
 	object := catalogupdate.Object{SHA256: artifact.SHA256, Bytes: artifact.Bytes}
 	baseline := catalogupdate.Version{
 		ProviderID: source.ProviderID, ReferenceID: source.ReferenceID, Service: source.Service,
-		Locator: source.URL, URL: source.URL, Version: validation.Version,
-		Revision: pieces[2], CatalogPin: artifact.SHA256, CheckedAt: artifact.CheckedAt, Object: object,
+		Locator: source.URL, URL: source.URL, Version: firstNonEmpty(source.Version, source.HeldVersion),
+		Revision: commit, CatalogPin: artifact.SHA256, CheckedAt: artifact.CheckedAt, Object: object,
+	}
+	evidence, valid := qualifyCatalogUpdateBaseline(ctx, source, baseline, body.Bytes())
+	if ctx.Err() != nil {
+		return catalogUpdateBaselineEvidence{}, ctx.Err()
+	}
+	if !valid {
+		return catalogUpdateBaselineEvidence{}, nil
 	}
 	if err := store.PutObject(ctx, object, bytes.NewReader(body.Bytes())); err != nil {
-		return catalogupdate.Version{}, err
+		return catalogUpdateBaselineEvidence{}, err
 	}
-	if err := store.AcceptVersion(ctx, baseline, nil); err != nil {
-		return catalogupdate.Version{}, err
+	return evidence, nil
+}
+
+func qualifyCatalogUpdateBaseline(ctx context.Context, source catalogUpdateSource, version catalogupdate.Version, body []byte) (catalogUpdateBaselineEvidence, bool) {
+	evidence := catalogUpdateBaselineEvidence{Preferred: version}
+	kind := OperationSourceKind(source.refreshReference().ProtocolClassification().UWSSourceType())
+	if kind == OperationSourceOpenAPI {
+		validation := catalogUpdateNativeOpenAPI(ctx, body, version.URL, source.refreshReference(), version.Object.SHA256)
+		evidence.Preferred.Version = firstNonEmpty(validation.Version, version.Version)
+		evidence.OpenAPI = &validation
+		return evidence, validation.accepted()
 	}
-	return baseline, nil
+	_, err := BuildOperationShapeTable(ctx, OperationShapeOptions{
+		Sources: []ShapeSourceInput{{
+			ID:                   "catalog-update",
+			OperationSourceInput: OperationSourceInput{Kind: kind, URL: version.URL, Content: body},
+		}},
+	})
+	if err != nil {
+		return evidence, false
+	}
+	if kind == OperationSourceGoogleDiscovery {
+		native, err := decodeShapeDocument(ctx, body)
+		if err != nil {
+			return evidence, false
+		}
+		evidence.Preferred.Version = firstNonEmpty(stringValue(native["version"]), version.Version)
+	}
+	return evidence, true
 }
 
 func hasCatalogUpdateSecurityOverlay(provider, reference string) bool {

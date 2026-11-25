@@ -59,9 +59,10 @@ func (s *Store) AcceptVersion(ctx context.Context, version Version, expected *Ve
 	return s.acceptVersion(ctx, version, expected, "", Outcome{})
 }
 
-// AcceptVersionAndRecord commits a preference and its run checkpoint in the
-// same SQLite transaction. Resume sees both or neither.
-func (s *Store) AcceptVersionAndRecord(ctx context.Context, version Version, expected *Version, runID string, outcome Outcome) error {
+// AcceptDirectVersionAndRecord commits a direct-source preference and its
+// checkpoint together. First acceptance requires the whole reference to
+// have no preference, even if a concurrent writer selected another service.
+func (s *Store) AcceptDirectVersionAndRecord(ctx context.Context, version Version, expected *Version, runID string, outcome Outcome) error {
 	if runID == "" || outcome.ProviderID != version.ProviderID || outcome.ReferenceID != version.ReferenceID ||
 		outcome.Object == nil || *outcome.Object != version.Object || outcome.Status == "" ||
 		(len(outcome.Evidence) != 0 && !json.Valid(outcome.Evidence)) {
@@ -89,6 +90,18 @@ func (s *Store) acceptVersion(ctx context.Context, version Version, expected *Ve
 		return err
 	}
 	defer tx.Rollback()
+	if runID != "" && expected == nil {
+		var exists bool
+		err := tx.QueryRowContext(ctx, `
+SELECT EXISTS (SELECT 1 FROM update_preferred WHERE provider_id = ? AND reference_id = ?)
+`, version.ProviderID, version.ReferenceID).Scan(&exists)
+		if err != nil {
+			return err
+		}
+		if exists {
+			return ErrPreferenceChanged
+		}
+	}
 	current, err := scanVersion(tx.QueryRowContext(ctx, selectVersion+" WHERE p.provider_id=? AND p.reference_id=? AND p.service=?", version.ProviderID, version.ReferenceID, version.Service))
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return err
@@ -140,6 +153,20 @@ func (s *Store) PreferredVersion(ctx context.Context, provider, reference, servi
 	defer s.mu.Unlock()
 	row := s.db.QueryRowContext(ctx, selectVersion+" WHERE p.provider_id=? AND p.reference_id=? AND p.service=?", provider, reference, service)
 	return scanVersion(row)
+}
+
+// HasAcceptedCatalogDigest reports whether this reference and service has
+// used the digest as an accepted artifact or as a reviewed anchor.
+func (s *Store) HasAcceptedCatalogDigest(ctx context.Context, preferred Version, pin string) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var found bool
+	err := s.db.QueryRowContext(ctx, `
+SELECT EXISTS (
+    SELECT 1 FROM update_version
+    WHERE provider_id = ? AND reference_id = ? AND service = ? AND (catalog_pin = ? OR digest = ?)
+)`, preferred.ProviderID, preferred.ReferenceID, preferred.Service, pin, pin).Scan(&found)
+	return found, err
 }
 
 // ReviewedReferencePreference recovers the stable identity of a direct

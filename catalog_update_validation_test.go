@@ -124,7 +124,7 @@ func TestCatalogUpdateAdoptsExactPinAfterReviewedCorrection(t *testing.T) {
 	}
 	defer reconstructedStore.Close()
 	reconstructed, err := client.reconstructCatalogUpdateBaseline(ctx, reconstructedStore, source)
-	if err != nil || reconstructed.Object != *out.Object || reconstructed.Version != "1.0" || reconstructed.Revision != commit {
+	if err != nil || reconstructed.Preferred.Object != *out.Object || reconstructed.Preferred.Version != "1.0" || reconstructed.Preferred.Revision != commit || reconstructed.OpenAPI == nil || reconstructed.OpenAPI.CorrectedStatus != CatalogRefreshValidOpenAPI {
 		t.Fatalf("reconstructed baseline = %+v, %v", reconstructed, err)
 	}
 	for _, pin := range []string{"", strings.Repeat("0", 64)} {

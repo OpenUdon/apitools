@@ -32,6 +32,25 @@ type catalogUpdateSource struct {
 
 var catalogUpdateGitCommit = regexp.MustCompile(`^[0-9a-f]{40}$`)
 
+func catalogUpdateGitFile(raw string) (revision, path string) {
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme != "https" || u.Host != "raw.githubusercontent.com" ||
+		u.User != nil || u.Fragment != "" || u.ForceQuery {
+		return "", ""
+	}
+	parts := strings.SplitN(strings.TrimPrefix(u.EscapedPath(), "/"), "/", 4)
+	if len(parts) != 4 || parts[0] == "" || parts[1] == "" || parts[3] == "" || !catalogUpdateGitCommit.MatchString(parts[2]) {
+		return "", ""
+	}
+	return parts[2], parts[0] + "/" + parts[1] + "/" + parts[3] + "?" + u.RawQuery
+}
+
+func sameCatalogUpdateGitFile(left, right string) bool {
+	_, path := catalogUpdateGitFile(left)
+	_, other := catalogUpdateGitFile(right)
+	return path != "" && path == other
+}
+
 // resolveCatalogUpdateSource resolves GitHub-backed paths to the last commit
 // that touched that exact file. A held commit establishes the file's identity.
 // GitHub's default branch supplies the check scope when the reference is pinned.

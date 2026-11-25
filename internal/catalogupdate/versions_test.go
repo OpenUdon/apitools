@@ -124,7 +124,7 @@ func TestStoreRollsBackVersionWhenReferenceCheckpointFails(t *testing.T) {
 		t.Fatal(err)
 	}
 	checkpoint := Outcome{ProviderID: pin.ProviderID, ReferenceID: pin.ReferenceID, Status: "reviewed", Object: &pin.Object}
-	if err := store.AcceptVersionAndRecord(ctx, pin, nil, "missing-run", checkpoint); err == nil {
+	if err := store.AcceptDirectVersionAndRecord(ctx, pin, nil, "missing-run", checkpoint); err == nil {
 		t.Fatal("accepted a version without committing its checkpoint")
 	}
 	if _, err := store.PreferredVersion(ctx, pin.ProviderID, pin.ReferenceID, pin.Service); !errors.Is(err, sql.ErrNoRows) {
@@ -138,7 +138,7 @@ func TestStoreRollsBackVersionWhenReferenceCheckpointFails(t *testing.T) {
 	if err := store.Record(ctx, run.ID, first); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.AcceptVersionAndRecord(ctx, pin, nil, run.ID, checkpoint); err == nil {
+	if err := store.AcceptDirectVersionAndRecord(ctx, pin, nil, run.ID, checkpoint); err == nil {
 		t.Fatal("accepted version after another writer finalized its checkpoint")
 	}
 	if _, err := store.PreferredVersion(ctx, pin.ProviderID, pin.ReferenceID, pin.Service); !errors.Is(err, sql.ErrNoRows) {
@@ -147,6 +147,21 @@ func TestStoreRollsBackVersionWhenReferenceCheckpointFails(t *testing.T) {
 	rows, err := store.ReadOutcomes(ctx, run.ID)
 	if err != nil || len(rows) != 1 || rows[0].Status != first.Status {
 		t.Fatalf("checkpoint overwritten by a second writer: %+v, %v", rows, err)
+	}
+	competing, err := store.StartRun(ctx, testObject("revised catalog").SHA256, []string{pin.ProviderID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AcceptVersion(ctx, pin, nil); err != nil {
+		t.Fatal(err)
+	}
+	newService := pin
+	newService.Service = "moved service"
+	if err := store.AcceptDirectVersionAndRecord(ctx, newService, nil, competing.ID, checkpoint); !errors.Is(err, ErrPreferenceChanged) {
+		t.Fatalf("a stale first acceptance gained a second direct-source preference: %v", err)
+	}
+	if rows, err := store.ReadOutcomes(ctx, competing.ID); err != nil || len(rows) != 0 {
+		t.Fatalf("checkpoint leaked after a competing preference: %+v, %v", rows, err)
 	}
 }
 
