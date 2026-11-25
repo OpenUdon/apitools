@@ -552,10 +552,12 @@ concurrent ledger writers. A goal-protocol run keeps its own scoped ownership ru
 
 ## Current Dashboard
 
-The current APItools catalog horizon is **C07 → C08 → C09**.
+The current APItools catalog horizon is **C10 → C07 → C08 → C09**.
 [C06](../docs/history/status-C06.md) delivered the update CLI, SQLite state
-and artifact storage. C04 and C05 qualified the 334-provider baseline. The
-remaining work is package-local and serial. See the [status index](#status-files) and
+and artifact storage. C04 and C05 qualified the 334-provider baseline. C10
+repairs the updater before C07's first publisher inventory. C07.1 also awaits
+separate approval for that run. The work is package-local and serial.
+See the [status index](#status-files) and
 [catalog acceptance criteria](#monthly-reviewed-catalog).
 
 M79 completed the Stage 1 operation-metadata remediation. Its accepted API
@@ -615,7 +617,8 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| C07 | [status-C07.md](status-C07.md) | Pending; accepted C06 input is ready |
+| C10 | [status-C10.md](status-C10.md) | Pending, depends on accepted C06 |
+| C07 | [status-C07.md](status-C07.md) | Requires accepted C10 and separate approval for the first publisher run |
 | C08 | [status-C08.md](status-C08.md) | Pending; requires accepted C07 |
 | C09 | [status-C09.md](status-C09.md) | Pending; requires accepted C08; integrated closure |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
@@ -630,13 +633,14 @@ The owner approved the C06–C09 proposal after selecting hosted embeddings
 with an operator-configured endpoint, public metadata and explicit query text,
 compatible local adoption with a reviewable Git export, deferral of unknown
 sizes, discovery of all stable links with qualification of reviewed services,
-and reviewed-first automatic CLI search. APItools owns these four milestones.
+and reviewed-first automatic CLI search. APItools owns these milestones and
+the C10 updater repairs approved after the C06 code review.
 **Parallel-safe: no** for each. Every milestone follows the existing
 [row and whole-unit test gates](test-policy.md#project-specifics) and
 [milestone review](#milestone-review-procedure), initially 0/10.
 The [retired C06 record](../docs/history/status-C06.md) includes the starting
 revision, pre-existing working-tree changes and untracked inputs. C09 owns
-the integrated C06–C09 review.
+integrated review of C06–C09 and the intervening C10 repairs.
 
 The owner approved GPT-6.2 Sol at `high` for implementation and fixes,
 GPT-6.2 Astra at `xhigh` for each task review, and Claude Opus 5.5
@@ -667,9 +671,36 @@ hosted embedding check. Record the publisher scope, configured cache directory,
 network or metered budget as applicable, stop conditions and outcomes.
 Installing a real user schedule is a subsequent operator choice.
 
-### C07 — First inventory and provider curation
+### C10 — Catalog updater repairs before the first inventory
 
 **Dependency and owner.** After accepted [C06](../docs/history/status-C06.md).
+APItools owns the updater, its SQLite records and offline proof. C07 consumes
+the reviewed result. **Parallel-safe: no.** [C10 tasks and evidence](status-C10.md).
+
+An offline update must recognize the exact reviewed artifact when the native
+source evidence supports it, reproduce a reviewed pin after the publisher moves
+on, and recognize identical bytes at a new revision of the same resource.
+Changes to an accepted preference still require proof of the reviewed scope.
+Keep publisher bytes and digest distinct from any reviewed parsing correction.
+Preserve guarded fetch, parser and size limits, durable cache ownership and
+atomic preference/checkpoint writes.
+
+Require bounded, targeted recovery from temporary publisher failures. Store
+the observed attempt time, safe locator and outcome even when discovery or
+preflight fails. An operator must be able to inspect a completed run after
+catalog or option changes. Preserve the identity check on an unfinished run
+and support existing SQLite state and deterministic exports.
+
+Each row has offline regression cases in the C10 ledger. Closure also requires
+a fresh build, vet, full offline Go tests, the storage race suite, catalog
+generation and quality checks, CLI help, a no-write 334-provider dry run and
+diff checks. Use the ordinary independent whole-milestone gate. The first
+publisher inventory remains a separate C07 operation.
+
+### C07 — First inventory and provider curation
+
+**Dependency and owner.** After accepted C10 against the retired
+[C06 baseline](../docs/history/status-C06.md).
 APItools owns the provider recipes, curated sources, security and endpoint
 overlays, and first inventory.
 [C07 ledger](status-C07.md).
@@ -682,8 +713,11 @@ a bounded, reproducible overlay and builder, or explain the specific missing
 evidence. Review effective security schemes and requirements for protected
 operations. Stage authored changes for review. Acceptance requires a
 provider-level outcome for every entry and operation-level evidence for the
-six named providers in the ledger. Distinguish redirects, failures, deferrals
-and partial coverage from a verified update.
+six named providers in the ledger. Qualify the reviewed HubSpot services and
+their operations against pinned evidence. Show which other index entries are
+candidates or previews. Where the updater has no eligible machine-readable
+reference, report existing advisory coverage and any remaining evidence gap.
+Distinguish redirects, failures, deferrals and partial coverage from a verified update.
 
 ### C08 — Searchable catalog and hosted embeddings
 
@@ -707,7 +741,7 @@ and the existing Go search contract.
 ### C09 — Monthly cron and agent maintenance skill
 
 **Dependency and owner.** After accepted C08. APItools owns the job, operator
-and agent interfaces, and integrated closure for C06 through C09.
+and agent interfaces, and integrated closure for C06 through C09 including C10.
 [C09 ledger](status-C09.md).
 
 Ship a user cron entry for 03:17 local time on the first of each month and a
@@ -718,7 +752,9 @@ status, inspection, retry by provider and generating the Git export.
 Preserve unrelated user cron entries. The operator initiates the first full
 run and can inspect its report before enabling recurrence. Verify the
 334-provider outcome and record a second run demonstrating deduplication and
-selective re-embedding. Review the complete change against the C06 baseline.
+selective re-embedding. Use accepted C10 evidence to check repeat-run outcomes,
+retry behavior and access to prior reports. Review the complete change against
+the C06 baseline.
 
 ### M86 — HCL-free UWS adoption (conditional)
 
@@ -850,7 +886,7 @@ Last used ID: FND-03
 
 | ID | Finding | Severity | Origin | Fix owner | Disposition |
 |---|---|---|---|---|---|
-| FND-01 | Checkpoints need distinguishable rate limits, server failures and timeouts. Provide bounded targeted retries so a temporary publisher issue does not get reported as conclusive freshness evidence. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C07.5 | open |
+| FND-01 | Checkpoints need distinguishable rate limits, server failures and timeouts. Provide bounded targeted retries so a temporary publisher issue does not get reported as conclusive freshness evidence. | P2 | [C06](../docs/history/status-C06.md) whole 1, reclassified on C06 code review F04 | C10.4 | open |
 | FND-02 | Interrupted update JSON omits checkpoints saved during the same invocation, even though SQLite retains them for resume. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.2 | open |
 | FND-03 | Default CLI fixtures need portable disposable state and broader end-to-end export and overlapping update coverage for the maintenance workflow. | Lower | [C06](../docs/history/status-C06.md) whole 1 | C09.4 | open |
 
