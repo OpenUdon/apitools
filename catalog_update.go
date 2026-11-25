@@ -50,6 +50,8 @@ type CatalogUpdateReport struct {
 	Completed     bool                    `json:"completed,omitempty"`
 	StartedAt     time.Time               `json:"started_at,omitzero"`
 	CompletedAt   time.Time               `json:"completed_at,omitzero"`
+	MonthlyPeriod string                  `json:"monthly_period,omitempty"`
+	SupersededAt  time.Time               `json:"superseded_at,omitzero"`
 	Outcomes      []catalogupdate.Outcome `json:"outcomes,omitempty"`
 	Export        json.RawMessage         `json:"export,omitempty"`
 }
@@ -112,12 +114,12 @@ func (c *Client) UpdateCatalog(ctx context.Context, options CatalogUpdateOptions
 			return report, err
 		default:
 			report.setRun(saved)
-			if saved.Completed {
-				report.Outcomes = outcomes
+			report.Outcomes = outcomes
+			if saved.Completed || !saved.MonthlySupersededAt.IsZero() {
 				return report, nil
 			}
 			if saved.Catalog != identity {
-				return report, errors.New("catalog or maintenance configuration changed since the update run started")
+				return report, catalogRunIdentityMismatch(saved)
 			}
 		}
 	}
@@ -129,6 +131,11 @@ func (c *Client) UpdateCatalog(ctx context.Context, options CatalogUpdateOptions
 		return report, err
 	}
 	defer cache.Close()
+	lock, err := catalogupdate.LockMonthlyRun(ctx, config.StateDB)
+	if err != nil {
+		return report, err
+	}
+	defer lock.Close()
 	store, err := catalogupdate.OpenStore(ctx, config.StateDB, cache)
 	if err != nil {
 		return report, err
@@ -144,8 +151,13 @@ func (c *Client) UpdateCatalog(ctx context.Context, options CatalogUpdateOptions
 		return report, err
 	}
 	report.setRun(run)
+	if !run.MonthlySupersededAt.IsZero() {
+		report.Outcomes, err = store.ReadOutcomes(ctx, run.ID)
+		return report, err
+	}
 	if !run.Completed && run.Catalog != identity {
-		return report, errors.New("catalog or maintenance configuration changed since the update run started")
+		report.Outcomes, err = store.ReadOutcomes(ctx, run.ID)
+		return report, errors.Join(catalogRunIdentityMismatch(run), err)
 	}
 	if options.OnStart != nil && !run.Completed {
 		options.OnStart(run.ID)
@@ -165,6 +177,14 @@ func (report *CatalogUpdateReport) setRun(run catalogupdate.Run) {
 	report.RunID, report.Providers, report.RunIdentity = run.ID, run.Providers, run.Catalog
 	report.Completed, report.StartedAt, report.CompletedAt = run.Completed, run.StartedAt, run.CompletedAt
 	report.CatalogSHA256 = run.CatalogSHA256
+	report.MonthlyPeriod, report.SupersededAt = run.MonthlyPeriod, run.MonthlySupersededAt
+}
+
+func catalogRunIdentityMismatch(run catalogupdate.Run) error {
+	if run.MonthlyPeriod == "" {
+		return errors.New("catalog or maintenance configuration changed since the update run started")
+	}
+	return fmt.Errorf("scheduled run %s for %s uses a different catalog or maintenance configuration; restore the original inputs or run `apitools catalog maintenance supersede --config FILE --run %s`, then retry maintenance run", run.ID, run.MonthlyPeriod, run.ID)
 }
 
 func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate.Store, report CatalogUpdateReport, completed bool, config CatalogUpdateConfig) (result CatalogUpdateReport, resultErr error) {
@@ -250,7 +270,17 @@ func (c *Client) continueCatalogUpdate(ctx context.Context, store *catalogupdate
 				}
 				deferred := catalogupdate.Outcome{ProviderID: id, ReferenceID: source.ReferenceID,
 					Status: "publisher-retry-deferred", Evidence: data, Object: row.Object, PreviousRetryEvidence: row.Evidence}
-				if err := store.Record(ctx, report.RunID, deferred); err != nil {
+				err = store.Record(ctx, report.RunID, deferred)
+				if deferred.Object != nil && (errors.Is(err, fs.ErrNotExist) || errors.Is(err, catalogupdate.ErrObjectIntegrity)) {
+					details.Diagnostic += " The previously accepted artifact is unavailable and remains historical evidence only."
+					details.ReviewedBaseline = nil
+					deferred.Object = nil // Keep the historical digest without relying on its cached bytes.
+					deferred.Evidence, err = json.Marshal(details)
+					if err == nil {
+						err = store.Record(ctx, report.RunID, deferred)
+					}
+				}
+				if err != nil {
 					return report, err
 				}
 				continue

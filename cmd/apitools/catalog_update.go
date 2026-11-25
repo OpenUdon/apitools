@@ -76,7 +76,9 @@ func writeCatalogUpdateResult(out, errOut io.Writer, report apitools.CatalogUpda
 		for _, row := range report.Outcomes {
 			fmt.Fprintf(out, "%s %s %s\n", row.ProviderID, row.ReferenceID, row.Status)
 		}
-		if !report.Completed && err == nil {
+		if !report.SupersededAt.IsZero() {
+			fmt.Fprintln(out, "This scheduled run was superseded. Its saved checkpoints are shown above.")
+		} else if !report.Completed && err == nil {
 			fmt.Fprintln(out, "Publisher retries are pending. Resume this run after the next attempt times in its JSON report.")
 		}
 	}

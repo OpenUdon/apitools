@@ -62,7 +62,8 @@ func loadCatalogMaintenanceReport(ctx context.Context, statePath, id string) (ap
 	}
 	return apitools.CatalogUpdateReport{Schema: "apitools.catalog-update.v1", CatalogSHA256: run.CatalogSHA256,
 		RunIdentity: run.Catalog, RunID: run.ID, Providers: run.Providers, Completed: run.Completed,
-		StartedAt: run.StartedAt, CompletedAt: run.CompletedAt, Outcomes: outcomes}, nil
+		StartedAt: run.StartedAt, CompletedAt: run.CompletedAt, MonthlyPeriod: run.MonthlyPeriod,
+		SupersededAt: run.MonthlySupersededAt, Outcomes: outcomes}, nil
 }
 
 func writeCatalogMaintenanceReport(ctx context.Context, out, errOut io.Writer, run apitools.CatalogUpdateReport, runErr error, cfg apitools.CatalogUpdateConfig, jsonOutput bool) int {
@@ -124,7 +125,9 @@ func writeCatalogMaintenanceReport(ctx context.Context, out, errOut io.Writer, r
 		}
 	}
 	if cfg.CacheDir != "" {
-		usage, err := catalogupdate.MeasureArtifactCache(ctx, cfg.CacheDir, cfg.ExpectedVolumeUUID)
+		measureCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
+		usage, err := catalogupdate.MeasureArtifactCache(measureCtx, cfg.CacheDir, cfg.ExpectedVolumeUUID)
+		cancel()
 		if err == nil {
 			report.CacheUsage = &usage
 		} else {
@@ -141,7 +144,15 @@ func writeCatalogMaintenanceReport(ctx context.Context, out, errOut io.Writer, r
 		if run.Completed {
 			state = "complete"
 		}
+		if !run.SupersededAt.IsZero() {
+			state = "superseded"
+		}
 		fmt.Fprintf(out, "Run %s is %s\nProviders checked %d/%d\n", run.RunID, state, summary.ProvidersChecked, summary.Providers)
+		if run.MonthlyPeriod != "" {
+			fmt.Fprintln(out, "Scheduled period", run.MonthlyPeriod)
+		} else if !run.Completed {
+			fmt.Fprintf(out, "Resume this run with `apitools catalog update --config FILE --resume %s`\n", run.RunID)
+		}
 		fmt.Fprintf(out, "Accepted compatible %d\nReviewed pins %d\nPending review %d\nPending retries %d\nSize deferrals %d\nDeferred retries %d\nFailures %d\n",
 			summary.AcceptedCompatible, summary.ReviewedPins, summary.PendingReview, summary.PendingRetries, summary.SizeDeferrals, summary.DeferredRetries, summary.Failures)
 		if report.CacheUsage != nil {

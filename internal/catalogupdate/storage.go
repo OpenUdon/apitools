@@ -41,7 +41,8 @@ func checkVolumeUUID(uuid string) error {
 
 // CheckMaintenanceStorage checks existing directories and a state file, if
 // present. Temporary writability probes are removed before returning.
-func CheckMaintenanceStorage(ctx context.Context, cachePath, statePath, expectedUUID string) error {
+func CheckMaintenanceStorage(ctx context.Context, cachePath, statePath, expectedUUID string) (err error) {
+	defer func() { err = classifyRunReadError(err) }()
 	if !filepath.IsAbs(cachePath) || !filepath.IsAbs(statePath) {
 		return errors.New("catalog maintenance needs absolute cache_dir and state_db paths")
 	}
@@ -116,27 +117,27 @@ func CheckMaintenanceStorage(ctx context.Context, cachePath, statePath, expected
 	return err
 }
 
-// LockMonthlyRun serializes maintenance jobs sharing a state database.
+// LockMonthlyRun serializes scheduled and manually started writers sharing a state database.
 // Artifact publication retains its separate short-lived object lock.
 func LockMonthlyRun(ctx context.Context, statePath string) (*os.File, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	if !filepath.IsAbs(statePath) {
-		return nil, errors.New("catalog maintenance needs an absolute state_db path")
+	statePath, err := filepath.Abs(statePath)
+	if err != nil {
+		return nil, err
 	}
-	root, err := os.OpenRoot(filepath.Dir(statePath))
+	root, err := openArtifactCache(filepath.Dir(statePath), func(root *os.Root) error {
+		dir, err := root.Open(".")
+		if err != nil {
+			return err
+		}
+		return errors.Join(checkStateFilesystem(dir), dir.Close())
+	})
 	if err != nil {
 		return nil, err
 	}
 	defer root.Close()
-	dir, err := root.Open(".")
-	if err != nil {
-		return nil, err
-	}
-	if err := errors.Join(checkStateFilesystem(dir), dir.Close()); err != nil {
-		return nil, err
-	}
 	return lockCatalogFile(ctx, root, filepath.Base(statePath)+".monthly.lock", false)
 }
 

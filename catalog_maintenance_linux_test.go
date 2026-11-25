@@ -51,8 +51,15 @@ func TestMonthlyCatalogUpdateRestartsTheSameRunAndRejectsOverlap(t *testing.T) {
 	})}}
 	const period = "2026-11"
 	var overlapErr error
-	first, err := client.runMonthlyCatalogUpdate(firstContext, config, period, "", func(string) {
+	first, err := client.runMonthlyCatalogUpdate(firstContext, config, period, "", func(id string) {
 		_, overlapErr = client.runMonthlyCatalogUpdate(ctx, config, period, "", nil)
+		for _, opts := range []CatalogUpdateOptions{{All: true}, {Provider: "attio"}, {Resume: id}} {
+			opts.Config = config
+			_, err := client.UpdateCatalog(ctx, opts)
+			if err == nil || !strings.Contains(err.Error(), "already running") {
+				t.Fatalf("manual writer bypassed the monthly lock: %+v, %v", opts, err)
+			}
+		}
 	})
 	if !errors.Is(err, context.Canceled) || first.RunID == "" || first.Completed || calls != 3 {
 		t.Fatalf("expected interrupted checkpointed run, got %s completed %t, requests %d, error %v", first.RunID, first.Completed, calls, err)
@@ -124,4 +131,106 @@ func TestMonthlyCatalogUpdateRetryDelayUsesEffectivePerOriginLimits(t *testing.T
 	if delay := catalogMonthlyRetryDelay(report, now); delay != 3*time.Minute {
 		t.Fatalf("origin share must set the eligible delay, got %s", delay)
 	}
+}
+
+func TestMonthlyCatalogUpdateRetainsCheckpointsWhenIdentityChanges(t *testing.T) {
+	config := newCatalogRepairFixture(t)
+	var err error
+	config.CacheDir, err = filepath.Abs(config.CacheDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	config.StateDB, err = filepath.Abs(config.StateDB)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := t.Context()
+	firstContext, cancel := context.WithCancel(ctx)
+	defer cancel()
+	calls := 0
+	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
+		calls++
+		if calls == 3 {
+			cancel()
+			return nil, firstContext.Err()
+		}
+		return &http.Response{StatusCode: http.StatusNotFound, Body: http.NoBody, Request: r}, nil
+	})}}
+	first, err := client.runMonthlyCatalogUpdate(firstContext, config, "2026-11", "", nil)
+	if !errors.Is(err, context.Canceled) || len(first.Outcomes) == 0 {
+		t.Fatalf("could not save an interrupted scheduled run: %d checkpoints, %v", len(first.Outcomes), err)
+	}
+	changed := config
+	changed.RetainImmutable = !changed.RetainImmutable
+	refused, err := client.runMonthlyCatalogUpdate(ctx, changed, "2026-12", "", nil)
+	if err == nil || !strings.Contains(err.Error(), "2026-11") || !strings.Contains(err.Error(), "supersede --config FILE --run "+first.RunID) ||
+		calls != 3 || refused.RunID != first.RunID || !reflect.DeepEqual(refused.Outcomes, first.Outcomes) {
+		t.Fatalf("changed identity lost checkpoints or fetched from a publisher: %s had %d checkpoints, %d requests, %v",
+			refused.RunID, len(refused.Outcomes), calls, err)
+	}
+	if err := catalogupdate.SupersedeMonthlyRun(ctx, changed.StateDB, changed.CacheDir, "", first.RunID); err != nil {
+		t.Fatal(err)
+	}
+	old, outcomes, err := catalogupdate.ReadExistingRun(ctx, changed.StateDB, first.RunID)
+	if err != nil || old.MonthlyPeriod != "2026-11" || old.MonthlySupersededAt.IsZero() || old.Completed || !reflect.DeepEqual(outcomes, first.Outcomes) {
+		t.Fatalf("superseding did not preserve the unfinished run: %+v, %d checkpoints, %v", old, len(outcomes), err)
+	}
+	if err := catalogupdate.SupersedeMonthlyRun(ctx, changed.StateDB, changed.CacheDir, "", first.RunID); err != nil {
+		t.Fatal(err)
+	}
+	saved, err := client.UpdateCatalog(ctx, CatalogUpdateOptions{Config: config, Resume: first.RunID})
+	if err != nil || !saved.SupersededAt.Equal(old.MonthlySupersededAt) || !reflect.DeepEqual(saved.Outcomes, first.Outcomes) || calls != 3 {
+		t.Fatalf("manual resume reopened the superseded run: %d requests, %v", calls, err)
+	}
+	const nextPeriod = "2026-12"
+	due, err := client.runMonthlyCatalogUpdate(ctx, changed, nextPeriod, "", nil)
+	if err != nil || !due.Completed || due.MonthlyPeriod != nextPeriod || due.RunID == first.RunID || calls <= 3 {
+		t.Fatalf("new catalog did not service its due month: %s, %t, %d requests, %v", due.MonthlyPeriod, due.Completed, calls, err)
+	}
+	if err := catalogupdate.SupersedeMonthlyRun(ctx, changed.StateDB, changed.CacheDir, "", due.RunID); err == nil {
+		t.Fatal("superseded a completed scheduled run")
+	}
+}
+
+func TestMonthlyCatalogUpdatePersistsBoundedPublisherRetries(t *testing.T) {
+	config := newCatalogRepairFixture(t)
+	var err error
+	config.CacheDir, err = filepath.Abs(config.CacheDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	config.StateDB, err = filepath.Abs(config.StateDB)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var attempts []time.Time
+	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
+		status, header := http.StatusNotFound, make(http.Header)
+		if r.Method == http.MethodHead && r.URL.Host == "api.attio.com" {
+			attempts = append(attempts, time.Now())
+			status = http.StatusTooManyRequests
+			header.Set("Retry-After", "1")
+		}
+		return &http.Response{StatusCode: status, Header: header, Body: http.NoBody, Request: r}, nil
+	})}}
+	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Second)
+	defer cancel()
+	run, err := client.runMonthlyCatalogUpdate(ctx, config, "2026-12", "", nil)
+	if err != nil || !run.Completed || len(attempts) != catalogUpdatePublisherAttempts {
+		t.Fatalf("scheduled run did not finish bounded retries: %d attempts, complete=%t, %v", len(attempts), run.Completed, err)
+	}
+	for i := 1; i < len(attempts); i++ {
+		if delay := attempts[i].Sub(attempts[i-1]); delay < time.Second {
+			t.Fatalf("retry %d did not honor Retry-After: %v", i+1, delay)
+		}
+	}
+	for _, row := range run.Outcomes {
+		if row.ProviderID == "attio" && row.ReferenceID != "" {
+			if row.Status != "publisher-retry-exhausted" || readCatalogUpdateRetry(row).Attempt != catalogUpdatePublisherAttempts {
+				t.Fatalf("wrong saved terminal retry: %s, %s", row.Status, row.Evidence)
+			}
+			return
+		}
+	}
+	t.Fatal("missing Attio retry checkpoint")
 }

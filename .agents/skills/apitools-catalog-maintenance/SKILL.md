@@ -18,8 +18,9 @@ configuration and source-status details.
   executable, storage, and cron environment. `run --config FILE --dry-run
   --json` lists the reviewed scope without contacting publishers.
 - `apitools catalog maintenance status --config FILE --json` reads the
-  managed schedule and latest scheduled run ID. `status` also works
-  without the config when only the schedule is needed.
+  managed schedule and latest scheduled run ID and checks the installed
+  full-run proof. `status` also works without the config when only the
+  schedule is needed.
 - `apitools catalog maintenance report --config FILE --run RUN_ID --json`
   inspects saved outcomes, including an unfinished run's committed
   checkpoints. Omit `--run` for the latest scheduled run. Omit `--json`
@@ -40,8 +41,20 @@ interrupted monthly job, resume through
 `apitools catalog maintenance run --config FILE --json` with the original
 configuration and catalog. The scheduled runner handles eligible retries
 within its time budget and continues the due month under the same lock.
-Keep its recorded run ID and checkpoints if it stops. To start a new check
-of just one service, use
+If the catalog or configuration has changed, inspect the returned run ID.
+With the operator's authority to supersede that run, use
+`apitools catalog maintenance supersede --config FILE --run RUN_ID`.
+This releases the period assignment and keeps the original
+checkpoints and accepted versions. The next authorized `maintenance run`
+services the due month. A manual writer shares the monthly lock.
+
+If inspection reports an interrupted SQLite journal, `maintenance run`
+with the configured storage and publisher authority recovers it before
+checking publishers. Then repeat the read-only inspection. When status
+reports that the installed proof is out of date, complete and inspect a
+new full run and enable with that run ID.
+
+To start a new check of just one service, use
 `apitools catalog maintenance retry --config FILE --provider PROVIDER_ID --json`.
 
 `apitools catalog maintenance enable --config FILE --after-run RUN_ID`

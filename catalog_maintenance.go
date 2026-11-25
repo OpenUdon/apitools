@@ -84,7 +84,8 @@ func (c *Client) runMonthlyCatalogUpdate(ctx context.Context, config CatalogUpda
 			return report, err
 		}
 		if run.Catalog != identity {
-			return report, errors.New("catalog or maintenance configuration changed since the update run started")
+			report.Outcomes, err = store.ReadOutcomes(ctx, run.ID)
+			return report, errors.Join(catalogRunIdentityMismatch(run), err)
 		}
 		if onStart != nil {
 			onStart(run.ID)

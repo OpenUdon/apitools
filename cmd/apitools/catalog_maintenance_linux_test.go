@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/OpenUdon/apitools"
 	"github.com/OpenUdon/apitools/internal/catalogupdate"
@@ -162,6 +163,53 @@ func TestCatalogMaintenanceScratchScheduleAndReports(t *testing.T) {
 	if !bytes.Contains(text, []byte("Run "+first.RunID+" is complete")) || !bytes.Contains(text, []byte("Providers checked 334/334")) {
 		t.Fatalf("saved text report missing operator evidence: %s", text[:min(len(text), 500)])
 	}
+	cache, err := catalogupdate.OpenArtifactCache(filepath.Join(dir, "cache"), "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	store, err := catalogupdate.OpenStore(t.Context(), filepath.Join(dir, "state.sqlite"), cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	now := time.Now()
+	previousPeriod := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()).AddDate(0, -1, 0).Format("2006-01")
+	pending, err := store.MonthlyRun(t.Context(), previousPeriod, first.RunIdentity, first.CatalogSHA256, []string{"attio"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	obsoleteProof, err := store.StartRunSnapshot(t.Context(), first.RunIdentity, first.CatalogSHA256, []string{"attio"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Record(t.Context(), obsoleteProof.ID, catalogupdate.Outcome{ProviderID: "attio", Status: "checked"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.FinishRun(t.Context(), obsoleteProof.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Close(); err != nil {
+		t.Fatal(err)
+	}
+	beforeSupersede := calls
+	command(exitRuntime, "supersede", "--config", programConfig, "--run", scheduled.Run.RunID)
+	superseded := command(exitSuccess, "supersede", "--config", programConfig, "--run", pending.ID, "--json")
+	var archived catalogMaintenanceReport
+	if err := json.Unmarshal(superseded, &archived); err != nil || archived.Run.RunID != pending.ID ||
+		archived.Run.MonthlyPeriod != previousPeriod || archived.Run.SupersededAt.IsZero() || archived.Run.Completed || calls != beforeSupersede || readCron() != installed {
+		t.Fatalf("supersede did not preserve the run or isolate cron and publishers: %+v, %v", archived.Run, err)
+	}
+	if text := command(exitSuccess, "report", "--config", programConfig, "--run", pending.ID); !bytes.Contains(text, []byte("is superseded")) {
+		t.Fatalf("historical report dropped supersession: %s", text)
+	}
+	if err := os.WriteFile(cron, []byte(strings.Replace(installed, first.RunID, obsoleteProof.ID, 1)), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	stale := command(exitRuntime, "status", "--config", programConfig, "--crontab-file", cron, "--json")
+	if err := json.Unmarshal(stale, &observed); err != nil || !observed.Enabled || !strings.Contains(observed.StateError, "Complete and inspect a full reviewed run") {
+		t.Fatalf("status hid stale proof or the installed schedule: %s, %v", stale, err)
+	}
 	command(exitSuccess, "disable", "--crontab-file", cron)
 	command(exitSuccess, "disable", "--crontab-file", cron)
 	if readCron() != existing {
@@ -217,7 +265,7 @@ func TestCatalogMaintenanceRejectsEmptySensitiveFlags(t *testing.T) {
 	if err := os.WriteFile(config, []byte(`{"cache_dir":"cache","state_db":"state.sqlite"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	for _, args := range [][]string{{"disable", "--crontab-file="}, {"run", "--config", config, "--after-run", ""}} {
+	for _, args := range [][]string{{"disable", "--crontab-file="}, {"run", "--config", config, "--after-run", ""}, {"report", "--config", config, "--run="}} {
 		var out, errOut bytes.Buffer
 		if code := runCatalogMaintenance(args, &out, &errOut); code != exitUsage || !strings.Contains(errOut.String(), "requires a nonempty value") {
 			t.Fatalf("%v did not fail before accessing cron or state: %d, %s", args, code, errOut.String())

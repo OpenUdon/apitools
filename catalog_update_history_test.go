@@ -34,8 +34,23 @@ func TestCatalogUpdateResumesAfterInterruptedSQLiteWrite(t *testing.T) {
 		}
 		os.Exit(23)
 	}
+	t.Run("manual", func(t *testing.T) { testCatalogUpdateRecoversJournal(t, childStateKey, false) })
+	t.Run("monthly", func(t *testing.T) { testCatalogUpdateRecoversJournal(t, childStateKey, true) })
+}
+
+func testCatalogUpdateRecoversJournal(t *testing.T, childStateKey string, monthly bool) {
+	t.Helper()
 	ctx := t.Context()
 	cfg := newCatalogRepairFixture(t)
+	var err error
+	cfg.CacheDir, err = filepath.Abs(cfg.CacheDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg.StateDB, err = filepath.Abs(cfg.StateDB)
+	if err != nil {
+		t.Fatal(err)
+	}
 	cache, err := catalogupdate.OpenArtifactCache(cfg.CacheDir, "", 0)
 	if err != nil {
 		t.Fatal(err)
@@ -51,7 +66,13 @@ func TestCatalogUpdateResumesAfterInterruptedSQLiteWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	identity := fmt.Sprintf("%x", sha256.Sum256(append([]byte(catalogSHA+"\n"), settings...)))
-	run, err := store.StartRunSnapshot(ctx, identity, catalogSHA, []string{"attio"})
+	period := time.Now().Format("2006-01")
+	var run catalogupdate.Run
+	if monthly {
+		run, err = store.MonthlyRun(ctx, period, identity, catalogSHA, []string{"attio"})
+	} else {
+		run, err = store.StartRunSnapshot(ctx, identity, catalogSHA, []string{"attio"})
+	}
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,6 +103,14 @@ INSERT INTO crash_fixture SELECT printf('%03500d', 0) FROM seq;`); err != nil {
 	if _, err := (&Client{}).UpdateCatalog(ctx, options); !errors.Is(err, catalogupdate.ErrRunJournalRecovery) {
 		t.Fatalf("read-only inspection unexpectedly recovered SQLite: %v", err)
 	}
+	if monthly {
+		if _, err := catalogupdate.ReadLatestMonthlyRunID(ctx, cfg.StateDB); !errors.Is(err, catalogupdate.ErrRunJournalRecovery) {
+			t.Fatalf("monthly report could not identify the hot journal: %v", err)
+		}
+		if err := catalogupdate.CheckMaintenanceStorage(ctx, cfg.CacheDir, cfg.StateDB, ""); !errors.Is(err, catalogupdate.ErrRunJournalRecovery) {
+			t.Fatalf("preflight could not identify the hot journal: %v", err)
+		}
+	}
 	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
 		if r.Method != http.MethodHead || r.URL.Host != "api.attio.com" {
 			t.Fatalf("unexpected fixture request: %s %s", r.Method, r.URL)
@@ -89,7 +118,12 @@ INSERT INTO crash_fixture SELECT printf('%03500d', 0) FROM seq;`); err != nil {
 		return &http.Response{StatusCode: http.StatusMethodNotAllowed, Header: make(http.Header), Body: http.NoBody, Request: r}, nil
 	})}}
 	options.Config = cfg
-	result, err := client.UpdateCatalog(ctx, options)
+	var result CatalogUpdateReport
+	if monthly {
+		result, err = client.runMonthlyCatalogUpdate(ctx, cfg, period, "", nil)
+	} else {
+		result, err = client.UpdateCatalog(ctx, options)
+	}
 	if err != nil || !result.Completed || result.RunID != run.ID || result.RunIdentity != identity ||
 		len(result.Outcomes) != 2 || result.Outcomes[1].Status != catalogUpdateSizeUnknown {
 		t.Fatalf("resume after journal recovery = %t, status count %d, %v", result.Completed, len(result.Outcomes), err)

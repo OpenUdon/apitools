@@ -14,9 +14,9 @@ C09 owns integrated closure for C06–C09 and the [C10 updater repairs](../docs/
 
 ## Review
 
-Review gate iterations: 0
+Review gate iterations: 1
 
-Whole review pending, default limit 10. Reuse accepted evidence for contributor
+Integrated whole review round 1 started under effective limit 10. Reuse accepted evidence for contributor
 milestones and identify the exact final state. C08 supplies the separate SQLite
 search index, optional hosted embedding budgets, and local evidence that
 completed vector batches are reused. C09 still owns the repeat-run proof.
@@ -164,3 +164,92 @@ The integrated review uses the C06 starting Git revision and exact
 initial tracked diff. It recognizes the four unavailable planning-only
 snapshots and verifies the remaining original inputs.
 [Baseline reconstruction](../../dist/c09-goal/c09-integrated-baseline.json).
+
+Integrated whole round 1 started at exact candidate
+`cf8591db608baaa5ad963b4a54e27459b2e5311a`.
+[C09 delta](../../dist/c09-goal/c09-integrated-round1-delta.diff) SHA-256
+`6ba99cddd11b56d0ad731060613c818996e45663cb6722b9b43c26f5f6f528d5`.
+[Canonical integrated Git diff](../../dist/c09-goal/c09-integrated-round1-full.diff)
+SHA-256 `b52fc2c1d58c996b36296e1ca49e493094966c12b2698449700b3f2ab5699393`.
+[Review packet](../../dist/c09-goal/c09-integrated-round1-review.txt) SHA-256
+`84992ccba7378a17509df8d7935bd2fc76303decfb69f9853c9b4583dcc8d198`.
+Reuse the whole test gates from C09.4 at this source, with only ledger and
+findings bookkeeping changed after qualification.
+
+Round 1 blocked on F1. [Report](../../dist/c09-goal/c09-whole-round1-report.md)
+and [Opus 5.5 high dispatch](../../dist/c09-goal/c09-whole-round1-dispatch.json).
+The [baseline regression](../../dist/c09-goal/c09-whole-round1-f1-red.log)
+confirmed zero publisher requests after mismatch and no previously committed
+checkpoints in the returned report. A diagnostic alone would leave a changed
+catalog unable to service future periods. The repair gives the operator an
+explicit run-ID selection, returns the original outcomes on refusal, moves
+the assignment transactionally, and leaves the checkpoint and version rows
+available to all existing readers. Manual writers and scoped retry now share
+the lock, while inspection and export continue to use read-only SQLite paths.
+The repair also covers timed retry evidence, hot journal recovery, stale
+schedule proof, and the case where a deferred source loses a cache object.
+
+Integrated corrective gate `c09-whole-r1-a1` started from
+`cf8591db608baaa5ad963b4a54e27459b2e5311a`, exact implementation and ordinary
+documentation diff SHA-256
+`1c017e71007a2dad6ccb61af3a1d7d8ae5e01502f54662b7c6fa3bcfae6bc2ca`.
+Re-run offline focused regressions, build, vet, whole pinned tests, root/CLI/
+storage races, generator, quality, CLI help, skill structure and diff checks;
+requalify the affected OpenUdon composition.
+[Required gates](../../dist/c09-goal/c09-whole-round1-corrective-gates.log).
+
+Round 1 observed dispatch 21:42:19Z and handback 21:50:10Z on 2026-11-25.
+F2 through F6 were confirmed in the reviewed source and addressed in this
+repair. F2 uses the same state lock for scheduled, manual and scoped writers.
+F3 now drives real timed retries against a fixture transport through the
+terminal attempt. The one-day wall limit is verified by its explicit context
+deadline and cancellation tests. F4 exercises a real hot journal in disposable
+state and guides read-only callers to the guarded writer. F5 shows a stale
+installed provider-scope proof alongside schedule presence. F6 reports a
+missing historical digest and completes the later provider without relying on
+the lost bytes. Manual completed and superseded reports remain readable with
+no writer; a superseded run is never restarted by the current updater.
+
+Round 1 lower dispositions. L1, L3 and L4 are fixed with explicit blank-selector
+rejection, a manual-resume hint for unfinished targeted runs, and a bounded
+cache measurement after cancellation. L2 keeps the documented operator-chosen
+separate scratch file and explicit config/state safeguards. L5 would broaden
+version-label inference beyond pinned publisher evidence. L6 bounds carryover
+selection to due periods; saved reports continue to order by recorded month.
+L7 keeps the supported permanent binary location and permissive scratch
+preflight. L8 uses disposable native directories as allowed by the test policy.
+L9 keeps the structured cron report. L10 leaves C08's independent search-index
+refusal intact. L11 is a safe refusal on a hand-edited managed block. L12 uses
+the existing race budget. L13 keeps the concise text refusal and full JSON.
+
+Gate `c09-whole-r1-a1` passed the focused tests in 32.879s, build, vet,
+whole pinned tests in 91.053s and generator freshness. The catalog quality
+check was invoked with the erroneous CLI subcommand `catalog quality` and
+exited with usage status 2 after 1.127s. Required-gate key C09 catalog check,
+working directory APItools, built-in catalog scope, runner setup CLI selector.
+Signature `unknown catalog command "quality"` consumed one attempt of three,
+with two remaining and one distinct signature. The CLI help in the receipt
+names `catalog check` as the correct command. The first run stopped before
+launching the remaining checks.
+
+Gate `c09-whole-r1-a2` starts the exact catalog check, CLI help, skill
+validation, diff and whole root/CLI/storage race checks at the same base and
+candidate SHA-256 as `c09-whole-r1-a1`. Product inputs are identical, so the
+passing required checks retain their evidence.
+[Recovery gates](../../dist/c09-goal/c09-whole-round1-corrective-gates-resumed.log).
+
+The corrected catalog check passed in 0.211s with no findings and cleared
+the gate's key and signature counters. The CLI help, structural skill and
+diff checks also passed. Exact-candidate OpenUdon and optional exact-candidate
+Udon composition passed in 37.514s and 35.984s respectively. The Udon copy
+required `-mod=mod` for its isolated replacement and completed offline.
+[Consumer input](../../dist/c09-goal/c09-whole-round1-consumer-inputs.txt),
+[OpenUdon](../../dist/c09-goal/c09-whole-round1-openudon.log), and
+[Udon](../../dist/c09-goal/c09-whole-round1-udon-composed-with-mod.log).
+The corrected CLI also re-read the exact C07 record and export from the
+disposable database. It checked the full-run proof in scratch status and
+restored the unrelated crontab bytes with byte-identical SQLite and export.
+[Saved-state proof](../../dist/c09-goal/c09-whole-round1-prior-run.log).
+Whole root, CLI and storage races passed in 181.596s. All required
+corrective gates are clean. No review counter was charged for the harness
+correction.

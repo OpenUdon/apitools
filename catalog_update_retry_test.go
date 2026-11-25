@@ -2,6 +2,9 @@ package apitools
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -17,6 +20,69 @@ import (
 func TestCatalogUpdateQuotaYieldsOriginAndResumesLaterProviders(t *testing.T) {
 	t.Run("resume after quota", func(t *testing.T) { testCatalogUpdateQuota(t, "0", false) })
 	t.Run("defer beyond recovery horizon", func(t *testing.T) { testCatalogUpdateQuota(t, "999999999", true) })
+}
+
+func TestCatalogUpdateDefersMissingRetryArtifactAndChecksLaterProvider(t *testing.T) {
+	cfg := newCatalogRepairFixture(t)
+	ctx := t.Context()
+	cache, err := catalogupdate.OpenArtifactCache(cfg.CacheDir, "", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cache.Close()
+	store, err := catalogupdate.OpenStore(ctx, cfg.StateDB, cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	run, err := store.StartRun(ctx, catalog.BuiltInCatalogManifest().CatalogSHA256, []string{"attio", "stripe"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	const body = "historical reviewed artifact"
+	sum := sha256.Sum256([]byte(body))
+	object := catalogupdate.Object{SHA256: hex.EncodeToString(sum[:]), Bytes: int64(len(body))}
+	if err := store.PutObject(ctx, object, strings.NewReader(body)); err != nil {
+		t.Fatal(err)
+	}
+	provider, _ := catalog.FindBuiltInProvider("attio")
+	source := catalogUpdateReferenceSources(provider)[0]
+	data, err := json.Marshal(catalogUpdateEvidence{
+		ReviewedBaseline: &catalogUpdateBaselineEvidence{Preferred: catalogupdate.Version{Object: object}},
+		RetryBlocks:      map[string]catalogUpdateOriginBlock{catalogUpdateArtifactOrigin(source.URL): {OutsideWindow: true}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Record(ctx, run.ID, catalogupdate.Outcome{ProviderID: "attio", ReferenceID: source.ReferenceID,
+		Status: catalogupdate.RetryPendingStatus, Object: &object, Evidence: data}); err != nil {
+		t.Fatal(err)
+	}
+	if err := cache.Remove("sha256-" + object.SHA256); err != nil {
+		t.Fatal(err)
+	}
+	checkedStripe := false
+	client := &Client{AllowUnsafeHosts: true, HTTPClient: &http.Client{Transport: catalogUpdateTransport(func(r *http.Request) (*http.Response, error) {
+		if r.URL.Host == "api.attio.com" {
+			t.Fatal("contacted an origin deferred beyond the retry window")
+		}
+		checkedStripe = true
+		return &http.Response{StatusCode: http.StatusNotFound, Body: http.NoBody, Request: r}, nil
+	})}}
+	result, err := client.continueCatalogUpdate(ctx, store, CatalogUpdateReport{RunID: run.ID, Providers: run.Providers}, false, cfg)
+	if err != nil || !result.Completed || !checkedStripe {
+		t.Fatalf("missing object blocked later references: completed=%t, stripe=%t, %v", result.Completed, checkedStripe, err)
+	}
+	for _, row := range result.Outcomes {
+		if row.ProviderID == "attio" && row.ReferenceID == source.ReferenceID {
+			if row.Status != "publisher-retry-deferred" || row.Object == nil || *row.Object != object ||
+				!strings.Contains(string(row.Evidence), "artifact is unavailable") || strings.Contains(string(row.Evidence), "reviewed_baseline") {
+				t.Fatalf("deferral obscured missing historical artifact: %+v", row)
+			}
+			return
+		}
+	}
+	t.Fatal("missing deferred Attio checkpoint")
 }
 
 func testCatalogUpdateQuota(t *testing.T, hint string, beyondWindow bool) {

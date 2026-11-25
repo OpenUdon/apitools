@@ -37,14 +37,15 @@ type Store struct {
 }
 
 type Run struct {
-	ID            string
-	Catalog       string
-	CatalogSHA256 string
-	Providers     []string
-	Completed     bool
-	StartedAt     time.Time
-	CompletedAt   time.Time
-	MonthlyPeriod string
+	ID                  string
+	Catalog             string
+	CatalogSHA256       string
+	Providers           []string
+	Completed           bool
+	StartedAt           time.Time
+	CompletedAt         time.Time
+	MonthlyPeriod       string
+	MonthlySupersededAt time.Time
 }
 
 var ErrRunNotFound = errors.New("catalog update run was not found")
@@ -367,7 +368,13 @@ func readRun(ctx context.Context, db catalogRunQueries, id string, schema int) (
 		}
 		run.Providers = append(run.Providers, id)
 	}
-	return run, rows.Err()
+	if err := rows.Err(); err != nil {
+		return run, err
+	}
+	if schema >= 4 {
+		err = readMonthlyAssignment(ctx, db, &run)
+	}
+	return run, err
 }
 
 func openReadOnlyState(statePath string) (*sql.DB, error) {
@@ -379,16 +386,19 @@ func openReadOnlyState(statePath string) (*sql.DB, error) {
 	return sql.Open("sqlite", dsn.String())
 }
 
+func classifyRunReadError(err error) error {
+	var failure *sqlite.Error
+	if errors.As(err, &failure) && failure.Code() == sqlite3.SQLITE_READONLY_ROLLBACK {
+		return ErrRunJournalRecovery
+	}
+	return err
+}
+
 // ReadExistingRun inspects a run using the original database in read-only
 // mode. Committed outcomes share its snapshot. Unfinished runs still need
 // the writer's current catalog/configuration identity check before resuming.
 func ReadExistingRun(ctx context.Context, statePath, id string) (run Run, outcomes []Outcome, err error) {
-	defer func() {
-		var failure *sqlite.Error
-		if errors.As(err, &failure) && failure.Code() == sqlite3.SQLITE_READONLY_ROLLBACK {
-			err = ErrRunJournalRecovery
-		}
-	}()
+	defer func() { err = classifyRunReadError(err) }()
 	db, err := openReadOnlyState(statePath)
 	if err != nil {
 		return Run{}, nil, err

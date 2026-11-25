@@ -881,15 +881,19 @@ SQLite checkpoints and retry budget. Preflight checks storage and the
 installed binary without opening publisher connections. An optional SQLite
 table associates each local calendar period with its existing run ID.
 A transaction creates the run and its period assignment together. One
-process lock beside the state database covers scheduled selection, retries
-and completion. Artifact publication keeps its short-lived file lock.
-An interrupted scheduled run is resumed under its original catalog and
-configuration identity. Each invocation is bounded to one day.
+process lock beside the state database covers manual and scheduled
+writes. Artifact publication keeps its short-lived file lock. An interrupted
+scheduled run resumes under its original catalog and configuration identity.
+When operators explicitly supersede an unfinished run, a single transaction
+moves its assignment to optional SQLite history. Its checkpoints and accepted
+versions stay addressable as before, and a later scheduled invocation can
+service the due month. Each scheduled invocation is bounded to one day.
 
 The operator installs and removes one marked user cron block. Installation
 references a completed full provider run in the configured maintenance
 database. The scheduler checks that proof after SQLite journal recovery and
-before accessing publishers. Read-only report inspection can return committed
+before accessing publishers. Status reports an out-of-date proof alongside
+the installed schedule. Read-only report inspection can return committed
 checkpoints from unfinished runs. If the in-flight command stops, it includes
 checkpoints committed by that invocation. Cache totals count regular digest
 objects on the configured filesystem. Publisher runs report embedding usage

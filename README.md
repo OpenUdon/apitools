@@ -508,7 +508,23 @@ compatible adoptions, review and retry outcomes, size deferrals, failures,
 managed artifact bytes and embedding usage. Scheduled updates leave embeddings
 unrequested. Use `catalog maintenance retry --provider PROVIDER_ID --config FILE`
 for a new run limited to one reviewed provider. An existing unfinished monthly
-run resumes through `catalog maintenance run` with its original configuration.
+run resumes through `catalog maintenance run` with its original catalog and
+configuration. When those inputs have changed, inspect the interrupted run
+first. `supersede` releases that run's period for future scheduling and keeps
+its checkpoints and accepted versions available by run ID.
+
+```sh
+apitools catalog maintenance report --config /path/to/maintenance.json --run RUN_ID
+apitools catalog maintenance supersede --config /path/to/maintenance.json --run RUN_ID
+```
+
+The next authorized `catalog maintenance run` services the due month. A shared
+lock serializes manual and scheduled writes to the same state database.
+If an interrupted SQLite journal prevents read-only status or reports, run
+maintenance with the configured storage and publisher authority to recover it,
+then repeat the inspection. If status reports an outdated first-run proof,
+complete and inspect a new full reviewed run before enabling the schedule again.
+
 New HubSpot inventories flag a prerelease version label that conflicts with
 the publisher's `LATEST` or `STABLE` stage. The report keeps both labels for
 review.

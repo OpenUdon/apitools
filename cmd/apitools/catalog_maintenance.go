@@ -31,7 +31,7 @@ func runCatalogMaintenance(args []string, out, errOut io.Writer) int {
 }
 
 func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, client *apitools.Client) int {
-	const usage = "Usage: apitools catalog maintenance preflight|run|enable|disable|status|report|retry [--config FILE] [--json]"
+	const usage = "Usage: apitools catalog maintenance preflight|run|enable|disable|status|report|retry|supersede [--config FILE] [--json]"
 	if len(args) == 0 {
 		fmt.Fprintln(errOut, usage)
 		return exitUsage
@@ -42,7 +42,7 @@ func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, clien
 		return exitSuccess
 	}
 	switch action {
-	case "preflight", "run", "enable", "disable", "status", "report", "retry":
+	case "preflight", "run", "enable", "disable", "status", "report", "retry", "supersede":
 	default:
 		fmt.Fprintf(errOut, "unknown catalog maintenance command %q\n", action)
 		fmt.Fprintln(errOut, usage)
@@ -61,6 +61,8 @@ func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, clien
 		fs.StringVar(&afterRun, "after-run", "", "Completed full reviewed run the operator has inspected")
 	case "report":
 		fs.StringVar(&inspectRun, "run", "", "Inspect this saved run instead of the latest scheduled run")
+	case "supersede":
+		fs.StringVar(&inspectRun, "run", "", "Release this unfinished scheduled run while keeping its checkpoints")
 	case "retry":
 		fs.StringVar(&provider, "provider", "", "Check one reviewed provider in a new maintenance run")
 	}
@@ -76,7 +78,7 @@ func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, clien
 	}
 	emptyFlag := ""
 	fs.Visit(func(option *flag.Flag) {
-		if (option.Name == "crontab-file" || option.Name == "after-run") && strings.TrimSpace(option.Value.String()) == "" {
+		if (option.Name == "crontab-file" || option.Name == "after-run" || option.Name == "run") && strings.TrimSpace(option.Value.String()) == "" {
 			emptyFlag = option.Name
 		}
 	})
@@ -85,7 +87,7 @@ func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, clien
 		return exitUsage
 	}
 	if fs.NArg() != 0 || (*configFlag == "" && action != "disable" && action != "status") ||
-		(action == "enable" && afterRun == "") || (action == "retry" && provider == "") {
+		(action == "enable" && afterRun == "") || (action == "retry" && provider == "") || (action == "supersede" && inspectRun == "") {
 		fs.Usage()
 		return exitUsage
 	}
@@ -106,19 +108,25 @@ func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, clien
 	defer stop()
 	if action == "enable" || action == "disable" || action == "status" {
 		if err := manageCatalogCron(ctx, action, cronFile, configPath, afterRun, config, out, *jsonOutput); err != nil {
-			fmt.Fprintln(errOut, err)
+			fmt.Fprintln(errOut, catalogMaintenanceJournalGuidance(err))
 			return exitRuntime
 		}
 		return exitSuccess
 	}
-	if action == "report" {
+	if action == "supersede" {
+		if err := catalogupdate.SupersedeMonthlyRun(ctx, config.StateDB, config.CacheDir, config.ExpectedVolumeUUID, inspectRun); err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitRuntime
+		}
+	}
+	if action == "report" || action == "supersede" {
 		report, err := loadCatalogMaintenanceReport(ctx, config.StateDB, inspectRun)
-		return writeCatalogMaintenanceReport(ctx, out, errOut, report, err, config, *jsonOutput)
+		return writeCatalogMaintenanceReport(ctx, out, errOut, report, catalogMaintenanceJournalGuidance(err), config, *jsonOutput)
 	}
 	if action == "preflight" {
 		readiness, err := catalogMaintenancePreflight(ctx, configPath, config)
 		if err != nil {
-			fmt.Fprintln(errOut, err)
+			fmt.Fprintln(errOut, catalogMaintenanceJournalGuidance(err))
 			return exitRuntime
 		}
 		if *jsonOutput {
@@ -140,17 +148,18 @@ func runCatalogMaintenanceWithClient(args []string, out, errOut io.Writer, clien
 		fmt.Fprintln(errOut, "Catalog maintenance run", id)
 	}
 	if action == "retry" {
-		lock, err := catalogupdate.LockMonthlyRun(ctx, config.StateDB)
-		if err != nil {
-			fmt.Fprintln(errOut, err)
-			return exitRuntime
-		}
-		defer lock.Close()
 		report, err := client.UpdateCatalog(ctx, apitools.CatalogUpdateOptions{Config: config, Provider: provider, OnStart: onStart})
 		return writeCatalogMaintenanceReport(ctx, out, errOut, report, err, config, *jsonOutput)
 	}
 	report, err := client.RunMonthlyCatalogUpdateAfter(ctx, config, afterRun, onStart)
 	return writeCatalogMaintenanceReport(ctx, out, errOut, report, err, config, *jsonOutput)
+}
+
+func catalogMaintenanceJournalGuidance(err error) error {
+	if errors.Is(err, catalogupdate.ErrRunJournalRecovery) {
+		return fmt.Errorf("%w. Use `apitools catalog maintenance run --config FILE` with the usual publisher authority to recover it, then repeat this read", err)
+	}
+	return err
 }
 
 func catalogMaintenancePreflight(ctx context.Context, path string, cfg apitools.CatalogUpdateConfig) (catalogMaintenanceReadiness, error) {

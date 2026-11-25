@@ -31,6 +31,7 @@ type catalogCronStatus struct {
 	Enabled     bool   `json:"enabled"`
 	Entry       string `json:"entry,omitempty"`
 	LatestRunID string `json:"latest_run_id,omitempty"`
+	StateError  string `json:"state_error,omitempty"`
 }
 
 type catalogCronOutput struct {
@@ -211,9 +212,32 @@ func makeCatalogCronEntry(binary, config, runID string) (string, error) {
 		if arg == "" || strings.ContainsAny(arg, "\x00\r\n%") {
 			return "", errors.New("cron paths and run ID must exclude percent signs and line breaks")
 		}
-		quoted = append(quoted, "'"+strings.ReplaceAll(arg, "'", "'\\''")+"'")
+		quoted = append(quoted, catalogCronQuote(arg))
 	}
 	return catalogCronWhen + " " + quoted[0] + " catalog maintenance run --config " + quoted[1] + " --after-run " + quoted[2] + " --json", nil
+}
+
+func catalogCronQuote(arg string) string {
+	return "'" + strings.ReplaceAll(arg, "'", "'\\''") + "'"
+}
+
+func checkCatalogCronProof(ctx context.Context, entry, configPath, statePath string) error {
+	const selector = " --after-run '"
+	cut := strings.LastIndex(entry, selector)
+	if cut < 0 || !strings.HasSuffix(entry[:cut], " catalog maintenance run --config "+catalogCronQuote(configPath)) {
+		return errors.New("could not verify the installed proof with this configuration; supply the configuration in the managed entry")
+	}
+	runID, ok := strings.CutSuffix(entry[cut+len(selector):], "' --json")
+	if !ok || strings.ContainsAny(runID, "' \t") {
+		return errors.New("could not read the installed run proof; inspect the managed entry")
+	}
+	if err := requireCatalogMaintenanceFullRun(ctx, statePath, runID); err != nil {
+		if errors.Is(err, catalogupdate.ErrRunJournalRecovery) {
+			return err
+		}
+		return fmt.Errorf("installed proof %s cannot authorize the current schedule. Complete and inspect a full reviewed run, then enable the schedule with that run ID: %w", runID, err)
+	}
+	return nil
 }
 
 func requireCatalogMaintenanceFullRun(ctx context.Context, statePath, runID string) error {
@@ -283,12 +307,15 @@ func manageCatalogCron(ctx context.Context, action, file, configPath, runID stri
 	status := catalogCronStatus{Enabled: entry != "", Entry: entry}
 	if action == "status" && cfg.StateDB != "" {
 		status.LatestRunID, err = catalogupdate.ReadLatestMonthlyRunID(ctx, cfg.StateDB)
+		if err == nil && status.Enabled {
+			err = checkCatalogCronProof(ctx, entry, configPath, cfg.StateDB)
+		}
 		if err != nil {
-			return err
+			status.StateError = catalogMaintenanceJournalGuidance(err).Error()
 		}
 	}
 	if jsonOutput {
-		return writeJSON(out, status)
+		return errors.Join(writeJSON(out, status), err)
 	}
 	if status.Enabled {
 		fmt.Fprintf(out, "Catalog maintenance schedule enabled\n%s\n", entry)
@@ -298,5 +325,5 @@ func manageCatalogCron(ctx context.Context, action, file, configPath, runID stri
 	if status.LatestRunID != "" {
 		fmt.Fprintln(out, "Latest scheduled run", status.LatestRunID)
 	}
-	return nil
+	return err
 }
