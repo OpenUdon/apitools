@@ -62,8 +62,14 @@ func openArtifactCache(path string, check func(*os.Root) error) (*os.Root, error
 			return nil, err
 		}
 		for _, component := range strings.Split(relative, string(filepath.Separator)) {
-			if err := root.Mkdir(component, 0o700); err != nil && !errors.Is(err, fs.ErrExist) {
+			err := root.Mkdir(component, 0o700)
+			if err != nil && !errors.Is(err, fs.ErrExist) {
 				return nil, err
+			}
+			if err == nil {
+				if err := syncDirectory(root); err != nil {
+					return nil, err
+				}
 			}
 			nested, err := root.OpenRoot(component)
 			if err != nil {
@@ -88,4 +94,12 @@ func openArtifactCache(path string, check func(*os.Root) error) (*os.Root, error
 	cache := root
 	root = nil
 	return cache, nil
+}
+
+func syncDirectory(root *os.Root) error {
+	dir, err := root.Open(".")
+	if err != nil {
+		return err
+	}
+	return errors.Join(dir.Sync(), dir.Close())
 }

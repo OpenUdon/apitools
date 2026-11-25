@@ -809,6 +809,16 @@ and URL secrets are omitted; advisory source kind remains labeled. Native
 selector validation and approvals belong to the downstream OpenUdon binder.
 Legacy provider-level materialization/export APIs and struct shapes are intact.
 
+### Catalog maintenance storage (C06)
+
+The maintenance storage layer uses a dedicated SQLite database on a durable
+local Linux filesystem. It records the ordered provider scope and checkpoints
+for each run. The artifact directory can be on a different filesystem. It
+retains one file per verified digest. The writer locks the cache, recovers
+abandoned staging, and publishes and syncs verified bytes before SQLite
+records a reference. Retry verifies and reuses any published orphan. Offline
+reads verify the file type, size and digest before returning it.
+
 ### Catalog discovery wire foundations (M80.1)
 
 The additive `apitools.catalog-discovery/v1` types reuse StepContract and
