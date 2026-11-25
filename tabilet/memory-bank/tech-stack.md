@@ -326,6 +326,13 @@ new authority. Preserve existing verification commands, milestone-specific
 acceptance gates, exact artifacts and explicit limits. Standard testing adds
 no light-profile time caps.
 
+Catalog promotion qualification uses `APITOOLS_CATALOG_QUALIFICATION_DIR`
+to locate the exact provider artifacts in an existing local cache.
+`TestCatalogPromotion` checks the pins, builds a disposable registry and
+index, scopes discovery, and reproduces the operation from the materialized
+bytes. Omit the variable for default tests of catalog metadata and tracked
+overlays. [Reproduction instructions](../../docs/catalog-expansion-c04.md).
+
 - **Row checks**: `go build ./...`, `go vet ./...`, `go test` on affected whole
   packages, and `git diff --check`. During edits, use the narrowest useful
   non-instrumented check; before row completion or task review, run these row

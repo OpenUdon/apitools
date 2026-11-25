@@ -54,6 +54,12 @@ need no journal entry or separate archive run.
   [M80 review findings](../docs/history/status-M80.md) and the source-backed field-loss,
   no-reference provider, shared-link and prompt-budget regressions.
 
+For catalog promotion, verify the exact selected operation after both
+provider-scoped discovery and materialization. Strict refresh validation,
+bounded indexing of an operation and whole-source shape-table projection
+can differ on the same pinned bytes. Record the result at each boundary
+where it was observed. [C04 operation proofs](../../docs/catalog-expansion-c04.md).
+
 ## Keep trust projections independent of prompt summaries
 
 - **Applies when:** Producing schemas for advisory binding or verifying cached

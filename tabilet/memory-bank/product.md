@@ -71,6 +71,11 @@ operations and security requirements, rank likely operations, and classify
 official server-side API description sources without crossing into runtime
 execution.
 
+The built-in catalog includes nine additional providers from C04. Each
+promotion has a provider-scoped discovery proof and one reproduced selector
+from the materialized artifact. The reviewed subset and its source limits
+are recorded with the [C04 qualification evidence](../../docs/catalog-expansion-c04.md).
+
 ## Users
 
 - OpenUdon maintainers who need deterministic OpenAPI operation metadata for

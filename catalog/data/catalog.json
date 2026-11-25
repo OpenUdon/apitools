@@ -254,6 +254,35 @@
       "auth_security_review": "not-reviewed"
     },
     {
+      "id": "amazon-selling-partner",
+      "display_name": "Amazon Selling Partner API",
+      "aliases": [
+        "amazon sp api",
+        "amazon sp-api",
+        "selling partner api"
+      ],
+      "category": "ecommerce",
+      "workflow_relevance": "Inspect Amazon seller marketplace participation and seller metadata.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://raw.githubusercontent.com/amzn/selling-partner-api-models/9047916fede443a856e4802a68b322d7eada89ef/models/sellers-api-model/sellers.json",
+          "note": "Official source or operation documentation for the reviewed subset."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://developer-docs.amazon.com/sp-api/reference/getmarketplaceparticipations",
+          "note": "Official source or operation documentation for the reviewed subset."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-incomplete"
+    },
+    {
       "id": "amplitude",
       "display_name": "Amplitude",
       "aliases": [
@@ -1546,6 +1575,33 @@
       "auth_security_review": "not-reviewed"
     },
     {
+      "id": "datadog",
+      "display_name": "Datadog",
+      "aliases": [
+        "datadog api"
+      ],
+      "category": "observability",
+      "workflow_relevance": "Inspect Datadog observability metadata, including Synthetic Monitoring concurrency settings.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://raw.githubusercontent.com/DataDog/datadog-api-client-python/455958fd542397eed7b7b33a1a0aa2e1b0985932/.generator/schemas/v2/openapi.yaml",
+          "note": "Provider-published OpenAPI source for the selected API surface."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://docs.datadoghq.com/api/latest/synthetics/get-the-on-demand-concurrency-cap/",
+          "note": "Official documentation for the reviewed operation."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-incomplete"
+    },
+    {
       "id": "deepl",
       "display_name": "DeepL",
       "aliases": [
@@ -1587,6 +1643,34 @@
       "official_machine_spec_status": "unknown",
       "user_openapi_need": "likely",
       "auth_security_review": "not-reviewed"
+    },
+    {
+      "id": "digitalocean",
+      "display_name": "DigitalOcean",
+      "aliases": [
+        "digital ocean",
+        "digitalocean api"
+      ],
+      "category": "cloud",
+      "workflow_relevance": "Inspect DigitalOcean account and cloud resource metadata.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://api-engineering.nyc3.digitaloceanspaces.com/spec-ci/DigitalOcean-public.v2.yaml",
+          "note": "Provider-published OpenAPI source for the selected API surface."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://docs.digitalocean.com/reference/api/reference/account/",
+          "note": "Official documentation for the reviewed operation."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-incomplete"
     },
     {
       "id": "discord",
@@ -2337,6 +2421,36 @@
       "auth_security_review": "not-reviewed"
     },
     {
+      "id": "google-gemini",
+      "display_name": "Google Gemini API",
+      "aliases": [
+        "gemini api",
+        "generative language api",
+        "google ai studio"
+      ],
+      "category": "ai",
+      "workflow_relevance": "Inspect available Gemini Developer API models and associated metadata.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta",
+          "note": "Official source or operation documentation for the reviewed subset."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://aistudio.google.com/api-reference/models/list-models",
+          "note": "Official source or operation documentation for the reviewed subset."
+        }
+      ],
+      "official_openapi_status": "unavailable",
+      "official_machine_spec_status": "known",
+      "official_machine_spec_kind": "google-discovery",
+      "user_openapi_need": "likely",
+      "auth_security_review": "likely-incomplete"
+    },
+    {
       "id": "google-perspective",
       "display_name": "Google Perspective",
       "aliases": [
@@ -2609,6 +2723,36 @@
       "official_machine_spec_status": "unknown",
       "user_openapi_need": "possible",
       "auth_security_review": "not-reviewed"
+    },
+    {
+      "id": "hugging-face-hub",
+      "display_name": "Hugging Face Hub",
+      "aliases": [
+        "hugging face",
+        "huggingface",
+        "huggingface hub",
+        "hugging face hub api"
+      ],
+      "category": "ai",
+      "workflow_relevance": "Inspect Hugging Face Hub model repository refs and metadata.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://huggingface.co/.well-known/openapi.json",
+          "note": "Official source or operation documentation for the reviewed subset."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://huggingface.co/docs/huggingface_hub/main/package_reference/hf_api#huggingface_hub.HfApi.list_repo_refs",
+          "note": "Official source or operation documentation for the reviewed subset."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-incomplete"
     },
     {
       "id": "humantic-ai",
@@ -3369,6 +3513,34 @@
       "auth_security_review": "not-reviewed"
     },
     {
+      "id": "miro",
+      "display_name": "Miro",
+      "aliases": [
+        "miro api",
+        "miro rest api"
+      ],
+      "category": "collaboration",
+      "workflow_relevance": "Retrieve metadata for boards visible to a Miro user.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://raw.githubusercontent.com/miroapp/api-clients/1c61f315e70ce8af6326d33c857fd0229541230f/packages/generator/spec.json",
+          "note": "Official source or operation documentation for the reviewed subset."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://developers.miro.com/reference/get-specific-board-1",
+          "note": "Official source or operation documentation for the reviewed subset."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-incomplete"
+    },
+    {
       "id": "misp",
       "display_name": "MISP",
       "aliases": [
@@ -3427,6 +3599,35 @@
       "official_machine_spec_status": "unknown",
       "user_openapi_need": "likely",
       "auth_security_review": "not-reviewed"
+    },
+    {
+      "id": "mongodb-atlas",
+      "display_name": "MongoDB Atlas Administration API",
+      "aliases": [
+        "atlas administration api",
+        "mongodb atlas",
+        "atlas admin api"
+      ],
+      "category": "database",
+      "workflow_relevance": "Inventory projects using the MongoDB Atlas administration API.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/b5034144f37e30894e7dbc863b71165ff685b4a7/openapi/atlas-api.yaml",
+          "note": "Official source or operation documentation for the reviewed subset."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listgroups",
+          "note": "Official source or operation documentation for the reviewed subset."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-complete"
     },
     {
       "id": "monica-crm",
@@ -3862,6 +4063,34 @@
       "official_machine_spec_status": "unknown",
       "user_openapi_need": "possible",
       "auth_security_review": "not-reviewed"
+    },
+    {
+      "id": "plaid",
+      "display_name": "Plaid",
+      "aliases": [
+        "plaid api",
+        "plaid financial data"
+      ],
+      "category": "finance",
+      "workflow_relevance": "Inspect product permissions for an existing Plaid processor token.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://raw.githubusercontent.com/plaid/plaid-openapi/6e75c6b8a7440a3db2d392b636d8cdf024c32e57/2020-09-14.yml",
+          "note": "Official source or operation documentation for the reviewed subset."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://plaid.com/docs/api/processors/#processortokenpermissionsget",
+          "note": "Official source or operation documentation for the reviewed subset."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-incomplete"
     },
     {
       "id": "plivo",
@@ -4755,6 +4984,34 @@
       "official_machine_spec_status": "unknown",
       "user_openapi_need": "likely",
       "auth_security_review": "not-reviewed"
+    },
+    {
+      "id": "vercel",
+      "display_name": "Vercel",
+      "aliases": [
+        "vercel api",
+        "vercel rest api"
+      ],
+      "category": "deployment",
+      "workflow_relevance": "Inventory hosted projects and deployments for Vercel teams and users.",
+      "evidence": [
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://openapi.vercel.sh/",
+          "note": "Provider-published OpenAPI source for the selected API surface."
+        },
+        {
+          "source": "official-docs",
+          "use": "review",
+          "ref": "https://vercel.com/docs/rest-api/projects/retrieve-project-domains-by-project-by-id-or-name",
+          "note": "Official documentation for the reviewed operation."
+        }
+      ],
+      "official_openapi_status": "known",
+      "official_machine_spec_status": "unknown",
+      "user_openapi_need": "not-expected",
+      "auth_security_review": "likely-incomplete"
     },
     {
       "id": "vero",
@@ -5691,6 +5948,48 @@
       "quirks": [
         "M57 review did not find a stable public provider-wide OpenAPI artifact for Airwallex.",
         "Airwallex APIs include money movement and financial account operations; M57 records only source and auth metadata plus an explicit no-endpoint-overlay decision rather than a broad docs-derived financial operations overlay."
+      ]
+    },
+    {
+      "id": "amazon-selling-partner",
+      "display_name": "Amazon Selling Partner API",
+      "aliases": [
+        "amazon sp api",
+        "amazon sp-api",
+        "selling partner api"
+      ],
+      "category": "ecommerce",
+      "workflow_relevance": "Inspect Amazon seller marketplace participation and seller metadata.",
+      "source_hints": [
+        "official-openapi",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "amazon-selling-partner",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "amazon-sp-sellers-v1-swagger",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/amzn/selling-partner-api-models/9047916fede443a856e4802a68b322d7eada89ef/models/sellers-api-model/sellers.json",
+          "source_authority": "official-github",
+          "version": "Swagger 2.0",
+          "verified_at": "2026-11-24",
+          "revision": "repo:9047916fede443a856e4802a68b322d7eada89ef sha256:497862ea32de8040453649986e2cd7c6fcc15b55e8022becc783e4a6d6ffcffd",
+          "license_note": "Artifact and repository license: Apache-2.0 (https://github.com/amzn/selling-partner-api-models/blob/9047916fede443a856e4802a68b322d7eada89ef/LICENSE). Reviewed upstream bytes are local cache only.",
+          "source_note": "Official Sellers API v1 Swagger 2.0 document. Reviewed operation: getMarketplaceParticipations."
+        },
+        {
+          "id": "amazon-sp-sellers-v1-docs",
+          "kind": "human-docs",
+          "url": "https://developer-docs.amazon.com/sp-api/reference/getmarketplaceparticipations",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official operation reference for marketplace participation."
+        }
       ]
     },
     {
@@ -10105,6 +10404,46 @@
       ]
     },
     {
+      "id": "datadog",
+      "display_name": "Datadog",
+      "aliases": [
+        "datadog api"
+      ],
+      "category": "observability",
+      "workflow_relevance": "Inspect Datadog observability metadata, including Synthetic Monitoring concurrency settings.",
+      "source_hints": [
+        "official-openapi",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "datadog",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "datadog-api-v2",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/DataDog/datadog-api-client-python/455958fd542397eed7b7b33a1a0aa2e1b0985932/.generator/schemas/v2/openapi.yaml",
+          "source_authority": "official-github",
+          "version": "3.0.0",
+          "verified_at": "2026-11-24",
+          "revision": "repo:455958fd542397eed7b7b33a1a0aa2e1b0985932 sha256:37702169e22c9f10aaf840d83b7e621896b17463033ae5ff06a5b91af2802189",
+          "license_note": "Repository license: Apache-2.0 (https://github.com/DataDog/datadog-api-client-python/blob/455958fd542397eed7b7b33a1a0aa2e1b0985932/LICENSE). Reviewed upstream bytes are local cache only.",
+          "source_note": "Datadog public API v2 OpenAPI source from the official Python client. Reviewed subset: get the on-demand Synthetic Monitoring concurrency cap. Strict refresh validation reports parseable-openapi-invalid."
+        },
+        {
+          "id": "datadog-api-docs",
+          "kind": "human-docs",
+          "url": "https://docs.datadoghq.com/api/latest/synthetics/get-the-on-demand-concurrency-cap/",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Datadog API reference for the on-demand Synthetic Monitoring concurrency cap and its billing_read permission."
+        }
+      ]
+    },
+    {
       "id": "deepl",
       "display_name": "DeepL",
       "aliases": [
@@ -10236,6 +10575,47 @@
       "quirks": [
         "M28 review did not find a stable public downloadable official OpenAPI document for the DHL Shipment Tracking - Unified API despite official docs referencing an Open API Specification.",
         "DHL API access, divisions, account validation, and rate limits depend on Developer Portal app approval; apitools records tracking API metadata only and does not request access or verify shipments."
+      ]
+    },
+    {
+      "id": "digitalocean",
+      "display_name": "DigitalOcean",
+      "aliases": [
+        "digital ocean",
+        "digitalocean api"
+      ],
+      "category": "cloud",
+      "workflow_relevance": "Inspect DigitalOcean account and cloud resource metadata.",
+      "source_hints": [
+        "official-openapi",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "digitalocean",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "digitalocean-api-v2",
+          "kind": "openapi",
+          "url": "https://api-engineering.nyc3.digitaloceanspaces.com/spec-ci/DigitalOcean-public.v2.yaml",
+          "source_authority": "official-provider",
+          "version": "3.0.0",
+          "verified_at": "2026-11-24",
+          "revision": "sha256:120b1f5ca7ac46159c0428c318c4b1e88598d923081ba338ebe6838f8c1a08ba",
+          "license_note": "Specification declares Apache-2.0 (https://github.com/digitalocean/openapi). Reviewed upstream bytes are local cache only.",
+          "source_note": "Official bundled DigitalOcean API v2 document. Reviewed subset: get account metadata. Strict refresh validation reports parseable-openapi-invalid."
+        },
+        {
+          "id": "digitalocean-api-docs",
+          "kind": "human-docs",
+          "url": "https://docs.digitalocean.com/reference/api/reference/account/",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "DigitalOcean API reference for account metadata and the account:read token authorization."
+        }
       ]
     },
     {
@@ -12454,6 +12834,48 @@
       ]
     },
     {
+      "id": "google-gemini",
+      "display_name": "Google Gemini API",
+      "aliases": [
+        "gemini api",
+        "generative language api",
+        "google ai studio"
+      ],
+      "category": "ai",
+      "workflow_relevance": "Inspect available Gemini Developer API models and associated metadata.",
+      "source_hints": [
+        "official-google-discovery",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "google-gemini",
+      "official_openapi_availability": "unavailable",
+      "official_machine_spec_availability": "known",
+      "user_openapi_need": "likely",
+      "spec_references": [
+        {
+          "id": "google-gemini-discovery-v1beta",
+          "kind": "google-discovery",
+          "url": "https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta",
+          "source_authority": "official-provider",
+          "version": "v1beta",
+          "verified_at": "2026-11-24",
+          "revision": "20261124 sha256:62024ad3940881c88048b9c0c04f72860c9821a89e36422c3f33401a21d4472f",
+          "license_note": "Google Developers Site Policies (https://developers.google.com/terms/site-policies) and Gemini API Terms (https://aistudio.google.com/terms) describe applicable terms. The downloaded Discovery artifact is reference-only.",
+          "source_note": "Official Generative Language API v1beta Discovery document for the Gemini Developer API. Reviewed subset: list available models."
+        },
+        {
+          "id": "google-gemini-models-docs",
+          "kind": "human-docs",
+          "url": "https://aistudio.google.com/api-reference/models/list-models",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official v1beta model list documentation and fields."
+        }
+      ]
+    },
+    {
       "id": "google-perspective",
       "display_name": "Google Perspective",
       "aliases": [
@@ -13334,6 +13756,49 @@
       ],
       "quirks": [
         "HubSpot specs are split across API groups and versions; callers should select a specific spec from the index before import."
+      ]
+    },
+    {
+      "id": "hugging-face-hub",
+      "display_name": "Hugging Face Hub",
+      "aliases": [
+        "hugging face",
+        "huggingface",
+        "huggingface hub",
+        "hugging face hub api"
+      ],
+      "category": "ai",
+      "workflow_relevance": "Inspect Hugging Face Hub model repository refs and metadata.",
+      "source_hints": [
+        "official-openapi",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "hugging-face-hub",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "hugging-face-hub-openapi",
+          "kind": "openapi",
+          "url": "https://huggingface.co/.well-known/openapi.json",
+          "source_authority": "official-provider",
+          "version": "3.1.0",
+          "verified_at": "2026-11-24",
+          "revision": "sha256:da5be4f2ee566534ee0c5fd74e1c380cc4575f19ca7a90c7fed4c51cc360c01d",
+          "license_note": "No explicit license in the document. Hugging Face Terms of Service (https://huggingface.co/terms-of-service) apply. Reference-only local review bytes.",
+          "source_note": "Official Hub API Endpoints OpenAPI 3.1.0, document version 0.0.1. Reviewed operation: list model repository references. Strict refresh validation reports parseable-openapi-invalid."
+        },
+        {
+          "id": "hugging-face-hub-refs-docs",
+          "kind": "human-docs",
+          "url": "https://huggingface.co/docs/huggingface_hub/main/package_reference/hf_api#huggingface_hub.HfApi.list_repo_refs",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official Hugging Face Hub client reference for model repository refs and token handling."
+        }
       ]
     },
     {
@@ -15607,6 +16072,47 @@
       ]
     },
     {
+      "id": "miro",
+      "display_name": "Miro",
+      "aliases": [
+        "miro api",
+        "miro rest api"
+      ],
+      "category": "collaboration",
+      "workflow_relevance": "Retrieve metadata for boards visible to a Miro user.",
+      "source_hints": [
+        "official-openapi",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "miro",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "miro-rest-v2-openapi",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/miroapp/api-clients/1c61f315e70ce8af6326d33c857fd0229541230f/packages/generator/spec.json",
+          "source_authority": "official-github",
+          "version": "3.0.1",
+          "verified_at": "2026-11-24",
+          "revision": "repo:1c61f315e70ce8af6326d33c857fd0229541230f sha256:f0e17b5b43c92ff2d85c7fbe9a84301e39df1d3c14e6738cd939a6d7142f44dd",
+          "license_note": "Repository license: MIT (https://github.com/miroapp/api-clients/blob/1c61f315e70ce8af6326d33c857fd0229541230f/LICENSE). Reviewed upstream bytes are local cache only.",
+          "source_note": "Official Miro REST API v2 OpenAPI document in the Miro API clients repository. Reviewed operation: get a specific board. Strict refresh validation reports parseable-openapi-invalid."
+        },
+        {
+          "id": "miro-rest-boards-docs",
+          "kind": "human-docs",
+          "url": "https://developers.miro.com/reference/get-specific-board-1",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official Miro v2 endpoint for a specific board and its required permission scope."
+        }
+      ]
+    },
+    {
       "id": "misp",
       "display_name": "MISP",
       "aliases": [
@@ -15777,6 +16283,48 @@
       ],
       "quirks": [
         "Monday.com's API is GraphQL with a single endpoint, so OpenAPI-only workflows need a user-provided or generated OpenAPI document if REST-shaped operation metadata is required."
+      ]
+    },
+    {
+      "id": "mongodb-atlas",
+      "display_name": "MongoDB Atlas Administration API",
+      "aliases": [
+        "atlas administration api",
+        "mongodb atlas",
+        "atlas admin api"
+      ],
+      "category": "database",
+      "workflow_relevance": "Inventory projects using the MongoDB Atlas administration API.",
+      "source_hints": [
+        "official-openapi",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "mongodb-atlas",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "mongodb-atlas-admin-openapi",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/b5034144f37e30894e7dbc863b71165ff685b4a7/openapi/atlas-api.yaml",
+          "source_authority": "official-github",
+          "version": "3.0.1",
+          "verified_at": "2026-11-24",
+          "revision": "repo:b5034144f37e30894e7dbc863b71165ff685b4a7 sha256:8eaeb645ded2fb91b6c9c07d29b5315ebb9a8d5ae4397f32b512457d74df34c5",
+          "license_note": "The OpenAPI document declares CC BY-NC-SA 3.0 US (https://creativecommons.org/licenses/by-nc-sa/3.0/us/) and MongoDB service terms (https://www.mongodb.com/mongodb-management-service-terms-and-conditions). The Atlas Go SDK repository separately declares Apache-2.0 (https://github.com/mongodb/atlas-sdk-go/blob/b5034144f37e30894e7dbc863b71165ff685b4a7/LICENSE). Reviewed document bytes are local cache only.",
+          "source_note": "Official Atlas SDK untransformed Atlas Administration API v2 OpenAPI. Reviewed operation: listGroups (2023-01-01 media version). Strict refresh validation reports parseable-openapi-invalid."
+        },
+        {
+          "id": "mongodb-atlas-admin-docs",
+          "kind": "human-docs",
+          "url": "https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listgroups",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official v2 API reference for listing the projects visible to the authorized principal."
+        }
       ]
     },
     {
@@ -17200,6 +17748,47 @@
       ],
       "quirks": [
         "Pipedrive publishes separate official OpenAPI files for v1 and v2 APIs; this catalog entry starts with v2 because the docs identify it as the newer API surface."
+      ]
+    },
+    {
+      "id": "plaid",
+      "display_name": "Plaid",
+      "aliases": [
+        "plaid api",
+        "plaid financial data"
+      ],
+      "category": "finance",
+      "workflow_relevance": "Inspect product permissions for an existing Plaid processor token.",
+      "source_hints": [
+        "official-openapi",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "plaid",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "plaid-openapi-2020-09-14",
+          "kind": "openapi",
+          "url": "https://raw.githubusercontent.com/plaid/plaid-openapi/6e75c6b8a7440a3db2d392b636d8cdf024c32e57/2020-09-14.yml",
+          "source_authority": "official-github",
+          "version": "3.0.0",
+          "verified_at": "2026-11-24",
+          "revision": "repo:6e75c6b8a7440a3db2d392b636d8cdf024c32e57 sha256:59246af3f2aef2e55f11a19af1baf6dd1aa19497c3c49a6fc3fe24c68634717f",
+          "license_note": "No license declared in the source or repository. Provider terms (https://plaid.com/legal/terms-of-use/) and Developer Policy (https://plaid.com/developer-policy/) apply. Reference-only local review bytes.",
+          "source_note": "Official Plaid API 2020-09-14 OpenAPI 3.0.0, document build 1.822.2. Reviewed operation: get product permissions for a processor token. Strict refresh validation reports parseable-openapi-invalid."
+        },
+        {
+          "id": "plaid-processor-permissions-docs",
+          "kind": "human-docs",
+          "url": "https://plaid.com/docs/api/processors/#processortokenpermissionsget",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Official Plaid API documentation for retrieving a processor token’s product permissions."
+        }
       ]
     },
     {
@@ -20299,6 +20888,47 @@
       ]
     },
     {
+      "id": "vercel",
+      "display_name": "Vercel",
+      "aliases": [
+        "vercel api",
+        "vercel rest api"
+      ],
+      "category": "deployment",
+      "workflow_relevance": "Inventory hosted projects and deployments for Vercel teams and users.",
+      "source_hints": [
+        "official-openapi",
+        "official-endpoint-docs"
+      ],
+      "review_state": "reviewed-catalog-entry",
+      "candidate_id": "vercel",
+      "official_openapi_availability": "known",
+      "official_machine_spec_availability": "unknown",
+      "user_openapi_need": "not-expected",
+      "spec_references": [
+        {
+          "id": "vercel-rest-openapi",
+          "kind": "openapi",
+          "url": "https://openapi.vercel.sh/",
+          "source_authority": "official-provider",
+          "version": "3.0.3",
+          "verified_at": "2026-11-24",
+          "revision": "sha256:ae3e778a91928ef7753675d31ca52d89dbd5fb2247e4a6e404f4f986124ea027",
+          "license_note": "No license in the OpenAPI document. Vercel API Terms (https://vercel.com/legal/api-terms) apply. Reference-only local review bytes.",
+          "source_note": "Official Vercel REST document. Reviewed subset: retrieve project domains. Strict refresh validation reports parseable-openapi-invalid."
+        },
+        {
+          "id": "vercel-rest-docs",
+          "kind": "human-docs",
+          "url": "https://vercel.com/docs/rest-api/projects/retrieve-project-domains-by-project-by-id-or-name",
+          "source_authority": "official-docs",
+          "verified_at": "2026-11-24",
+          "license_note": "Provider documentation terms apply.",
+          "source_note": "Vercel API reference for retrieving project domains by ID or name, with bearer authentication."
+        }
+      ]
+    },
+    {
       "id": "vero",
       "display_name": "Vero",
       "aliases": [
@@ -21393,6 +22023,17 @@
       "source_note": "Airwallex has official API human docs but no recorded stable provider-wide OpenAPI document; access-token bearer metadata comes from advisory overlay notes, with endpoint overlay deferred for financial movement safety."
     },
     {
+      "provider_id": "amazon-selling-partner",
+      "spec_ref_id": "amazon-sp-sellers-v1-swagger",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://raw.githubusercontent.com/amzn/selling-partner-api-models/9047916fede443a856e4802a68b322d7eada89ef/models/sellers-api-model/sellers.json",
+        "https://developer-docs.amazon.com/sp-api/docs/using-postman-for-selling-partner-api-models",
+        "https://developer-docs.amazon.com/sp-api/docs/role-mappings#sellers-api-v1"
+      ],
+      "source_note": "The official Swagger has no security definitions or root or operation requirements. The selected operation requires a seller-authorized Login with Amazon access token and at least one mapped Selling Partner API role."
+    },
+    {
       "provider_id": "amplitude",
       "spec_ref_id": "amplitude-api-authentication",
       "status": "overlay-required",
@@ -21999,6 +22640,17 @@
       "source_note": "Databricks has no recorded public official OpenAPI document for the full REST API in this catalog entry; auth metadata comes from advisory bearer-token overlay notes."
     },
     {
+      "provider_id": "datadog",
+      "spec_ref_id": "datadog-api-v2",
+      "status": "present-incomplete",
+      "source_refs": [
+        "https://raw.githubusercontent.com/DataDog/datadog-api-client-python/455958fd542397eed7b7b33a1a0aa2e1b0985932/.generator/schemas/v2/openapi.yaml",
+        "https://docs.datadoghq.com/api/latest/synthetics/get-the-on-demand-concurrency-cap/",
+        "https://docs.datadoghq.com/api/latest/authentication/"
+      ],
+      "source_note": "The selected GET operation inherits the API-key and application-key pair or the AuthZ alternative from root security. It records billing_read in a vendor permission extension. The official endpoint documents bearer personal and service access tokens, while AuthZ describes OAuth and omits this operation’s bearer-token permission detail."
+    },
+    {
       "provider_id": "deepl",
       "spec_ref_id": "deepl-api-openapi",
       "status": "complete",
@@ -22026,6 +22678,17 @@
         "https://developer.dhl.com/api-reference/shipment-tracking?language_content_entity=en"
       ],
       "source_note": "DHL has official Shipment Tracking human API docs but no recorded stable public downloadable official OpenAPI document; subscription-key metadata comes from advisory overlay notes."
+    },
+    {
+      "provider_id": "digitalocean",
+      "spec_ref_id": "digitalocean-api-v2",
+      "status": "present-incomplete",
+      "source_refs": [
+        "https://api-engineering.nyc3.digitaloceanspaces.com/spec-ci/DigitalOcean-public.v2.yaml",
+        "https://docs.digitalocean.com/reference/api/reference/account/",
+        "https://docs.digitalocean.com/reference/api/scopes/account/read/"
+      ],
+      "source_note": "The root and selected operation use an HTTP bearer scheme. The operation attaches a scope array to that scheme even though OpenAPI 3.0 scope arrays require OAuth2 or OpenID Connect. API token documentation independently specifies the account:read capability."
     },
     {
       "provider_id": "discord",
@@ -22340,6 +23003,17 @@
       "source_note": "Google Drive's official machine-readable source is Google Discovery, not OpenAPI; OAuth security metadata needs advisory OpenAPI overlay mapping."
     },
     {
+      "provider_id": "google-gemini",
+      "spec_ref_id": "google-gemini-discovery-v1beta",
+      "status": "overlay-required",
+      "source_refs": [
+        "https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta",
+        "https://aistudio.google.com/api-reference/models/list-models",
+        "https://aistudio.google.com/docs/api-key"
+      ],
+      "source_note": "The v1beta Discovery method declares no OAuth scopes, and its API-wide auth metadata does not describe the operational Gemini API key requirement for this method."
+    },
+    {
       "provider_id": "google-sheets",
       "spec_ref_id": "sheets-discovery-v4",
       "status": "overlay-required",
@@ -22465,6 +23139,17 @@
         "https://api.hubapi.com/public/api/spec/v1/specs"
       ],
       "source_note": "HubSpot publishes split official OpenAPI specs through an index; selected specs should be reviewed with auth overlay metadata before downstream use."
+    },
+    {
+      "provider_id": "hugging-face-hub",
+      "spec_ref_id": "hugging-face-hub-openapi",
+      "status": "present-incomplete",
+      "source_refs": [
+        "https://huggingface.co/.well-known/openapi.json",
+        "https://huggingface.co/docs/huggingface_hub/main/package_reference/hf_api#huggingface_hub.HfApi.list_repo_refs",
+        "https://huggingface.co/docs/hub/security-tokens"
+      ],
+      "source_note": "The selected model repo refs operation inherits the root bearerAuth scheme. The official client instead documents tokenless public reads and optional user access tokens for reads allowed by token and repository permissions."
     },
     {
       "provider_id": "humantic-ai",
@@ -22906,6 +23591,17 @@
       "source_note": "Mindee has official human API docs but no recorded stable public official OpenAPI document; Token and X-Inferuser-Token header metadata comes from advisory overlay notes."
     },
     {
+      "provider_id": "miro",
+      "spec_ref_id": "miro-rest-v2-openapi",
+      "status": "present-incomplete",
+      "source_refs": [
+        "https://raw.githubusercontent.com/miroapp/api-clients/1c61f315e70ce8af6326d33c857fd0229541230f/packages/generator/spec.json",
+        "https://developers.miro.com/reference/get-specific-board-1",
+        "https://developers.miro.com/docs/getting-started-with-oauth"
+      ],
+      "source_note": "The OpenAPI source defines OAuth2 authorization code and boards:read, but declares neither root nor selected operation security. The endpoint documents boards:read on its authorized user access token."
+    },
+    {
       "provider_id": "misp",
       "spec_ref_id": "misp-automation-api-openapi",
       "status": "complete",
@@ -22943,6 +23639,17 @@
         "https://developer.monday.com/api-reference/docs/getting-started"
       ],
       "source_note": "Monday.com's official API is GraphQL and no OpenAPI document is recorded in this catalog entry; Authorization-header token metadata must come from advisory overlay notes."
+    },
+    {
+      "provider_id": "mongodb-atlas",
+      "spec_ref_id": "mongodb-atlas-admin-openapi",
+      "status": "complete",
+      "source_refs": [
+        "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/b5034144f37e30894e7dbc863b71165ff685b4a7/openapi/atlas-api.yaml",
+        "https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listgroups",
+        "https://www.mongodb.com/docs/atlas/api/api-authentication/"
+      ],
+      "source_note": "The selected listGroups operation inherits alternative OAuth2 client-credentials service-account and legacy HTTP Digest API-key schemes from root. The public authentication reference confirms both options. Access depends on the principal’s Atlas roles and any configured API access list."
     },
     {
       "provider_id": "monica-crm",
@@ -23228,6 +23935,18 @@
         "https://developers.pipedrive.com/docs/api/v1/openapi-v2.yaml"
       ],
       "source_note": "Pipedrive's official API v2 OpenAPI document includes API-token, OAuth2, and basic auth security schemes plus operation-level security requirements."
+    },
+    {
+      "provider_id": "plaid",
+      "spec_ref_id": "plaid-openapi-2020-09-14",
+      "status": "present-incomplete",
+      "source_refs": [
+        "https://raw.githubusercontent.com/plaid/plaid-openapi/6e75c6b8a7440a3db2d392b636d8cdf024c32e57/2020-09-14.yml",
+        "https://plaid.com/docs/api/processors/#processortokenpermissionsget",
+        "https://plaid.com/docs/api/",
+        "https://plaid.com/docs/api/versioning/"
+      ],
+      "source_note": "The processor permission lookup inherits the header security set with PLAID-CLIENT-ID, PLAID-SECRET and Plaid-Version. Plaid documents credentials in either headers or body fields, an independent processor token request field, and an optional protocol version override."
     },
     {
       "provider_id": "plivo",
@@ -23828,6 +24547,17 @@
       "source_note": "Venafi has official human API docs for TLS Protect Cloud and Datacenter but no recorded stable public official OpenAPI document; API-key and bearer-token metadata comes from advisory overlay notes."
     },
     {
+      "provider_id": "vercel",
+      "spec_ref_id": "vercel-rest-openapi",
+      "status": "present-incomplete",
+      "source_refs": [
+        "https://openapi.vercel.sh/",
+        "https://vercel.com/docs/rest-api/projects/retrieve-project-domains-by-project-by-id-or-name",
+        "https://vercel.com/docs/rest-api"
+      ],
+      "source_note": "The selected project domain read declares bearerToken explicitly. Reusable bearer and OAuth schemes exist. The root and some operations declare empty security arrays despite API overview bearer requirements, leaving authentication on other operations open for review."
+    },
+    {
       "provider_id": "vero",
       "spec_ref_id": "vero-track-api-docs",
       "status": "overlay-required",
@@ -24425,6 +25155,41 @@
         "https://www.airwallex.com/docs/developer-tools/api/manage-api-keys"
       ],
       "source_note": "Airwallex developer docs state that callers obtain an access token through the Authentication API using a Client ID and API key; token issuance and financial operation authorization remain downstream."
+    },
+    {
+      "id": "amazon-sp-sellers-v1-auth-review",
+      "provider_id": "amazon-selling-partner",
+      "spec_ref_id": "amazon-sp-sellers-v1-swagger",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "loginWithAmazonAccessToken",
+          "type": "apiKey",
+          "description": "Transportation of the Login with Amazon access token in its provider-specific header.",
+          "in": "header",
+          "parameter_name": "x-amz-access-token"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "getMarketplaceParticipations",
+            "method": "GET",
+            "path": "/sellers/v1/marketplaceParticipations"
+          },
+          "security": [
+            {
+              "scheme": "loginWithAmazonAccessToken"
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://developer-docs.amazon.com/sp-api/reference/getmarketplaceparticipations",
+        "https://developer-docs.amazon.com/sp-api/docs/using-postman-for-selling-partner-api-models",
+        "https://developer-docs.amazon.com/sp-api/docs/role-mappings#sellers-api-v1"
+      ],
+      "source_note": "The x-amz-access-token header carries a seller-authorized Login with Amazon access token. Product Listing or Selling Partner Insights can qualify in all documented regions. Amazon lists additional Far East roles."
     },
     {
       "id": "amplitude-api-auth-overlay",
@@ -26451,6 +27216,66 @@
       "source_note": "Databricks has human REST API docs in this catalog entry but no recorded downloadable official OpenAPI document; official auth docs describe OAuth access tokens and legacy PATs, so OpenAPI imports need an advisory bearer-token overlay."
     },
     {
+      "id": "datadog-api-v2-auth-review",
+      "provider_id": "datadog",
+      "spec_ref_id": "datadog-api-v2",
+      "status": "present-incomplete",
+      "security_schemes": [
+        {
+          "name": "apiKeyAuth",
+          "type": "apiKey",
+          "in": "header",
+          "parameter_name": "DD-API-KEY"
+        },
+        {
+          "name": "appKeyAuth",
+          "type": "apiKey",
+          "in": "header",
+          "parameter_name": "DD-APPLICATION-KEY"
+        },
+        {
+          "name": "bearerAuth",
+          "type": "http",
+          "description": "Personal or service access token with the documented billing_read permission.",
+          "scheme": "bearer"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "GetOnDemandConcurrencyCap",
+            "method": "GET",
+            "path": "/api/v2/synthetics/settings/on_demand_concurrency_cap"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "apiKeyAuth"
+                },
+                {
+                  "scheme": "appKeyAuth"
+                }
+              ]
+            },
+            {
+              "requirements": [
+                {
+                  "scheme": "bearerAuth"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://raw.githubusercontent.com/DataDog/datadog-api-client-python/455958fd542397eed7b7b33a1a0aa2e1b0985932/.generator/schemas/v2/openapi.yaml",
+        "https://docs.datadoghq.com/api/latest/synthetics/get-the-on-demand-concurrency-cap/",
+        "https://docs.datadoghq.com/api/latest/authentication/"
+      ],
+      "source_note": "The key-pair and documented bearer access-token alternatives are kept separate. The selected endpoint’s billing_read permission stays advisory and does not authorize OAuth clients or grant Datadog roles."
+    },
+    {
       "id": "demio-api-auth-overlay",
       "provider_id": "demio",
       "spec_ref_id": "demio-api-docs",
@@ -26512,6 +27337,39 @@
         "https://developer.dhl.com/api-reference/shipment-tracking?language_content_entity=en"
       ],
       "source_note": "DHL has official Shipment Tracking human API docs but no recorded stable public downloadable official OpenAPI document; subscription-key metadata comes from advisory overlay notes."
+    },
+    {
+      "id": "digitalocean-api-v2-auth-review",
+      "provider_id": "digitalocean",
+      "spec_ref_id": "digitalocean-api-v2",
+      "status": "present-incomplete",
+      "security_schemes": [
+        {
+          "name": "bearer_auth",
+          "type": "http",
+          "description": "DigitalOcean API token in the Authorization header, with account:read authorization for GET /v2/account.",
+          "scheme": "bearer"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "account_get",
+            "method": "GET",
+            "path": "/v2/account"
+          },
+          "security": [
+            {
+              "scheme": "bearer_auth"
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://docs.digitalocean.com/reference/api/reference/account/",
+        "https://docs.digitalocean.com/reference/api/scopes/account/read/"
+      ],
+      "source_note": "Getting account metadata requires a bearer token authorized for account:read. This DigitalOcean token permission does not define an OAuth flow."
     },
     {
       "id": "discourse-api-auth-overlay",
@@ -27899,6 +28757,39 @@
       "source_note": "Cloud Firestore publishes an official Google Discovery document rather than OpenAPI; OAuth scopes are recorded as metadata only, and apitools must not fetch tokens or choose Google accounts or projects."
     },
     {
+      "id": "google-gemini-models-auth-review",
+      "provider_id": "google-gemini",
+      "spec_ref_id": "google-gemini-discovery-v1beta",
+      "status": "overlay-required",
+      "security_schemes": [
+        {
+          "name": "geminiApiKey",
+          "type": "apiKey",
+          "in": "header",
+          "parameter_name": "x-goog-api-key"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "generativelanguage.models.list",
+            "method": "GET",
+            "path": "/v1beta/models"
+          },
+          "security": [
+            {
+              "scheme": "geminiApiKey"
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://aistudio.google.com/api-reference/models/list-models",
+        "https://aistudio.google.com/docs/api-key"
+      ],
+      "source_note": "The selected documented REST surface accepts a Gemini API key carried in x-goog-api-key. Provider-side key restrictions remain separate from this request metadata."
+    },
+    {
       "id": "google-perspective-discovery-auth-overlay",
       "provider_id": "google-perspective",
       "spec_ref_id": "commentanalyzer-discovery-v1alpha1",
@@ -28376,6 +29267,26 @@
         "https://developers.hubspot.com/docs/api/private-apps"
       ],
       "source_note": "HubSpot exposes an official split OpenAPI spec index; official docs describe OAuth and private app bearer tokens, so selected specs should be checked with an advisory bearer-token overlay."
+    },
+    {
+      "id": "hugging-face-hub-refs-auth-review",
+      "provider_id": "hugging-face-hub",
+      "spec_ref_id": "hugging-face-hub-openapi",
+      "status": "present-incomplete",
+      "security_schemes": [
+        {
+          "name": "bearerAuth",
+          "type": "http",
+          "description": "Hugging Face user access token for repository reads allowed by its scope and the user’s permissions.",
+          "scheme": "bearer"
+        }
+      ],
+      "source_refs": [
+        "https://huggingface.co/.well-known/openapi.json",
+        "https://huggingface.co/docs/huggingface_hub/main/package_reference/hf_api#huggingface_hub.HfApi.list_repo_refs",
+        "https://huggingface.co/docs/hub/security-tokens"
+      ],
+      "source_note": "Model repository refs may be read without a token when the repository allows anonymous access. A user bearer token carries the signed-in principal’s permitted access. Catalog security sets cannot express an empty OR branch, so the conditional alternatives are recorded in prose."
     },
     {
       "id": "humantic-ai-api-auth-overlay",
@@ -29521,6 +30432,51 @@
       "source_note": "Mindee has official human API docs but no recorded stable public official OpenAPI document; Token and X-Inferuser-Token header metadata comes from advisory overlay notes."
     },
     {
+      "id": "miro-rest-v2-boards-auth-review",
+      "provider_id": "miro",
+      "spec_ref_id": "miro-rest-v2-openapi",
+      "status": "present-incomplete",
+      "security_schemes": [
+        {
+          "name": "oAuth2AuthCode",
+          "type": "oauth2",
+          "flows": [
+            {
+              "type": "authorizationCode",
+              "authorization_url": "https://miro.com/oauth/authorize",
+              "token_url": "https://api.miro.com/v1/oauth/token",
+              "scopes": [
+                "boards:read"
+              ]
+            }
+          ]
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "get-specific-board",
+            "method": "GET",
+            "path": "/v2/boards/{board_id}"
+          },
+          "security": [
+            {
+              "scheme": "oAuth2AuthCode",
+              "scopes": [
+                "boards:read"
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://developers.miro.com/reference/get-specific-board-1",
+        "https://developers.miro.com/docs/getting-started-with-oauth",
+        "https://developers.miro.com/reference/scopes"
+      ],
+      "source_note": "Miro requires an OAuth2 user access token with boards:read to read the selected board. Other Miro operations retain their own documented scopes."
+    },
+    {
       "id": "mistral-ai-api-auth-overlay",
       "provider_id": "mistral-ai",
       "spec_ref_id": "mistral-api-specs-docs",
@@ -30158,6 +31114,53 @@
         "https://developers.pipedrive.com/docs/api/v1"
       ],
       "source_note": "Pipedrive's official OpenAPI artifact is tracked as parseable-openapi-invalid by strict refresh validation, so API-token, OAuth2, and basic security metadata is carried as review-only overlay guidance."
+    },
+    {
+      "id": "plaid-processor-permissions-auth-review",
+      "provider_id": "plaid",
+      "spec_ref_id": "plaid-openapi-2020-09-14",
+      "status": "present-incomplete",
+      "security_schemes": [
+        {
+          "name": "clientId",
+          "type": "apiKey",
+          "in": "header",
+          "parameter_name": "PLAID-CLIENT-ID"
+        },
+        {
+          "name": "secret",
+          "type": "apiKey",
+          "in": "header",
+          "parameter_name": "PLAID-SECRET"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "processorTokenPermissionsGet",
+            "method": "POST",
+            "path": "/processor/token/permissions/get"
+          },
+          "security_sets": [
+            {
+              "requirements": [
+                {
+                  "scheme": "clientId"
+                },
+                {
+                  "scheme": "secret"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://plaid.com/docs/api/processors/#processortokenpermissionsget",
+        "https://plaid.com/docs/api/",
+        "https://plaid.com/docs/api/versioning/"
+      ],
+      "source_note": "The API client credential pair can travel in headers or request body fields. The selected operation independently requires a processor_token body field. Plaid-Version selects protocol version independently of authentication."
     },
     {
       "id": "plivo-api-auth-overlay",
@@ -31429,6 +32432,39 @@
         "https://developer.venafi.com/tlsprotectdatacenter/reference"
       ],
       "source_note": "Venafi has official human API docs for TLS Protect Cloud and Datacenter but no recorded stable public official OpenAPI document; API-key and bearer-token metadata comes from advisory overlay notes."
+    },
+    {
+      "id": "vercel-rest-auth-review",
+      "provider_id": "vercel",
+      "spec_ref_id": "vercel-rest-openapi",
+      "status": "present-incomplete",
+      "security_schemes": [
+        {
+          "name": "bearerToken",
+          "type": "http",
+          "description": "Vercel access token in the Authorization header.",
+          "scheme": "bearer"
+        }
+      ],
+      "operation_security": [
+        {
+          "match": {
+            "operation_id": "getProjectDomains",
+            "method": "GET",
+            "path": "/v9/projects/{idOrName}/domains"
+          },
+          "security": [
+            {
+              "scheme": "bearerToken"
+            }
+          ]
+        }
+      ],
+      "source_refs": [
+        "https://vercel.com/docs/rest-api/projects/retrieve-project-domains-by-project-by-id-or-name",
+        "https://vercel.com/docs/rest-api"
+      ],
+      "source_note": "This project-domain read requires a bearer token with access to the project. Team users can identify their authorized team with teamId or slug. Other operations with empty declarations need their own auth review."
     },
     {
       "id": "vero-auth-token-overlay",

@@ -48,6 +48,22 @@ Keep these responsibilities downstream:
 which production account to use, fetch secrets, sign live requests, or execute
 operations.
 
+## Reviewed provider catalog
+
+The built-in [provider catalog](catalog/data/catalog.json) contains **325
+reviewed providers**.
+
+| Primary catalog coverage | Providers |
+| --- | ---: |
+| Official OpenAPI, Swagger, or an official OpenAPI index | 116 |
+| Other official machine-readable specs | 52 |
+| Human docs with a checked-in advisory OpenAPI overlay | 136 |
+| Human docs without a checked-in endpoint overlay | 21 |
+
+Each provider is counted once. Dropbox, Google Calendar, Google Gemini API,
+and Google Sheets are counted under other official specs and also have
+advisory OpenAPI overlays.
+
 ## CLI
 
 ```bash

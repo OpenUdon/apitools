@@ -33,6 +33,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"airtable",
 		"airtop",
 		"airwallex",
+		"amazon-selling-partner",
 		"amplitude",
 		"anthropic",
 		"apitemplate-io",
@@ -110,9 +111,11 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"currents",
 		"customer-io",
 		"databricks",
+		"datadog",
 		"deepl",
 		"demio",
 		"dhl",
+		"digitalocean",
 		"discord",
 		"discourse",
 		"disqus",
@@ -160,6 +163,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"google-drive",
 		"google-firebase-realtime-database",
 		"google-firestore",
+		"google-gemini",
 		"google-perspective",
 		"google-sheets",
 		"google-slides",
@@ -178,6 +182,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"highlevel",
 		"home-assistant",
 		"hubspot",
+		"hugging-face-hub",
 		"humantic-ai",
 		"hunter",
 		"intercom",
@@ -223,10 +228,12 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"microsoft-teams",
 		"microsoft-todo",
 		"mindee",
+		"miro",
 		"misp",
 		"mistral-ai",
 		"mocean",
 		"monday-com",
+		"mongodb-atlas",
 		"monica-crm",
 		"msg91",
 		"nasa",
@@ -256,6 +263,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"phantombuster",
 		"philips-hue",
 		"pipedrive",
+		"plaid",
 		"plivo",
 		"postbin",
 		"posthog",
@@ -318,6 +326,7 @@ func TestBuiltInCandidateIDsAreDeterministic(t *testing.T) {
 		"uptimerobot",
 		"urlscan",
 		"venafi",
+		"vercel",
 		"vero",
 		"vonage",
 		"webflow",
@@ -741,11 +750,20 @@ func TestM6CandidatesAreFixtureFreeUntilSourceReview(t *testing.T) {
 
 func TestBuiltInCandidateClassificationValues(t *testing.T) {
 	for _, candidate := range BuiltInCandidates() {
-		if candidate.OfficialOpenAPIStatus != SpecStatusNeedsVerification {
-			t.Fatalf("%s official OpenAPI status = %q, want %q", candidate.ID, candidate.OfficialOpenAPIStatus, SpecStatusNeedsVerification)
+		wantOpenAPI, wantAuth := SpecStatusNeedsVerification, AuthSecurityNotReviewed
+		switch candidate.ID {
+		case "amazon-selling-partner", "datadog", "digitalocean", "hugging-face-hub", "miro", "plaid", "vercel":
+			wantOpenAPI, wantAuth = SpecStatusKnown, AuthSecurityLikelyIncomplete
+		case "google-gemini":
+			wantOpenAPI, wantAuth = SpecStatusUnavailable, AuthSecurityLikelyIncomplete
+		case "mongodb-atlas":
+			wantOpenAPI, wantAuth = SpecStatusKnown, AuthSecurityLikelyComplete
 		}
-		if candidate.AuthSecurityReview != AuthSecurityNotReviewed {
-			t.Fatalf("%s auth review = %q, want %q", candidate.ID, candidate.AuthSecurityReview, AuthSecurityNotReviewed)
+		if candidate.OfficialOpenAPIStatus != wantOpenAPI {
+			t.Fatalf("%s official OpenAPI status = %q, want %q", candidate.ID, candidate.OfficialOpenAPIStatus, wantOpenAPI)
+		}
+		if candidate.AuthSecurityReview != wantAuth {
+			t.Fatalf("%s auth review = %q, want %q", candidate.ID, candidate.AuthSecurityReview, wantAuth)
 		}
 	}
 	for _, id := range []string{"aws-acm", "aws-api-gateway", "aws-athena", "aws-bedrock", "aws-cloudwatch", "aws-cognito", "aws-comprehend", "aws-dynamodb", "aws-ec2", "aws-elb", "aws-elbv2", "aws-glue", "aws-guardduty", "aws-iam", "aws-inspector2", "aws-kinesis", "aws-kms", "aws-lambda", "aws-rds", "aws-rekognition", "aws-s3", "aws-sagemaker", "aws-secrets-manager", "aws-securityhub", "aws-ses", "aws-sns", "aws-sqs", "aws-textract", "aws-transcribe", "gmail", "google-admin", "google-analytics", "google-bigquery", "google-books", "google-business-profile", "google-calendar", "google-chat", "google-cloud-language", "google-cloud-storage", "google-contacts", "google-docs", "google-drive", "google-firebase-realtime-database", "google-firestore", "google-perspective", "google-sheets", "google-slides", "google-tasks", "google-translate", "google-youtube"} {

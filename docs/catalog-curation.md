@@ -160,6 +160,14 @@ artifacts live under ignored paths in `catalog-openapi-cache/`. The SQLite
 cache should point at those files with paths instead of copying their document
 bodies into BLOB columns when a file-backed artifact exists.
 
+Generate catalog changes from a staging root. The generator imports the
+catalog package, which verifies the embedded data and generated indexes at
+startup. Keep the existing catalog bundle and its generated files in sync in
+the checkout while editing `<staging-root>/catalog/data/catalog.json`. Run
+`go run ./cmd/cataloggen -root <staging-root>` from the checkout, copy all
+three canonical outputs to their matching paths together, then run
+`go run ./cmd/cataloggen -check`.
+
 ## Verification
 
 For each reviewed batch, run:

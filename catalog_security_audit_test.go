@@ -21,8 +21,8 @@ func TestBuiltInCatalogSecurityAuditClassifiesEveryProvider(t *testing.T) {
 	if countAuditDisposition(report, SecurityAuditDispositionQueuedSourceReReview) != 0 {
 		t.Fatalf("queued source re-review count = %d, want 0", countAuditDisposition(report, SecurityAuditDispositionQueuedSourceReReview))
 	}
-	if countAuditDisposition(report, SecurityAuditDispositionPresentIncompleteReviewed) != 37 {
-		t.Fatalf("present-incomplete-reviewed count = %d, want 37", countAuditDisposition(report, SecurityAuditDispositionPresentIncompleteReviewed))
+	if countAuditDisposition(report, SecurityAuditDispositionPresentIncompleteReviewed) != 43 {
+		t.Fatalf("present-incomplete-reviewed count = %d, want 43", countAuditDisposition(report, SecurityAuditDispositionPresentIncompleteReviewed))
 	}
 	for _, disposition := range []string{
 		SecurityAuditDispositionCompleteUpstream,

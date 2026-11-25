@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -501,6 +502,7 @@ func TestCatalogResolveMaterializeAndExport(t *testing.T) {
 
 func TestCatalogStatsOutputAndJSON(t *testing.T) {
 	providerCount := catalog.BuiltInCatalogManifest().ProviderCount
+	providerStats := apitools.BuildCatalogStatsReport(catalog.BuiltInProviders(), nil, apitools.CatalogSpecRefreshReviewReport{})
 	dir := t.TempDir()
 	cacheDir := filepath.Join(dir, "catalog-openapi-cache")
 	cachePath := filepath.Join(cacheDir, "cache.sqlite")
@@ -533,9 +535,15 @@ func TestCatalogStatsOutputAndJSON(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("code = %d\nstdout:\n%s\nstderr:\n%s", code, out.String(), errOut.String())
 	}
-	for _, expected := range []string{fmt.Sprintf("Provider protocols: %d provider(s)", providerCount), "OpenAPI", "94", "Swagger", "13", "Smithy", "29", "Google Discovery", "21", "Human docs", "157", "Artifact registry", "openapi", "Refresh artifacts", "valid-swagger"} {
+	for _, expected := range []string{fmt.Sprintf("Provider protocols: %d provider(s)", providerCount), "Artifact registry", "openapi", "Refresh artifacts", "valid-swagger"} {
 		if !strings.Contains(out.String(), expected) {
 			t.Fatalf("catalog stats output missing %q:\n%s", expected, out.String())
+		}
+	}
+	for _, bucket := range providerStats.Protocols {
+		expected := fmt.Sprintf("%-18s %-7d %s\n", bucket.DisplayName, bucket.Count, strings.Join(bucket.ProviderIDs, ", "))
+		if !strings.Contains(out.String(), expected) {
+			t.Fatalf("catalog stats output missing provider bucket %q", bucket.Protocol)
 		}
 	}
 
@@ -545,10 +553,19 @@ func TestCatalogStatsOutputAndJSON(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("json code = %d\nstdout:\n%s\nstderr:\n%s", code, out.String(), errOut.String())
 	}
-	for _, expected := range []string{fmt.Sprintf(`"provider_count": %d`, providerCount), `"protocol": "openapi"`, `"count": 94`, `"protocol": "swagger"`, `"count": 13`, `"protocol": "smithy"`, `"count": 29`, `"protocol": "google-discovery"`, `"count": 21`, `"artifact_registry"`, `"kind": "openapi"`, `"status": "valid-swagger"`} {
+	for _, expected := range []string{`"artifact_registry"`, `"kind": "openapi"`, `"status": "valid-swagger"`} {
 		if !strings.Contains(out.String(), expected) {
 			t.Fatalf("catalog stats json missing %q:\n%s", expected, out.String())
 		}
+	}
+	var actual apitools.CatalogStatsReport
+	if err := json.Unmarshal(out.Bytes(), &actual); err != nil {
+		t.Fatal(err)
+	}
+	if actual.ProviderCount != providerCount || !slices.EqualFunc(actual.Protocols, providerStats.Protocols, func(got, want apitools.CatalogStatsProtocol) bool {
+		return got.Protocol == want.Protocol && got.DisplayName == want.DisplayName && got.Count == want.Count && slices.Equal(got.ProviderIDs, want.ProviderIDs)
+	}) {
+		t.Fatal("catalog stats JSON does not match the catalog provider protocol buckets")
 	}
 }
 
