@@ -9,7 +9,7 @@ See the [milestone specification](milestone.md#c08--searchable-catalog-and-hoste
 | --- | --- | --- |
 | C08.1 — Curate searchable metadata | `[+]` | Give each of the 334 reviewed providers a normalized category, aliases, useful keywords, a concise public description and an evidence-backed description of the supported subset. Stage description changes for review. Cover both docs-only entries and providers with overlapping services. Added 334 profiles, 50 categories, 41 additional aliases, and 1,352 selected operations for 164 providers. Astra xhigh passed re-review. |
 | C08.2 — Add SQLite full-text provider retrieval | `[+]` | Build a reproducible index from accepted metadata and support updates to earlier records. Expose matched capabilities, coverage, provenance and freshness in text and JSON. Exact provider identities and aliases have priority. Reproducible FTS5, reviewed CLI output and read-only accepted publisher observations passed. Astra xhigh passed re-review. |
-| C08.3 — Add configurable hosted embeddings | `[ ]` | Combine keyword and semantic ranking using the configured HTTPS endpoint, model and budget. Limit payloads to approved public provider text and explicit queries. Reuse vectors for matching content/model and refresh changed inputs. Test budget exhaustion, missing configuration, endpoint failure and offline lexical behavior with a fixture service. |
+| C08.3 — Add configurable hosted embeddings | `[+]` | Combine keyword and semantic ranking using the configured HTTPS endpoint, model and budget. Limit payloads to approved public provider text and explicit queries. Reuse vectors for matching content/model and refresh changed inputs. Test budget exhaustion, missing configuration, endpoint failure and offline lexical behavior with a fixture service. Dedicated HTTPS transport and budget/caching/fallback behavior passed Astra xhigh re-review. |
 | C08.4 — Integrate and verify automatic CLI search | `[ ]` | Prefer reviewed results and run existing public discovery for non-core or weakly matched queries under its existing network controls. Preserve explicit source flags, provider scoping and Go search behavior. Exercise “send slack message”, “refund payment”, an exact alias and a non-core query; verify relevant results, coverage labels, fallback and offline operation. |
 
 ## Review
@@ -51,3 +51,17 @@ races, generator/quality, built CLI proofs, build, vet and diff checks
 passed. [Row checks](../../dist/c08-goal/c08-2-final-gates.log).
 [Exact reviewed diff](../../dist/c08-goal/c08-2-final.diff) SHA-256
 `32a92e74eeb24f23e86a4f1c6dfae922d0f9deb7ac982c737e39acc68c053703`.
+
+C08.3 gates started at base `468fef327154cf248fb53ab5e0b765898ce46067` with candidate diff SHA-256 `f941a98f015a390fd96c0c44b4bd4475f357207088f01d30abd11ddbd7e1f0f8`. Hosted verification uses only disposable loopback TLS.
+
+C08.3 corrective gates started. Candidate diff SHA-256
+`cde667405298caa61bd9ec3a58d1a985c17ecb0c9eac1d21aba6e11df68c5cdb`.
+
+C08.3 uses a dedicated HTTPS transport, rejects redirect and endpoint query
+inputs, and preflights UTF-8 count budgets. The first review identified
+ambient transport inheritance, mistyped cache modes, query-url credentials,
+and malformed UTF-8 accounting. All four corrections passed independent
+Astra xhigh re-review. Fresh build, vet, complete affected packages, focused
+race checks, generator, catalog quality, and diff validation passed.
+[Row checks](../../dist/c08-goal/c08-3-final-gates.log) and
+[exact re-reviewed diff](../../dist/c08-goal/c08-3-final.diff).

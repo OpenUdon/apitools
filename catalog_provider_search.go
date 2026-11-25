@@ -21,14 +21,16 @@ import (
 
 const catalogProviderSearchSchema = "apitools.reviewed-provider-search.v1"
 
-// ReviewedProviderSearchOptions selects an offline lookup over the reviewed
+// ReviewedProviderSearchOptions selects a lookup over the reviewed
 // catalog. An empty IndexDB uses disposable SQLite. StateDB optionally supplies
 // accepted publisher checks from an existing maintenance database.
 type ReviewedProviderSearchOptions struct {
-	Query   string
-	Limit   int
-	IndexDB string
-	StateDB string
+	Query      string
+	Limit      int
+	IndexDB    string
+	StateDB    string
+	Offline    bool
+	Embeddings *ReviewedEmbeddingConfig
 }
 
 // ReviewedProviderMatchKind describes the evidence that contributed to a result.
@@ -37,6 +39,7 @@ type ReviewedProviderMatchKind string
 const (
 	ReviewedProviderExactMatch     ReviewedProviderMatchKind = "exact-provider"
 	ReviewedProviderOperationMatch ReviewedProviderMatchKind = "covered-operation"
+	ReviewedProviderSemanticMatch  ReviewedProviderMatchKind = "semantic-provider"
 	ReviewedProviderMetadataMatch  ReviewedProviderMatchKind = "provider-metadata"
 )
 
@@ -74,6 +77,7 @@ type ReviewedProviderSearchReport struct {
 	Source         string                         `json:"source"`
 	MetadataSHA256 string                         `json:"metadata_sha256"`
 	PublisherState string                         `json:"publisher_state"`
+	Embeddings     *ReviewedEmbeddingUsage        `json:"embeddings,omitempty"`
 	Results        []ReviewedProviderSearchResult `json:"results"`
 }
 
@@ -102,6 +106,12 @@ func (c *Client) SearchReviewedProviders(ctx context.Context, options ReviewedPr
 		return report, err
 	}
 	report.MetadataSHA256 = digest
+	if options.Embeddings != nil {
+		ranked, report.Embeddings = c.rankReviewedEmbeddings(ctx, db, options, profiles, ranked, query)
+		if err := ctx.Err(); err != nil {
+			return report, err
+		}
+	}
 	limit := options.Limit
 	if limit <= 0 {
 		limit = 10
@@ -339,6 +349,11 @@ func rankReviewedProviders(ctx context.Context, db *sql.DB, profiles []catalog.P
 	for _, match := range matches {
 		ranked = append(ranked, match)
 	}
+	sortRankedReviewedProviders(ranked)
+	return ranked, digest, nil
+}
+
+func sortRankedReviewedProviders(ranked []rankedReviewedProvider) {
 	slices.SortFunc(ranked, func(a, b rankedReviewedProvider) int {
 		if a.rank != b.rank {
 			return a.rank - b.rank
@@ -351,7 +366,6 @@ func rankReviewedProviders(ctx context.Context, db *sql.DB, profiles []catalog.P
 		}
 		return strings.Compare(a.result.Profile.ProviderID, b.result.Profile.ProviderID)
 	})
-	return ranked, digest, nil
 }
 
 func selectReviewedProviderMatches(ctx context.Context, tx *sql.Tx, matches map[string]rankedReviewedProvider, profiles map[string]catalog.ProviderSearchProfile, expression string) error {
@@ -369,7 +383,7 @@ func selectReviewedProviderMatches(ctx context.Context, tx *sql.Tx, matches map[
 		if profile, ok := profiles[id]; ok {
 			if _, matched := matches[id]; !matched {
 				matches[id] = rankedReviewedProvider{
-					result: ReviewedProviderSearchResult{Profile: profile, Match: ReviewedProviderMetadataMatch}, rank: 2, score: weight,
+					result: ReviewedProviderSearchResult{Profile: profile, Match: ReviewedProviderMetadataMatch}, rank: 3, score: weight,
 				}
 			}
 		}

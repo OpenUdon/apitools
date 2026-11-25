@@ -78,3 +78,39 @@ An accepted publisher check is shown separately when its reference,
 locator, and available catalog pin or exact held digest agree with the
 reviewed source.
 Accepted checks come from the maintenance database in read-only mode.
+
+## Optional hosted embeddings
+
+The optional `embeddings` object configures an OpenAI-compatible HTTPS
+embeddings endpoint and per-search budgets. A full cold lookup can need
+up to 334 public profile inputs and the explicit query. The budgets count
+requests, inputs and UTF-8 text bytes. For example, a reusable configuration
+can contain these fields.
+
+```json
+{
+  "index_db": "reviewed.sqlite",
+  "state_db": "catalog-maintenance.sqlite",
+  "embeddings": {
+    "endpoint": "https://embeddings.example.net/v1/embeddings",
+    "model": "operator-selected-model",
+    "max_requests": 16,
+    "max_inputs": 350,
+    "max_bytes": 1048576
+  }
+}
+```
+
+The adapter sends the documented public profile fields and the exact
+submitted query. Source URLs, digests, selectors and auth evidence stay local.
+Use an endpoint URL without a query string and an endpoint that accepts
+requests without credentials from APItools.
+Provider vectors are reused by endpoint, model and content digest. The
+explicit query vector is computed for each semantic lookup. When provider
+text changes, only missing provider vectors need to be regenerated.
+
+The text and JSON reports include counted usage when embedding configuration
+is supplied. Exact identity matches, offline mode, missing configuration,
+budget exhaustion and endpoint errors use lexical results. A semantic
+provider match indicates relevance to a profile with reviewed operations.
+Operation matches carry their own selector and artifact provenance.

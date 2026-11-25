@@ -68,3 +68,43 @@ func TestReviewedSearchConfigRejectsUnknownFields(t *testing.T) {
 		}
 	}
 }
+
+func TestReviewedSearchOfflineConfigDisablesEmbeddingRequests(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "search.json")
+	data := []byte(`{
+	  "embeddings": {
+	    "endpoint": "https://127.0.0.1/v1/embeddings",
+	    "model": "fixture",
+	    "max_requests": 16,
+	    "max_inputs": 350,
+	    "max_bytes": 1048576
+	  }
+	}`)
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, mode := range [][]string{{"--offline"}, {"--cache-mode", "offline"}} {
+		var out, errOut bytes.Buffer
+		args := append([]string{"search", "--query", "send slack message", "--source", "reviewed", "--config", path, "--json"}, mode...)
+		if code := run(args, &out, &errOut); code != exitSuccess {
+			t.Fatalf("exit %d: %s", code, errOut.String())
+		}
+		var report apitools.ReviewedProviderSearchReport
+		if err := json.Unmarshal(out.Bytes(), &report); err != nil {
+			t.Fatal(err)
+		}
+		if report.Embeddings == nil || report.Embeddings.Status != "offline" || report.Embeddings.Requests != 0 ||
+			len(report.Results) == 0 || report.Results[0].Profile.ProviderID != "slack" {
+			t.Fatalf("offline search did not stay lexical: %+v", report.Embeddings)
+		}
+	}
+}
+
+func TestReviewedSearchRejectsAnInvalidCacheMode(t *testing.T) {
+	var out, errOut bytes.Buffer
+	code := run([]string{"search", "--source", "reviewed", "--query", "send slack message",
+		"--cache-mode", "offine", "--config", "missing-config.json"}, &out, &errOut)
+	if code != exitRuntime || !strings.Contains(errOut.String(), "unknown cache mode") || out.Len() != 0 {
+		t.Fatalf("invalid mode allowed lookup: %d, %q, %q", code, out.String(), errOut.String())
+	}
+}

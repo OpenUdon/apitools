@@ -13,6 +13,19 @@ import (
 	"github.com/OpenUdon/apitools"
 )
 
+func checkedReviewedSearchMode(value string, offline bool) (apitools.CacheMode, error) {
+	if offline {
+		return apitools.CacheModeOffline, nil
+	}
+	mode := apitools.CacheMode(value)
+	switch mode {
+	case "", apitools.CacheModeReadWrite, apitools.CacheModeRefresh, apitools.CacheModeOffline, apitools.CacheModeBypass:
+		return mode, nil
+	default:
+		return "", fmt.Errorf("unknown cache mode %q", value)
+	}
+}
+
 func readReviewedSearchConfig(path string) (apitools.ReviewedProviderSearchOptions, error) {
 	var options apitools.ReviewedProviderSearchOptions
 	if path == "" {
@@ -41,8 +54,9 @@ func readReviewedSearchConfig(path string) (apitools.ReviewedProviderSearchOptio
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
 	var config *struct {
-		IndexDB string `json:"index_db"`
-		StateDB string `json:"state_db"`
+		IndexDB    string                            `json:"index_db"`
+		StateDB    string                            `json:"state_db"`
+		Embeddings *apitools.ReviewedEmbeddingConfig `json:"embeddings"`
 	}
 	if err := decoder.Decode(&config); err != nil {
 		return options, fmt.Errorf("decode reviewed search configuration: %w", err)
@@ -63,6 +77,7 @@ func readReviewedSearchConfig(path string) (apitools.ReviewedProviderSearchOptio
 		}
 	}
 	options.IndexDB, options.StateDB = config.IndexDB, config.StateDB
+	options.Embeddings = config.Embeddings
 	return options, nil
 }
 
@@ -73,6 +88,11 @@ func printReviewedSearchReport(out, errOut io.Writer, report apitools.ReviewedPr
 			return exitRuntime
 		}
 		return exitSuccess
+	}
+	if report.Embeddings != nil {
+		usage := report.Embeddings
+		fmt.Fprintf(out, "Embeddings %s (%d requests, %d inputs, %d text bytes)\n",
+			usage.Status, usage.Requests, usage.Inputs, usage.Bytes)
 	}
 	if len(report.Results) == 0 {
 		fmt.Fprintln(out, "No reviewed providers matched.")

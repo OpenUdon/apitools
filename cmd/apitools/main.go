@@ -1656,12 +1656,18 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 			fmt.Fprintln(errOut, "--provider-url selects publisher-scoped discovery and cannot be combined with --source reviewed")
 			return exitUsage
 		}
+		mode, err := checkedReviewedSearchMode(*cacheMode, *offline)
+		if err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitRuntime
+		}
 		options, err := readReviewedSearchConfig(*configPath)
 		if err != nil {
 			fmt.Fprintln(errOut, err)
 			return exitUsage
 		}
 		options.Query, options.Limit = trimmedQuery, *limit
+		options.Offline = mode == apitools.CacheModeOffline
 		report, err := (&apitools.Client{}).SearchReviewedProviders(ctx, options)
 		if err != nil {
 			fmt.Fprintln(errOut, err)

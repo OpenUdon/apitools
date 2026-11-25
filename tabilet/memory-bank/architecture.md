@@ -887,6 +887,15 @@ default uses in-memory SQLite. Accepted publisher observations are read from
 the separately configured maintenance database without modifying it.
 Catalog review dates and accepted check times have separate meanings.
 
+An explicitly configured HTTPS embedding endpoint receives only selected
+public profile text and the submitted query. The adapter preflights the
+remaining request, input and text byte budgets before calls and rejects
+redirects. Provider vectors are keyed by endpoint, model and public text
+digest in the search index. Query vectors are transient. Exact identity,
+offline mode and unavailable or over-budget semantic lookups keep the
+local lexical results. Semantic provider relevance is separate from
+evidence that a specific operation matched.
+
 ### Catalog discovery wire foundations (M80.1)
 
 The additive `apitools.catalog-discovery/v1` types reuse StepContract and
