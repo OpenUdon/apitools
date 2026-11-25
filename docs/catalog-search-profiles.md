@@ -1,0 +1,57 @@
+# Reviewed provider search profiles
+
+`catalog.BuiltInProviderSearchProfiles()` reads embedded profiles keyed by
+the 334 built-in provider IDs. Each profile has a normalized category, a
+public description, search keywords, and exact aliases. The profiles reuse
+catalog identities and add researched spellings such as `slack web api`.
+The source catalog and its generated manifest keep their own lifecycle.
+
+The public search fields are the display name, category, description,
+aliases, keywords, and selected operation labels. Descriptions and keywords
+describe provider services. Operation labels require local source evidence.
+Each label carries the selector and digest of its exact artifact, with
+source identity and reference verification date available alongside it.
+Selectors, URLs, revision strings, and authentication metadata stay outside
+the public text used for matching or embedding.
+
+| Coverage | Evidence |
+| --- | --- |
+| `selected-subset` | Selected operations in checked-in documentation-derived advisories or byte-pinned publisher sources. |
+| `docs-only` | Documentation references with no selected operation evidence. |
+| `reference-only` | A catalog reference to a machine-readable source or index with no selected operation evidence. |
+
+The current profiles record selected operation evidence for 164 providers,
+covering 146 advisories and 26 pinned publisher sources. The other 170
+profiles expose source references, including 19 with documentation only.
+Advisory capability labels come from checked-in operation summaries and
+omit credential acquisition and administration routes. The source reference
+date records the catalog's check of that reference. An advisory's digest
+identifies its reviewed local bytes.
+
+Slack message posting and public-channel history come from the scoped
+advisory verified in [C07](catalog-qualification-c07.md#stripe-google-sheets-and-slack).
+The catalog distinguishes these routes from Slack's archived Swagger. The
+C08 refund selections use local publisher bytes at the existing pins. Stripe
+has `PostRefunds`, Square has `RefundPayment`, and Mercado Pago has
+`createRefund`. Razorpay's advisory covers payment lookup by ID. WooCommerce's
+advisory covers creating an order refund.
+
+To maintain a profile, edit its row in
+[provider_search_profiles.json](../catalog/data/provider_search_profiles.json).
+Keep profile rows in provider ID order and use exact provider names or
+recognized variants for aliases. Use keywords for unqualified capabilities
+that can apply to several providers. Add operation evidence in
+[provider_search_coverage.json](../catalog/data/provider_search_coverage.json)
+with the provider ID, catalog reference ID, exact artifact digest, and
+selector. Checked-in advisories also require the registered artifact ID.
+Verify a new or changed selection against the identified source before updating
+its annotation. Pinned selections come from the reviewed [C04](catalog-expansion-c04.md),
+[C05](catalog-expansion-c05.md), and [C07](catalog-qualification-c07.md) sources
+and the local C08 refund checks.
+
+`go test ./catalog` checks coverage, alias ambiguity, and the checked-in
+advisory pins and selectors. To reproduce the refund checks, set
+`APITOOLS_C07_QUALIFICATION_DIR` to the retained C07 publisher directory
+containing `stripe-ga.json` and `APITOOLS_CATALOG_QUALIFICATION_DIR` to the
+retained catalog artifact root. Run `go test -count=1 ./catalog -run
+'^TestProviderSearchPinnedRefundOperations$'` with those local inputs.

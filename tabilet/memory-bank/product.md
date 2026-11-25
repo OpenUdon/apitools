@@ -79,6 +79,11 @@ C05 added nine more providers for a total of 334. The
 [C05 qualification evidence](../../docs/catalog-expansion-c05.md) records the
 selected operations, authentication metadata, and the combined disposition.
 
+Reviewed provider search profiles describe the service and its selected
+operation evidence separately. Providers can have a source lead or docs-only
+coverage. A catalog reference dates the source review, and an artifact digest
+identifies the reviewed bytes. [Profile guide](../../docs/catalog-search-profiles.md).
+
 ## Users
 
 - OpenUdon maintainers who need deterministic OpenAPI operation metadata for

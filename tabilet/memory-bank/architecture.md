@@ -137,6 +137,7 @@ Related repositories:
 | `catalog/catalog_gen.go` | Deterministic checked-in indexes generated from the reviewed catalog bundle. |
 | `catalog/index.go` | Immutable reusable provider/spec/overlay/security lookup index used by resolution and advisory aggregation. |
 | `catalog/search.go` | Ranked free-text provider search (`Catalog.SearchProviders`, `SearchBuiltInProviders`). Every word must match; a provider ranks by the lowest-priority text a word needed (ID, name and aliases; then category and workflow relevance; then quirks, spec references and overlays); an exact provider key is first, ties break by ID. Catalog-only: no network, file or cache access, and it returns provider copies. Distinct from the operation search over a catalog root. |
+| `catalog/search_profiles.go` | Embedded reviewed search profiles hold public descriptions, aliases, categories and keywords. Separate coverage annotations bind selected labels to exact artifact digests and native selectors. Source reference verification dates and provenance remain separate from searchable text. |
 | `cmd/cataloggen/` | Offline validator/generator with write and stale-output check modes. |
 | `catalog_stats.go` | Package-owned offline catalog protocol, artifact-registry, and refresh-evidence aggregation policy. |
 | `catalog-openapi-cache/` | Mixed catalog curation area: ignored downloaded specs, Discovery documents, and SQLite cache copies; tracked generated advisory overlays and service-specific overlay builders. |
