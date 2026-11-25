@@ -55,3 +55,26 @@ advisory pins and selectors. To reproduce the refund checks, set
 containing `stripe-ga.json` and `APITOOLS_CATALOG_QUALIFICATION_DIR` to the
 retained catalog artifact root. Run `go test -count=1 ./catalog -run
 '^TestProviderSearchPinnedRefundOperations$'` with those local inputs.
+
+## SQLite provider search
+
+Use `apitools search --source reviewed --query "send slack message"` for a
+reviewed catalog lookup. Add `--json` for the versioned
+`apitools.reviewed-provider-search.v1` report. Exact provider IDs, names,
+and aliases rank first. Full-text matches on individual operation labels
+rank next, with general provider text matches last. The report identifies
+the match type and each matched operation's selector and digest.
+
+Search builds a private in-memory SQLite index by default. To reuse an
+index on disk, pass `--config FILE` with `index_db` set to a path in an
+existing local directory. The index refreshes transactionally when the
+profile metadata digest changes. It uses a separate SQLite database from
+catalog maintenance and the public-directory search cache. The optional
+`state_db` setting points to the existing maintenance database. Relative
+paths resolve from the configuration file's directory.
+
+The report includes the catalog review date for each source reference.
+An accepted publisher check is shown separately when its reference,
+locator, and available catalog pin or exact held digest agree with the
+reviewed source.
+Accepted checks come from the maintenance database in read-only mode.

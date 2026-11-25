@@ -8,7 +8,7 @@ See the [milestone specification](milestone.md#c08--searchable-catalog-and-hoste
 | Item | State | Notes |
 | --- | --- | --- |
 | C08.1 — Curate searchable metadata | `[+]` | Give each of the 334 reviewed providers a normalized category, aliases, useful keywords, a concise public description and an evidence-backed description of the supported subset. Stage description changes for review. Cover both docs-only entries and providers with overlapping services. Added 334 profiles, 50 categories, 41 additional aliases, and 1,352 selected operations for 164 providers. Astra xhigh passed re-review. |
-| C08.2 — Add SQLite full-text provider retrieval | `[ ]` | Build a reproducible index from accepted metadata and support updates to earlier records. Expose matched capabilities, coverage, provenance and freshness in text and JSON. Exact provider identities and aliases have priority. |
+| C08.2 — Add SQLite full-text provider retrieval | `[+]` | Build a reproducible index from accepted metadata and support updates to earlier records. Expose matched capabilities, coverage, provenance and freshness in text and JSON. Exact provider identities and aliases have priority. Reproducible FTS5, reviewed CLI output and read-only accepted publisher observations passed. Astra xhigh passed re-review. |
 | C08.3 — Add configurable hosted embeddings | `[ ]` | Combine keyword and semantic ranking using the configured HTTPS endpoint, model and budget. Limit payloads to approved public provider text and explicit queries. Reuse vectors for matching content/model and refresh changed inputs. Test budget exhaustion, missing configuration, endpoint failure and offline lexical behavior with a fixture service. |
 | C08.4 — Integrate and verify automatic CLI search | `[ ]` | Prefer reviewed results and run existing public discovery for non-core or weakly matched queries under its existing network controls. Preserve explicit source flags, provider scoping and Go search behavior. Exercise “send slack message”, “refund payment”, an exact alias and a non-core query; verify relevant results, coverage labels, fallback and offline operation. |
 
@@ -34,3 +34,20 @@ directories, generator and quality checks, and diff checks passed.
 [Row checks](../../dist/c08-goal/c08-1-final-gates.log).
 The [re-reviewed diff](../../dist/c08-goal/c08-1-final.diff) has SHA-256
 `cf41bd37e2279945c73583bb466dac905b589c00a49b8a4929cd4518704fd9a1`.
+
+C08.2 gates started against base `8e76fbac58bd6451ff3d9772ef2c914371ba265e` and candidate diff SHA-256 `02537387d9bc673e8d0f0cada7a1db365659b5bd750ea4b15a70e1cdc0e4ffe3`. The gates cover build, vet, affected packages, concurrent SQLite initialization, catalog checks and CLI evidence.
+
+C08.2 corrective verification started. The re-review candidate diff SHA-256 is `32a92e74eeb24f23e86a4f1c6dfae922d0f9deb7ac982c737e39acc68c053703`.
+
+C08.2 adds the reviewed-only CLI source and reusable SQLite retrieval.
+Atomic rebuild and concurrent initialization passed. The first review found
+a tokenizer mismatch that invented operation matches, omission of one-term
+operations, ambiguous text provenance, and missing legacy exact digest
+acceptance. The re-reviewed candidate uses SQLite stemming for identity
+and operations, supports the single-word refund query, prints the source
+and digest for each operation, and preserves both exact and anchored
+accepted publisher checks. Fresh whole affected Go packages, targeted
+races, generator/quality, built CLI proofs, build, vet and diff checks
+passed. [Row checks](../../dist/c08-goal/c08-2-final-gates.log).
+[Exact reviewed diff](../../dist/c08-goal/c08-2-final.diff) SHA-256
+`32a92e74eeb24f23e86a4f1c6dfae922d0f9deb7ac982c737e39acc68c053703`.

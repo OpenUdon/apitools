@@ -1619,7 +1619,8 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 	fs := newCommandFlagSet("apitools search")
 	query := fs.String("query", "", "Search query")
 	limit := fs.Int("limit", 10, "Maximum result count")
-	source := fs.String("source", string(apitools.SourceAuto), "Search source: auto, apis-guru, lap-registry, rfc9727, or public-apis")
+	source := fs.String("source", string(apitools.SourceAuto), "Search source: auto, reviewed, apis-guru, lap-registry, rfc9727, or public-apis")
+	configPath := fs.String("config", "", "Reviewed provider search JSON configuration")
 	providerURL := fs.String("provider-url", "", "Provider URL or hostname for RFC 9727 /.well-known/api-catalog discovery")
 	publicProbe := fs.Int("public-probe", 0, "Maximum public-apis well-known URL probes; defaults to limit*5, capped at 50")
 	probeTimeout := fs.Duration("probe-timeout", apitools.DefaultProbeTimeout, "Timeout for each public-apis OpenAPI probe")
@@ -1630,7 +1631,7 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 	offline := fs.Bool("offline", false, "Use only cached search results; shorthand for --cache-mode offline")
 	jsonOut := fs.Bool("json", false, "Write JSON output")
 	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), "Usage: apitools search --query <text> [--limit 10] [--source auto|apis-guru|lap-registry|rfc9727|public-apis] [--provider-url example.com] [--public-probe 25] [--probe-timeout 5s] [--probe-budget 30s] [--cache cache.sqlite] [--cache-mode read-write|refresh|offline|bypass] [--json]")
+		fmt.Fprintln(fs.Output(), "Usage: apitools search --query <text> [--limit 10] [--source auto|reviewed|apis-guru|lap-registry|rfc9727|public-apis] [--config FILE] [--provider-url example.com] [--public-probe 25] [--probe-timeout 5s] [--probe-budget 30s] [--cache cache.sqlite] [--cache-mode read-write|refresh|offline|bypass] [--json]")
 		fmt.Fprintln(fs.Output())
 		fs.PrintDefaults()
 	}
@@ -1650,6 +1651,24 @@ func runSearchWithClient(args []string, out, errOut io.Writer, newClient func(st
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if *source == "reviewed" {
+		if strings.TrimSpace(*providerURL) != "" {
+			fmt.Fprintln(errOut, "--provider-url selects publisher-scoped discovery and cannot be combined with --source reviewed")
+			return exitUsage
+		}
+		options, err := readReviewedSearchConfig(*configPath)
+		if err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitUsage
+		}
+		options.Query, options.Limit = trimmedQuery, *limit
+		report, err := (&apitools.Client{}).SearchReviewedProviders(ctx, options)
+		if err != nil {
+			fmt.Fprintln(errOut, err)
+			return exitRuntime
+		}
+		return printReviewedSearchReport(out, errOut, report, *jsonOut)
+	}
 	client, closeCache, err := newClient(*cachePath)
 	if err != nil {
 		fmt.Fprintln(errOut, err)

@@ -876,6 +876,17 @@ builder paths relative to the catalog artifact root. The updater and cache
 registration launcher use the same checked-in registry. These outcomes
 record local coverage without claiming upstream freshness.
 
+### Reviewed provider search (C08)
+
+Reviewed provider search builds an SQLite FTS5 index over embedded catalog
+profiles. Identity, service descriptions and operation labels have separate
+ranking tiers. Each operation match retains its artifact identity and
+selector. A configured reusable index stores only the reviewed metadata and
+refreshes on a content fingerprint change in a single transaction. The
+default uses in-memory SQLite. Accepted publisher observations are read from
+the separately configured maintenance database without modifying it.
+Catalog review dates and accepted check times have separate meanings.
+
 ### Catalog discovery wire foundations (M80.1)
 
 The additive `apitools.catalog-discovery/v1` types reuse StepContract and
