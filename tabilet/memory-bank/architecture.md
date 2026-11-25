@@ -903,9 +903,11 @@ as unrequested, independently of reviewed search.
 
 Reviewed provider search builds an SQLite FTS5 index over embedded catalog
 profiles. Identity, service descriptions and operation labels have separate
-ranking tiers. An operation match requires substantive terms in its label.
-Each match retains its artifact identity and selector. A reusable index
-stores the reviewed metadata and
+ranking tiers. FTS proposes candidates. Operation labels must supply
+substantive terms, including simple singular and plural pairs. Ambiguous
+resource words require direct target evidence. Provider identity matches
+use exact normalized identities. Each operation match retains its artifact
+identity and selector. A reusable index stores the reviewed metadata and
 refreshes on a content fingerprint change in a single transaction. The
 default uses in-memory SQLite. Accepted publisher observations are read from
 the separately configured maintenance database without modifying it.
@@ -927,9 +929,19 @@ The CLI tries reviewed retrieval when neither a source nor a provider URL
 was specified. Exact identities and covered-operation matches can answer
 from the reviewed path. Metadata-only, semantic and empty matches pass to the
 existing public search chain and its cache and network controls. If the chain
-has no answer, the CLI can return available reviewed suggestions. Explicit
-public sources and provider URLs go directly through that chain or its
+has no answer, the CLI can return available reviewed suggestions. When
+implicit public discovery fails and the CLI returns those suggestions, it
+reports the failure on stderr and preserves the reviewed stdout format.
+Explicit public sources and provider URLs go directly through that chain or its
 selected adapter. The Go `Client.Search` contract remains public discovery.
+
+### Google Slides catalog security (C13)
+
+The catalog advisory keys selected presentation scopes by HTTP method and
+normalized path. Three reviewed reads use `presentations.readonly` and two
+reviewed writes use `presentations`. The evidence records the publisher's
+scope alternatives in retained SDK Discovery revisions `20240305` and
+`20250401`. See the [Google Slides advisory scope evidence](../../docs/catalog-slides-security-c13.md).
 
 ### Catalog discovery wire foundations (M80.1)
 

@@ -212,6 +212,7 @@ recommendation completion regressions.
 - **Lesson:** Stemming and embedding similarity can propose results. Confirm substantive operation terms against the selected label before asserting a matching selector and digest. Use catalog identity normalization for exact provider matches. Keep weak suggestions available when fallback yields no result.
 - **Why it matters:** Porter stemming treated “accounting” as an account-operation request. The resulting coverage label hid accounting providers and skipped public discovery.
 - **Evidence:** [C08](../docs/history/status-C08.md), whole reviews 1 and 2 and built CLI regression checks.
+- When tightening label rules, use the same labeled selector cases before and after the change. Pair incidental-term negatives with genuine plural and compound resource matches. Measure precision and recall so a drop in false matches cannot hide lost operations. [C13 search cases](../docs/history/status-C13.md#status-record).
 
 ## Cache validated embedding batches within the lookup budget
 
@@ -219,3 +220,9 @@ recommendation completion regressions.
 - **Lesson:** Use the query vector to check dimensions before storing complete provider batches. Recheck remaining work against the whole lookup budget when the cached dimension differs. A later lookup can reuse validated batches from a partial run.
 - **Why it matters:** An all-or-nothing cache can resend completed inputs after each late failure, and model names can outlive a vector dimension.
 - **Evidence:** [C08](../docs/history/status-C08.md), whole review 2 and the batch resumption and dimension replacement fixture.
+
+## Verify the source resolved by consumer tests
+
+- **Applies when:** A consumer test uses a disposable source copy and a local module replacement.
+- **Lesson:** Keep verification copies out of package discovery. Check the consumer's resolved replacement directory and compare the changed files there with the candidate bytes before treating a passing test as candidate evidence.
+- **Evidence:** A nested scratch patch skipped the APItools changes, so the first consumer tests ran against the baseline. Both suites passed again after verifying the candidate bytes and resolved replacement directories. [C13 consumer verification](../docs/history/status-C13.md#status-record).

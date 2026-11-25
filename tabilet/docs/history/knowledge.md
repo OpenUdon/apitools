@@ -419,9 +419,9 @@ record the replacement and routing evidence.
 **Original source.** C12 specification in the roadmap at
 `c5072d43a83e9601a0965ca770669fa8e29c19bb`.
 
-**Replacement.** [C13](../../memory-bank/milestone.md#c13--reviewed-catalog-findings)
+**Replacement.** [C13](status-C13.md)
 gates C12 and owns FND-05, FND-07 and FND-08. The owner deferred FND-04 in the
-[direct planning approval](../../memory-bank/status-C13.md#planning-approval-and-deferral).
+[direct planning approval](status-C13.md#status-record).
 The [C12 specification](../../memory-bank/milestone.md#c12--public-catalog-website)
 keeps site auth guidance excluded, verifies site search on its own acceptance
 and assigns horizon closure to C12.5.

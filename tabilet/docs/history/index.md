@@ -5,6 +5,7 @@ Superseded planning and contract wording is preserved in the [knowledge journal]
 
 | Milestone | Outcome | Retired | Record | Summary |
 |---|---|---|---|---|
+| C13 | completed | 2026-11-25 | [C13](status-C13.md) | Reviewed search relevance, public fallback diagnostics and five Google Slides advisory scope rules. Whole review 2 passed. |
 | C09 | completed | 2026-11-25 | [C09](status-C09.md) | Monthly reviewed-provider maintenance, recovery and agent skill. Reconciled the 334-provider inventory and two-month repeat proof. Whole review 3 passed. |
 | C08 | completed | 2026-11-25 | [C08](status-C08.md) | SQLite search for 334 reviewed providers, optional bounded embeddings, and reviewed-first CLI routing. Whole review 2 passed. |
 | C07 | completed | 2026-11-25 | [C07](status-C07.md) | Supervised inventory of 334 providers, source qualification, and advisory coverage. Whole review 2 passed. |

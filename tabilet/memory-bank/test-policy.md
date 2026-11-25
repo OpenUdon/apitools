@@ -340,7 +340,7 @@ prohibited machinery: that acceptance line is unproven, which is P1.
   M86 and M92 are withdrawn. Any later approved stage-completion milestone
   owns its end-to-end required gates with real pinned artifacts.
 - **Class R checks**: none scheduled. The named C12 readiness and deployment
-  checks and any later C13 Slides source qualification each require separate
+  checks and any later Google Slides publisher qualification each require separate
   explicit human authority. Live-network examples in `tech-stack.md` are
   operator recipes, not default test gates.
 - **Approved other-language tools**: no additional test runner or evidence

@@ -1,3 +1,98 @@
+# Retired milestone C13 - Reviewed catalog findings
+
+**Milestone.** C13
+**Outcome.** completed
+**Retired.** 2026-11-25
+**Source status.** tabilet/memory-bank/status-C13.md
+**Source specification.** tabilet/memory-bank/milestone.md#c13--reviewed-catalog-findings
+**Evidence.** 8eb5ef1bdbf0ead004e33bd1c06f69c5dae45439
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 2
+**Verification.** Go 1.26.6 build, vet, full offline pinned normal tests, generator freshness, zero catalog quality findings, CLI help and overlay inspection, and diff checks passed. The fixed 43-case search matrix measured 22/32 precision and 22/31 recall at baseline and 31/31 for both after correction. Fallback fixtures exercised text and JSON stderr while retaining identical reviewed stdout. Five Slides methods and selected scopes matched both retained SDK Discovery snapshots. Fresh whole OpenUdon and Udon tests passed in byte-verified consumer copies. The closing paperwork reuses the equivalent verification inputs. [Receipts](../../../dist/c13-goal/).
+**Consolidated into.** [Reviewed search guide](../../../docs/catalog-search-profiles.md), [Slides scope evidence](../../../docs/catalog-slides-security-c13.md), [search architecture](../../memory-bank/architecture.md#reviewed-provider-search-c08), and [operation evidence lesson](../../memory-bank/lessons.md#separate-operation-evidence-from-retrieval-relevance).
+
+## Milestone specification
+
+````markdown
+### C13 — Reviewed catalog findings
+
+**Dependency and owner.** After accepted [C09](../docs/history/status-C09.md).
+APItools owns this serial milestone. **Parallel-safe: no.** C12 requires
+accepted C13 and has its own launch. Follow the implementation, task review
+and whole-review model roles in [Monthly reviewed catalog](#monthly-reviewed-catalog).
+[C13 ledger](status-C13.md).
+
+**Scope and acceptance.**
+
+- C13.1 fixes FND-07. Measure before-and-after precision and recall against
+  fixed expectations for reviewed operation labels and exact selectors.
+  Recover genuine singular and plural matches such as `send slack messages`.
+  Exercise incidental matches such as `list user` and `time` and retain the
+  rejected stem cases, including `accounting` and `intuit quickbook`.
+  Require the named positive selectors and reject the named false positives.
+  Preserve exact-provider ranking, metadata suggestions and source provenance.
+- C13.2 fixes FND-08. When an implicit public lookup returns an error and
+  the CLI returns reviewed suggestions, emit a clear diagnostic on stderr in
+  text and JSON modes. Preserve reviewed stdout and the successful exit
+  status. Cover empty successful lookup, failed lookup, explicit-source
+  selection and publisher-scoped routing with offline fixtures.
+- C13.3 fixes FND-05. Replace the blanket read-only Google Slides advisory
+  with operation-scoped evidence for `presentations.get`,
+  `presentations.pages.get`, `presentations.pages.getThumbnail`,
+  `presentations.create` and `presentations.batchUpdate`. Verify exact native
+  method and path selectors and publisher-declared presentation scopes for
+  those reads and writes. Record scope alternatives and ambiguities in the
+  evidence. Other operations and the wider root-scope overlay class remain
+  unreviewed.
+
+**Slides evidence boundary.** The retained Google SDK Discovery snapshots
+`google.golang.org/api@v0.221.0` and `v0.259.0` agree that the three reads
+list `presentations.readonly` and the two writes list `presentations`
+without listing `presentations.readonly`. The latter snapshot is revision
+`20250401`. Its `slides/v1/slides-api.json` has SHA-256
+`f45d36026cc10cbb790a83405dc774c5815d9287604bdfd335475fd1cae0b022`.
+Its bytes match the cached module ZIP, whose recorded checksum matches
+Udon's pin. This is revision-qualified evidence. The catalog's
+canonical reference records revision `20260513`. The inspected cache did
+not contain those bytes, and C07 retained no downloadable artifact for
+that reference. If the retained evidence cannot support the bounded
+correction, pause C13.3 for separately approved Class R source qualification.
+
+**Verification and compatibility.** Use local Class O fixtures and fresh
+whole-package tests, build, vet, generator freshness, catalog quality, CLI
+help and diff checks under the [test policy](test-policy.md#project-specifics).
+Run affected whole-unit races where the policy requires them. Verify changed
+search and auth behavior against immutable OpenUdon and Udon snapshots.
+Preserve the Go API, JSON schemas, SQLite formats and consumer pins. Document
+actual evidence and resolve the three findings before independent milestone
+acceptance. Whole review starts at 0/10. This work fits the existing catalog
+and search direction and needs no evolution bump.
+
+**Implementation write set.** Reviewed-search and CLI code and tests,
+Google Slides catalog data and generated outputs, related evidence fixtures
+and docs, and the C13 and findings records.
+
+**Authority.** The following requirements apply to a later approved C13
+execution. Any live Slides source qualification needs separate explicit
+human approval. No Class R run is scheduled.
+
+```yaml
+AUTHORIZATION_REQUIREMENTS:
+  git.commit:
+    via: goal-policy
+    executor: assigned-agent
+  cli.local:
+    via: goal-policy
+    executor: assigned-agent
+    scope: declared-implementation-and-verification
+```
+
+````
+
+## Status record
+
+````markdown
 # C13 — Reviewed catalog findings
 
 **Owner.** APItools. **Dependency.** Accepted [C09](../docs/history/status-C09.md).
@@ -23,7 +118,7 @@ deferral when a named provider's documentation gap matters to approved work.
 
 ## Review
 
-Review gate iterations: 1
+Review gate iterations: 2
 
 The owner launched C13 by approving the raw launch SHA-256
 `f2d3b9aaa0b756a5c992d196ec3cf7ae4f4d8e930c948d5197916bbaae9d087e`.
@@ -268,3 +363,41 @@ and the integrated diff check passed. Exact OpenUdon (74.169s) and Udon
 [consumer inputs](../../dist/c13-goal/c13-whole-r1-consumer-inputs.log),
 [OpenUdon](../../dist/c13-goal/c13-whole-r1-openudon.log),
 and [Udon](../../dist/c13-goal/c13-whole-r1-udon.log).
+
+Integrated whole review round 2 started at exact candidate
+`8eb5ef1bdbf0ead004e33bd1c06f69c5dae45439` with review limit 10.
+[Committed corrective delta](../../dist/c13-goal/c13-integrated-round2-delta.diff)
+SHA-256 `aafdd6c983b4f16f457c6ca55a552856bbd8e060bba41ffee9400c48c98065ba`.
+[Scoped review packet](../../dist/c13-goal/c13-integrated-round2-review.txt)
+SHA-256 `8b3b16081ebf1f9562b4c49e28205c0d2dc28f71268c08cf1e9383a29f02b17c`.
+Scope is the round 1 P2 correction, the exact changes and their direct
+consumers. All required gate keys are clear.
+
+Integrated whole review round 2 passed and confirmed F1 fixed. Opus 5.5
+high dispatched at 23:17:48Z and handed back at 23:23:43Z on 2026-11-25.
+[Report](../../dist/c13-goal/c13-whole-round2-report.md) and
+[dispatch proof](../../dist/c13-goal/c13-whole-round2-dispatch.json).
+N1 is resolved by checking the staged and committed closing diff
+against the original integrated baseline. The exact reviewed revision
+also passed its own committed-range check. N2 retains the singular
+current-account exception. Offline CLI inspection confirms that the
+provider-less singular lookup returns the two covered operations and
+the plural query remains at metadata relevance.
+[Account boundary](../../dist/c13-goal/c13-whole-round2-account-boundary.log).
+
+FND-05, FND-07 and FND-08 have accepted fixes. FND-04 has the recorded
+owner deferral. Structural and dependency reconciliation retargets C12
+and the findings register to the retired record. This closure requires
+no evolution bump. The C13-only launch is consumed under the approved
+automatic update policy. C12 retains its separate launch and final
+horizon duty.
+
+The observed wall span runs from the 22:32:42Z baseline receipt to the
+23:23:43Z final review handback. Independent whole review intervals were
+about 10m18s and 5m55s. Required commands, corrective work and overlapping
+consumer checks are recorded above. No additional owner wait was needed.
+Two environment candidates are worth carrying as observations. Build
+cataloggen from a self-consistent catalog checkout before regenerating
+edited metadata. Isolate disposable consumer modules from package
+discovery and compare the actual replacement source before verification.
+````
