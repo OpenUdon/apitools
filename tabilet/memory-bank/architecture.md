@@ -943,6 +943,20 @@ reviewed writes use `presentations`. The evidence records the publisher's
 scope alternatives in retained SDK Discovery revisions `20240305` and
 `20250401`. See the [Google Slides advisory scope evidence](../../docs/catalog-slides-security-c13.md).
 
+### Static reviewed catalog site (C12)
+
+The maintainer-only generator projects built-in reviewed providers and
+search profiles into static pages, versioned JSON and a SHA-256 manifest.
+The input is a clean Git revision checked against the binary's build stamp.
+Provider and category pages link to reviewed source evidence. Browser search
+uses whole words from public profile text. The site includes selected public
+operation labels and excludes credential guidance and spec or overlay files.
+
+The changes page uses committed comparisons of two reviewed projections.
+Publication uses a manual GitHub Pages artifact workflow with a separate
+approved source revision. Catalog maintenance has no publishing step.
+[Operator guide](../../docs/catalog-site.md).
+
 ### Catalog discovery wire foundations (M80.1)
 
 The additive `apitools.catalog-discovery/v1` types reuse StepContract and

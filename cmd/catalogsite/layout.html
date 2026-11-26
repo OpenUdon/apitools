@@ -7,7 +7,7 @@
   <title>{{.Title}}{{if ne .Kind "home"}} | APItools{{end}}</title>
   <link rel="canonical" href="{{.Canonical}}">
   <link rel="stylesheet" href="{{.Root}}assets/site.css">
-  {{if ne .Kind "provider"}}<script src="{{.Root}}assets/search.js" defer></script>{{end}}
+  {{if or (eq .Kind "home") (eq .Kind "category")}}<script src="{{.Root}}assets/search.js" defer></script>{{end}}
 </head>
 <body>
   <a class="skip" href="#content">Skip to content</a>
@@ -16,6 +16,7 @@
       <a class="brand" href="{{.Root}}index.html">APItools</a>
       <a href="{{.Root}}index.html#providers">Providers</a>
       <a href="{{.Root}}index.html#categories">Categories</a>
+      <a href="{{.Root}}changes/index.html">Changes</a>
       <a href="{{.Root}}catalog.json">Catalog JSON</a>
     </nav>
   </header>
@@ -78,6 +79,26 @@
       </section>
       {{end}}
     </div>
+  {{else if eq .Kind "changes"}}
+    <section class="intro compact">
+      <h1>Monthly changes</h1>
+      <p>Differences between reviewed catalog revisions.</p>
+    </section>
+    {{range .History}}
+    <article class="change-record">
+      <h2><time datetime="{{.Period}}">{{.Period}}</time></h2>
+      {{if .FirstPublication}}<p>First publication. There is no previous site publication.</p>{{end}}
+      <dl>
+        <div><dt>From commit</dt><dd><code>{{.FromCommit}}</code></dd></div>
+        <div><dt>To commit</dt><dd><code>{{.ToCommit}}</code></dd></div>
+      </dl>
+      <ul class="change-totals">
+        <li><strong>{{len .Added}}</strong> added{{if .Added}}<span>{{range .Added}}<code>{{.}}</code> {{end}}</span>{{end}}</li>
+        <li><strong>{{len .Changed}}</strong> changed{{if .Changed}}<span>{{range .Changed}}<code>{{.}}</code> {{end}}</span>{{end}}</li>
+        <li><strong>{{len .Removed}}</strong> removed{{if .Removed}}<span>{{range .Removed}}<code>{{.}}</code> {{end}}</span>{{end}}</li>
+      </ul>
+    </article>
+    {{end}}
   {{end}}
   </main>
   <footer class="site-footer">

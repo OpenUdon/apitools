@@ -1,0 +1,75 @@
+name: Publish reviewed catalog
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Full approved APItools source commit
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: api-catalog-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.repository == 'OpenUdon/apitools' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: '1.26.6'
+          cache: false
+      - name: Build and verify the named clean source
+        id: site
+        shell: bash
+        env:
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          GOWORK: 'off'
+          GOTOOLCHAIN: local
+        run: |
+          if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'source_commit must be a full lowercase Git SHA' >&2
+            exit 1
+          fi
+          git merge-base --is-ancestor "$SOURCE_COMMIT" "$GITHUB_SHA"
+          git checkout --detach "$SOURCE_COMMIT"
+          test -z "$(git status --porcelain)"
+          work=$(mktemp -d "$RUNNER_TEMP/catalogsite.XXXXXXXX")
+          go build -mod=readonly -trimpath -buildvcs=true -o "$work/catalogsite" ./cmd/catalogsite
+          "$work/catalogsite" -source-commit "$SOURCE_COMMIT" -base-url https://apis.kinet.com/ -out "$work/public"
+          (
+            cd "$work/public"
+            sha256sum --check --strict SHA256SUMS
+            for required in index.html catalog.json changes/index.html; do
+              test -s "$required"
+              grep -Fx "$(sha256sum "$required")" SHA256SUMS >/dev/null
+            done
+          )
+          printf 'path=%s\n' "$work/public" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ steps.site.outputs.path }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        id: deploy

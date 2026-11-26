@@ -12,7 +12,7 @@ C11 is skipped because the [M86](status-M86.md) records use an unqualified `C11`
 | C12.1 — Sign-off and readiness | `[+]` | Before sign-off, resolve how operation labels such as Jenkins "Get CSRF crumb" and FileMaker "Delete session" are published; these examples come from C08 whole review round 1 L-2 ([C08 record](../docs/history/status-C08.md#status-record)). Record the owner's decision on publishing provider names, descriptions, operation labels, license notes and links, plus a correction/takedown contact. Record hostname `apis.kinet.com`, its DNS owner and the GitHub Pages host. Under explicit authority, read current DNS and host settings without changing them, and confirm read-only that the hostname is not already in use and that nothing found (such as a CAA record) would prevent a certificate; the certificate itself is proved in C12.5. Class R check under the [verification-attempt gate](milestone.md#verification-attempt-gate); keep DNS/host credentials out of the repository and registrar account details out of planning records. Blocks C12.2–C12.5. |
 | C12.2 — Data and generator | `[+]` | Add maintainer-only `cmd/catalogsite` using the Go standard library, with no new public Go API. Build deterministically from an identified clean commit of reviewed catalog data with a pinned Go toolchain; the generator makes no network request, while a hosted runner may download pinned modules verified by `go.sum`. Cover every built-in provider at the built commit (334 at planning); emit no spec or overlay bytes, no auth guidance, and no claim that a provider or version is current or latest. Take the base URL as an explicit build input and use relative internal links. Emit versioned JSON in APItools' own small format with a documented schema version and the source commit, and publish a SHA-256 manifest of the output. |
 | C12.3 — Pages and search | `[+]` | Build provider and category pages with coverage, provenance and verification dates, plus in-browser keyword search by name, alias, category and keyword, with every provider and category page reachable without JavaScript and no third-party assets, logos, analytics, accounts or user submissions. Search matches words in public profile text and must not present an incidental operation-label match as a supported capability. Follow the evidence rules accepted in [C08](../docs/history/status-C08.md#status-record), whose whole review round 1 P1-1 closed in round 2. C13.1 delivered the CLI search correction for [FND-07](milestone.md#open-review-findings). Verify the website's own public-profile search behavior. Escape all catalog text and allow only HTTPS source links. Add a restrictive in-page CSP (Pages cannot set response headers to block framing) and accessible markup with named Go-test checks for document language, title, landmarks, form labels and link text. |
-| C12.4 — Monthly changes and publishing | `[ ]` | Compare two reviewed revisions and commit a small monthly record; the monthly changes page matches it, including the first publication with no predecessor. Add a manual-only GitHub Pages artifact workflow with every GitHub Action pinned by commit SHA and least permissions, committing no generated pages to any branch and keeping the monthly job unable to publish. Add `apitools-catalog-maintenance` skill steps for preview, publish and rollback, and exercise rollback on the loopback preview. Document domain verification, DNS rollback and removal: verify the domain before adding DNS, and remove DNS before retiring the site. |
+| C12.4 — Monthly changes and publishing | `[+]` | Compare two reviewed revisions and commit a small monthly record; the monthly changes page matches it, including the first publication with no predecessor. Add a manual-only GitHub Pages artifact workflow with every GitHub Action pinned by commit SHA and least permissions, committing no generated pages to any branch and keeping the monthly job unable to publish. Add `apitools-catalog-maintenance` skill steps for preview, publish and rollback, and exercise rollback on the loopback preview. Document domain verification, DNS rollback and removal: verify the domain before adding DNS, and remove DNS before retiring the site. |
 | C12.5 — First publication and closure | `[ ]` | Ordered going-live steps, each needing separate explicit approval: (a) push the workflow to `main`, which publishes every unpushed local commit, so list them for the owner first; (b) verify the domain with GitHub; (c) enable Pages with GitHub Actions as source and set the custom domain; (d) add the DNS record; (e) dispatch the deployment; (f) enforce HTTPS once the certificate issues. Each deployment is a counted class R attempt under the [verification-attempt gate](milestone.md#verification-attempt-gate) and its existing limit. Check that live files match the published SHA-256 manifest for the recorded commit, that `apis.kinet.com` serves a valid certificate, and that HTTP redirects to HTTPS. Own horizon closure of the open review findings register. Verify the accepted C13 dispositions for FND-05, FND-07 and FND-08 and the owner-approved FND-04 deferral. Run the required class O whole-unit gates before whole review. |
 
 ## Launch and pending inputs
@@ -131,6 +131,36 @@ files in the clean candidate `cf8884527027f7b77a1a87d28c576a0169641358`
 manifest verified. The clean pass resets the required gate failure keys.
 The separate Astra xhigh re-review passed with no open findings.
 [Corrected gate](../../dist/c12-goal/c12.3-review-correction.log).
+
+Required C12.4 gate `c12.4-a1` starts from
+`47f0f53b476c2d86281589026585391ef8260777` and [saved diff](../../dist/c12-goal/c12.4-verification.diff)
+SHA-256 `2041686bdf721fb6277d669677177110dc5604d1e2143f2f782d03620688e6c2`.
+The offline Go gate includes the browser and loopback rollback checks.
+The first-record comparison uses clean builds of the two accepted rows.
+No live workflow dispatch is part of this gate.
+
+The first C12.4 task review required a stronger same-address rollback
+exercise and found that older incomplete ancestors could pass the
+workflow's artifact preflight. The corrected Go rollback test verifies all
+manifest hashes and restores visibly different content on the original
+address. The workflow checks the complete manifest and requires the three
+public entry points to be nonempty and covered by it. Corrective gate
+`c12.4-a2` starts from the same base with [saved diff](../../dist/c12-goal/c12.4-correction.diff)
+SHA-256 `88c922954185d1a594699affdafddd489acbc51132940bc8021f49c4751b689f`.
+
+C12.4 gate `c12.4-a2` passed in 29 seconds with offline Go 1.26.6
+`go build ./...`, `go vet ./...`, and `go test -v -count=1 ./cmd/catalogsite`
+with Chromium. This included same-address A → B → A loopback rollback of
+distinguishable provider pages and complete manifest verification.
+`git diff --check` passed. The first record was reproduced byte for byte
+using `catalogsite compare` on clean reviewed builds of
+`7f7560e0d8ca94184068fa65f348998b67a1c1ff` and
+`47f0f53b476c2d86281589026585391ef8260777`, with no previous publication and
+zero public provider additions, changes or removals. The exact workflow build
+step accepted the clean candidate `1488b88a1a7ad7d213b60761590a4584a5061a14`
+and all 389 listed files. It rejected the incomplete C12.2 and C12.3 builds
+before upload. The independent Astra xhigh re-review passed with no findings.
+[Corrected gate](../../dist/c12-goal/c12.4-correction.log).
 
 ## Review
 

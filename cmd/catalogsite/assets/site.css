@@ -73,6 +73,15 @@ form label { display: block; margin-block-end: .35rem; font-weight: 600; }
 .sources li:target { border-color: var(--accent); }
 .source-kind, .operations span { color: var(--muted); font-size: .9rem; }
 .operations span { display: block; }
+.change-record { border-block-start: 1px solid var(--border); margin-block-start: .7rem; padding-block: 1rem; }
+.change-record dl { display: grid; gap: .35rem; }
+.change-record dl div { display: flex; flex-wrap: wrap; gap: .2rem .75rem; }
+.change-record dd { margin: 0; overflow-wrap: anywhere; }
+.change-record dt { color: var(--muted); min-width: 7rem; }
+.change-totals { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; padding: 0; }
+.change-totals li { min-width: 0; padding: .65rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--panel); }
+.change-totals li span { display: block; overflow-wrap: anywhere; color: var(--muted); }
+.change-totals strong { color: var(--accent); }
 
 @media (max-width: 44rem) {
   .wrap { width: calc(100% - 2rem); }

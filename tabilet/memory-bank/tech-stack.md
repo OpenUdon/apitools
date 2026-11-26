@@ -324,6 +324,13 @@ module dependency is used. The offline operation index command is delivered by M
 
 ## Verification and testing standards
 
+The [catalog site](../../docs/catalog-site.md) uses Go 1.26.6 and standard
+library HTML templates. Build `./cmd/catalogsite` with `-trimpath` and
+`-buildvcs=true` from a clean checkout for artifact qualification. The
+website browser gate runs `go test -count=1 ./cmd/catalogsite` with
+`APITOOLS_SITE_TEST_CHROME` pointing to an installed Chromium executable.
+Go owns the assertions, local server and temporary browser profile.
+
 Every test follows [test-policy.md](test-policy.md), including task rows,
 reviews, goal briefs and launch references. It governs method and grants no
 new authority. Preserve existing verification commands, milestone-specific

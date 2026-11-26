@@ -1,6 +1,6 @@
 ---
 name: apitools-catalog-maintenance
-description: Manage the APItools reviewed-provider monthly update. Use for maintenance preflight, provider-scope dry runs, saved run reports, scoped retries, cron schedule changes, or accepted-version export.
+description: Manage the APItools reviewed-provider monthly update. Use for maintenance preflight, provider-scope dry runs, saved run reports, scoped retries, cron schedule changes, accepted-version export, or catalog-site preview and release.
 ---
 
 # Maintain the reviewed API catalog
@@ -80,3 +80,19 @@ Run `apitools catalog update --config FILE --export` to emit deterministic
 accepted-version metadata as JSON. Save it to the requested review path and
 inspect the diff. Use the user's separate Git instructions for any commit or
 publication.
+
+## Preview and release the catalog site
+
+- Follow the [catalog site operator guide](../../../docs/catalog-site.md).
+  Build the approved clean commit with the pinned Go toolchain. Verify the
+  artifact manifest and preview it on loopback. Compare the two reviewed
+  catalog JSON files and review the monthly record before committing it.
+- Before dispatch, present the exact source commit and outgoing Git commits
+  to the owner. Publication uses the manual `Publish reviewed catalog` Pages
+  workflow. Obtain separate approval for each push, domain verification,
+  Pages configuration, DNS change, deployment and HTTPS enforcement.
+- For a preview rollback, verify the known previous artifact and restart the
+  loopback server with that directory. For a live rollback, obtain authority
+  to dispatch the last verified published commit, then check its manifest and
+  served files. For first-release rollback or retirement, restore or remove
+  the routing record before disabling Pages.

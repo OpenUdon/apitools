@@ -69,6 +69,9 @@ The qualification records give the reviewed surfaces and artifact evidence.
 [C04](docs/catalog-expansion-c04.md), [C05](docs/catalog-expansion-c05.md),
 [C07](docs/catalog-qualification-c07.md).
 
+Maintainers can build and preview the static catalog site from a clean
+reviewed commit. [Catalog site operator guide](docs/catalog-site.md).
+
 ## CLI
 
 ```bash

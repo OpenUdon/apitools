@@ -17,18 +17,25 @@ import (
 )
 
 func main() {
-	if err := run(os.Args[1:], os.Stderr); err != nil {
+	if err := run(os.Args[1:], os.Stdout, os.Stderr); err != nil {
 		fmt.Fprintln(os.Stderr, "catalogsite:", err)
 		os.Exit(1)
 	}
 }
 
-func run(args []string, stderr io.Writer) error {
+func run(args []string, stdout, stderr io.Writer) error {
+	if len(args) != 0 && args[0] == "compare" {
+		return runCompare(args[1:], stdout, stderr)
+	}
 	flags := flag.NewFlagSet("catalogsite", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	baseURL := flags.String("base-url", "", "public HTTPS directory URL")
 	commit := flags.String("source-commit", "", "full clean source commit used to build this binary")
 	output := flags.String("out", "", "new output directory with an existing parent")
+	flags.Usage = func() {
+		fmt.Fprintln(stderr, "Build: catalogsite [options]\nCompare: catalogsite compare -from FROM.json -to TO.json -period YYYY-MM [-first-publication]")
+		flags.PrintDefaults()
+	}
 	if err := flags.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil

@@ -41,6 +41,7 @@ type pageView struct {
 	Categories                   []categoryView
 	Providers                    []siteProvider
 	Coverage                     []coverageView
+	History                      []monthlyRecord
 }
 
 var siteTemplate = template.Must(template.New("layout.html").Funcs(template.FuncMap{
@@ -132,6 +133,17 @@ func addPages(files map[string][]byte, data siteCatalog) error {
 		if err := addPage(files, "providers/"+item.ID+"/index.html", page); err != nil {
 			return err
 		}
+	}
+	history, err := loadChangeHistory()
+	if err != nil {
+		return err
+	}
+	changes := pageView{
+		Title: "Monthly changes", Kind: "changes", Canonical: base.JoinPath("changes", "index.html").String(),
+		Root: "../", ContactURL: data.ContactURL, History: history,
+	}
+	if err := addPage(files, "changes/index.html", changes); err != nil {
+		return err
 	}
 	for _, name := range []string{"assets/site.css", "assets/search.js"} {
 		contents, err := pageAssets.ReadFile(name)
