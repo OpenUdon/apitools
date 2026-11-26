@@ -10,7 +10,7 @@ C11 is skipped because the [M86](status-M86.md) records use an unqualified `C11`
 | Item | State | Notes |
 | --- | --- | --- |
 | C12.1 — Sign-off and readiness | `[+]` | Before sign-off, resolve how operation labels such as Jenkins "Get CSRF crumb" and FileMaker "Delete session" are published; these examples come from C08 whole review round 1 L-2 ([C08 record](../docs/history/status-C08.md#status-record)). Record the owner's decision on publishing provider names, descriptions, operation labels, license notes and links, plus a correction/takedown contact. Record hostname `apis.kinet.com`, its DNS owner and the GitHub Pages host. Under explicit authority, read current DNS and host settings without changing them, and confirm read-only that the hostname is not already in use and that nothing found (such as a CAA record) would prevent a certificate; the certificate itself is proved in C12.5. Class R check under the [verification-attempt gate](milestone.md#verification-attempt-gate); keep DNS/host credentials out of the repository and registrar account details out of planning records. Blocks C12.2–C12.5. |
-| C12.2 — Data and generator | `[ ]` | Add maintainer-only `cmd/catalogsite` using the Go standard library, with no new public Go API. Build deterministically from an identified clean commit of reviewed catalog data with a pinned Go toolchain; the generator makes no network request, while a hosted runner may download pinned modules verified by `go.sum`. Cover every built-in provider at the built commit (334 at planning); emit no spec or overlay bytes, no auth guidance, and no claim that a provider or version is current or latest. Take the base URL as an explicit build input and use relative internal links. Emit versioned JSON in APItools' own small format with a documented schema version and the source commit, and publish a SHA-256 manifest of the output. |
+| C12.2 — Data and generator | `[+]` | Add maintainer-only `cmd/catalogsite` using the Go standard library, with no new public Go API. Build deterministically from an identified clean commit of reviewed catalog data with a pinned Go toolchain; the generator makes no network request, while a hosted runner may download pinned modules verified by `go.sum`. Cover every built-in provider at the built commit (334 at planning); emit no spec or overlay bytes, no auth guidance, and no claim that a provider or version is current or latest. Take the base URL as an explicit build input and use relative internal links. Emit versioned JSON in APItools' own small format with a documented schema version and the source commit, and publish a SHA-256 manifest of the output. |
 | C12.3 — Pages and search | `[ ]` | Build provider and category pages with coverage, provenance and verification dates, plus in-browser keyword search by name, alias, category and keyword, with every provider and category page reachable without JavaScript and no third-party assets, logos, analytics, accounts or user submissions. Search matches words in public profile text and must not present an incidental operation-label match as a supported capability. Follow the evidence rules accepted in [C08](../docs/history/status-C08.md#status-record), whose whole review round 1 P1-1 closed in round 2. C13.1 delivered the CLI search correction for [FND-07](milestone.md#open-review-findings). Verify the website's own public-profile search behavior. Escape all catalog text and allow only HTTPS source links. Add a restrictive in-page CSP (Pages cannot set response headers to block framing) and accessible markup with named Go-test checks for document language, title, landmarks, form labels and link text. |
 | C12.4 — Monthly changes and publishing | `[ ]` | Compare two reviewed revisions and commit a small monthly record; the monthly changes page matches it, including the first publication with no predecessor. Add a manual-only GitHub Pages artifact workflow with every GitHub Action pinned by commit SHA and least permissions, committing no generated pages to any branch and keeping the monthly job unable to publish. Add `apitools-catalog-maintenance` skill steps for preview, publish and rollback, and exercise rollback on the loopback preview. Document domain verification, DNS rollback and removal: verify the domain before adding DNS, and remove DNS before retiring the site. |
 | C12.5 — First publication and closure | `[ ]` | Ordered going-live steps, each needing separate explicit approval: (a) push the workflow to `main`, which publishes every unpushed local commit, so list them for the owner first; (b) verify the domain with GitHub; (c) enable Pages with GitHub Actions as source and set the custom domain; (d) add the DNS record; (e) dispatch the deployment; (f) enforce HTTPS once the certificate issues. Each deployment is a counted class R attempt under the [verification-attempt gate](milestone.md#verification-attempt-gate) and its existing limit. Check that live files match the published SHA-256 manifest for the recorded commit, that `apis.kinet.com` serves a valid certificate, and that HTTP redirects to HTTPS. Own horizon closure of the open review findings register. Verify the accepted C13 dispositions for FND-05, FND-07 and FND-08 and the owner-approved FND-04 deferral. Run the required class O whole-unit gates before whole review. |
@@ -81,6 +81,25 @@ and `git diff --check` passed in about three seconds. The row changes
 only evidence in the ledger. No Go package is affected.
 [Local gate log](../../dist/c12-goal/c12.1-offline.log).
 The separate GPT-6.2 Astra xhigh task review passed with no findings.
+
+C12.2 implemented the clean-source Go generator and public v1 projection.
+The first task review found an inherited AWS ELBv2 freshness claim and
+unchecked credential-style fragments in HTTPS links. The projection now
+uses neutral AWS ELBv2 wording, rejects such fragments, and tests provider
+identities and representative coverage labels. The Astra xhigh re-review
+passed all three dispositions.
+
+Required C12.2 gate at base `26796ff55521e07ab152434b20d92186193e97e9`
+with [candidate diff](../../dist/c12-goal/c12.2-correction.diff) SHA-256
+`3190e4c2689f474ab508551f707e8f0720291913b407b3c338d1c350cd5e898f`
+passed. Offline Go 1.26.6 `go build ./...`, `go vet ./...`,
+`go test -count=1 ./cmd/catalogsite`, and `git diff --check` passed.
+Two `go build -trimpath -buildvcs=true` builds of clean candidate snapshot
+`64dc18256a92254488bfe6ef526b3aa01bb6af28` produced identical JSON and
+manifests. `sha256sum --check SHA256SUMS` passed. Coverage for 334 providers
+is 123 official OpenAPI, 55 other official machine-readable, 137 advisory
+overlays and 19 docs only. The corrected gate took about five seconds.
+[Gate log](../../dist/c12-goal/c12.2-correction.log).
 
 ## Review
 
