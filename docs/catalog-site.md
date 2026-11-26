@@ -37,3 +37,16 @@ operations. The public projection omits the two labels excluded in C12.1.
 
 `SHA256SUMS` lists SHA-256 hashes and relative paths for every generated file
 other than the manifest itself. It is written after the listed files.
+
+## Browse and test the site
+
+The provider and category lists work without JavaScript. When scripts are
+enabled, search matches whole words across the public provider profile. The
+listings show one dated source for each category entry when available.
+Provider pages list the full source set and selected operation labels.
+
+For the browser gate, point `APITOOLS_SITE_TEST_CHROME` at the absolute path
+of an installed Chromium executable. `go test -count=1 ./cmd/catalogsite`
+runs the assertions with a local server and disposable browser profiles.
+The test suite otherwise runs the projection, escaping and link checks
+without launching a browser.

@@ -95,7 +95,11 @@ func buildFiles(data siteCatalog) (map[string][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return map[string][]byte{"catalog.json": append(encoded, '\n')}, nil
+	files := map[string][]byte{"catalog.json": append(encoded, '\n')}
+	if err := addPages(files, data); err != nil {
+		return nil, err
+	}
+	return files, nil
 }
 
 func writeOutput(output string, files map[string][]byte) (err error) {
