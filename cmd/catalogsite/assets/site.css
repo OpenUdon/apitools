@@ -1,7 +1,7 @@
 :root {
   color-scheme: light;
-  --page: #f3f6fa;
   --paper: #fff;
+  --surface-tint: #f3f6fa;
   --ink: #192943;
   --muted: #465a73;
   --line: #d8e1ee;
@@ -9,7 +9,7 @@
   --navy: #17345d;
   font-family: system-ui, sans-serif;
   line-height: 1.55;
-  background: var(--page);
+  background: var(--paper);
   color: var(--ink);
 }
 
@@ -97,7 +97,7 @@ h2 { font-size: 1.27rem; margin: 0 0 .72rem; letter-spacing: -.015em; }
 .catalog-grid aside h2 { padding-inline: .35rem; margin-bottom: .5rem; }
 .category-list, .providers, .sources, .operations { list-style: none; padding: 0; margin: 0; }
 .category-list a { display: flex; justify-content: space-between; gap: .6rem; align-items: baseline; padding: .38rem .4rem; border-radius: .25rem; text-decoration: none; font-size: .9rem; }
-.category-list a:hover { background: var(--page); text-decoration: underline; }
+.category-list a:hover { background: var(--surface-tint); text-decoration: underline; }
 .category-list span { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
 
 form label { display: block; margin-block-end: .45rem; font-size: .91rem; font-weight: 680; }
@@ -126,7 +126,6 @@ form + .result-count { margin-top: .85rem; }
 .category-link { display: inline-block; margin-top: .35rem; font-size: .86rem; }
 .coverage-label { display: inline-block; padding: .15rem .55rem; border-radius: 1rem; color: var(--status, var(--muted)); background: var(--status-bg, #edf1f6); font-size: .78rem; font-weight: 620; line-height: 1.4; }
 
-.category-page { background: var(--paper); }
 .category-page .intro { padding-block: clamp(2.25rem, 5vw, 3.75rem) 1.7rem; }
 .category-page .intro h1 {
   font-family: Georgia, "Times New Roman", serif;
@@ -164,7 +163,7 @@ form + .result-count { margin-top: .85rem; }
 .change-record dd code { font-size: .75rem; }
 .change-record dt { min-width: 6.5rem; color: var(--muted); }
 .change-totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; list-style: none; padding: 0; }
-.change-totals li { padding: .6rem .7rem; border: 1px solid var(--line); border-radius: .4rem; background: var(--page); }
+.change-totals li { padding: .6rem .7rem; border: 1px solid var(--line); border-radius: .4rem; background: var(--surface-tint); }
 .change-totals li span { display: block; overflow-wrap: anywhere; color: var(--muted); }
 .change-totals strong { color: var(--link); }
 
