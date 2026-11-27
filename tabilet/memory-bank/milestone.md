@@ -552,7 +552,9 @@ concurrent ledger writers. A goal-protocol run keeps its own scoped ownership ru
 
 ## Current Dashboard
 
-The reviewed APItools catalog horizon is complete.
+The original reviewed APItools catalog horizon is complete.
+[C14](#c14--recheck-publisher-documentation-for-fnd-04) is the approved
+follow-up for the 30 documentation checks recorded under FND-04.
 Reviewed-provider search and embeddings passed
 [C08](../docs/history/status-C08.md) whole review 2.
 [C06](../docs/history/status-C06.md) delivered the update CLI, SQLite state
@@ -628,6 +630,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
+| C14 | [status-C14.md](status-C14.md) | Pending after accepted C07. Execution requires a separate launch. |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
 
 Closed milestones are recorded in the history index.
@@ -677,6 +680,60 @@ inventory. C09 owns the repeat-run evidence and any separately selected
 hosted embedding check. Record the publisher scope, configured cache directory,
 network or metered budget as applicable, stop conditions and outcomes.
 Installing a real user schedule is a subsequent operator choice.
+
+### C14 — Recheck publisher documentation for FND-04
+
+**Owner and dependency.** APItools owns this serial follow-up after accepted
+[C07](../docs/history/status-C07.md). **Parallel-safe: no.** The owner
+approved recording this plan on 2026-11-27. C14 owns FND-04 and starts its
+own review counter at 0/10. The earlier deferral is retained in the
+[C13 record](../docs/history/status-C13.md#status-record).
+[C14 ledger](status-C14.md).
+
+**Baseline.** In [C07.4](../../docs/catalog-qualification-c07.md#remaining-publisher-sources-and-overlays),
+one official documentation page each was sampled for 160 providers.
+The 30 unreadable checks comprise six cross-origin redirects, nine bounded
+read failures, and fifteen HTTP errors. The matching C07 receipt identifies
+30 distinct reviewed providers. Twenty-eight of them have checked-in endpoint
+overlays. Emelia and Orbit have docs-only entries. The checks describe the
+sampled pages and leave other publisher locations open.
+
+**Scope and acceptance.**
+
+- C14.1 reconciles the 30 cases offline, starting with Emelia and Orbit.
+  Compare the original and current references, endpoint overlays, and
+  recorded gaps. Identify the official pages and publisher-owned repositories
+  in scope. Check the local toolchain and configured cache before proposing
+  the live scope, request and time bounds, supervision, and stop conditions.
+- C14.2 performs one separately approved, supervised Class R publisher
+  recheck for the reconciled list. Look for readable official docs and
+  replacement machine-readable specs. Reuse guarded HTTP(S) acquisition.
+  Verify source authority and scope before using alternate origins. Prefer
+  stable publisher links and retain needed bytes by digest in the configured
+  cache outside Git. Defer a spec before download when its trustworthy size
+  is unknown or exceeds 1,000,000,000 bytes. Record each provider's attempted
+  sources, observed outcome, checked time, and retained evidence.
+- C14.3 validates a proposed replacement in its native format and reproduces
+  at least one representative operation offline before adoption. Use official
+  authentication documentation and reviewed operation evidence for any
+  security changes. Refresh a checked-in endpoint overlay and its builder
+  where official docs support a changed subset. Keep existing accepted
+  coverage usable while evaluation is incomplete. Give all 30 providers an
+  evidence-backed disposition and document any remaining gap at provider
+  level. Reconcile the FND-04 disposition with those results at closure.
+
+**Verification and boundaries.** Use the existing offline Class O row and
+whole-unit catalog checks, including build, vet, full tests, generator
+freshness, catalog quality, CLI smoke checks, and changed overlay loads.
+Use offline fixtures and retained evidence for the local diagnostic loop.
+The named publisher recheck uses the [Class R and verification-attempt rules](#verification-attempt-gate).
+Capture the initial integrated baseline before the first task and review
+C14's cumulative changes and evidence under the [milestone review procedure](#milestone-review-procedure).
+Reuse existing catalog and updater contracts. The write set covers the 30
+provider entries, their qualifying source and overlay evidence, related
+fixtures and generated catalog metadata, and C14 planning and status.
+Consumer adoption, public site refresh, and publication remain separate.
+The live scope requires explicit human approval before accessing publishers.
 
 ### M86 — HCL-free UWS adoption (conditional)
 
@@ -817,7 +874,7 @@ Last used ID: FND-08
 
 | ID | Finding | Severity | Origin | Fix owner | Disposition |
 |---|---|---|---|---|---|
-| FND-04 | Thirty bounded docs probes returned no readable page in C07. A later publisher source review can check alternate official locations, refresh affected overlays and clarify the inherited gap evidence. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F2 | unassigned | deferred by human: [2026-11-25 direct C13 proposal approval](../docs/history/status-C13.md#status-record) |
+| FND-04 | Thirty bounded docs probes returned no readable page in C07. A publisher source recheck can verify alternate official locations, refresh affected overlays and clarify the inherited evidence gaps. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F2 | [C14.3](status-C14.md#tasks) | open under the 2026-11-27 plan. Prior [owner deferral](../docs/history/status-C13.md#status-record) retained. |
 
 - IDs are `FND-01`, `FND-02`, ...: permanent, never reused, separate from status,
   archive and stage IDs. Origin is the milestone and review iteration.
