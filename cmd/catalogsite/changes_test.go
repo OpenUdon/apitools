@@ -133,7 +133,7 @@ func TestLoopbackPreviewRollback(t *testing.T) {
 			defer preview.Close()
 			client := preview.Client()
 			client.Timeout = 3 * time.Second
-			for _, name := range []string{"index.html", "catalog.json", "changes/index.html", firstProvider, "SHA256SUMS"} {
+			for _, name := range []string{"index.html", "catalog.json", "changes/index.html", "privacy/index.html", firstProvider, "SHA256SUMS"} {
 				response, err := client.Get("http://" + address + "/" + name)
 				if err != nil {
 					t.Fatal(err)

@@ -24,6 +24,16 @@ func TestSiteNavigationAndAccessibility(t *testing.T) {
 		t.Fatal(err)
 	}
 	home := files["index.html"]
+	privacy := files["privacy/index.html"]
+	for _, want := range []string{
+		`<h1>Privacy &amp; Site Notes</h1>`,
+		`<link rel="canonical" href="https://apis.kinet.com/privacy/index.html">`,
+		`href="` + data.ContactURL + `">APItools issue tracker</a>`,
+	} {
+		if !bytes.Contains(privacy, []byte(want)) {
+			t.Errorf("privacy page lacks %s", want)
+		}
+	}
 	for _, provider := range data.Providers {
 		name := "providers/" + provider.ID + "/index.html"
 		category := "categories/" + provider.Category + "/index.html"
@@ -66,6 +76,11 @@ func TestSiteNavigationAndAccessibility(t *testing.T) {
 		}
 		if !titleTag.Match(contents) {
 			t.Errorf("%s lacks a nonempty title", name)
+		}
+		_, footer, _ := bytes.Cut(contents, []byte(`<footer class="site-footer">`))
+		privacyHref := strings.Repeat("../", strings.Count(name, "/")) + "privacy/index.html"
+		if !bytes.Contains(footer, []byte(`href="`+privacyHref+`"`)) || !bytes.Contains(footer, []byte(`>Privacy &amp; Site Notes</a>`)) {
+			t.Errorf("%s lacks a privacy page link in the footer", name)
 		}
 		if strings.HasPrefix(name, "categories/") || name == "index.html" {
 			if !bytes.Contains(contents, []byte(`<label for="search-query">Search providers</label>`)) || !bytes.Contains(contents, []byte(`<input type="search" id="search-query"`)) {

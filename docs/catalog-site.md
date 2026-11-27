@@ -44,6 +44,8 @@ The provider and category lists work without JavaScript. When scripts are
 enabled, search matches whole words across the public provider profile. The
 listings show one dated source for each category entry when available.
 Provider pages list the full source set and selected operation labels.
+Every page footer links to Privacy & Site Notes and the public corrections
+and takedowns contact.
 
 For the browser gate, point `APITOOLS_SITE_TEST_CHROME` at the absolute path
 of an installed Chromium executable. `go test -count=1 ./cmd/catalogsite`

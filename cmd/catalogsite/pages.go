@@ -145,6 +145,13 @@ func addPages(files map[string][]byte, data siteCatalog) error {
 	if err := addPage(files, "changes/index.html", changes); err != nil {
 		return err
 	}
+	privacy := pageView{
+		Title: "Privacy & Site Notes", Kind: "privacy", Canonical: base.JoinPath("privacy", "index.html").String(),
+		Root: "../", ContactURL: data.ContactURL,
+	}
+	if err := addPage(files, "privacy/index.html", privacy); err != nil {
+		return err
+	}
 	for _, name := range []string{"assets/site.css", "assets/search.js"} {
 		contents, err := pageAssets.ReadFile(name)
 		if err != nil {

@@ -103,10 +103,27 @@
       </ul>
     </article>
     {{end}}
+  {{else if eq .Kind "privacy"}}
+    <div class="site-notes">
+      <header class="intro"><h1>{{.Title}}</h1></header>
+      <section aria-labelledby="privacy-heading">
+        <h2 id="privacy-heading">Privacy</h2>
+        <p>Search runs in your browser and search queries stay on your device. The catalog has no accounts, analytics, or advertising trackers.</p>
+        <p>GitHub Pages hosts this site and logs visitor IP addresses for security. See <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub’s privacy statement</a> for details.</p>
+      </section>
+      <section aria-labelledby="site-notes-heading">
+        <h2 id="site-notes-heading">Site notes</h2>
+        <p>The catalog summarizes reviewed sources. Advisory overlays cover selected operations and may omit details. Check the provider’s official documentation for current API behavior and follow its applicable terms and licenses.</p>
+        <p>Submit corrections or takedown requests through the <a href="{{.ContactURL}}">APItools issue tracker</a>. Issues are public. Leave out personal or confidential information.</p>
+      </section>
+    </div>
   {{end}}
   </main>
   <footer class="site-footer">
-    <div class="wrap"><a href="{{.ContactURL}}">Corrections and takedowns</a></div>
+    <nav class="wrap" aria-label="Footer">
+      <a href="{{.Root}}privacy/index.html"{{if eq .Kind "privacy"}} aria-current="page"{{end}}>Privacy &amp; Site Notes</a>
+      <a href="{{.ContactURL}}">Corrections and takedowns</a>
+    </nav>
   </footer>
 </body>
 </html>

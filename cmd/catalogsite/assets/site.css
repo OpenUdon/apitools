@@ -40,6 +40,11 @@ input, button { font: inherit; }
 .brand-mark::after { right: .4rem; transform: rotate(135deg); }
 .site-header nav .data-link { padding: .42rem .7rem; border: 1px solid var(--line); border-radius: .4rem; color: var(--link); }
 .site-footer { margin-top: 3rem; border-block-start: 1px solid var(--line); padding-block: 1.4rem; background: var(--paper); font-size: .9rem; }
+.site-footer nav { display: flex; flex-wrap: wrap; gap: .45rem 1.25rem; }
+
+.site-notes { max-width: 66ch; }
+.site-notes section + section { margin-block-start: 1.6rem; }
+.site-notes p { margin: .65rem 0 0; }
 
 .intro { padding-block: 2.55rem 1.6rem; }
 .intro h1 { max-width: 26ch; margin: 0; font-size: clamp(2.05rem, 5vw, 3.45rem); font-weight: 760; letter-spacing: -.045em; line-height: 1.08; overflow-wrap: anywhere; }
