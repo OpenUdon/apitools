@@ -25,6 +25,7 @@
     <section class="intro">
       <h1>Reviewed API catalog</h1>
       <p>Find a provider and see the documentation, specs and advisory coverage behind its catalog entry.</p>
+      {{template "search" .}}
       <dl class="coverage-summary" aria-label="Primary catalog coverage">
         {{range .Coverage}}
         <div><dt>{{.Label}}</dt><dd>{{.Count}}</dd></div>
@@ -48,6 +49,7 @@
       <p class="breadcrumb"><a href="{{.Root}}index.html#categories">Categories</a></p>
       <h1>{{.Category.Label}}</h1>
     </section>
+    {{template "search" .}}
     {{template "directory" .}}
   {{else if eq .Kind "provider"}}
     <section class="intro compact">
@@ -107,14 +109,17 @@
 </body>
 </html>
 
-{{define "directory"}}
+{{define "search"}}
         <form id="provider-search" role="search" hidden>
           <label for="search-query">Search providers</label>
           <div class="search-controls">
-            <input type="search" id="search-query" autocomplete="off" placeholder="Name, category or keyword" aria-controls="provider-list">
+            <input type="search" id="search-query" autocomplete="off" placeholder="e.g. Slack" aria-controls="provider-list">
             <button type="reset">Clear</button>
           </div>
         </form>
+{{end}}
+
+{{define "directory"}}
         <p id="search-status" class="result-count" role="status">{{len .Providers}} {{if eq (len .Providers) 1}}provider{{else}}providers{{end}}</p>
         <ul class="providers" id="provider-list">
           {{$root := .Root}}
