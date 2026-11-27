@@ -8,7 +8,7 @@
 | Item | State | Notes |
 | --- | --- | --- |
 | C14.1 — Reconcile the 30 cases offline | `[+]` | Start with Emelia and Orbit, the two docs-only entries. Reconcile the original failure and current references, checked-in endpoint overlays, and recorded source gaps. Identify official pages and publisher-owned repositories for the supervised recheck. Check toolchain and configured cache readiness, and prepare the exact scope, supervision, bounds, and stop conditions for approval. |
-| C14.2 — Supervised publisher recheck | `[ ]` | After C14.1 and explicit Class R approval, run one supervised recheck within the approved scope. Seek replacement documentation and official machine-readable specs. Prefer stable source links. Retain needed bytes in the configured cache and defer spec downloads when the trustworthy size is unknown or exceeds 1,000,000,000 bytes. Save each provider's checked sources, time, outcome, and provenance. |
+| C14.2 — Supervised publisher recheck | `[+]` | After C14.1 and explicit Class R approval, run one supervised recheck within the approved scope. Seek replacement documentation and official machine-readable specs. Prefer stable source links. Retain needed bytes in the configured cache and defer spec downloads when the trustworthy size is unknown or exceeds 1,000,000,000 bytes. Save each provider's checked sources, time, outcome, and provenance. |
 | C14.3 — Qualify sources and record dispositions | `[ ]` | Fixes FND-04. Validate replacement specs and reproduce a representative operation offline before adoption. Refresh a checked-in endpoint overlay and its builder where official evidence supports a revised subset. Check applicable authentication evidence. Record a disposition for each of the 30 providers, identify any remaining gap by provider, run catalog and whole-unit checks, and reconcile FND-04 at closure. |
 
 ## Approved scope
@@ -73,6 +73,69 @@ has SHA-256
 The unchanged build and test inputs reuse the passing offline gate, and
 the corrected documentation and diff checks passed. C14.2 is pending
 separate approval of the supervised run.
+
+## C14.2 publisher recheck
+
+On 2026-11-27 the owner replied “yes” to one supervised C14.2 live recheck
+of the approved scope above. The scope binds the 30 named providers and 69
+listed source URLs, starting with Emelia and Orbit, with 180 HTTP transactions,
+20 minutes, and 4,000,000,000 response bytes in total. The approved run
+defers specs with unknown trustworthy size or over 1,000,000,000 bytes.
+Offline setup used `adef848004a0c0f7ce626a446ebd159cf60c9e3c`.
+The isolated [runner](../../dist/c14-source-recheck/c14.2-jGNDPf/c14_recheck_test.go)
+has source SHA-256 `c5cf6ad36a89b7e1f94f67ec54a6c84ab5accec21c8a0f2e0672e0abc52db10b`.
+The foreground executable has SHA-256
+`ac2542274234d1d4f4bc5bae686ae95058aa0cdcfac9cdb6871244ea65660069`.
+The [offline fixtures](../../dist/c14-source-recheck/c14.2-jGNDPf/fixture.log)
+passed the scope, redirect, throttling, request, and size checks. The
+confirmed local source scope still matches the approved digest above.
+
+Class R attempt `c14.2-live-a1`, 1 of 1, reserved before dispatch. Run
+`c14-recheck.test -test.run '^TestC14Live$' -test.v -test.timeout=21m` in one
+retained terminal with the scope, cache and fresh evidence directory for
+this attempt. The runner imposes the approved 20-minute limit. Requests
+are serial through the guarded transport. The coordinator observes each
+provider and interrupts this foreground session with Ctrl+C on owner stop.
+The evidence directory is
+[c14.2-jGNDPf/evidence](../../dist/c14-source-recheck/c14.2-jGNDPf/evidence).
+
+Attempt `c14.2-live-a1` passed in 36.45 seconds. All 30 providers have an
+outcome. The terminal exited successfully after 64 GETs and 5,551,978
+response-body bytes. The approved attempt is consumed. The final
+[publisher recheck report](../../docs/catalog-source-recheck-c14-results.md)
+records four pre-dispatch DNS failures, two Contentful deferrals after HTTP
+429, 13 refused redirects, and 19 retained responses across 14 providers.
+All 19 objects were independently rehashed from the configured cache. No
+direct machine-readable artifact was acquired. Formstack's captured
+overview contains a spec filename that remains an unverified source lead.
+The [request journal](../../dist/c14-source-recheck/c14.2-jGNDPf/evidence/events.jsonl)
+has SHA-256 `b205c09971795cfb7781316fc7ee12a626e4c3e58336a824d78fd0a581020b49`.
+[Evidence and cache verification](../../dist/c14-source-recheck/c14.2-jGNDPf/evidence-verification.log).
+
+The [offline gate](../../dist/c14-source-recheck/c14.2-jGNDPf/offline.log)
+passed with Go 1.26.6 on the baseline in the disposable checkout. It ran
+build, vet, fresh `go test -v -count=1 ./...`, generator freshness, catalog
+quality (zero errors and warnings), search/import/maintenance help, and
+whitespace checks. The full suite included the offline recheck fixtures and
+skipped the separately authorized live entry point. No product or catalog
+data changed. C14.3 owns offline qualification, any source and overlay
+changes, and the final provider dispositions.
+
+The initial full suite also skipped the optional browser fixture with its
+browser variable unset. The fresh `./cmd/catalogsite` package run with
+`APITOOLS_SITE_TEST_CHROME=/usr/bin/google-chrome` passed the loopback
+browser fixture and the rest of the package.
+[Browser gate](../../dist/c14-source-recheck/c14.2-jGNDPf/browser.log).
+
+Independent GPT-6.2 Astra xhigh review passed with no remaining findings.
+It reconciled the 69 listed URLs, all 30 outcomes, and the 19 cached objects.
+Review clarified that both Todoist redirects pointed to its same-host
+`/api/v1/` route. The runner deferred it based on the path filter. The
+reviewed base was `adef848004a0c0f7ce626a446ebd159cf60c9e3c`, with initial
+[diff](../../dist/c14-source-recheck/c14.2-jGNDPf/review.diff) SHA-256
+`191602776447a7989cdca0645d0945bd01ecb8279aa034ce51ce39e236d60660`
+and corrected [diff](../../dist/c14-source-recheck/c14.2-jGNDPf/review-followup.diff)
+SHA-256 `e17b1cce8d880af6b9165c24ef7bb1d35f7926fd771dbb9061493bcf1489c55e`.
 
 ## Review
 
