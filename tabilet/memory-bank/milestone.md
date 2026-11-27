@@ -630,7 +630,7 @@ Retired milestones are indexed in [the history index](../docs/history/index.md).
 
 | ID | Status file | State |
 | --- | --- | --- |
-| C14 | [status-C14.md](status-C14.md) | Pending after accepted C07. Execution requires a separate launch. |
+| C14 | [status-C14.md](status-C14.md) | All three tasks delivered. Whole review in progress. The C14.2 publisher attempt is consumed. |
 | M86 | [status-M86.md](status-M86.md) | Withdrawn `[X]`; deferred intent STG-13; not delivered |
 
 Closed milestones are recorded in the history index.
@@ -874,7 +874,7 @@ Last used ID: FND-08
 
 | ID | Finding | Severity | Origin | Fix owner | Disposition |
 |---|---|---|---|---|---|
-| FND-04 | Thirty bounded docs probes returned no readable page in C07. A publisher source recheck can verify alternate official locations, refresh affected overlays and clarify the inherited evidence gaps. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F2 | [C14.3](status-C14.md#tasks) | open under the 2026-11-27 plan. Prior [owner deferral](../docs/history/status-C13.md#status-record) retained. |
+| FND-04 | Thirty bounded docs probes returned no readable page in C07. A publisher source recheck can verify alternate official locations, refresh affected overlays and clarify the inherited evidence gaps. | P2 | [C07](../docs/history/status-C07.md#status-record) whole 1 F2 | [C14.3](status-C14.md#tasks) | C14.3 delivered the recheck dispositions and two source-backed overlay corrections. Acceptance awaits whole review. Prior [owner deferral](../docs/history/status-C13.md#status-record) retained. |
 
 - IDs are `FND-01`, `FND-02`, ...: permanent, never reused, separate from status,
   archive and stage IDs. Origin is the milestone and review iteration.

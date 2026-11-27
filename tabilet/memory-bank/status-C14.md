@@ -220,8 +220,61 @@ offline gate. No findings remain for the task.
 
 ## Review
 
-Review gate iterations: 0
+Review gate iterations: 2
 
-Whole review pending with the default limit of 10. Use the [test policy](test-policy.md),
+Independent whole review round 1 started at 2026-11-27T10:23:20Z under the
+default limit of 10. The integrated base is `bcbb9c5b811d39f2d186ca6418f4874fb36e261b`
+plus the saved initial planning and ledger inputs above. The clean reviewed
+HEAD is `358a60813150fde50a3e5ab639fd1363b72de023`. The full three-commit
+[delta](../../dist/c14-source-recheck/c14.3-ZwFOxp/whole-review.diff) has SHA-256
+`33aa22a914e308fe140439705ed37b8e63d9f2d412018c0b94da4dd47256058b`.
+The independent review uses the selected Claude Opus 5.5 high role.
+
+Whole review round 1 used a fresh Claude Code session with no tools. The
+result identified model `claude-opus-5-5`; the invocation selected high effort.
+It found no P0 or P1. P2-1 is resolved by the dashboard bookkeeping and
+final FND-04 reconciliation. P2-2 is addressed in the report by marking the
+approval scope historical and recording the exact `redirect-refused` outcome
+for the unfetched Todoist target. The approved scope bytes retain their hash.
+The report now explains the ERPNext search-reference association and binder
+impact of the Invoice Ninja header. The overlay contains 16 operations, as
+counted from its paths, correcting the review prose's count of 17. No other
+review change was needed. The local gate and independent task review checked
+the exact journal and cached sources beyond the packet's excerpt limits.
+[Round 1 report](../../dist/c14-source-recheck/c14.3-ZwFOxp/whole-review-report.md)
+SHA-256 `0c1639cb49968f708783d7a977e7f8474b52773a079e790248bf87a64d56aa09`.
+
+Round 2 started at 2026-11-27T10:27:38Z over the documentation corrections
+against the same reviewed HEAD. The [delta](../../dist/c14-source-recheck/c14.3-ZwFOxp/whole-review-r2.diff)
+SHA-256 is `bc26caff8b85e1915ef859c9526083bad27c3a8773a48fdcbe53e1979ed76ed7`.
+Whitespace, scope digest and operation count checks passed. The prior Class O
+gate applies to the unchanged implementation and fixtures.
+
+Whole review round 2 passed with `claude-opus-5-5` at high effort and no tools.
+Both P2 findings were resolved. Declined Lower N1 because the closure ledger
+retains an explicit report link to the per-provider remaining gaps and the
+active FND-04 row is removed at retirement. Declined Lower N2 because the
+preceding Invoice Ninja paragraph gives the exact `X-Requested-With:
+XMLHttpRequest` header and identifies its fixed value.
+[Round 2 report](../../dist/c14-source-recheck/c14.3-ZwFOxp/whole-review-r2-report.md)
+SHA-256 `b574d8e4c82c11a302ecd2b26bd2373e46e7271752bb6418adf2f4ffae4510ff`.
+
+FND-04 is fixed by the supervised recheck and C14.3's two overlay corrections
+and 30 dispositions. Remaining provider evidence gaps are recorded in the
+[C14 results](../../docs/catalog-source-recheck-c14-results.md#offline-source-qualification).
+No active dependency needs a new contract. The accepted C07 baseline, C12 site
+publication, consumer pins and the 334-provider count are separate. No
+evolution bump after checking v32. This row refreshes catalog metadata within
+the existing product and architecture boundaries.
+
+The environment review found one bounded mechanical improvement candidate.
+Overlay regeneration could verify the associated search coverage pins as part
+of the same maintainer step. The catalog pin tests found and protected the
+existing contract. The generator bootstrap dependency is documented in
+[tech-stack.md](tech-stack.md#harnesses), and the distinction between partial
+documentation and source qualification is consolidated in
+[lessons.md](lessons.md#keep-incomplete-catalog-coverage-distinct-from-negative-evidence).
+
+Use the [test policy](test-policy.md),
 [verification-attempt gate](milestone.md#verification-attempt-gate), and
 [milestone review procedure](milestone.md#milestone-review-procedure).

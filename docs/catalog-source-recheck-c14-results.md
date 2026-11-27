@@ -24,6 +24,8 @@ reference, and artifact digest where applicable. Its SHA-256 is
 `b205c09971795cfb7781316fc7ee12a626e4c3e58336a824d78fd0a581020b49`.
 The approved scope document SHA-256 is
 `866fe801c76c841768802c131ba56a25ae7989e687c7cd3a5da5945632fa060a`.
+That document preserves the pre-run approval scope. The single authorized
+invocation is complete.
 
 ## Provider outcomes
 
@@ -60,7 +62,7 @@ A same-host refusal records the runner's conservative path filter decision.
 | `salesmate` | 10:05:28 | [Public API reference response](https://apidocs.salesmate.io/) | Two support articles returned HTTP 403. |
 | `splunk` | 10:05:30 | HTTP 403 at both `docs.splunk.com` references | The ACS OpenAPI page's same-host redirect was refused. |
 | `tapfiliate` | 10:05:30 | Redirect → `developers.tapfiliate.com` | |
-| `todoist` | 10:05:31 | Both references redirected to [`/api/v1/`](https://developer.todoist.com/api/v1/) on the listed host | The URL matches the journal's target digest. The runner's path filter deferred the target, so its content is unverified. |
+| `todoist` | 10:05:31 | `redirect-refused` on both references | The path filter declined both redirects to [`/api/v1/`](https://developer.todoist.com/api/v1/) on the listed host. The URL matches the journal's target digest. The target was unfetched. |
 | `twake` | 10:05:33 | Transport errors on all three tracked docs | |
 | `wufoo` | 10:05:33 | Both references redirected to `main.wufoo.com` | |
 
@@ -108,8 +110,10 @@ and the Invoice Ninja developer guide used for these changes.
   `token api_key:api_secret` value, and a successful JSON object containing a
   `message` string. The overlay represents that read-only operation and its
   token-auth requirement. OAuth and cookie-session paths remain outside this
-  token-auth subset. The advisory registration and search profile link to
-  the verified Frappe REST reference. [Operation](https://docs.frappe.io/framework/user/en/api/rest#remote-method-calls).
+  token-auth subset. The advisory registration links to the verified Frappe
+  REST reference. The search profile changes its `spec_ref_id` association
+  from `erpnext-rest-api-docs` to the existing `frappe-rest-api-docs` entry.
+  [Operation](https://docs.frappe.io/framework/user/en/api/rest#remote-method-calls).
   [Token authentication](https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication).
 - **Invoice Ninja.** The captured developer guide requires
   `X-Requested-With: XMLHttpRequest` for API requests. The advisory overlay
@@ -118,6 +122,10 @@ and the Invoice Ninja developer guide used for these changes.
   to `/api/v1/login`, outside the reviewed routes. The multipart invoice-upload
   example leaves the full upload operation contract unqualified.
   [Required headers](https://invoiceninja.github.io/docs/developer-guide#api-headers).
+
+When consumers adopt the updated Invoice Ninja overlay, its 16 reviewed
+operations all require the fixed header. The API-token credential binding
+stays the same. Consumers control their own adoption and pins.
 
 | Provider | Disposition | Remaining evidence gap |
 | --- | --- | --- |
