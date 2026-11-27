@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="{{.Root}}assets/site.css">
   {{if or (eq .Kind "home") (eq .Kind "category")}}<script src="{{.Root}}assets/search.js" defer></script>{{end}}
 </head>
-<body>
+<body{{if eq .Kind "category"}} class="category-page"{{end}}>
   <a class="skip" href="#content">Skip to content</a>
   <header class="site-header">
     <nav class="wrap" aria-label="Main">
@@ -115,7 +115,7 @@
         <form id="provider-search" role="search" hidden>
           <label for="search-query">Search providers</label>
           <div class="search-controls">
-            <input type="search" id="search-query" autocomplete="off" placeholder="e.g. Slack" aria-controls="provider-list">
+            <input type="search" id="search-query" autocomplete="off" placeholder="{{if eq .Kind "category"}}Name or keyword{{else}}e.g. Slack{{end}}" aria-controls="provider-list">
             <button type="reset">Clear</button>
           </div>
         </form>
