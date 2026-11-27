@@ -226,3 +226,9 @@ recommendation completion regressions.
 - **Applies when:** A consumer test uses a disposable source copy and a local module replacement.
 - **Lesson:** Keep verification copies out of package discovery. Check the consumer's resolved replacement directory and compare the changed files there with the candidate bytes before treating a passing test as candidate evidence.
 - **Evidence:** A nested scratch patch skipped the APItools changes, so the first consumer tests ran against the baseline. Both suites passed again after verifying the candidate bytes and resolved replacement directories. [C13 consumer verification](../docs/history/status-C13.md#status-record).
+
+## Verify a public release through its served hostname
+
+- **Applies when:** A static artifact is deployed behind a custom domain.
+- **Lesson:** Confirm the deployed source commit and compare the served files against the retained manifest. Verify the certificate and redirects separately. Preserve the deployment identity during certificate recovery and retry a transient file read only within the authorized verification scope.
+- **Evidence:** C12's artifact published successfully while custom-domain certificate issuance stalled. An owner-approved domain reset recovered issuance. Certificate validation, HTTP redirects and all 389 file hashes passed on the original deployment. [C12 release](../docs/history/status-C12.md#status-record).

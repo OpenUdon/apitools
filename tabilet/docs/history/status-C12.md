@@ -1,3 +1,175 @@
+# Retired milestone C12 - Public catalog website
+
+**Milestone.** C12
+**Outcome.** completed
+**Retired.** 2026-11-27
+**Source status.** tabilet/memory-bank/status-C12.md
+**Source specification.** tabilet/memory-bank/milestone.md#c12--public-catalog-website
+**Evidence.** 7773c0ebeefef53d9d2ef259cc19bf33e7b7798f
+**Worktree.** includes uncommitted changes
+**Review.** passed
+**Review iterations.** 1
+**Verification.** Go 1.26.6 offline build, vet, whole Go suite with Chromium, generator freshness, catalog quality, CLI help and diff checks passed. GitHub Pages run 45740811218 published a4527c10002e77ef2e769c404c8d96d2b227b139. A valid Let's Encrypt certificate, HTTP 301 redirects and all 389 SHA-256 file hashes verified over HTTPS. [Workflow run](https://github.com/OpenUdon/apitools/actions/runs/45740811218). [Local receipts](../../../dist/c12-goal/).
+**Consolidated into.** [Site operator guide](../../../docs/catalog-site.md), [product](../../memory-bank/product.md), [site architecture](../../memory-bank/architecture.md#static-reviewed-catalog-site-c12), and [transport and artifact verification lesson](../../memory-bank/lessons.md#verify-a-public-release-through-its-served-hostname).
+
+## Milestone specification
+
+````markdown
+### C12 — Public catalog website
+
+**Dependency and owner.** After accepted [C13](../docs/history/status-C13.md). APItools owns
+the static site generator, committed monthly change records, manual GitHub
+Pages workflow and maintenance-skill additions. **Parallel-safe: no.** C11 is
+skipped because the [M86](status-M86.md) records use an unqualified `C11` for
+`UWS:C11`. C12 needs its own launch after C13. This is new requested work
+approved on 2026-11-25, with
+corrections approved later the same day, so no P1/P2 review label applies.
+[C12 ledger](status-C12.md).
+
+**Closing duty.** C12 becomes the last active milestone of the catalog
+horizon. C12.5 owns closure of the [open review findings](#open-review-findings)
+register under its existing rules. Verify the accepted C13 dispositions for
+FND-05, FND-07 and FND-08 and the owner-approved FND-04 deferral.
+
+**Approved decisions (2026-11-25).**
+
+- The site uses a narrower sign-off than the
+  [Published provider version directory](#candidate-directions) candidate: the
+  owner signs off in C12.1. Because the site does no crawling, the crawl-policy
+  gate stays with the wider directory.
+- Host on GitHub Pages with custom domain `apis.kinet.com`, deployed from a
+  workflow artifact. Commit no generated pages to any branch.
+- Publish manually after the monthly review. The monthly job cannot publish.
+- Ship versioned JSON at launch in APItools' own small format. APIs.guru
+  `list.json` compatibility stays with the wider directory.
+- Recorded assumption: the audience is developers and agents choosing an API.
+  Unchecked at planning time: ownership, DNS or current use of
+  `apis.kinet.com`, and whether Pages is enabled on the repository; C12.1 owns
+  those checks.
+
+**Scope.** Build a static, independent site only from committed, reviewed
+catalog data: provider and category pages with coverage, provenance and
+verification dates, in-browser keyword search, monthly changes, and versioned
+JSON. Add maintainer-only `cmd/catalogsite` using the Go standard library with
+no new public Go API. Build deterministically from an identified clean commit
+with a pinned Go toolchain; "offline" means the generator makes no network
+request, while a hosted runner may download pinned modules verified by
+`go.sum`. Take the base URL as an explicit build input, use relative internal
+links, and publish a SHA-256 manifest of the output. Support browsing without
+JavaScript, escape all catalog text, allow only HTTPS source links, include a
+restrictive in-page CSP, and emit accessible markup. Site search matches words
+in public profile text and must not present an incidental operation-label
+match as a supported capability. It follows the evidence rules accepted in
+[C08](../docs/history/status-C08.md#status-record), whose whole review round 1
+P1-1 closed in round 2. C13.1 delivered the CLI search correction for
+[FND-07](#open-review-findings). C12.3 verifies the website's own
+public-profile search behavior. Before sign-off, C12.1
+resolves how operation labels such as Jenkins "Get CSRF crumb" and FileMaker
+"Delete session" are published; these examples come from C08 whole review
+round 1 L-2 ([C08 record](../docs/history/status-C08.md#status-record)). Compare two reviewed revisions
+into a small committed monthly record. Add a manual-only Pages workflow with
+every GitHub Action pinned by commit SHA and least workflow permissions, and
+`apitools-catalog-maintenance` skill steps for preview, publish and rollback.
+Document domain verification, DNS rollback and removal: verify the domain
+before adding DNS, and remove DNS before retiring the site.
+
+**Going live.** C12.5 performs these ordered steps, each needing separate
+explicit approval:
+
+1. Push the workflow to `main`. This publishes every unpushed local commit, so
+   list them for the owner first.
+2. Verify the domain with GitHub.
+3. Enable Pages with GitHub Actions as the source and set the custom domain.
+4. Add the DNS record.
+5. Dispatch the deployment.
+6. Enforce HTTPS once the certificate issues.
+
+Each deployment is a counted class R attempt under the
+[verification-attempt gate](#verification-attempt-gate) and its existing
+limit.
+
+**Excluded.** Spec or overlay bytes, auth guidance, hosted semantic search,
+accounts, user submissions, analytics, logos, third-party assets and
+`"current"` or `"latest"` claims. The auth-guidance exclusion applies
+throughout C12. C13.3 supplies the bounded APItools advisory for FND-05.
+
+**Acceptance.**
+
+- C12.1 records the owner's publication sign-off and takedown contact.
+- Every built-in provider at the built commit (334 at planning) appears once
+  with the correct coverage label.
+- Keyword search finds providers by name, alias, category and keyword, and all
+  provider and category pages are reachable without JavaScript.
+- Two builds of one commit are byte-identical.
+- Hostile text cannot inject markup or scripts.
+- Output contains no spec bytes, credentials or secret values, or private host
+  paths.
+- Output makes no claim that a provider or version is current or latest.
+- Every internal link resolves.
+- Canonical URLs and the JSON use the approved hostname.
+- JSON carries a documented schema version and the source commit.
+- Pages carry the in-page CSP, load no third-party assets and pass named
+  accessibility checks in the Go tests (document language, title, landmarks,
+  form labels, link text).
+- The monthly changes page matches the committed record for its two reviewed
+  revisions, including the first publication, which has no predecessor.
+- The monthly job cannot publish.
+- The rollback steps are exercised on the loopback preview.
+- The live site matches its recorded commit: live files match the published
+  SHA-256 manifest.
+- The hostname serves a valid certificate and HTTP redirects to HTTPS.
+
+**Known limit.** GitHub Pages cannot set custom response headers, so the CSP is
+in the page and cannot block framing. The owner was told this before choosing
+Pages.
+
+**Write set and compatibility.** Maintainer-only `cmd/catalogsite`, its offline
+fixtures and tests, committed monthly change records, the manual-only GitHub
+Pages workflow, `apitools-catalog-maintenance` skill and operator docs, and
+`tabilet/memory-bank/status-C12.md`. No generated pages are committed to any
+branch. No change to the Go API, CLI search, downstream consumers or pins.
+
+**Verification.** Follow the [test policy](test-policy.md): existing class O
+[row checks and whole-unit gates](test-policy.md#project-specifics), generator
+tests, and an uncounted loopback preview as the local diagnostic loop. The
+C12.1 read-only live DNS/host readiness check (which gates C12.2–C12.5) and
+each C12.5 deployment with its live manifest, certificate and redirect checks
+are [class R checks](test-policy.md#class-r-runs) under the
+[verification-attempt gate](#verification-attempt-gate). Whole review starts at
+0/10; review and model roles follow
+[Monthly reviewed catalog](#monthly-reviewed-catalog).
+
+**Authority.** `git.commit` and `cli.local` use `goal-policy`. The read-only
+live DNS/host inspection in C12.1 and each C12.5 going-live step (push to
+`main`, GitHub domain verification, Pages source and custom-domain settings,
+the DNS record for `apis.kinet.com`, deployment dispatch and HTTPS
+enforcement) require separate explicit human approval; this plan grants none
+of them. Keep DNS/host credentials out of the repository and registrar account
+details out of the planning records.
+
+```yaml
+AUTHORIZATION_REQUIREMENTS:
+  git.commit:
+    via: goal-policy
+    executor: assigned-agent
+  cli.local:
+    via: goal-policy
+    executor: assigned-agent
+    scope: declared-implementation-and-verification
+  git.push:
+    via: explicit
+    executor: coordinator
+    scope:
+      repository: /home/peter/Workspace/apitools
+      remote: git@github.com-tabilet:OpenUdon/apitools.git
+      ref: refs/heads/main
+      mode: fast-forward
+```
+````
+
+## Status record
+
+````markdown
 # C12 — Public catalog website
 
 **Owner.** APItools. **Dependency.** Accepted [C13](../docs/history/status-C13.md). **Parallel-safe: no.**
@@ -348,9 +520,10 @@ has now passed.
 
 C12.5 reconciled the horizon register against the frozen C06–C10 and C13
 records. FND-01, FND-02, FND-03, FND-05, FND-06, FND-07 and FND-08 have
-accepted fixes in their recorded owners. The C13 record retains the direct
-owner deferral of FND-04. The horizon closure will prune the fixed rows and
-keep FND-04 and last-used ID FND-08.
+accepted fixes in C10.4, C09.2, C09.4, C13.3, C09.4, C13.1 and C13.2,
+respectively. The C13 record retains the direct owner deferral of FND-04.
+The horizon closure prunes the fixed rows and keeps FND-04 and last-used
+ID FND-08.
 
 Independent GPT-6.2 Astra xhigh task review passed with no findings. It
 verified the exact pre-closure ledger diff over the deployed source commit,
@@ -361,12 +534,49 @@ dispatch, the owner-scoped reset and enforcement, and the finding outcomes.
 
 ## Review
 
-Review gate iterations: 0
+Review gate iterations: 1
 
-Whole review pending, default limit 10. Review and model roles follow
+Independent whole review round 1 started at 2026-11-27T08:46:51Z with a limit of
+10. The integrated C12 base is `b4f2e3fea3c1794dd5b4c5de6bd0ee4fe4dd9ea7`
+with a clean tracked tree and launch input saved. Reviewed HEAD is
+`7773c0ebeefef53d9d2ef259cc19bf33e7b7798f`. The deployed product remains
+at `a4527c10002e77ef2e769c404c8d96d2b227b139`. No C12 consumer pin changes.
+[Source delta](../../dist/c12-goal/c12-release-review-source.diff) SHA-256
+`3509d7d39410ee1dfd5e370d6b3bfbaaed4555ad5373d1fb7585bf693d1e66d4`.
+The direct Claude command could not authenticate and returned no review.
+The same iteration was dispatched at 08:48:22Z through the owner-designated
+Herdr tab to a fresh `claude-opus-5-5` child at high effort. Native metadata
+recorded 28 reads and a handback at 08:53:04Z, with no mutation or network
+tools used by the reviewer. Whole review round 1 passed with no P1 or P2.
+[Report](../../dist/c12-goal/c12-whole1-report.md) SHA-256
+`aa23e645741ef946ba5a5e64bc81670a23b4d9ca3aaabe235e1e89560d590af5`.
+[Carrier controls](../../dist/c12-goal/c12-whole1-carrier.json).
+
+L-1 and L-6 were resolved by a fresh offline clean-checkout verification
+at `7773c0ebeefef53d9d2ef259cc19bf33e7b7798f`, whose product bytes match the
+published source. The required build, vet, verbose `go test -v -count=1 ./...`,
+catalog checks, CLI help and diff check passed. The log names the installed
+Chromium and explicitly records PASS for all browser and rollback cases.
+The full Go suite took 39 seconds. [Clean gate](../../dist/c12-goal/c12-final-clean-offline.log).
+
+L-2 was checked against the public names, descriptions, aliases, keywords,
+license notes and operation labels of the deployed catalog. No provider or
+version freshness claim was found. A policy for future profile wording is
+outside this delivery. [Observed word matches](../../dist/c12-goal/c12-whole1-freshness-inspection.tsv).
+L-3 was resolved as an evidence note. The [initial transfer log](../../dist/c12-goal/c12.5-https-transfers.txt)
+retains the 503 at line 208. The middle field is curl's TLS verification
+result, where zero is success. The reset returned success and the follow-up
+GET confirmed restoration. The [pre-enforcement receipt](../../dist/c12-goal/c12.5-pages-before-https.json)
+was retained locally and omitted from the review copy. L-4's optional operator
+guide change was declined. Certificate and artifact verification are captured
+as a reusable lesson. L-5's dashboard and status wording is superseded by
+the normal retirement bookkeeping. No product files changed after review.
+
+Review and model roles follow
 [Monthly reviewed catalog](milestone.md#monthly-reviewed-catalog). Use the
 [test policy](test-policy.md), [verification-attempt gate](milestone.md#verification-attempt-gate)
 and [milestone review procedure](milestone.md#milestone-review-procedure).
 Required-gate records include elapsed wall-clock time. Persist
 [required gate recovery](milestone.md#required-gate-recovery) state here before
 each interactive Goal/Next required-gate dispatch.
+````

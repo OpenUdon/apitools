@@ -168,6 +168,10 @@ identifies the reviewed bytes. [Profile guide](../../docs/catalog-search-profile
   query word to match and ranks a provider by the lowest-priority text a word
   needed: ID, name and aliases, then category and workflow relevance, then
   quirks, spec references and overlays.
+- **Public catalog website**: browsable reviewed provider and category pages,
+  source provenance and verification dates, profile keyword search, versioned
+  JSON, and monthly changes. It publishes selected metadata from an identified
+  reviewed commit at [apis.kinet.com](https://apis.kinet.com/).
 - **Security overlay**: explicit supplemental auth/security metadata kept
   separate from upstream specs when provider documents are incomplete.
 - **Advisory endpoint overlay**: a service-specific OpenAPI-shaped advisory
