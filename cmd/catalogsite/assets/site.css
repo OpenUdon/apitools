@@ -22,7 +22,11 @@ a:hover { color: var(--navy); }
 input, button { font: inherit; }
 :focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
 
-.wrap { width: min(calc(100% - 3rem), 74rem); margin-inline: auto; }
+.wrap {
+  /* Keep phone gutters and transition smoothly to two-thirds on desktop. */
+  width: min(calc(100% - 2rem), max(66.6667%, calc(33.3333% + 21rem)));
+  margin-inline: auto;
+}
 .skip { position: absolute; top: -6rem; left: 1rem; background: var(--paper); padding: .6rem 1rem; }
 .skip:focus { top: 1rem; z-index: 2; }
 .site-header { background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -45,16 +49,14 @@ input, button { font: inherit; }
 
 .catalog-intro {
   display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(0, .82fr);
-  align-items: center;
-  gap: 2rem;
+  gap: 1.25rem;
   margin-block-start: 1.7rem;
-  padding: clamp(1.35rem, 4.2vw, 3.2rem);
+  padding: clamp(1.35rem, 4.2vw, 2.5rem);
   border-radius: .8rem;
   background: var(--navy);
   color: var(--paper);
 }
-.catalog-intro h1 { max-width: 18ch; font-size: clamp(2rem, 4.4vw, 3.65rem); }
+.catalog-intro h1 { max-width: 18ch; font-size: clamp(2rem, 4vw, 3.05rem); }
 .catalog-intro p { max-width: 43ch; color: #d8e4f8; }
 
 .official-openapi { --status: #11614d; --status-bg: #e8f4ed; }
@@ -84,7 +86,7 @@ input, button { font: inherit; }
 .catalog-grid {
   display: grid;
   grid-template-areas: "categories providers";
-  grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr);
+  grid-template-columns: minmax(10rem, 12rem) minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
 }
@@ -99,7 +101,7 @@ h2 { font-size: 1.27rem; margin: 0 0 .72rem; letter-spacing: -.015em; }
 .category-list span { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
 
 form label { display: block; margin-block-end: .45rem; font-size: .91rem; font-weight: 680; }
-#provider-search { max-width: 38rem; min-width: 0; }
+#provider-search { max-width: 27rem; min-width: 0; }
 .catalog-intro form { padding: 1rem; border: 1px solid #7390bc; border-radius: .6rem; background: #24446f; }
 .catalog-intro :focus-visible { outline-color: #c7dcff; }
 .search-controls { display: flex; gap: .45rem; }
@@ -125,7 +127,6 @@ form + .result-count { margin-top: .85rem; }
 .coverage-label { display: inline-block; padding: .15rem .55rem; border-radius: 1rem; color: var(--status, var(--muted)); background: var(--status-bg, #edf1f6); font-size: .78rem; font-weight: 620; line-height: 1.4; }
 
 .category-page { background: var(--paper); }
-.category-page .wrap { width: min(44rem, calc(100% - clamp(2.5rem, 11vw, 8rem))); }
 .category-page .intro { padding-block: clamp(2.25rem, 5vw, 3.75rem) 1.7rem; }
 .category-page .intro h1 {
   font-family: Georgia, "Times New Roman", serif;
@@ -134,7 +135,6 @@ form + .result-count { margin-top: .85rem; }
   letter-spacing: -.025em;
   line-height: 1.15;
 }
-.category-page #provider-search { max-width: 27rem; }
 .category-page .result-count { margin-block: 1.3rem .65rem; }
 .category-page .providers { border: 0; border-block: 1px solid var(--line); border-radius: 0; }
 .category-page .providers > li { padding: 1.15rem 0; }
@@ -145,7 +145,7 @@ form + .result-count { margin-top: .85rem; }
 
 .provider-sections {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(24rem, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr));
   gap: 1.4rem;
   align-items: start;
 }
@@ -174,9 +174,6 @@ form + .result-count { margin-top: .85rem; }
 }
 
 @media (max-width: 47rem) {
-  .wrap { width: calc(100% - 2rem); }
-  .catalog-intro { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
-  .catalog-intro h1 { max-width: none; }
   .catalog-grid { grid-template-areas: "providers" "categories"; grid-template-columns: minmax(0, 1fr); }
   .coverage-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .coverage-summary div:nth-child(odd) { border-inline-start: 0; }
@@ -184,8 +181,7 @@ form + .result-count { margin-top: .85rem; }
 }
 
 @media (max-width: 33rem) {
-  .site-header nav { column-gap: 1rem; padding-block: .65rem; }
-  .category-page .site-header nav { column-gap: .65rem; }
+  .site-header nav { column-gap: .65rem; padding-block: .65rem; }
   .site-header nav .brand { flex-basis: 100%; margin-block-end: .2rem; }
   .site-header nav a { font-size: .83rem; }
   .site-header nav .data-link { padding: .25rem .42rem; }
