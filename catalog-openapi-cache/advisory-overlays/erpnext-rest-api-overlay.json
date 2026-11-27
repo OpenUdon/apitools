@@ -30,6 +30,42 @@
   },
   "openapi": "3.0.3",
   "paths": {
+    "/api/method/frappe.auth.get_logged_user": {
+      "get": {
+        "description": "Advisory operation derived from official human API documentation.",
+        "operationId": "getERPNextCurrentUser",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "description": "Username of the authenticated user.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The authenticated Frappe user."
+          },
+          "default": {
+            "description": "Provider error response."
+          }
+        },
+        "security": [
+          {
+            "frappeToken": []
+          }
+        ],
+        "summary": "Get the authenticated Frappe user"
+      }
+    },
     "/api/method/{method}": {
       "post": {
         "description": "Advisory operation derived from official human API documentation.",
@@ -465,11 +501,12 @@
     "derived_from_docs": true,
     "official_openapi": false,
     "provider_id": "erpnext",
-    "source_note": "ERPNext uses Frappe REST API human documentation but no recorded stable public official OpenAPI document; this overlay covers selected generic resource and common ERP DocType endpoints.",
+    "source_note": "ERPNext uses Frappe REST API human documentation with no recorded stable public official OpenAPI document. This token-auth subset covers selected generic resources, common ERP DocTypes, and whitelisted methods including the current-user lookup.",
     "source_refs": [
       "https://docs.frappe.io/erpnext/rest-api",
       "https://docs.frappe.io/framework/user/en/api/rest",
-      "https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication"
+      "https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication",
+      "https://docs.frappe.io/framework/user/en/api/rest#remote-method-calls"
     ]
   }
 }

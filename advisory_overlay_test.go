@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -30,6 +31,86 @@ func TestTrackedAdvisoryOverlayArtifactsLoad(t *testing.T) {
 				t.Fatalf("%s has no indexed operations", path)
 			}
 		})
+	}
+}
+
+func TestERPNextOverlayIndexesCurrentUser(t *testing.T) {
+	inventory, err := BuildOperationInventory(t.Context(), InventoryOptions{
+		Documents: []InventoryDocument{{Path: "catalog-openapi-cache/advisory-overlays/erpnext-rest-api-overlay.json"}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, operation := range inventory.Operations {
+		if operation.OperationID != "getERPNextCurrentUser" {
+			continue
+		}
+		if operation.Method != "GET" || operation.Path != "/api/method/frappe.auth.get_logged_user" {
+			t.Fatalf("unexpected ERPNext operation: %s %s", operation.Method, operation.Path)
+		}
+		if operation.RequestBody != nil || operation.ResponseBody == nil || operation.ResponseBody.StatusCode != "200" ||
+			!slices.ContainsFunc(operation.ResponseBody.Fields, func(field RequestFieldSummary) bool {
+				return field.Path == "message" && field.Type == "string" && field.Required
+			}) {
+			t.Fatalf("expected a required message string in the current-user response: %+v", operation.ResponseBody)
+		}
+		if !slices.ContainsFunc(operation.SecurityRequirementSets, func(set SecurityRequirementSetSummary) bool {
+			return len(set.Requirements) == 1 && set.Requirements[0].Name == "frappeToken" && set.Requirements[0].ParameterName == "Authorization"
+		}) {
+			t.Fatalf("missing Frappe token security: %+v", operation.SecurityRequirementSets)
+		}
+		return
+	}
+	t.Fatal("ERPNext current-user operation is absent from the offline inventory")
+}
+
+func TestInvoiceNinjaOverlayIndexesRequiredRequestHeader(t *testing.T) {
+	const path = "catalog-openapi-cache/advisory-overlays/invoice-ninja-api-overlay.json"
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var document struct {
+		Paths map[string]map[string]struct {
+			Parameters []struct {
+				Name   string `json:"name"`
+				In     string `json:"in"`
+				Schema struct {
+					Enum []string `json:"enum"`
+				} `json:"schema"`
+			} `json:"parameters"`
+		} `json:"paths"`
+	}
+	if err := json.Unmarshal(content, &document); err != nil {
+		t.Fatal(err)
+	}
+	inventory, err := BuildOperationInventory(t.Context(), InventoryOptions{
+		Documents: []InventoryDocument{{Path: path, Content: content}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(inventory.Operations) == 0 || inventory.Truncated {
+		t.Fatal("expected a complete nonempty Invoice Ninja operation inventory")
+	}
+	for _, operation := range inventory.Operations {
+		parameters := document.Paths[operation.Path][strings.ToLower(operation.Method)].Parameters
+		fixed := false
+		for _, parameter := range parameters {
+			if parameter.Name == "X-Requested-With" && parameter.In == "header" && slices.Equal(parameter.Schema.Enum, []string{"XMLHttpRequest"}) {
+				fixed = true
+				break
+			}
+		}
+		if !fixed {
+			t.Errorf("%s does not constrain X-Requested-With to XMLHttpRequest", operation.OperationID)
+		}
+		if !slices.ContainsFunc(operation.Parameters, func(parameter ParameterSummary) bool {
+			return parameter.Name == "X-Requested-With" && parameter.In == "header" && parameter.Required && parameter.Type == "string" &&
+				strings.Contains(parameter.Description, "XMLHttpRequest")
+		}) {
+			t.Errorf("%s has no required X-Requested-With: XMLHttpRequest header", operation.OperationID)
+		}
 	}
 }
 

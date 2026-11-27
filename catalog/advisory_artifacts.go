@@ -620,7 +620,7 @@ var endpointOverlayArtifacts = []CatalogSpecArtifact{
 		ArtifactID:  "erpnext-rest-api-overlay",
 		Path:        "advisory-overlays/erpnext-rest-api-overlay.json",
 		BuilderPath: "overlay-builders/build_m28_human_docs_overlays.go",
-		SourceURL:   "https://docs.frappe.io/erpnext/rest-api",
+		SourceURL:   "https://docs.frappe.io/framework/user/en/api/rest",
 	},
 	{
 		ProviderID:  "woocommerce",

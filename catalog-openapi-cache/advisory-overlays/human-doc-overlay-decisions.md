@@ -60,7 +60,7 @@ because the published Server and Account Swagger copies fail guarded parsing.
 | DHL | `dhl-shipment-tracking-overlay.json` | Shipment Tracking - Unified docs support the documented shipment tracking endpoint with subscription-key auth. |
 | Drift | `drift-platform-api-overlay.json` | REST-shaped Platform API docs support a focused contacts, conversations, and users subset with OAuth bearer auth. |
 | Disqus | `disqus-api-overlay.json` | REST-shaped API docs support a focused forums, threads, and posts subset with access_token/api_key request-parameter auth. |
-| ERPNext | `erpnext-rest-api-overlay.json` | ERPNext and Frappe REST docs support a focused generic DocType, common ERP resource, and whitelisted-method subset; site host and DocTypes remain operator supplied. |
+| ERPNext | `erpnext-rest-api-overlay.json` | Frappe REST docs support the token-auth current-user lookup alongside the existing generic DocType, ERP resource, and whitelisted-method subset. The caller supplies the site host and DocTypes. |
 | Eventbrite | `eventbrite-platform-api-v3-overlay.json` | REST-shaped Platform API docs support a focused users, organizations, events, attendees, venues, and ticket-classes subset. |
 | Facebook | `facebook-graph-api-overlay.json` | Graph API and Pages API docs support a focused profile, page, feed, comments, likes, page subscriptions, photos, conversations, and app subscription subset. |
 | Facebook Lead Ads | `facebook-lead-ads-overlay.json` | Lead Ads retrieval and webhook docs support a focused page form, lead retrieval, leadgen form, and webhook subscription subset. |
@@ -86,7 +86,7 @@ because the published Server and Account Swagger copies fail guarded parsing.
 | Harvest | `harvest-api-v2-overlay.json` | REST-shaped API v2 docs support a focused users, company, clients, projects, time-entries, and invoices subset. |
 | Help Scout | `help-scout-inbox-api-v2-overlay.json` | REST-shaped Inbox API v2 and Docs API docs support a focused conversations, customers, mailboxes, threads, Docs collections, categories, and article lookup subset. |
 | Iterable | `iterable-api-overlay.json` | REST-shaped API docs support a focused users, events, campaigns, lists, and templates subset. |
-| Invoice Ninja | `invoice-ninja-api-overlay.json` | API docs support a focused clients, invoices, quotes, payments, products, vendors, projects, and webhook-endpoints subset; host remains operator supplied for self-hosted installs. |
+| Invoice Ninja | `invoice-ninja-api-overlay.json` | The v5 clients, invoices, quotes, payments, products, vendors, projects, and webhook subset records `X-API-TOKEN` security and the required fixed `X-Requested-With` request header. The caller supplies the host. |
 | Jenkins | `jenkins-remote-api-overlay.json` | Official Remote Access API docs support a small generic controller/job/queue subset; instance and plugin coverage remains variable. |
 | JotForm | `jotform-api-overlay.json` | API docs support a focused forms, submissions, questions, reports, folders, and webhooks subset. |
 | Keap | `keap-rest-api-overlay.json` | REST-shaped docs support a focused contacts, companies, orders, and tags subset with OAuth bearer auth. |

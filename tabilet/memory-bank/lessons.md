@@ -64,6 +64,13 @@ For an operation-scoped security overlay, use the operation ID emitted by
 the native parser. Verify through security inspection that the indexed ID
 resolves to all requirements in the intended set. [C05 Google Ads proof](../../docs/catalog-expansion-c05.md#maps-advertising-and-marketplaces).
 
+A bounded publisher probe establishes the outcome of its URL and time
+window. A successful HTML response may be a documentation shell, and a
+registry filename identifies a source lead. Use retained operation and auth
+text to qualify only the supported change, preserve accepted overlays for
+unresolved cases, and record the missing evidence by provider.
+[C14 recheck and dispositions](../../docs/catalog-source-recheck-c14-results.md#offline-source-qualification).
+
 ## Keep trust projections independent of prompt summaries
 
 - **Applies when:** Producing schemas for advisory binding or verifying cached

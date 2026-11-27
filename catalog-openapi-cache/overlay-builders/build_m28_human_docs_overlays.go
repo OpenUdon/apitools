@@ -97,26 +97,31 @@ func invoiceNinjaOverlay() overlaySpec {
 	security := map[string]map[string]any{
 		"invoiceNinjaAPIToken": {"type": "apiKey", "in": "header", "name": "X-API-TOKEN", "description": "Invoice Ninja v5 API token carried in the X-API-TOKEN header."},
 	}
+	requestedWith := parameter("X-Requested-With", "header", "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.", true)
+	requestedWith["schema"] = map[string]any{"type": "string", "enum": []string{"XMLHttpRequest"}}
+	invoiceOperation := func(id, summary string, parameters []map[string]any, requestRef, responseRef string) map[string]any {
+		return op(id, summary, append([]map[string]any{requestedWith}, parameters...), requestRef, responseRef, "invoiceNinjaAPIToken")
+	}
 	return overlaySpec{
 		ProviderID:  "invoice-ninja",
 		Title:       "Invoice Ninja API Advisory Overlay",
 		Description: "Advisory OpenAPI overlay derived from official Invoice Ninja API human documentation. This is not an official Invoice Ninja OpenAPI document.",
 		ServerURL:   "https://{invoice_ninja_host}",
-		Sources:     []string{"https://api-docs.invoicing.co/", "https://invoiceninja.github.io/docs/developer-guide", "https://invoiceninja.github.io/docs/api-reference/invoice-ninja-api-reference"},
-		SourceNote:  "Invoice Ninja publishes OpenAPI-rendered human API documentation but no recorded stable standalone downloadable OpenAPI document; this overlay covers selected clients, invoices, quotes, payments, products, projects, vendors, and webhooks.",
+		Sources:     []string{"https://api-docs.invoicing.co/", "https://invoiceninja.github.io/docs/developer-guide", "https://invoiceninja.github.io/docs/developer-guide#api-headers", "https://invoiceninja.github.io/docs/api-reference/invoice-ninja-api-reference"},
+		SourceNote:  "Invoice Ninja publishes OpenAPI-rendered human API documentation with no recorded stable standalone download. This subset of v5 operations requires an API token and the fixed X-Requested-With header. The optional login-only API secret is outside the subset.",
 		Security:    security,
 		Schemas:     []string{"InvoiceNinjaObject", "InvoiceNinjaCollection", "InvoiceNinjaError"},
 		OutputPath:  "catalog-openapi-cache/advisory-overlays/invoice-ninja-api-overlay.json",
 		Paths: map[string]map[string]any{
-			"/api/v1/clients":           {"get": op("listInvoiceNinjaClients", "List clients", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection", "invoiceNinjaAPIToken"), "post": op("createInvoiceNinjaClient", "Create client", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject", "invoiceNinjaAPIToken")},
-			"/api/v1/clients/{id}":      {"get": op("getInvoiceNinjaClient", "Get client", params(path("id", "Client ID.")), "", "#/components/schemas/InvoiceNinjaObject", "invoiceNinjaAPIToken"), "put": op("updateInvoiceNinjaClient", "Update client", params(path("id", "Client ID.")), "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject", "invoiceNinjaAPIToken")},
-			"/api/v1/invoices":          {"get": op("listInvoiceNinjaInvoices", "List invoices", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection", "invoiceNinjaAPIToken"), "post": op("createInvoiceNinjaInvoice", "Create invoice", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject", "invoiceNinjaAPIToken")},
-			"/api/v1/quotes":            {"get": op("listInvoiceNinjaQuotes", "List quotes", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection", "invoiceNinjaAPIToken"), "post": op("createInvoiceNinjaQuote", "Create quote", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject", "invoiceNinjaAPIToken")},
-			"/api/v1/payments":          {"get": op("listInvoiceNinjaPayments", "List payments", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection", "invoiceNinjaAPIToken"), "post": op("createInvoiceNinjaPayment", "Create payment", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject", "invoiceNinjaAPIToken")},
-			"/api/v1/products":          {"get": op("listInvoiceNinjaProducts", "List products", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection", "invoiceNinjaAPIToken"), "post": op("createInvoiceNinjaProduct", "Create product", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject", "invoiceNinjaAPIToken")},
-			"/api/v1/vendors":           {"get": op("listInvoiceNinjaVendors", "List vendors", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection", "invoiceNinjaAPIToken")},
-			"/api/v1/projects":          {"get": op("listInvoiceNinjaProjects", "List projects", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection", "invoiceNinjaAPIToken")},
-			"/api/v1/webhook_endpoints": {"get": op("listInvoiceNinjaWebhooks", "List webhook endpoints", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection", "invoiceNinjaAPIToken"), "post": op("createInvoiceNinjaWebhook", "Create webhook endpoint", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject", "invoiceNinjaAPIToken")},
+			"/api/v1/clients":           {"get": invoiceOperation("listInvoiceNinjaClients", "List clients", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection"), "post": invoiceOperation("createInvoiceNinjaClient", "Create client", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject")},
+			"/api/v1/clients/{id}":      {"get": invoiceOperation("getInvoiceNinjaClient", "Get client", params(path("id", "Client ID.")), "", "#/components/schemas/InvoiceNinjaObject"), "put": invoiceOperation("updateInvoiceNinjaClient", "Update client", params(path("id", "Client ID.")), "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject")},
+			"/api/v1/invoices":          {"get": invoiceOperation("listInvoiceNinjaInvoices", "List invoices", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection"), "post": invoiceOperation("createInvoiceNinjaInvoice", "Create invoice", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject")},
+			"/api/v1/quotes":            {"get": invoiceOperation("listInvoiceNinjaQuotes", "List quotes", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection"), "post": invoiceOperation("createInvoiceNinjaQuote", "Create quote", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject")},
+			"/api/v1/payments":          {"get": invoiceOperation("listInvoiceNinjaPayments", "List payments", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection"), "post": invoiceOperation("createInvoiceNinjaPayment", "Create payment", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject")},
+			"/api/v1/products":          {"get": invoiceOperation("listInvoiceNinjaProducts", "List products", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection"), "post": invoiceOperation("createInvoiceNinjaProduct", "Create product", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject")},
+			"/api/v1/vendors":           {"get": invoiceOperation("listInvoiceNinjaVendors", "List vendors", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection")},
+			"/api/v1/projects":          {"get": invoiceOperation("listInvoiceNinjaProjects", "List projects", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection")},
+			"/api/v1/webhook_endpoints": {"get": invoiceOperation("listInvoiceNinjaWebhooks", "List webhook endpoints", params(query("per_page", "Page size.")), "", "#/components/schemas/InvoiceNinjaCollection"), "post": invoiceOperation("createInvoiceNinjaWebhook", "Create webhook endpoint", nil, "#/components/schemas/InvoiceNinjaObject", "#/components/schemas/InvoiceNinjaObject")},
 		},
 	}
 }
@@ -125,25 +130,37 @@ func erpnextOverlay() overlaySpec {
 	security := map[string]map[string]any{
 		"frappeToken": {"type": "apiKey", "in": "header", "name": "Authorization", "description": "Frappe/ERPNext API key and secret carried in the Authorization header using the token scheme."},
 	}
+	currentUser := op("getERPNextCurrentUser", "Get the authenticated Frappe user", nil, "", "", "frappeToken")
+	currentUser["responses"] = map[string]any{
+		"200": map[string]any{
+			"description": "The authenticated Frappe user.",
+			"content": map[string]any{"application/json": map[string]any{"schema": map[string]any{
+				"type": "object", "required": []string{"message"},
+				"properties": map[string]any{"message": map[string]any{"type": "string", "description": "Username of the authenticated user."}},
+			}}},
+		},
+		"default": map[string]any{"description": "Provider error response."},
+	}
 	return overlaySpec{
 		ProviderID:  "erpnext",
 		Title:       "ERPNext Frappe REST API Advisory Overlay",
 		Description: "Advisory OpenAPI overlay derived from official ERPNext and Frappe REST API human documentation. This is not an official ERPNext OpenAPI document.",
 		ServerURL:   "https://{site}",
-		Sources:     []string{"https://docs.frappe.io/erpnext/rest-api", "https://docs.frappe.io/framework/user/en/api/rest", "https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication"},
-		SourceNote:  "ERPNext uses Frappe REST API human documentation but no recorded stable public official OpenAPI document; this overlay covers selected generic resource and common ERP DocType endpoints.",
+		Sources:     []string{"https://docs.frappe.io/erpnext/rest-api", "https://docs.frappe.io/framework/user/en/api/rest", "https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication", "https://docs.frappe.io/framework/user/en/api/rest#remote-method-calls"},
+		SourceNote:  "ERPNext uses Frappe REST API human documentation with no recorded stable public official OpenAPI document. This token-auth subset covers selected generic resources, common ERP DocTypes, and whitelisted methods including the current-user lookup.",
 		Security:    security,
 		Schemas:     []string{"ERPNextObject", "ERPNextCollection", "ERPNextError"},
 		OutputPath:  "catalog-openapi-cache/advisory-overlays/erpnext-rest-api-overlay.json",
 		Paths: map[string]map[string]any{
-			"/api/resource/{doctype}":        {"get": op("listERPNextResources", "List DocType records", params(path("doctype", "ERPNext DocType name."), query("fields", "JSON field list."), query("filters", "JSON filters.")), "", "#/components/schemas/ERPNextCollection", "frappeToken"), "post": op("createERPNextResource", "Create DocType record", params(path("doctype", "ERPNext DocType name.")), "#/components/schemas/ERPNextObject", "#/components/schemas/ERPNextObject", "frappeToken")},
-			"/api/resource/{doctype}/{name}": {"get": op("getERPNextResource", "Get DocType record", params(path("doctype", "ERPNext DocType name."), path("name", "Record name.")), "", "#/components/schemas/ERPNextObject", "frappeToken"), "put": op("updateERPNextResource", "Update DocType record", params(path("doctype", "ERPNext DocType name."), path("name", "Record name.")), "#/components/schemas/ERPNextObject", "#/components/schemas/ERPNextObject", "frappeToken"), "delete": op("deleteERPNextResource", "Delete DocType record", params(path("doctype", "ERPNext DocType name."), path("name", "Record name.")), "", "", "frappeToken")},
-			"/api/resource/Item":             {"get": op("listERPNextItems", "List items", nil, "", "#/components/schemas/ERPNextCollection", "frappeToken")},
-			"/api/resource/Customer":         {"get": op("listERPNextCustomers", "List customers", nil, "", "#/components/schemas/ERPNextCollection", "frappeToken")},
-			"/api/resource/Supplier":         {"get": op("listERPNextSuppliers", "List suppliers", nil, "", "#/components/schemas/ERPNextCollection", "frappeToken")},
-			"/api/resource/Sales Order":      {"get": op("listERPNextSalesOrders", "List sales orders", nil, "", "#/components/schemas/ERPNextCollection", "frappeToken")},
-			"/api/resource/Sales Invoice":    {"get": op("listERPNextSalesInvoices", "List sales invoices", nil, "", "#/components/schemas/ERPNextCollection", "frappeToken")},
-			"/api/method/{method}":           {"post": op("callERPNextMethod", "Call whitelisted method", params(path("method", "Frappe whitelisted method path.")), "#/components/schemas/ERPNextObject", "#/components/schemas/ERPNextObject", "frappeToken")},
+			"/api/method/frappe.auth.get_logged_user": {"get": currentUser},
+			"/api/resource/{doctype}":                 {"get": op("listERPNextResources", "List DocType records", params(path("doctype", "ERPNext DocType name."), query("fields", "JSON field list."), query("filters", "JSON filters.")), "", "#/components/schemas/ERPNextCollection", "frappeToken"), "post": op("createERPNextResource", "Create DocType record", params(path("doctype", "ERPNext DocType name.")), "#/components/schemas/ERPNextObject", "#/components/schemas/ERPNextObject", "frappeToken")},
+			"/api/resource/{doctype}/{name}":          {"get": op("getERPNextResource", "Get DocType record", params(path("doctype", "ERPNext DocType name."), path("name", "Record name.")), "", "#/components/schemas/ERPNextObject", "frappeToken"), "put": op("updateERPNextResource", "Update DocType record", params(path("doctype", "ERPNext DocType name."), path("name", "Record name.")), "#/components/schemas/ERPNextObject", "#/components/schemas/ERPNextObject", "frappeToken"), "delete": op("deleteERPNextResource", "Delete DocType record", params(path("doctype", "ERPNext DocType name."), path("name", "Record name.")), "", "", "frappeToken")},
+			"/api/resource/Item":                      {"get": op("listERPNextItems", "List items", nil, "", "#/components/schemas/ERPNextCollection", "frappeToken")},
+			"/api/resource/Customer":                  {"get": op("listERPNextCustomers", "List customers", nil, "", "#/components/schemas/ERPNextCollection", "frappeToken")},
+			"/api/resource/Supplier":                  {"get": op("listERPNextSuppliers", "List suppliers", nil, "", "#/components/schemas/ERPNextCollection", "frappeToken")},
+			"/api/resource/Sales Order":               {"get": op("listERPNextSalesOrders", "List sales orders", nil, "", "#/components/schemas/ERPNextCollection", "frappeToken")},
+			"/api/resource/Sales Invoice":             {"get": op("listERPNextSalesInvoices", "List sales invoices", nil, "", "#/components/schemas/ERPNextCollection", "frappeToken")},
+			"/api/method/{method}":                    {"post": op("callERPNextMethod", "Call whitelisted method", params(path("method", "Frappe whitelisted method path.")), "#/components/schemas/ERPNextObject", "#/components/schemas/ERPNextObject", "frappeToken")},
 		},
 	}
 }

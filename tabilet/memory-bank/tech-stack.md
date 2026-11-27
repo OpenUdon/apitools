@@ -322,6 +322,13 @@ module dependency is used. The offline operation index command is delivered by M
 | Memory-bank API runner | `../skills/harness/tackle-memory-bank-api-loop .` | Discovers every canonical lane file and either reports no actionable rows without an API call or selects work across lanes using the milestone priority. | Python 3 and `LLM_MODEL`; API credentials and explicit host-shell acknowledgement only when actionable work is executed. |
 | Patch check | `git diff --check` | No whitespace errors. | Git. |
 
+When editing `catalog/data/catalog.json`, build `cmd/cataloggen` from the
+last checkout with matching catalog bytes and manifest. Run that binary with
+`-root` pointing to the edited checkout, then run `go run ./cmd/cataloggen
+-check` there. The generator's catalog dependency validates its embedded
+bytes during initialization, so the edited checkout can launch the generator
+after its manifest has been refreshed.
+
 ## Verification and testing standards
 
 The [catalog site](../../docs/catalog-site.md) uses Go 1.26.6 and standard

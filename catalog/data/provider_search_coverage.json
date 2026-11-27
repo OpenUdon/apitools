@@ -1728,13 +1728,17 @@
   },
   {
     "provider_id": "erpnext",
-    "spec_ref_id": "erpnext-rest-api-docs",
+    "spec_ref_id": "frappe-rest-api-docs",
     "artifact_id": "erpnext-rest-api-overlay",
-    "sha256": "24484d265a375270aff64254ac893a54139a24edb0fdb1415a10f893cd31bd9f",
+    "sha256": "d332cc86fc9eaf29de3a2428191dd00f1263e2ef53f71d6c31e54c59e3699994",
     "operations": [
       {
         "label": "Call whitelisted method",
         "selector": "#/paths/~1api~1method~1{method}/post"
+      },
+      {
+        "label": "Get the authenticated Frappe user",
+        "selector": "#/paths/~1api~1method~1frappe.auth.get_logged_user/get"
       },
       {
         "label": "List customers",
@@ -3200,7 +3204,7 @@
     "provider_id": "invoice-ninja",
     "spec_ref_id": "invoice-ninja-api-docs",
     "artifact_id": "invoice-ninja-api-overlay",
-    "sha256": "b479cbd123f41a3db401ada5e16fd9c2a0556005407b7a7a1e608355277357bf",
+    "sha256": "4102b493a2f6746c4db88bc7e55d0c37cd0c73ed6dd8f2003c13f084d10c9bc0",
     "operations": [
       {
         "label": "List clients",

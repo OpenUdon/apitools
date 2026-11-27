@@ -9,7 +9,7 @@
 | --- | --- | --- |
 | C14.1 — Reconcile the 30 cases offline | `[+]` | Start with Emelia and Orbit, the two docs-only entries. Reconcile the original failure and current references, checked-in endpoint overlays, and recorded source gaps. Identify official pages and publisher-owned repositories for the supervised recheck. Check toolchain and configured cache readiness, and prepare the exact scope, supervision, bounds, and stop conditions for approval. |
 | C14.2 — Supervised publisher recheck | `[+]` | After C14.1 and explicit Class R approval, run one supervised recheck within the approved scope. Seek replacement documentation and official machine-readable specs. Prefer stable source links. Retain needed bytes in the configured cache and defer spec downloads when the trustworthy size is unknown or exceeds 1,000,000,000 bytes. Save each provider's checked sources, time, outcome, and provenance. |
-| C14.3 — Qualify sources and record dispositions | `[ ]` | Fixes FND-04. Validate replacement specs and reproduce a representative operation offline before adoption. Refresh a checked-in endpoint overlay and its builder where official evidence supports a revised subset. Check applicable authentication evidence. Record a disposition for each of the 30 providers, identify any remaining gap by provider, run catalog and whole-unit checks, and reconcile FND-04 at closure. |
+| C14.3 — Qualify sources and record dispositions | `[+]` | Fixes FND-04. Validate replacement specs and reproduce a representative operation offline before adoption. Refresh a checked-in endpoint overlay and its builder where official evidence supports a revised subset. Check applicable authentication evidence. Record a disposition for each of the 30 providers, identify any remaining gap by provider, run catalog and whole-unit checks, and reconcile FND-04 at closure. |
 
 ## Approved scope
 
@@ -136,6 +136,87 @@ reviewed base was `adef848004a0c0f7ce626a446ebd159cf60c9e3c`, with initial
 `191602776447a7989cdca0645d0945bd01ecb8279aa034ce51ce39e236d60660`
 and corrected [diff](../../dist/c14-source-recheck/c14.2-jGNDPf/review-followup.diff)
 SHA-256 `e17b1cce8d880af6b9165c24ef7bb1d35f7926fd771dbb9061493bcf1489c55e`.
+
+## C14.3 offline qualification
+
+The owner selected C14.3 via `memory-bank-next` on 2026-11-27. The
+starting checkout is `6699ba78dae56144b9cab3847d962b0f6ce435c7` with a clean tracked tree. This row uses
+the repository [test policy](test-policy.md) and retained publisher evidence.
+The supervised C14.2 approval is consumed.
+
+Offline focused operation inventories reported the missing ERPNext current-user
+route and the missing Invoice Ninja fixed request header before the changes.
+Both checks passed after regenerating the two overlays. A baseline-built
+`cataloggen` regenerated the identity files after the ordinary generator refused
+the mismatched edited catalog bytes during initialization.
+[Before](../../dist/c14-source-recheck/c14.3-ZwFOxp/focused-before.log).
+[After](../../dist/c14-source-recheck/c14.3-ZwFOxp/focused-after.log).
+
+Required offline gate `c14.3-offline-a1` started from the exact base above and
+[implementation delta](../../dist/c14-source-recheck/c14.3-ZwFOxp/qualification-input.diff)
+SHA-256 `67d90c948a26f799b23fc2c01189f4f73152f028631dc919314d74b7916876b0`.
+The disposable checkout runs the Go build, vet, fresh whole suite with the
+loopback Chromium fixture, builder reproducibility, generator freshness,
+catalog quality, CLI smoke and whitespace checks. The default required-gate
+limit is 3 per failing key, with no failing key charged at start.
+
+Gate `c14.3-offline-a1` failed `go test -v -count=1 ./...` on
+`catalog.TestProviderSearchAdvisoryOperationPins/erpnext-rest-api-overlay`
+and `catalog.TestProviderSearchAdvisoryOperationPins/invoice-ninja-api-overlay`.
+Both are the same signature at `catalog/search_profiles_test.go:181`, an
+advisory artifact digest mismatch with the pinned search coverage metadata.
+Each key has 1 charged attempt and 2 remaining. The new overlay bytes must
+be pinned in the search profiles too. Both targeted pin checks passed after
+updating the digests and adding the new ERPNext selector.
+[Failed gate](../../dist/c14-source-recheck/c14.3-ZwFOxp/offline.log).
+[Search pin checks](../../dist/c14-source-recheck/c14.3-ZwFOxp/search-pins-after.log).
+
+Required offline gate `c14.3-offline-a2` started on the same base and command
+set with [the corrected delta](../../dist/c14-source-recheck/c14.3-ZwFOxp/qualification-final-input.diff),
+SHA-256 `05c04cab1dd650c69ccb74dfb07e7358eb7cba77d826f5b3b3a9107a689da6c5`.
+The corrected delta also checks the Invoice Ninja header's singleton OpenAPI
+enum as well as the required inventory parameter.
+
+Gate `c14.3-offline-a2` passed on its frozen inputs, including the two pin
+checks and the loopback browser fixture. Task review then identified stale
+ERPNext public provenance and a missing Formstack registry lead. The ERPNext
+advisory registration and search profile now point to the verified Frappe REST
+reference. Provider, artifact and catalog reference identifiers are preserved.
+The disposition distinguishes Formstack 2.0's `rest-api.json` registry entry
+from the 2025.0 lead and retains both as unqualified.
+[Passing intermediate gate](../../dist/c14-source-recheck/c14.3-ZwFOxp/offline-a2.log).
+
+Required offline gate `c14.3-offline-a3` started with the same base and command
+set on [the reviewed delta](../../dist/c14-source-recheck/c14.3-ZwFOxp/qualification-reviewed-input.diff),
+SHA-256 `cad630182f39bf172936c6e0ca97ef8556f0dd57fa3c10d826a0e7ed010a0697`.
+
+Gate `c14.3-offline-a3` passed in 64 seconds on the exact reviewed inputs.
+Both overlays reproduced byte for byte from the builder. Go 1.26.6
+build, vet, fresh whole-module tests with the loopback browser fixture,
+generator freshness, catalog quality, CLI smoke and whitespace checks passed.
+[Final gate](../../dist/c14-source-recheck/c14.3-ZwFOxp/offline-a3.log)
+SHA-256 `e12c28334f7f417527de82a0bec6642963e8d6836462364f3f21331b84b5856b`.
+
+The [30 offline dispositions](../../docs/catalog-source-recheck-c14-results.md#offline-source-qualification)
+refresh ERPNext and Invoice Ninja, preserve the other 26 advisory overlays,
+and preserve the docs-only decisions for Emelia and Orbit. All provider IDs
+match the C07 cohort. Native adoption did not apply because no standalone
+replacement qualified. Formstack and Todoist remain source leads. The
+[local publisher facts](../../dist/c14-source-recheck/c14.3-ZwFOxp/publisher-facts.txt)
+bind the qualifying source bodies and give the auth and operation evidence.
+
+FND-04 originated in [C07](../docs/history/status-C07.md#status-record)
+whole review 1 F2 and was deferred in [C13](../docs/history/status-C13.md#status-record).
+C14.3 fixes the follow-up evidence gap through the supervised source recheck,
+two source-backed corrections, and explicit dispositions for every provider.
+The report preserves the provider-level gaps for future qualification.
+
+Independent GPT-6.2 Astra xhigh task review passed the final delta above
+against base `6699ba78dae56144b9cab3847d962b0f6ce435c7`. The stale search pins,
+fixed-header enum coverage, ERPNext provenance and Formstack version evidence
+were corrected. The reviewer matched all 30 cases to C07, rehashed all 19
+retained source bodies, checked the source claims, and confirmed the final
+offline gate. No findings remain for the task.
 
 ## Review
 

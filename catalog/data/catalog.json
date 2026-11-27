@@ -11566,16 +11566,16 @@
           "kind": "human-docs",
           "url": "https://docs.frappe.io/framework/user/en/api/rest",
           "source_authority": "official-docs",
-          "verified_at": "2026-05-19",
+          "verified_at": "2026-11-27",
           "license_note": "Provider documentation terms apply.",
-          "source_note": "Official Frappe Framework REST API documentation used by ERPNext."
+          "source_note": "Official Frappe Framework REST API documentation used by ERPNext, including the authenticated current-user lookup."
         },
         {
           "id": "frappe-token-auth-docs",
           "kind": "human-docs",
           "url": "https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication",
           "source_authority": "official-docs",
-          "verified_at": "2026-05-19",
+          "verified_at": "2026-11-27",
           "license_note": "Provider documentation terms apply.",
           "source_note": "Official Frappe token-based authentication documentation."
         }
@@ -14411,9 +14411,9 @@
           "kind": "human-docs",
           "url": "https://invoiceninja.github.io/docs/developer-guide",
           "source_authority": "official-docs",
-          "verified_at": "2026-05-19",
+          "verified_at": "2026-11-27",
           "license_note": "Provider documentation terms apply.",
-          "source_note": "Official Invoice Ninja developer guide, including API definition and authentication notes."
+          "source_note": "Official Invoice Ninja developer guide with v5 API-token and required fixed X-Requested-With header documentation."
         },
         {
           "id": "invoice-ninja-api-reference-docs",
@@ -14427,7 +14427,7 @@
       ],
       "quirks": [
         "M28 review found official OpenAPI-rendered Invoice Ninja API documentation but did not find a stable public standalone downloadable OpenAPI URL for catalog refresh.",
-        "Invoice Ninja can be hosted by Invoice Ninja or self-hosted; apitools records variable-host and X-API-TOKEN metadata only and does not choose tenant hosts or tokens."
+        "Invoice Ninja can be hosted by Invoice Ninja or self-hosted. The reviewed subset describes the variable host, X-API-TOKEN security requirement, and fixed X-Requested-With header. Tenant host and token selection remain caller-owned."
       ]
     },
     {
@@ -30925,9 +30925,10 @@
       ],
       "source_refs": [
         "https://api-docs.invoicing.co/",
-        "https://invoiceninja.github.io/docs/developer-guide"
+        "https://invoiceninja.github.io/docs/developer-guide",
+        "https://invoiceninja.github.io/docs/developer-guide#api-headers"
       ],
-      "source_note": "Invoice Ninja has official OpenAPI-rendered human API docs but no recorded stable standalone downloadable OpenAPI document; X-API-TOKEN metadata comes from advisory overlay notes."
+      "source_note": "The developer guide documents X-API-TOKEN for the reviewed v5 route subset. Its fixed X-Requested-With request header is represented as an ordinary operation parameter in the endpoint overlay. The optional API secret applies to the login route outside this subset."
     },
     {
       "id": "iterable-api-auth-overlay",

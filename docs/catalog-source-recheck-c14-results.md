@@ -15,7 +15,8 @@ link to preflight, so it issued no HEAD requests and downloaded no specs.
 Offline inspection of the captured Formstack overview found the filename
 `api2025-openapi.yaml` in page metadata. A stable download URL and its size
 remain unverified. The catalog's source and overlay decisions are pending
-C14.3 qualification.
+C14.3 qualification at the end of the live run. See the
+[offline dispositions](#offline-source-qualification) for the result.
 
 The [local event journal](../dist/c14-source-recheck/c14.2-jGNDPf/evidence/events.jsonl)
 records each seed or followed hop, UTC time, status or failure, publisher
@@ -91,3 +92,62 @@ Multiple objects for the same provider appear in journal order.
 | `reddit` | 89140 | `de1b8fb851ea8991c3cb3bd6a62c7902ea7d459c922e960b342b8cb9d05111e2` |
 | `reddit` | 301524 | `3c47aadb2fc740c8b224216210eeba9fc81001f8cfbe5c89b38a11673155b6a4` |
 | `salesmate` | 40874 | `88f739017c512fe6592fceb4a58169887f93205c309ce8152d7ee0bd1ea3afb8` |
+
+## Offline source qualification
+
+The offline review refreshed two advisory overlays, retained 26 other
+advisory overlays, and retained the two docs-only entries. The retained
+publisher material supported a new ERPNext operation and a request-header
+correction for Invoice Ninja. It supplied no standalone machine-readable
+replacement for native validation or publication. Provider and source IDs
+stay stable. Dates advance only on the Frappe REST and token-auth references
+and the Invoice Ninja developer guide used for these changes.
+
+- **ERPNext.** The captured Frappe REST docs show `GET
+  /api/method/frappe.auth.get_logged_user`, the `Authorization` header with a
+  `token api_key:api_secret` value, and a successful JSON object containing a
+  `message` string. The overlay represents that read-only operation and its
+  token-auth requirement. OAuth and cookie-session paths remain outside this
+  token-auth subset. The advisory registration and search profile link to
+  the verified Frappe REST reference. [Operation](https://docs.frappe.io/framework/user/en/api/rest#remote-method-calls).
+  [Token authentication](https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication).
+- **Invoice Ninja.** The captured developer guide requires
+  `X-Requested-With: XMLHttpRequest` for API requests. The advisory overlay
+  models it as a required fixed-value header parameter alongside the existing
+  `X-API-TOKEN` security requirement. The optional `X-API-SECRET` applies
+  to `/api/v1/login`, outside the reviewed routes. The multipart invoice-upload
+  example leaves the full upload operation contract unqualified.
+  [Required headers](https://invoiceninja.github.io/docs/developer-guide#api-headers).
+
+| Provider | Disposition | Remaining evidence gap |
+| --- | --- | --- |
+| `emelia` | Retain docs-only. The GraphQL reference did not resolve. | Find a publisher schema or operation-level GraphQL documentation. A generic POST wrapper would hide the operation shape. |
+| `orbit` | Retain historical docs-only and auth metadata. | The shutdown notice could not be read again and the historical redirect points to an unqualified API origin. Fresh lifecycle corroboration is missing. |
+| `aftership` | Retain overlay. | HTTP 403 left the tracking endpoint and auth documents unverified by this run. |
+| `agile-crm` | Retain overlay. The publisher repo landing page corroborates ownership of the REST docs. | The landing capture showed an unloaded README and the publisher API page returned 403. Endpoint and Basic auth details need readable source content. |
+| `aircall` | Retain overlay. | The redirected publisher host needs source and path qualification. |
+| `autopilot` | Retain overlay. Ortto help confirms the legacy Autopilot Journeys integration. | The Apiary shell lacks raw operation and API-key requirements. Ortto's current API is separate from the legacy surface under review. |
+| `clearbit` | Retain overlay. | HubSpot-era service availability, operations and auth could not be scoped from the tracked help paths returning 403. |
+| `clockify` | Retain overlay. The help article corroborates the API and API-key guidance. | The full reference exceeded 3 MiB. Its operation contracts and token alternatives remain unqualified here. |
+| `cockpit` | Retain overlay. The core index links to API introduction, authentication, content and assets pages. | The specific `/documentation/core/api` returned 404. The linked child pages remain unfetched. |
+| `contentful` | Retain overlay. | The origin returned 429, so this run deferred the remaining auth and management sources. |
+| `demio` | Retain overlay. Publisher support confirms API rate limits and custom-field identifiers. | The Apiary reference timed out. The retained support page gives no sufficient route or API-key/secret contract for an overlay change. |
+| `erpnext` | Refresh overlay. Index the authenticated read-only current-user route and `message` response. | The alternate ERPNext path returned 404. The revised operation is sourced to the Frappe REST docs. Site-specific DocType and broader auth coverage remain outside the reviewed subset. |
+| `eventbrite` | Retain overlay. | The same-host redirect target remains unread and unqualified for endpoint and auth changes. |
+| `flow` | Retain overlay. | The developer host did not resolve for any tracked path. Replacement docs and service lifecycle evidence are missing. |
+| `formstack` | Retain overlay. The overview corroborates OAuth bearer authentication for Forms API v2. | The 2.0 branch metadata lists `rest-api.json` at the relative registry URI `/branches/2.0/apis/rest-api.json`. The 2025.0 branch separately lists `api2025-openapi.yaml`. The retained 2.0 metadata gives no sync URL or native schema body. Both leads still need stable download URLs, size checks and compatibility review. |
+| `freshdesk` | Retain overlay. | The canonical developer reference exceeded the cap and the support redirect remains unqualified. |
+| `freshservice` | Retain overlay. Official support corroborates the v2 migration and API-key authentication. | The full v2 contracts exceeded the cap. The articles alone leave response schemas and operation coverage unqualified. |
+| `home-assistant` | Retain overlay. | The redirect to the contributor docs needs publisher path, endpoint and auth verification. |
+| `invoice-ninja` | Refresh overlay. Record the required fixed-value request header alongside the API token. | The primary rendered definition reached the cap. A bounded standalone definition or additional operation contract is still needed. |
+| `mailjet` | Retain overlay. The publisher repo confirms ownership of the API guides. | The landing page and blocked support sources leave endpoint and Basic auth details unqualified in this run. |
+| `mautic` | Retain OAuth bearer overlay. The captured knowledge-base article documents OAuth 2 and a separately enabled Basic-auth option. | The main developer reference moved. The scope and applicability of Basic auth across current deployments and reviewed operations remain unqualified. |
+| `monica-crm` | Retain overlay. | The tracked docs returned 404. A replacement publisher reference is missing. |
+| `profitwell` | Retain overlay. The Apiary shell identifies the v2 API. | The shell lacks endpoint and auth definitions. The v1 redirect and current lifecycle remain unqualified. |
+| `reddit` | Retain overlay. The retained OAuth operation reference confirms the existing current-user route and its `identity` scope. | The overlay still describes bearer transport. Complete operation-specific scopes and authorization flow metadata need separate qualification for the reviewed subset. |
+| `salesmate` | Retain overlay. The public reference returned a rendered shell. | The capture lacks operation and dual-header details. The two supporting articles were blocked. |
+| `splunk` | Retain overlay. | The Splunk Enterprise REST files were blocked. The ACS OpenAPI page's redirect is unqualified and does not establish Enterprise REST coverage. |
+| `tapfiliate` | Retain overlay. | The redirected publisher origin needs a bounded source check. |
+| `todoist` | Retain existing v2 overlay. | Both seeds point to `/api/v1/` on the developer docs host. The deferred target's contents and migration implications are unverified. |
+| `twake` | Retain overlay. | Transport failures left the docs and auth contract unread. |
+| `wufoo` | Retain overlay. | The new publisher origin needs a bounded source check before an endpoint or auth update. |

@@ -36,6 +36,18 @@
         "operationId": "listInvoiceNinjaClients",
         "parameters": [
           {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "description": "Page size.",
             "in": "query",
             "name": "per_page",
@@ -70,6 +82,20 @@
       "post": {
         "description": "Advisory operation derived from official human API documentation.",
         "operationId": "createInvoiceNinjaClient",
+        "parameters": [
+          {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -109,6 +135,18 @@
         "operationId": "getInvoiceNinjaClient",
         "parameters": [
           {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "description": "Client ID.",
             "in": "path",
             "name": "id",
@@ -144,6 +182,18 @@
         "description": "Advisory operation derived from official human API documentation.",
         "operationId": "updateInvoiceNinjaClient",
         "parameters": [
+          {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          },
           {
             "description": "Client ID.",
             "in": "path",
@@ -193,6 +243,18 @@
         "operationId": "listInvoiceNinjaInvoices",
         "parameters": [
           {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "description": "Page size.",
             "in": "query",
             "name": "per_page",
@@ -227,6 +289,20 @@
       "post": {
         "description": "Advisory operation derived from official human API documentation.",
         "operationId": "createInvoiceNinjaInvoice",
+        "parameters": [
+          {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -266,6 +342,18 @@
         "operationId": "listInvoiceNinjaPayments",
         "parameters": [
           {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "description": "Page size.",
             "in": "query",
             "name": "per_page",
@@ -300,6 +388,20 @@
       "post": {
         "description": "Advisory operation derived from official human API documentation.",
         "operationId": "createInvoiceNinjaPayment",
+        "parameters": [
+          {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -339,6 +441,18 @@
         "operationId": "listInvoiceNinjaProducts",
         "parameters": [
           {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "description": "Page size.",
             "in": "query",
             "name": "per_page",
@@ -373,6 +487,20 @@
       "post": {
         "description": "Advisory operation derived from official human API documentation.",
         "operationId": "createInvoiceNinjaProduct",
+        "parameters": [
+          {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -412,6 +540,18 @@
         "operationId": "listInvoiceNinjaProjects",
         "parameters": [
           {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "description": "Page size.",
             "in": "query",
             "name": "per_page",
@@ -450,6 +590,18 @@
         "operationId": "listInvoiceNinjaQuotes",
         "parameters": [
           {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "description": "Page size.",
             "in": "query",
             "name": "per_page",
@@ -484,6 +636,20 @@
       "post": {
         "description": "Advisory operation derived from official human API documentation.",
         "operationId": "createInvoiceNinjaQuote",
+        "parameters": [
+          {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -523,6 +689,18 @@
         "operationId": "listInvoiceNinjaVendors",
         "parameters": [
           {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "description": "Page size.",
             "in": "query",
             "name": "per_page",
@@ -561,6 +739,18 @@
         "operationId": "listInvoiceNinjaWebhooks",
         "parameters": [
           {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "description": "Page size.",
             "in": "query",
             "name": "per_page",
@@ -595,6 +785,20 @@
       "post": {
         "description": "Advisory operation derived from official human API documentation.",
         "operationId": "createInvoiceNinjaWebhook",
+        "parameters": [
+          {
+            "description": "Required by Invoice Ninja v5. Use the fixed value XMLHttpRequest.",
+            "in": "header",
+            "name": "X-Requested-With",
+            "required": true,
+            "schema": {
+              "enum": [
+                "XMLHttpRequest"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -638,10 +842,11 @@
     "derived_from_docs": true,
     "official_openapi": false,
     "provider_id": "invoice-ninja",
-    "source_note": "Invoice Ninja publishes OpenAPI-rendered human API documentation but no recorded stable standalone downloadable OpenAPI document; this overlay covers selected clients, invoices, quotes, payments, products, projects, vendors, and webhooks.",
+    "source_note": "Invoice Ninja publishes OpenAPI-rendered human API documentation with no recorded stable standalone download. This subset of v5 operations requires an API token and the fixed X-Requested-With header. The optional login-only API secret is outside the subset.",
     "source_refs": [
       "https://api-docs.invoicing.co/",
       "https://invoiceninja.github.io/docs/developer-guide",
+      "https://invoiceninja.github.io/docs/developer-guide#api-headers",
       "https://invoiceninja.github.io/docs/api-reference/invoice-ninja-api-reference"
     ]
   }
